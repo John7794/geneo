@@ -1,0 +1,303 @@
+/* ./styles/components/interaction/breadcrumbs.css */
+
+/* ==========================================
+   1. КОНТЕЙНЕР ТА ЕЛЕМЕНТИ ЛАНЦЮЖКА
+   ========================================== */
+.breadcrumb-item {
+	display: flex;
+	align-items: center;
+}
+
+.breadcrumbs__item-wrapper {
+	display: flex;
+	align-items: center;
+	position: relative;
+}
+
+/* Розділювач між елементами (напр. " / " або ">") */
+.breadcrumbs__separator {
+	color: var(--color-text-meta);
+	margin: 0 var(--spacing-sm);
+	font-size: var(--font-size-sm);
+	user-select: none;
+	display: flex;
+	align-items: center;
+}
+
+/* ==========================================
+   2. ПОСИЛАННЯ ХЛІБНИХ КРИХТ
+   ========================================== */
+.breadcrumbs__link {
+	font-size: var(--font-size-sm);
+	font-weight: 500;
+	color: var(--color-text-muted);
+	text-decoration: none;
+	padding: var(--spacing-xs) var(--spacing-sm);
+	border-radius: var(--radius-sm);
+	transition:
+		background-color var(--transition-fast),
+		color var(--transition-fast);
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.breadcrumbs__link:hover,
+.breadcrumbs__link:focus-visible {
+	background-color: var(--color-bg-hover);
+	color: var(--color-text-main);
+}
+
+/* Активна крихта (поточна сторінка/персона) */
+.breadcrumbs__link--active {
+	font-weight: 600;
+	color: var(--color-text-main);
+	background-color: var(--color-primary-light);
+	pointer-events: none;
+}
+
+/* ==========================================
+   3. ВИПАДАЮЧЕ МЕНЮ (DROPDOWN TRIGGER)
+   ========================================== */
+.breadcrumbs__dropdown-trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	padding: var(--spacing-xs) var(--spacing-sm);
+	border-radius: var(--radius-sm);
+	color: var(--color-text-muted);
+	transition: background-color var(--transition-fast);
+}
+
+.breadcrumbs__dropdown-trigger:hover,
+.breadcrumbs__dropdown-trigger:focus-visible {
+	background-color: var(--color-bg-hover);
+	color: var(--color-text-main);
+}
+
+.dropdown-trigger__index {
+	font-size: var(--font-size-xs);
+	font-weight: 700;
+	background-color: var(--color-border);
+	color: var(--color-text-main);
+	padding: 2px 6px;
+	border-radius: var(--radius-full);
+}
+
+.dropdown-trigger__icon {
+	font-size: var(--font-size-sm);
+	color: inherit;
+}
+
+/* ==========================================
+   4. ВМІСТ ВИПАДАЮЧОГО МЕНЮ
+   ========================================== */
+.breadcrumbs__dropdown-menu {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	min-width: 220px;
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-lg);
+	padding: var(--spacing-xs) 0;
+	margin-top: var(--spacing-xs);
+	z-index: var(--z-index-dropdown);
+	display: flex;
+	flex-direction: column;
+
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(-5px);
+	transition:
+		opacity var(--transition-fast),
+		transform var(--transition-fast),
+		visibility var(--transition-fast);
+}
+
+.breadcrumbs__dropdown-menu.show {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+}
+
+.breadcrumbs__dropdown-item {
+	padding: var(--spacing-sm) var(--spacing-md);
+	font-size: var(--font-size-sm);
+	color: var(--color-text-main);
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color var(--transition-fast);
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	border: none;
+	background: none;
+	width: 100%;
+	text-align: left;
+}
+
+.breadcrumbs__dropdown-item:hover,
+.breadcrumbs__dropdown-item:focus-visible {
+	background-color: var(--color-bg-hover);
+	color: var(--color-primary);
+}
+
+/* ==========================================
+   АДАПТАЦІЯ ДЛЯ МOБІЛЬНИХ ПРИСТРОЇВ (BOTTOM SHEET)
+   ========================================== */
+@media (max-width: 767px) {
+	.breadcrumbs__dropdown-menu {
+		position: fixed;
+		top: auto;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		min-width: 100%;
+		margin: 0;
+		border-radius: var(--radius-xlg) var(--radius-xlg) 0 0;
+		padding: var(--spacing-lg) 0 var(--spacing-xl) 0; /* Більше простору знизу */
+		box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+		border: none;
+
+		/* Анімація виїзду знизу */
+		transform: translateY(100%);
+	}
+
+	.breadcrumbs__dropdown-menu.show {
+		transform: translateY(0);
+	}
+
+	.breadcrumbs__dropdown-item {
+		padding: var(--spacing-md) var(--spacing-xl);
+		font-size: var(
+			--font-size-base
+		); /* Збільшений шрифт для Touch-інтерфейсу */
+		justify-content: flex-start;
+		border-bottom: 1px solid var(--color-border-light);
+	}
+
+	.breadcrumbs__dropdown-item:last-child {
+		border-bottom: none;
+	}
+}
+
+.breadcrumbs__list {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	white-space: nowrap;
+	overflow-x: auto;
+}
+
+.breadcrumbs__list::-webkit-scrollbar {
+	height: 4px;
+}
+.breadcrumbs__list::-webkit-scrollbar-thumb {
+	background-color: var(--color-border);
+	border-radius: 4px;
+}
+
+.breadcrumbs-wrapper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	height: 50px;
+	box-sizing: border-box;
+
+	z-index: 1000;
+
+	background-color: var(--color-bg-card);
+	border-bottom: 1px solid var(--color-border);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+	border-radius: 0;
+
+	padding: 8px 24px;
+}
+
+.breadcrumbs-wrapper.hidden {
+	display: none !important;
+}
+
+.breadcrumbs-tab-btn {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	font-family: inherit;
+	font-size: inherit;
+}
+.breadcrumbs-tab-btn[aria-current="page"] {
+	cursor: default;
+}
+/* ==========================================
+   5. ОВЕРЛЕЙ (ФОН ДЛЯ ПОПАПІВ)
+   ========================================== */
+.breadcrumbs__overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0, 0, 0, 0.4);
+	backdrop-filter: blur(2px);
+	z-index: 9998;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity var(--transition-fast);
+}
+
+.breadcrumbs__overlay.show {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Блокування скролу сторінки */
+body.no-scroll {
+	overflow: hidden;
+}
+
+/* ==========================================
+   АДАПТАЦІЯ ДЛЯ МOБІЛЬНИХ ПРИСТРОЇВ (ЦЕНТРОВАНИЙ ПОПАП)
+   ========================================== */
+@media (max-width: 767px) {
+	.breadcrumbs__dropdown-menu {
+		position: fixed !important; /* Перебиваємо JS стилі !important */
+		top: 50% !important;
+		left: 50% !important;
+		bottom: auto !important;
+		width: 90% !important;
+		max-width: 320px;
+		margin: 0 !important;
+
+		/* Відцентрування екрану та початковий стан для анімації (zoom-in) */
+		transform: translate(-50%, -50%) scale(0.95) !important;
+
+		border-radius: var(--radius-lg) !important;
+		padding: var(--spacing-sm) 0 !important;
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+		border: none;
+	}
+
+	.breadcrumbs__dropdown-menu.show {
+		transform: translate(-50%, -50%) scale(1) !important;
+	}
+
+	.breadcrumbs__dropdown-item {
+		padding: var(--spacing-md) var(--spacing-xl);
+		font-size: var(--font-size-base); /* Збільшений комфортний шрифт */
+		justify-content: center; /* Центруємо текст всередині кнопки */
+		text-align: center;
+		border-bottom: 1px solid var(--color-border-light);
+	}
+
+	.breadcrumbs__dropdown-item:last-child {
+		border-bottom: none;
+	}
+}

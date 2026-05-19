@@ -1,0 +1,70 @@
+/* css/components/interaction/navigation.css */
+
+.nav-arrow {
+	position: fixed;
+	/* Глобальний динамічний бар'єр по вертикалі */
+	top: max(53vh, 400px);
+	transform: translateY(-50%);
+	z-index: 900;
+
+	width: 44px;
+	height: 44px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: 50%;
+	box-shadow: var(--shadow-md);
+	color: var(--color-text-main);
+
+	transition:
+		transform 0.15s ease-out,
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		color 0.15s ease;
+	cursor: pointer;
+}
+
+.nav-arrow i {
+	font-size: 1.5rem;
+}
+
+.nav-arrow:hover:not(:disabled):not(.is-disabled),
+.nav-arrow.pressed:not(:disabled):not(.is-disabled) {
+	color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+.nav-arrow:hover:not(:disabled):not(.is-disabled) {
+	transform: translateY(-50%) scale(1.05);
+}
+
+.nav-arrow:active:not(:disabled):not(.is-disabled),
+.nav-arrow.pressed:not(:disabled):not(.is-disabled) {
+	transform: translateY(-50%) scale(0.9);
+	transition: transform 0.02s ease-in;
+}
+
+.nav-arrow:disabled,
+.nav-arrow.is-disabled {
+	opacity: 0.3;
+	pointer-events: none;
+}
+
+/* Симетричний зсув до центру на ширину бічної панелі (базовий відступ + 64px) */
+.nav-arrow--left {
+	left: var(--spacing-md, 24px);
+}
+
+.nav-arrow--right {
+	right: var(--spacing-md, 24px);
+}
+
+/* Мобільна адаптація */
+@media (max-width: 768px) {
+	.nav-arrow {
+		display: none;
+	}
+}

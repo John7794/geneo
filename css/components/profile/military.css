@@ -1,0 +1,101 @@
+/* ./styles/components/profile/military.css */
+
+/* ==========================================================================
+   ВІЙСЬКОВА СЛУЖБА (Military Block)
+   ========================================================================== */
+
+.mil-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-lg); /* 24px */
+}
+
+.mil-card {
+	/* Додаткові стилі, якщо базовий .award-card потребує коригування */
+	display: flex;
+	flex-direction: column;
+}
+
+.mil-title {
+	font-size: var(--font-size-lg);
+	font-weight: 600;
+	color: var(--color-text-main);
+	margin-bottom: var(--spacing-md);
+	line-height: var(--line-height-tight);
+}
+
+/* --- Деталі служби (список) --- */
+.mil-details {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+	margin-bottom: var(--spacing-lg);
+}
+
+.mil-detail-row {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--spacing-sm);
+	font-size: var(--font-size-sm);
+	line-height: var(--line-height-base);
+}
+
+.mil-detail-row i {
+	color: var(--color-primary);
+}
+
+.mil-detail-label {
+	color: var(--color-text-muted);
+	min-width: 130px; /* Фіксована ширина для вирівнювання колонок */
+	flex-shrink: 0;
+}
+
+.mil-detail-val {
+	color: var(--color-text-main);
+}
+
+/* --- Галерея сканів --- */
+.mil-figures-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-sm);
+}
+
+.mil-tile {
+	/* Базові стилі беруться з .award-tile, тут задаємо лише пропорції */
+	min-height: auto;
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+}
+
+/* --- Архівне джерело (Depo) --- */
+.mil-depo {
+	margin-top: auto;
+	border-top: 1px dashed var(--color-border-light);
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+}
+
+.mil-depo i {
+	font-size: var(--font-size-base);
+	color: var(--color-text-muted);
+}
+
+/* Адаптивність для мобільних */
+@media (max-width: 576px) {
+	.mil-detail-row {
+		flex-direction: column;
+		gap: 2px;
+	}
+	.mil-detail-label {
+		font-size: var(--font-size-xs);
+	}
+	.mil-figures-grid {
+		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		gap: var(--spacing-sm);
+	}
+}

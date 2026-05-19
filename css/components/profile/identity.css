@@ -1,0 +1,30 @@
+/* ./styles/components/profile/identity.css */
+
+.identity-container {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Відступи для секцій з тегами */
+.identity-section-body {
+	margin-bottom: 24px;
+}
+
+.identity-tags-spacing {
+	margin-top: 8px;
+}
+
+/* Вирівнювання зображення та тексту всередині тегу */
+.chip-content-wrapper {
+	display: inline-flex;
+	align-items: center;
+}
+
+/* Іконка динамічного прапора */
+.chip-flag-icon {
+	width: 18px;
+	height: auto;
+	border-radius: 2px;
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+	margin-right: 6px;
+}

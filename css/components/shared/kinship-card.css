@@ -1,0 +1,240 @@
+/* ./styles/components/shared/kinship-card.css */
+
+/* ==========================================
+   1. СІТКА КАРТОК (Kinship Grid)
+   ========================================== */
+.kinship-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: var(--spacing-md);
+}
+
+.kinship-grid--5-cols {
+	grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+	.kinship-grid--5-cols {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+@media (min-width: 1024px) {
+	.kinship-grid--5-cols {
+		grid-template-columns: repeat(5, 1fr);
+	}
+}
+
+.kinship-col {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+/* ==========================================
+   2. КАРТКА ПЕРСОНИ (Kinship Card)
+   ========================================== */
+.kinship-card {
+	position: relative;
+	display: flex;
+	align-items: center;
+	padding: var(--spacing-sm);
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	text-decoration: none; /* Важливо для тегу <a> */
+	color: var(--color-text-main);
+	transition: all 0.2s ease;
+}
+
+.kinship-card--person {
+	cursor: pointer;
+}
+
+/* Ефект наведення на картку (додали .kinship-card__affinity для пріоритету) */
+.kinship-card:hover,
+.kinship-card:focus-visible,
+.kinship-card.kinship-card__affinity:hover {
+	/* Робимо затемнення трохи виразнішим (6% чорного) */
+	background-color: color-mix(in srgb, var(--color-bg-card), black 6%);
+	border-color: var(--color-primary);
+	box-shadow: var(--shadow-sm);
+	transform: translateY(-1px);
+	text-decoration: none;
+}
+
+/* Картка-заглушка (Placeholder) */
+.kinship-card--placeholder {
+	background-color: transparent;
+	border: 1px dashed var(--color-border);
+	opacity: 0.7;
+	cursor: default;
+}
+.kinship-card--placeholder:hover {
+	transform: none;
+	border-color: var(--color-border);
+	background-color: transparent;
+	box-shadow: none;
+}
+
+/* ==========================================
+   3. АВАТАРКА ТА МЕДІА (Kinship Card Media)
+   ========================================== */
+.kinship-card__media {
+	flex-shrink: 0;
+	width: 48px;
+	height: 48px;
+	margin-right: var(--spacing-sm);
+	border-radius: 50%;
+	overflow: hidden;
+	background-color: var(--color-bg-body);
+	border: 1px solid var(--color-border); /* Легка рамка для відділення від фону */
+}
+
+.kinship-card__img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.avatar-placeholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--font-size-lg);
+	font-weight: 600;
+	color: var(--color-text-meta);
+	background-color: var(--color-bg-body);
+}
+
+/* ==========================================
+   4. ТЕКСТОВА ІНФОРМАЦІЯ (Kinship Card Info)
+   ========================================== */
+.kinship-card__info {
+	flex-grow: 1;
+	min-width: 0; /* Важливо для обрізання тексту (text-overflow) */
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+/* 🔥 РОЛЬ (БАТЬКО, СИН) — як на скріншотах: акцентна та синя! */
+.kinship-card__role,
+.kinship-card__role-label {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-primary); /* Синій колір */
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-bottom: 2px;
+}
+
+/* ІМ'Я */
+.kinship-card__name {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--color-text-main);
+	line-height: var(--line-height-tight);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Структуровані частини імені */
+.kinship-card__name-part {
+	display: block;
+}
+.kinship-card__name-inline {
+	display: inline;
+}
+.kinship-card__name-surname,
+.kinship-card__name-first {
+	font-weight: 500;
+}
+
+.years {
+	font-size: 12px;
+	color: var(--color-text-muted);
+	margin-top: 2px;
+}
+
+/* ==========================================
+   КАРТКА "СПОРІДНЕНІСТЬ З ВАМИ" (Вертикальна)
+   ========================================== */
+.kinship-card.kinship-card__affinity {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+	text-align: left;
+	padding: var(--spacing-md);
+	gap: var(--spacing-xs);
+	border: 1px solid var(--color-border);
+	background-color: transparent; /* Вони трохи темніші на скріні */
+}
+
+/* Роль (напр. ПРА(18)БАБА) */
+.kinship-card.kinship-card__affinity .kinship-card__role {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-text-muted); /* Тут роль лишаємо сірою */
+	letter-spacing: 0.05em;
+}
+
+/* Ім'я та по батькові */
+.kinship-card.kinship-card__affinity .kinship-card__name {
+	margin: 0;
+	font-size: 1em;
+	line-height: 1.2;
+	font-weight: normal;
+	white-space: normal; /* Дозволяємо перенос */
+}
+
+/* ==========================================
+   5. ЕКШН-КНОПКИ ТА СТАТУСИ
+   ========================================== */
+.kinship-card__actions {
+	flex-shrink: 0;
+	margin-left: var(--spacing-sm);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background-color: var(--color-bg-body);
+	color: var(--color-text-muted);
+	transition: all 0.2s ease;
+}
+
+/* Для темної теми робимо навпаки — легенько підсвітлюємо (8% білого) */
+.theme-dark .kinship-card:hover,
+.theme-dark .kinship-card:focus-visible,
+.theme-dark .kinship-card.kinship-card__affinity:hover {
+	background-color: color-mix(in srgb, var(--color-bg-card), white 8%);
+}
+
+/* Статуси зв'язку (Бейджі) */
+.status-badge {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 4px;
+}
+.status-badge--confirmed {
+	background-color: var(--color-primary);
+}
+.status-badge--hypothetical {
+	background-color: #f59e0b; /* помаранчевий */
+}
+
+/* ==========================================
+   6. ВІД'ЄДНАНІ ОСОБИ
+   ========================================== */
+.unlinked-person {
+	opacity: 0.6;
+	font-style: italic;
+}

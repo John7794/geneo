@@ -1,0 +1,12 @@
+/* ./styles/components/shared/participants.css */
+
+/* ==========================================
+   СІТКА УЧАСНИКІВ ПОДІЙ (Хрещені, Свідки, Священники)
+   ========================================== */
+.participant-list {
+	display: grid;
+	/* auto-fill + обмеження до 320px гарантують, що картка не розтягнеться як рейка */
+	grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+	gap: 12px;
+	margin-top: 8px;
+}

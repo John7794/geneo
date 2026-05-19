@@ -1,0 +1,376 @@
+/* ./styles/components/interaction/gallery.css */
+
+/* ==========================================
+   1. ГЛОБАЛЬНИЙ ОВЕРЛЕЙ (Фон галереї)
+   ========================================== */
+.gallery-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100dvh;
+	background-color: rgba(0, 0, 0, 0.9);
+	z-index: 99999 !important; /* Гарантовано поверх усього */
+	display: flex;
+	flex-direction: column;
+	opacity: 0;
+	visibility: hidden;
+	transition:
+		opacity var(--transition-base),
+		visibility var(--transition-base);
+}
+
+.gallery-overlay.show,
+.gallery-overlay.open {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* ==========================================
+   2. ВЕРХНЯ ПАНЕЛЬ (Top Bar)
+   ========================================== */
+.gallery-top-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-sm) var(--spacing-md);
+	background-color: rgba(0, 0, 0, 0.5);
+	color: var(--color-text-inverse);
+	z-index: 2;
+	padding-right: 60px; /* Місце для кнопки закриття */
+}
+
+.gallery-top-title {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	font-size: var(--font-size-sm);
+	flex-grow: 1;
+}
+
+.gallery-counter {
+	font-weight: 600;
+	letter-spacing: 0.05em;
+}
+
+.gallery-divider {
+	color: rgba(255, 255, 255, 0.5);
+	margin: 0 var(--spacing-sm);
+}
+
+/* ==========================================
+   3. КНОПКИ УПРАВЛІННЯ (Gallery Buttons)
+   ========================================== */
+.gallery-btn,
+.gallery-close {
+	background: transparent;
+	border: none;
+	color: var(--color-text-inverse);
+	font-size: var(--font-size-xl);
+	padding: var(--spacing-sm);
+	cursor: pointer;
+	border-radius: var(--radius-full);
+	transition:
+		background-color var(--transition-fast),
+		transform var(--transition-fast);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.gallery-btn:hover:not(.is-disabled),
+.gallery-close:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+}
+
+.gallery-btn.is-disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+}
+
+/* Кнопка ЗАКРИТТЯ у правому верхньому куті */
+.gallery-close {
+	position: absolute;
+	top: 8px;
+	right: 12px;
+	z-index: 10;
+	background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Позиціонування кнопок Вліво/Вправо на зображенні */
+.gallery-prev,
+.gallery-next {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 10;
+	background-color: rgba(0, 0, 0, 0.3);
+	width: 48px;
+	height: 48px;
+}
+
+.gallery-prev {
+	left: var(--spacing-md);
+}
+.gallery-next {
+	right: var(--spacing-md);
+}
+
+.gallery-prev:hover:not(.is-disabled),
+.gallery-next:hover:not(.is-disabled) {
+	background-color: rgba(0, 0, 0, 0.7);
+	transform: translateY(-50%) scale(1.1);
+}
+
+/* ==========================================
+   4. ГОЛОВНИЙ КОНТЕНТ (Фото + Інфо-панель)
+   ========================================== */
+.gallery-content {
+	display: flex;
+	flex-direction: column; /* 🔥 Завжди колонка для всіх екранів! */
+	flex-grow: 1;
+	overflow: hidden;
+	position: relative;
+}
+
+.gallery-image-wrapper {
+	flex-grow: 1;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--spacing-md);
+	overflow: hidden;
+	cursor: grab;
+}
+
+.gallery-image-wrapper:active {
+	cursor: grabbing;
+}
+
+.gallery-image-wrapper img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+	will-change: transform;
+}
+
+/* ==========================================
+   5. ІНФОРМАЦІЙНА ПАНЕЛЬ (Нижня "шухляда")
+   ========================================== */
+.gallery-info-panel {
+	background-color: var(--color-bg-card);
+	width: 100%;
+	/* Дозволяємо панелі розтягуватися до 40% екрану, коли відкрита */
+	max-height: 40vh;
+	display: flex;
+	flex-direction: column;
+	z-index: 12;
+	border-top: 1px solid var(--color-border);
+}
+
+.gal-toggle-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--spacing-sm);
+	padding: var(--spacing-sm) var(--spacing-md);
+	background-color: var(--color-bg-card);
+	border: none;
+	border-bottom: 1px solid var(--color-border-light);
+	color: var(--color-text-main);
+	cursor: pointer;
+	font-weight: 600;
+	min-height: 48px;
+	width: 100%;
+	transition: background-color var(--transition-fast);
+}
+
+.gal-toggle-btn:hover {
+	background-color: var(--color-bg-hover);
+}
+
+/* Плавний поворот стрілочки */
+.gal-toggle-btn .arrow-icon {
+	transition: transform 0.3s ease-in-out;
+}
+
+/* Коли панель відкрита, стрілка дивиться вниз (бо по замовчуванню це ri-arrow-up-s-line) */
+.gallery-info-panel:not(.collapsed):not(.is-collapsed) .arrow-icon {
+	transform: rotateX(180deg);
+}
+
+/* ==========================================
+   Анімація появи/зникнення контенту
+   ========================================== */
+.gallery-scroll-content {
+	padding: var(--spacing-md);
+	overflow-y: auto;
+
+	/* Анімаційні властивості */
+	max-height: 800px;
+	opacity: 1;
+	transition:
+		max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+		opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+		padding 0.4s ease-in-out;
+}
+
+/* 🔥 Згорнутий стан панелі (без display: none!) */
+.gallery-info-panel.is-collapsed .gallery-scroll-content,
+.gallery-info-panel.collapsed .gallery-scroll-content {
+	max-height: 0;
+	opacity: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	overflow: hidden;
+}
+
+/* ==========================================
+   6. ДЕТАЛІ (Архів, Транскрипція)
+   ========================================== */
+.gallery-archive {
+	margin-bottom: var(--spacing-md);
+	padding-bottom: var(--spacing-sm);
+	border-bottom: 1px solid var(--color-border-light);
+}
+
+.gal-archive-title,
+.gal-archive__title {
+	font-size: var(--font-size-base);
+	font-weight: 600;
+	color: var(--color-text-main);
+	margin-bottom: var(--spacing-xs);
+}
+
+.gal-archive-ref,
+.gal-archive__ref,
+.gal-archive-address,
+.gal-archive__address {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	margin-bottom: 4px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.gal-transcription {
+	font-family: serif;
+	font-size: var(--font-size-base);
+	line-height: var(--line-height-base);
+	color: var(--color-text-main);
+	background-color: var(--color-bg-body);
+	padding: var(--spacing-md);
+	border-radius: var(--radius-sm);
+	border-left: 3px solid var(--color-primary);
+	white-space: pre-wrap;
+	margin-bottom: var(--spacing-md);
+}
+
+.meta-data {
+	margin-top: var(--spacing-sm);
+}
+
+.gal-link,
+.meta-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	color: var(--color-primary);
+	text-decoration: none;
+	font-size: var(--font-size-sm);
+	font-weight: 500;
+}
+
+.gal-link:hover,
+.meta-link:hover {
+	text-decoration: underline;
+}
+
+.btn-text {
+	font-size: var(--font-size-sm);
+	font-weight: 500;
+}
+/* ==========================================
+   Ефект "мигання" / натискання кнопок галереї
+   ========================================== */
+
+/* Кнопка закриття */
+.gallery-close:active,
+.gallery-close.is-pressed {
+	transform: scale(0.85) !important;
+	background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Кнопки вліво/вправо (тут важливо зберегти translateY) */
+.gallery-prev:active:not(.is-disabled),
+.gallery-prev.is-pressed:not(.is-disabled),
+.gallery-next:active:not(.is-disabled),
+.gallery-next.is-pressed:not(.is-disabled) {
+	transform: translateY(-50%) scale(0.85) !important;
+	background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Кнопка "Показати деталі" знизу */
+.gal-toggle-btn:active {
+	transform: scale(0.98);
+	opacity: 0.8;
+}
+
+/* ==========================================
+   5.5 МАСШТАБУВАННЯ ІНФО-ПАНЕЛІ (Drag to Resize)
+   ========================================== */
+
+/* Панель повинна мати відносне позиціонування для роботи абсолютного resizer'а */
+.gallery-info-panel {
+	background-color: var(--color-bg-card);
+	width: 100%;
+	max-height: none;
+	display: flex;
+	flex-direction: column;
+	z-index: 12;
+	border-top: 1px solid var(--color-border);
+}
+
+/* Невидима область перетягування */
+.panel-resizer {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 16px; /* Оптимальна висота для точного захоплення */
+	cursor: row-resize;
+	z-index: 100;
+	background-color: transparent;
+	touch-action: none; /* Запобігає конфліктам зі свайпами на мобільних */
+}
+
+/* Візуальний індикатор повзунка (смужка) */
+.panel-resizer::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 40px;
+	height: 4px;
+	background-color: var(--color-border-light, rgba(255, 255, 255, 0.3));
+	border-radius: var(--radius-full, 2px);
+	transition: background-color var(--transition-fast, 0.2s);
+}
+
+.panel-resizer:hover::after {
+	background-color: var(--color-text-muted, rgba(255, 255, 255, 0.5));
+}
+
+.panel-resizer:active::after {
+	background-color: var(--color-primary, #007bff);
+}
+
+.gallery-trigger-wrapper {
+	cursor: zoom-in;
+}
+
+.gallery-trigger-wrapper * {
+	pointer-events: none; /* Клік проходить крізь img і текст прямо на обгортку */
+}

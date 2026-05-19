@@ -1,0 +1,173 @@
+/* css/layout.css */
+
+/* Глобальна обгортка всього додатка */
+.app-wrapper {
+	display: flex;
+	flex-direction: column;
+	min-height: 100dvh; /* Змінено з 100vh на динамічні 100dvh */
+	background-color: var(--color-bg-body);
+}
+
+/* ==========================================
+   РЕЖИМ ПРОФІЛЮ (Гарантоване центрування)
+   ========================================== */
+#profile-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* Змушуємо весь контент стати рівно по центру */
+	width: 100%;
+
+	/* Симетричні відступи: зверху 80px, по боках 24px, знизу 60px */
+	padding: 80px var(--spacing-md) 60px var(--spacing-md);
+	box-sizing: border-box;
+}
+
+/* Обмежуємо ширину ТІЛЬКИ для внутрішніх блоків (шапки і тіла) */
+#profile-content > * {
+	width: 100%;
+	max-width: 900px;
+}
+
+/* На планшетах обходимо кнопки справа */
+@media (max-width: 1024px) {
+	#profile-content {
+		padding-right: 80px;
+	}
+}
+
+/* На мобільних */
+@media (max-width: 768px) {
+	#profile-content {
+		/* Зменшено нижній padding зі 100px до 60px */
+		padding: 60px var(--spacing-sm) 60px;
+	}
+}
+
+/* Обгортка для внутрішніх блоків контенту */
+.profile-body-blocks {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+/* ==========================================
+   ПАНЕЛЬ ІНСТРУМЕНТІВ (Top Bar Controls)
+   ========================================== */
+
+/* Плаваюча панель інструментів */
+.top-bar-controls {
+	position: fixed;
+	top: 80px; /* Опускаємо панель, щоб хлібні крихти її не перекривали */
+	right: var(--spacing-md);
+	z-index: 1010; /* Ставимо вище за крихти (у яких 1000) */
+	display: flex;
+	flex-direction: column; /* Робимо панель вертикальною */
+	gap: var(--spacing-md); /* Відстань між групами кнопок */
+}
+
+/* Окремий острівець для функціональної групи */
+.control-group {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 44px; /* Збільшено ширину з 44px для кращої ергономіки */
+	box-sizing: border-box;
+	gap: var(--spacing-xs);
+	background-color: var(--color-bg-card);
+	padding: var(--spacing-xs) 0; /* Збільшено вертикальні відступи */
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	border: 1px solid var(--color-border);
+	z-index: 999999;
+}
+
+@media (max-width: 768px) {
+	.top-bar-controls {
+		top: 70px;
+		right: var(--spacing-sm);
+		transform: scale(0.9); /* Трохи зменшуємо для мобільних екранів */
+		transform-origin: top right;
+	}
+
+	/* Окремий острівець для функціональної групи */
+	.control-group {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 56px; /* Збільшено ширину з 44px для кращої ергономіки */
+		box-sizing: border-box;
+		gap: var(--spacing-xs);
+		background-color: var(--color-bg-card);
+		padding: var(--spacing-sm) 0; /* Збільшено вертикальні відступи */
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-md);
+		border: 1px solid var(--color-border);
+		z-index: 999999;
+	}
+}
+
+/* Позиціонування червоної крапки нотифікації */
+.badge-dot--tr {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+/* Логічний розділювач всередині монолітної панелі інструментів */
+.panel-divider {
+	width: 24px;
+	height: 1px;
+	background-color: var(--border-color, rgba(255, 255, 255, 0.1));
+	border: none;
+	margin: 8px auto; /* Відступи зверху та знизу */
+	flex-shrink: 0;
+}
+
+/* Приховування горизонтальної лінії для мобільного Speed Dial меню */
+@media (max-width: 767px) {
+	.panel-divider {
+		display: none;
+	}
+}
+
+.spacer-m {
+	height: 16px;
+	width: 100%;
+}
+
+/* Відступи */
+.spacer-top-s {
+	margin-top: 8px;
+}
+
+.spacer-bottom-l {
+	margin-bottom: 24px;
+}
+
+/* Стилізація розділювача з лініями (Вимога 3) */
+.block-divider {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 16px 0 12px;
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--color-text-meta);
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.block-divider::before,
+.block-divider::after {
+	content: "";
+	flex-grow: 1;
+	height: 1px;
+	background-color: var(--color-border);
+}
+
+.block-divider::before {
+	margin-right: 16px;
+}
+.block-divider::after {
+	margin-left: 16px;
+}

@@ -1,0 +1,9 @@
+church_id,place_id,church_name,confession,status,church_map_url,church_address
+CH_01,PL_01,Каплиця Покрова Пресвятої Богородиці,gc,active,https://maps.app.goo.gl/DxtNCAXaMsBoJgN38,"вул. Івана Франка, 23"
+CH_02,PL_02,Церква Святої Трійці,o,non-active,https://maps.app.goo.gl/yfS7yXfETNfHQYnUA,"вул. Антоновича, 100"
+,,,,,,
+CH_03,PL_01,Церква Різдва Пресвятої Богородиці,gc,active,url_map_2,
+,,,,,,
+CH_04,PL_01,Собор Святого Юра,gc,active,url_map_3,
+CH_03,PL_03,Церква св. Параскеви П'ятниці,gc,active,url_map_4,
+CH_99,PL_99,Дерев'яна церква св. Михаїла,gc,destroyed,,

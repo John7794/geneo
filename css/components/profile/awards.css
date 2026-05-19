@@ -1,0 +1,211 @@
+/* ./styles/components/ui/awards.css */
+
+/* ==========================================
+   1. КОНТЕЙНЕРИ ТА СІТКА
+   ========================================== */
+.awards-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-lg, 24px);
+	padding: var(--spacing-sm, 8px) 0;
+}
+
+.awards-grid {
+	display: grid;
+	/* Оптимальна ширина для читабельності тексту та пропорцій скану */
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: var(--spacing-md, 16px);
+}
+
+/* ==========================================
+   2. ПЛИТКА НАГОРОДИ (Award Tile)
+   ========================================== */
+.award-tile {
+	position: relative;
+	display: flex;
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md, 8px);
+	overflow: hidden;
+	transition:
+		transform var(--transition-base, 0.2s),
+		box-shadow var(--transition-base, 0.2s),
+		border-color var(--transition-base, 0.2s);
+	padding: var(--spacing-lg) var(--spacing-md);
+	gap: var(--spacing-sm);
+}
+
+/* Ефекти наведення для всієї плитки */
+.award-tile:hover,
+.award-tile:focus-visible {
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-md);
+	border-color: var(--color-primary-light);
+}
+
+.award-tile.is-clickable {
+	cursor: pointer;
+}
+
+/* ==========================================
+   3. ЗОБРАЖЕННЯ (Скан / Обкладинка)
+   ========================================== */
+.award-tile-cover {
+	position: relative;
+	width: 100%;
+	height: 180px; /* Трохи вище, ніж у records, щоб краще було видно дипломи */
+	background-color: var(--color-bg-body);
+	border-bottom: 1px solid var(--color-border-light);
+	overflow: hidden;
+}
+
+/* Саме зображення скану */
+.award-tile-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top;
+	display: block;
+	transition: transform var(--transition-base, 0.2s);
+}
+
+/* Зум картинки при наведенні на плитку */
+.award-tile:hover .award-tile-img {
+	transform: scale(1.05);
+}
+
+/* Заглушка, якщо скану немає */
+.award-tile-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(
+		135deg,
+		var(--color-bg-body) 0%,
+		var(--color-bg-card) 100%
+	);
+}
+
+/* Оверлей з лупою для відкриття галереї */
+.award-tile-overlay {
+	position: absolute;
+	inset: 0;
+	background-color: rgba(0, 0, 0, 0.4);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity var(--transition-base, 0.2s);
+	color: #ffffff;
+	font-size: 2rem;
+	z-index: 2;
+}
+
+.award-tile:hover .award-tile-overlay {
+	opacity: 1;
+}
+
+/* ==========================================
+   4. ТЕКСТОВИЙ КОНТЕНТ ПЛИТКИ
+   ========================================== */
+.award-tile-content {
+	padding: var(--spacing-md, 16px);
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm, 12px);
+	flex-grow: 1;
+}
+
+/* Шапка: Іконка + Назва */
+.award-tile-header {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+}
+
+.award-tile-icon-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 50px;
+	height: 50px;
+	margin-top: -2px; /* Корекція під лінію шрифту */
+}
+
+.award-tile-icon-wrapper i {
+	font-size: 1.5em;
+	color: var(--color-primary);
+}
+
+.award-tile-icon-img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+}
+
+.award-tile-title {
+	font-size: var(--font-size-base, 16px);
+	font-weight: 600;
+	color: var(--color-primary);
+	line-height: var(--line-height-tight, 1.3);
+}
+
+.award-tile-title a {
+	color: inherit;
+	text-decoration: none;
+	transition: opacity var(--transition-fast, 0.2s);
+}
+
+.award-tile-title a:hover {
+	opacity: 0.8;
+	text-decoration: underline;
+}
+
+/* ==========================================
+   5. ДЕТАЛІ (Дата, Текст, Документ)
+   ========================================== */
+.award-tile-meta {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--font-size-sm, 13px);
+	color: var(--color-text-muted);
+}
+
+.award-tile-meta i {
+	color: var(--color-text-meta);
+}
+
+.award-tile-text {
+	font-size: var(--font-size-sm, 14px);
+	color: var(--color-text-main);
+	background-color: var(--color-bg-body);
+	padding: 10px 12px;
+	border-radius: var(--radius-sm, 6px);
+	border-left: 2px solid var(--color-primary-light);
+	line-height: var(--line-height-base, 1.5);
+	margin-top: 8px;
+}
+
+.award-document {
+	font-size: var(--font-size-sm, 13px);
+	color: var(--color-text-muted);
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding-top: var(--spacing-sm, 12px);
+	border-top: 1px dashed var(--color-border-light);
+	margin-top: auto;
+}
+
+.award-document i {
+	margin-top: 2px;
+	color: var(--color-text-meta);
+}
+
+.award-tile-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+}

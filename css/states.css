@@ -1,0 +1,77 @@
+/* ./styles/states.css */
+
+/* --- Видимість --- */
+.hidden {
+	display: none !important;
+}
+
+/* .show та .open зазвичай відновлюють видимість або запускають анімацію. 
+   Їхня поведінка може залежати від компонента, але ось базова: */
+.show,
+.open {
+	display: flex;
+}
+
+/* --- Згортання контенту (акордеони, меню) ---
+.collapsed,
+.is-collapsed {
+	display: none !important;
+	/* Або height: 0; overflow: hidden; якщо використовується анімація */
+/* } */
+
+/* --- Стани взаємодії --- */
+.is-disabled {
+	opacity: 0.5 !important;
+	pointer-events: none !important;
+	cursor: not-allowed !important;
+}
+
+.selected,
+.active {
+	background-color: var(--color-bg-hover);
+	/* Додатково можна додати рамку або зміну кольору тексту */
+}
+
+/* --- Drag & Drop (для дерева або карток) --- */
+.is-draggable {
+	cursor: grab;
+}
+.is-draggable:active,
+.is-dragging {
+	cursor: grabbing !important;
+	opacity: 0.8;
+}
+
+/* --- Блокування (наприклад, при відкритому модальному вікні) --- */
+/* Цей клас зазвичай вішається на <body> JS-менеджером попапів */
+.no-scroll {
+	overflow: hidden !important;
+}
+
+/* Примітка: клас .js-stop-propagation не потребує CSS. 
+   Він слугує лише хуком у JS (наприклад: if (e.target.closest('.js-stop-propagation')) e.stopPropagation(); ) */
+
+/* ==========================================================================
+   СТАН БЛОКУВАННЯ ПРОФІЛЮ (Коли на body висить клас error-state-active)
+   ========================================================================== */
+
+/* 1. Приховуємо бічні стрілки навігації (< та >) */
+body.error-state-active .nav-arrow {
+	display: none;
+}
+
+/* 2. Приховуємо праву панель інструментів з іконками */
+body.error-state-active .top-bar-controls {
+	display: none;
+}
+
+/* 3. Приховуємо текст хлібних крихт, але лишаємо саму смугу-контейнер */
+body.error-state-active .breadcrumbs__list {
+	display: none;
+}
+
+/* 4. Приховуємо жовті алерти "Зв'язок не знайдено" (якщо вони генеруються окремо) */
+body.error-state-active .relationship-alert,
+body.error-state-active .alert {
+	display: none;
+}

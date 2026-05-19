@@ -1,0 +1,9 @@
+event_ref_id,linked_person_id,event_type,role_code
+BP_1_1,f1,baptism,GOD_P
+BP_1_1,f2,baptism,GOD_M
+BP_1_1,p1,baptism,PRI
+M_101,p1,marriage,PRI
+BP_1_2,p2,baptism,PRI
+M_101,p3,marriage,WIT
+M_101,p4,marriage,WIT
+F_01,p5,funeral,PRI

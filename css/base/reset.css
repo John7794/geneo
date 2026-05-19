@@ -1,0 +1,78 @@
+/* ./styles/base/reset.css */
+/* Базується на сучасних практиках (Andy Bell's Modern CSS Reset) */
+
+/* 1. Використовуємо більш інтуїтивну блочну модель */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* 2. Прибираємо дефолтні відступи */
+* {
+	margin: 0;
+	padding: 0;
+}
+
+/* 3. Дозволяємо плавний скрол */
+html:focus-within {
+	scroll-behavior: smooth;
+}
+
+/* 4. Налаштовуємо базовий розмір і поведінку body */
+body {
+	min-height: 100vh;
+	text-rendering: optimizeSpeed;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* 5. Робимо медіа-елементи адаптивними */
+img,
+picture,
+video,
+canvas,
+svg {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
+/* 6. Скидаємо стилі для списків, які мають клас */
+ul[class],
+ol[class],
+li[class] {
+	list-style: none;
+}
+
+/* 7. Успадкування шрифтів для елементів форм */
+input,
+button,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+/* 8. Скидання кнопки (щоб виглядала як чистий клікабельний елемент) */
+button {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+/* 9. Уникнення анімацій для людей, які віддають перевагу зменшеному руху (Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+	html:focus-within {
+		scroll-behavior: auto;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

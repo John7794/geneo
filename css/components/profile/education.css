@@ -1,0 +1,145 @@
+/* ./styles/components/ui/education.css */
+
+/* ==========================================
+   ВКЛАДКА "ОСВІТА" (Education Tab)
+   ========================================== */
+
+.education-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-lg, 24px);
+	padding: var(--spacing-sm, 8px) 0;
+}
+
+.education-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-md, 16px);
+}
+
+/* Заголовок рівня освіти (напр. "Вища (Магістр)") */
+.education-level-title {
+	font-size: var(--font-size-lg, 18px);
+	font-weight: 600;
+	color: var(--color-text-main, #ffffff);
+	border-bottom: 1px solid var(--color-border);
+	padding-bottom: var(--spacing-xs, 8px);
+	margin: 0;
+	letter-spacing: 0.02em;
+}
+
+/* Сітка для карток */
+.education-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: var(--spacing-md, 16px);
+}
+
+/* Картка навчального закладу */
+.education-card {
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md, 8px);
+	padding: var(--spacing-md, 16px);
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm, 12px);
+	transition:
+		border-color var(--transition-fast, 0.2s),
+		box-shadow var(--transition-fast, 0.2s);
+}
+
+/* Ледь помітний ефект без зміщення по висоті */
+.education-card:hover {
+	border-color: var(--color-border-hover, var(--color-primary));
+	box-shadow: var(--shadow-sm);
+}
+
+/* Назва закладу та посилання */
+.edu-institution {
+	font-size: var(--font-size-base, 16px);
+	font-weight: 600;
+	color: var(--color-primary);
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	line-height: 1.4;
+}
+
+.edu-institution i {
+	margin-top: 2px;
+	flex-shrink: 0;
+}
+
+.edu-institution a {
+	color: inherit;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	transition: opacity var(--transition-fast);
+	align-items: baseline;
+}
+
+.edu-institution a:hover {
+	opacity: 0.8;
+	text-decoration: underline;
+}
+
+/* Мета-дані (роки, адреса) */
+.edu-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	font-size: var(--font-size-sm, 13px);
+	color: var(--color-text-muted);
+}
+
+.edu-meta span {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.edu-separator {
+	color: var(--color-border);
+	font-size: 0.8em;
+	user-select: none;
+}
+
+/* Блок деталей (факультет, спеціальність тощо) */
+.edu-details {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: var(--font-size-sm, 14px);
+	color: var(--color-text-main);
+	background-color: var(--color-bg-body);
+	padding: 12px;
+	border-radius: var(--radius-sm, 6px);
+	border-left: 2px solid var(--color-primary-light, #3b82f6);
+}
+
+.edu-label {
+	font-weight: 600;
+	color: var(--color-text-meta);
+	margin-right: 4px;
+}
+
+/* Документ / Диплом */
+.edu-document {
+	font-size: var(--font-size-sm, 13px);
+	color: var(--color-text-muted);
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding-top: var(--spacing-sm, 12px);
+	border-top: 1px dashed var(--color-border-light);
+	margin-top: auto; /* Притискає документ до низу картки, якщо вони різної висоти */
+}
+
+.edu-document i {
+	margin-top: 2px;
+	color: var(--color-text-meta);
+}

@@ -1,0 +1,524 @@
+/* ./styles/components/interaction/relationship.css */
+
+/* ==========================================
+   1. ГОЛОВНИЙ КОНТЕЙНЕР (Режим порівняння)
+   ========================================== */
+.relationship-mode {
+	--tree-line-width: 2px;
+	--tree-line-color: var(--color-tree-line, var(--color-border));
+	--tree-v-gap: 44px;
+	--tree-radius: var(--radius-md, 16px);
+
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 100%;
+	width: 100%;
+	background-color: var(--color-bg-body);
+}
+
+.rel-tree-wrapper {
+	position: relative;
+	width: 100%;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	box-sizing: border-box;
+	padding: 60px 20px;
+	overflow: auto;
+
+	background-image: radial-gradient(
+		var(--color-tree-pattern) 1px,
+		transparent 1px
+	);
+	background-size: 24px 24px;
+}
+
+.genealogy-tree {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+/* ==========================================
+   2. НАВІГАЦІЯ ТА УПРАВЛІННЯ
+   ========================================== */
+.rel-nav-controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--spacing-sm) var(--spacing-md);
+	background-color: var(--color-bg-card);
+	border-bottom: 1px solid var(--color-border);
+	box-shadow: var(--shadow-sm);
+	z-index: var(--z-index-sticky);
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.hidden-rel-nav {
+	display: none !important;
+}
+
+.rel-nav-info {
+	font-weight: 500;
+	color: var(--color-text-main);
+}
+
+.btn-rel-arrow {
+	padding: var(--spacing-sm);
+	color: var(--color-text-muted);
+	border-radius: var(--radius-sm);
+}
+
+.btn-rel-arrow:hover:not(.is-disabled) {
+	background-color: var(--color-bg-hover);
+	color: var(--color-text-main);
+}
+
+.home-btn {
+	margin-right: auto;
+}
+
+/* ==========================================
+   3. СТРУКТУРА ДЕРЕВА ТА З'ЄДНАННЯ (Гілки)
+   ========================================== */
+.rel-level-root {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+}
+
+/* Контейнер для пари (чоловік + дружина) */
+.rel-couple-container {
+	display: flex;
+	justify-content: center;
+	gap: 24px;
+	position: relative;
+	padding-bottom: var(--tree-v-gap);
+}
+
+.rel-couple-container.is-couple::before {
+	content: "";
+	position: absolute;
+	top: 40px;
+	left: calc(50% - 117px);
+	right: calc(50% - 117px);
+	border-top: var(--tree-line-width) solid var(--tree-line-color);
+	z-index: 1;
+}
+
+.rel-couple-container.is-couple::after {
+	content: "";
+	position: absolute;
+	top: 40px;
+	left: 50%;
+	transform: translateX(-50%);
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+	height: calc(100% - 40px);
+	z-index: 1;
+}
+
+.rel-couple-container:not(.is-couple)::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+	height: var(--tree-v-gap);
+	z-index: 1;
+}
+
+/* Міст, що розводить гілки (Контейнер) */
+.rel-branch-bridge {
+	display: flex;
+	justify-content: center;
+	position: relative;
+}
+
+/* РОГАТКА: Кожна гілка малює свою лінію математично точно */
+.rel-branch-connector {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+	padding: var(--tree-v-gap) 12px 0 12px;
+}
+
+/* Універсальні горизонтальні руки */
+.rel-branch-connector::before,
+.rel-branch-connector::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 50%;
+	border-top: var(--tree-line-width) solid var(--tree-line-color);
+	width: 50%;
+	height: var(--tree-v-gap);
+}
+
+.rel-branch-connector::after {
+	right: auto;
+	left: 50%;
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+}
+
+/* Ліва гілка: малює лінію вправо і плавно загинає кут */
+.rel-branch-connector:first-child::before {
+	border: 0 none;
+}
+.rel-branch-connector:first-child::after {
+	border-top-left-radius: var(--tree-radius, 16px);
+}
+
+/* Права гілка: малює лінію вліво і плавно загинає кут */
+.rel-branch-connector:last-child::after {
+	border: 0 none;
+}
+.rel-branch-connector:last-child::before {
+	border-right: var(--tree-line-width) solid var(--tree-line-color);
+	border-top-right-radius: var(--tree-radius, 16px);
+}
+
+/* Якщо гілка тільки одна (пряма лінія) */
+.rel-branch-single {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+}
+
+.rel-branch-single:not(:last-child) {
+	padding-top: var(--tree-v-gap);
+}
+
+.rel-branch-single::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	height: var(--tree-v-gap);
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+}
+
+.rel-node-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+	z-index: 2;
+}
+
+.rel-line-down {
+	height: calc(var(--tree-v-gap) * 2);
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+	margin: 0 auto;
+}
+
+.dashed-line {
+	border-left: var(--tree-line-width) dashed var(--tree-line-color);
+	background-color: transparent;
+}
+
+/* ==========================================
+   4. МОДИФІКАТОРИ ВУЗЛІВ (Картки персон)
+   ========================================== */
+/* 🔥 ОЧИЩЕНО ВІД !important ДЛЯ ДОЗВОЛУ КАСКАДНОГО ПЕРЕЗАПИСУ */
+.tree-node.node-indirect {
+	border-top: 5px solid #f1c40f;
+}
+
+.node-dimmed {
+	opacity: 0.4;
+	transition: opacity var(--transition-base);
+}
+
+.node-dimmed:hover {
+	opacity: 0.8;
+}
+
+.node-no-click {
+	pointer-events: none;
+}
+
+.no-hover:hover {
+	transform: none !important;
+	box-shadow: none !important;
+}
+
+.hypothetical {
+	border-top-style: dashed !important;
+	opacity: 0.8;
+}
+
+/* ==========================================
+   5. ФУТЕР З РЕЗУЛЬТАТОМ
+   ========================================== */
+.rel-footer-unified {
+	position: fixed;
+	bottom: 24px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: max-content;
+	min-width: 360px;
+	max-width: calc(100% - 32px);
+	background-color: color-mix(in srgb, var(--color-bg-card) 95%, transparent);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border-radius: 12px;
+	border: 1px solid var(--color-border-light);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+	z-index: var(--z-index-sticky);
+	display: flex;
+	padding: 12px 24px;
+	gap: var(--spacing-lg);
+}
+
+.rel-footer-col {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.rel-footer-col--left {
+	align-items: flex-end;
+	text-align: right;
+}
+.rel-footer-col--right {
+	align-items: flex-start;
+	text-align: left;
+}
+
+.rel-footer-sep {
+	width: 1px;
+	background-color: var(--color-border);
+	opacity: 0.4;
+	margin: 0 4px;
+}
+
+.rel-row {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	max-width: 300px;
+	margin-bottom: 4px;
+	font-size: var(--font-size-sm);
+	gap: 16px;
+}
+
+.rel-row:last-child {
+	margin-bottom: 0;
+}
+
+.rel-row--highlight {
+	font-weight: 600;
+	color: var(--color-primary);
+	font-size: var(--font-size-base);
+}
+
+.rel-lbl {
+	color: var(--color-text-muted);
+	white-space: nowrap;
+}
+.rel-val {
+	color: var(--color-text-main);
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+/* ==========================================
+   6. ДОПОМІЖНІ КЛАСИ ДЛЯ СХЛОПУВАННЯ
+   ========================================== */
+
+/* Невидима картка-розпірка */
+.rel-invisible-node {
+	opacity: 0 !important;
+	pointer-events: none !important;
+	box-shadow: none !important;
+	border: none !important;
+}
+
+/* Відступ для колонок перед схлопуванням */
+.rel-col-padded {
+	padding-bottom: var(--tree-v-gap, 44px) !important;
+}
+
+/* Спільні властивості для замикаючих дужок */
+.rel-merge-bracket {
+	position: absolute;
+	bottom: 0;
+	height: var(--tree-v-gap, 44px);
+	border-bottom: var(--tree-line-width) solid
+		var(--tree-line-color, var(--color-border));
+}
+
+/* Ліва дужка, що йде до центру */
+.rel-merge-left {
+	left: 50%;
+	right: 0;
+	border-left: var(--tree-line-width) solid
+		var(--tree-line-color, var(--color-border));
+	border-bottom-left-radius: var(--tree-radius, 16px);
+}
+
+/* Права дужка, що йде до центру */
+.rel-merge-right {
+	right: 50%;
+	left: 0;
+	border-right: var(--tree-line-width) solid
+		var(--tree-line-color, var(--color-border));
+	border-bottom-right-radius: var(--tree-radius, 16px);
+}
+
+/* ==========================================
+   Мобільна адаптація режиму порівняння
+   ========================================== */
+@media (max-width: 768px) {
+	.relationship-mode {
+		--tree-v-gap: 0px;
+	}
+
+	.relationship-mode .rel-tree-wrapper {
+		width: 100%;
+		box-sizing: border-box;
+		padding-top: 0px;
+		background-image: none;
+	}
+
+	/* ==============================
+	   СІТКА БЕЗ ЛІНІЙ
+	   ============================== */
+	.relationship-mode .rel-mobile-grid {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		gap: 6px;
+		margin-bottom: 6px;
+	}
+
+	.relationship-mode .rel-mobile-row {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		width: 100%;
+		gap: 6px;
+	}
+
+	.relationship-mode .rel-mobile-row--merged {
+		display: flex;
+		justify-content: center;
+	}
+
+	.relationship-mode .rel-mobile-cell {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+		min-width: 0;
+	}
+
+	.relationship-mode .rel-mobile-cell--center {
+		width: 100%;
+		max-width: 340px;
+	}
+
+	/* Приховуємо лінії з десктопу */
+	.relationship-mode .rel-line-down,
+	.relationship-mode .rel-merge-bracket,
+	.relationship-mode .rel-branch-single::before,
+	.relationship-mode .rel-couple-container::before,
+	.relationship-mode .rel-couple-container::after {
+		display: none;
+	}
+
+	/* ==============================
+	   АДАПТАЦІЯ ПЛИТКИ
+	   ============================== */
+	.relationship-mode .kinship-card {
+		width: 100%;
+		max-width: 100%;
+		margin: 0;
+		height: 100%;
+		padding: 8px;
+		border-radius: 12px;
+		border: 1px solid var(--color-border);
+		box-shadow: none;
+	}
+
+	/* 🔥 ЛІКВІДАЦІЯ ВЕРХНЬОГО БОРДЕРА */
+	.relationship-mode .kinship-card.node-indirect {
+		border-top: 1px solid var(--color-border);
+	}
+
+	.relationship-mode .kinship-card [class*="name"] {
+		font-size: 13px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.relationship-mode .kinship-card [class*="role"] {
+		font-size: 10px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.relationship-mode .kinship-card img {
+		width: 44px;
+		height: 44px;
+	}
+
+	/* ==============================
+	   ГЕОМЕТРІЯ НИЖНЬОЇ ПАНЕЛІ (Вертикальне стекування)
+	   ============================== */
+	#rel-dynamic-footer.rel-footer-unified {
+		bottom: 16px;
+		left: 16px;
+		transform: none;
+		width: calc(100% - 104px);
+		max-width: none;
+		min-width: 0;
+		padding: 12px 16px;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.relationship-mode .rel-footer-sep {
+		display: none;
+	}
+
+	.relationship-mode .rel-footer-col {
+		width: 100%;
+	}
+
+	.relationship-mode .rel-footer-col--left,
+	.relationship-mode .rel-footer-col--right {
+		align-items: stretch;
+		text-align: left;
+	}
+
+	.relationship-mode .rel-row {
+		width: 100%;
+		max-width: none;
+		justify-content: space-between;
+		margin: 0;
+		gap: 12px;
+	}
+
+	.relationship-mode .rel-lbl {
+		text-align: left;
+		flex-shrink: 0;
+	}
+
+	.relationship-mode .rel-val {
+		text-align: right;
+		white-space: normal;
+		word-break: break-word;
+	}
+}

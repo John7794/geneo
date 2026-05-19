@@ -1,0 +1,262 @@
+/* ./styles/components/interaction/onboarding.css */
+
+/* ==========================================
+   СПЛІТ-ДОВІДНИК (HELP CENTER)
+   ========================================== */
+/* Оверлей для модального вікна довідки */
+.help-center-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	background-color: rgba(15, 23, 42, 0.6);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+
+	opacity: 1;
+	transition: opacity 0.3s ease;
+}
+
+.help-center-overlay.hidden {
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.help-center-overlay.active {
+	opacity: 1;
+	visibility: visible;
+}
+
+.help-center-modal {
+	width: 100%;
+	max-width: 900px;
+	height: 80vh;
+	max-height: 700px;
+	background-color: var(--color-bg-card);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-xl);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	transform: translateY(20px) scale(0.98);
+	transition: transform var(--transition-base)
+		cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.help-center-overlay.active .help-center-modal {
+	transform: translateY(0) scale(1);
+}
+
+.help-center-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--spacing-md) var(--spacing-lg);
+	border-bottom: 1px solid var(--color-border);
+	background-color: var(--color-bg-body);
+	flex-shrink: 0;
+}
+
+.help-center-header h2 {
+	margin: 0;
+	font-size: var(--font-size-lg);
+	font-weight: 600;
+	color: var(--color-text-main);
+}
+
+.help-center-close {
+	background: transparent;
+	border: none;
+	font-size: 1.5rem;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	padding: var(--spacing-xs);
+	border-radius: var(--radius-sm);
+	transition:
+		background-color var(--transition-fast),
+		color var(--transition-fast);
+}
+
+.help-center-close:hover {
+	background-color: var(--color-bg-hover);
+	color: var(--color-danger, #ef4444);
+}
+
+/* Двопанельна сітка */
+.help-center-layout {
+	display: grid;
+	grid-template-columns: 240px 1fr;
+	flex-grow: 1;
+	overflow: hidden;
+	height: 100%;
+}
+
+/* Ліва панель: Навігація */
+.help-sidebar {
+	background-color: var(--color-bg-body);
+	border-right: 1px solid var(--color-border);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	overflow-y: auto;
+}
+
+.help-nav-list {
+	list-style: none;
+	padding: var(--spacing-md) 0;
+	margin: 0;
+}
+
+.help-nav-list li {
+	margin-bottom: 2px;
+}
+
+.help-tab-btn {
+	width: 100%;
+	text-align: left;
+	padding: var(--spacing-sm) var(--spacing-lg);
+	background: transparent;
+	border: none;
+	border-left: 3px solid transparent;
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	cursor: pointer;
+	transition: all var(--transition-fast);
+}
+
+.help-tab-btn:hover {
+	background-color: rgba(0, 0, 0, 0.03);
+	color: var(--color-text-main);
+}
+
+.help-tab-btn.active {
+	background-color: var(--color-bg-card);
+	border-left-color: var(--color-primary);
+	color: var(--color-primary);
+	font-weight: 500;
+}
+
+/* Права панель: Контент */
+.help-content-area {
+	padding: var(--spacing-xl);
+	overflow-y: auto;
+	background-color: var(--color-bg-card);
+	position: relative;
+}
+
+.help-pane {
+	display: none;
+	animation: fadeIn var(--transition-base) ease-out forwards;
+}
+
+.help-pane.active {
+	display: block;
+	padding: var(--spacing-md);
+	border-radius: var(--spacing-sm);
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(5px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.help-section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: var(--spacing-md, 16px);
+}
+
+.help-section-title {
+	margin: 0;
+	padding: 0;
+	border: none;
+	font-size: var(--font-size-lg, 1.25rem);
+	color: var(--color-text-main);
+}
+
+.faq-item:not(:last-child) {
+	margin-bottom: var(--spacing-md);
+}
+
+.faq-item strong {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: var(--spacing-xs);
+	color: var(--color-text-main);
+	font-weight: 600;
+}
+
+.faq-item strong i {
+	color: var(--color-primary);
+	font-size: 1.1em;
+}
+
+.faq-item p {
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+	line-height: 1.5;
+	padding-left: 24px; /* Відступ для вирівнювання тексту під іконкою */
+}
+
+/* Модифікатори модального вікна */
+.popup-container--help {
+	max-width: 900px;
+	width: 95%;
+}
+
+.help-title-text {
+	margin-left: 8px;
+}
+
+.help-body--scrollable {
+	height: 60vh;
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+	.help-center-layout {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto 1fr;
+	}
+
+	.help-sidebar {
+		border-right: none;
+		border-bottom: 1px solid var(--color-border);
+		overflow-x: auto;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.help-nav-list {
+		display: flex;
+		padding: 0 var(--spacing-sm);
+		margin: 0;
+	}
+
+	.help-tab-btn {
+		white-space: nowrap;
+		border-left: none;
+		border-bottom: 3px solid transparent;
+		padding: var(--spacing-md);
+	}
+
+	.help-tab-btn.active {
+		border-bottom-color: var(--color-primary);
+	}
+}

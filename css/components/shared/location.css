@@ -1,0 +1,91 @@
+/* ./styles/components/shared/location.css */
+
+/* ==========================================
+   ГЕОГРАФІЯ ТА ЛОКАЦІЇ (Форматер geo.js)
+   ========================================== */
+
+/* Загальний контейнер для населеного пункту */
+.geo-container {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 3px;
+}
+
+/* Головна назва місця (Місто/Село) */
+.place-main-title {
+	color: var(--color-text-main);
+	line-height: var(--line-height-tight);
+}
+
+/* Сучасна назва (якщо відрізняється) */
+.place-current {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-muted);
+	font-style: italic;
+}
+
+/* Контейнер для ієрархії (область, країна) - тепер колонкою */
+.place-hierarchy {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Рядок одного регіону (напр. "🇺🇦 Україна") */
+.place-unit-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Назва регіону в ієрархії */
+.place-unit-row .place-name {
+	margin: 0;
+	display: flex;
+	align-items: center;
+}
+
+/* Ідеальний розмір та рамка для прапорців */
+.flag-icon {
+	width: 16px;
+	height: 12px;
+	object-fit: cover;
+	border-radius: 2px;
+	border: 1px solid var(--color-border); /* Рамка не дасть білим прапорам злитися з фоном */
+	display: inline-block;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+
+/* ==========================================
+   БЛОК ЛОКАЦІЇ (Лікарня, Церква + Адреса)
+   ========================================== */
+
+.location-container {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+/* Головна назва закладу/церкви (перший рядок) */
+.location-container > span:first-child,
+.location-container > .place-main-title {
+	font-weight: 400; /* Уніфікована жирність */
+	color: var(--color-text-main);
+	line-height: var(--line-height-tight);
+}
+
+/* Відступ, якщо адреса йде під назвою закладу */
+.location-address--spaced {
+	margin-top: 2px;
+}
+
+/* Прапорці для історичних адмін. поділів */
+.admin-flag-icon {
+	width: 16px;
+	height: 11px;
+	border-radius: 2px;
+	border: 1px solid var(--color-border); /* 👈 Підлаштовується під світлу/темну тему */
+	vertical-align: middle;
+	object-fit: cover;
+}

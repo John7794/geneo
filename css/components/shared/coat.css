@@ -1,0 +1,23 @@
+/* ./styles/components/shared/coat.css */
+
+/* Обгортка для герба */
+.coat-container {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-sm); /* Відступ між текстом і мініатюрою */
+	flex-shrink: 0;
+}
+
+/* Зображення герба */
+.coat-icon {
+	width: auto;
+	height: 24px; /* Зменшено висоту, щоб картинка не розтягувала рядок тексту */
+	max-width: 32px;
+	object-fit: contain;
+	cursor: pointer; /* Показує, що на герб можна клікнути (через data-full) */
+	pointer-events: auto;
+}
+
+.cursor-zoom-in {
+	cursor: zoom-in;
+}

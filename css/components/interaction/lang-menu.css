@@ -1,0 +1,114 @@
+/* css/components/interaction/lang-menu.css */
+
+/* ==========================================
+   ВИПАДАЮЧЕ МЕНЮ МОВ (Dropdown)
+   ========================================== */
+.lang-menu-wrapper {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+/* Використовуємо !important, щоб "вбити" стилі від класу breadcrumbs__dropdown-menu */
+.lang-menu-dropdown {
+	position: absolute !important;
+	top: 0 !important;
+	right: calc(100% + 14px) !important; /* Ідеально відкидає вліво від кнопки */
+	left: auto !important; /* Жорстко скасовуємо зміщення вправо */
+	bottom: auto !important;
+
+	min-width: 150px;
+	z-index: 1020;
+
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-lg);
+	padding: var(--spacing-xs) 0;
+	margin: 0 !important;
+}
+
+/* Стрілочка (трикутник), що вказує на кнопку */
+.lang-menu-dropdown::after {
+	content: "";
+	position: absolute;
+	top: 14px;
+	right: -6px;
+	width: 10px;
+	height: 10px;
+	background-color: var(--color-bg-card);
+	border-right: 1px solid var(--color-border);
+	border-top: 1px solid var(--color-border);
+	transform: rotate(45deg);
+}
+
+.lang-code-text {
+	font-weight: 600;
+	font-size: 0.85em;
+	letter-spacing: 0.5px;
+	user-select: none;
+}
+
+/* Мобільна адаптація меню вибору мови */
+@media (max-width: 768px) {
+	/* 1. Перетворюємо контейнер списку на повноекранний оверлей */
+	#lang-menu.show {
+		position: fixed !important;
+		top: 50dvh !important;
+		left: 50dvw !important;
+		right: 0 !important;
+		bottom: 0 !important;
+		width: 100dvw !important;
+		height: 100dvh !important;
+		max-width: 100dvw !important;
+		max-height: 100dvh !important;
+
+		/* Ефект затемнення та розмиття фону */
+		background-color: rgba(0, 0, 0, 0.5) !important;
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+
+		/* Виводимо поверх усіх інших елементів */
+		z-index: 9999 !important;
+
+		/* Центруємо кнопки мов */
+		display: flex !important;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: 12px;
+		padding: 20px;
+		margin: 0 !important;
+		border: none !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+	}
+
+	/* Ховаємо "хвостик" (трикутник), який вказував на кнопку */
+	#lang-menu::after {
+		display: none !important;
+	}
+
+	/* 2. Стилізуємо самі опції вибору (шукаємо будь-які дочірні кнопки/посилання) */
+	#lang-menu.show > * {
+		background-color: var(--color-bg-card, #ffffff);
+		width: 100%;
+		max-width: 280px; /* Оптимальна ширина під палець */
+		padding: 16px 24px;
+		border-radius: 16px;
+		text-align: center;
+		font-size: 18px;
+		font-weight: 500;
+		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+		color: var(--color-text-main, #1f2937);
+		border: 1px solid var(--color-border);
+		cursor: pointer;
+		display: block;
+
+		/* Скидаємо інлайн або успадковані позиції */
+		position: relative !important;
+		inset: auto !important;
+		transform: none !important;
+	}
+}

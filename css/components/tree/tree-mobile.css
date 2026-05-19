@@ -1,0 +1,215 @@
+/* ./css/components/tree/tree-mobile.css */
+
+/* Прорив батьківських відступів та розтягування на весь екран */
+.tree-mobile-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 88vw;
+	margin-left: calc(50% - 44vw);
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+/* Повноширинна плитка */
+.tree-mobile-container .kinship-card {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	border-left: none;
+	border-right: none;
+	border-bottom: 1px solid var(--color-border);
+	border-top: 1px solid var(--color-border-light);
+	box-shadow: none;
+	box-sizing: border-box;
+	border-radius: 12px;
+}
+
+/* Відновлення вертикальних інтервалів між картками */
+.tree-mobile-level {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	gap: var(--spacing-sm);
+	overflow: hidden;
+}
+
+/* Кореневий вузол (Пробанд) */
+.tree-mobile-level--root {
+	width: 100%;
+}
+
+.tree-mobile-level--root .kinship-card {
+	background-color: var(--color-bg-hover);
+}
+
+/* Текстовий роздільник поколінь */
+.tree-mobile-divider {
+	width: 100%;
+	text-align: center;
+	position: relative;
+	margin: var(--spacing-md) 0;
+}
+
+.tree-mobile-divider::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+	border-top: 1px solid var(--color-border);
+	z-index: 1;
+}
+
+.tree-mobile-divider span {
+	position: relative;
+	z-index: 2;
+	background-color: var(--color-bg-body);
+	padding: 0 var(--spacing-sm);
+	color: var(--color-text-meta);
+	font-size: var(--font-size-xs);
+	letter-spacing: 0.05em;
+}
+
+/* Хлібні крихти (Верхня фіксація) */
+.breadcrumbs-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 50px;
+	background-color: var(--color-bg-card);
+	border-bottom: 1px solid var(--color-border);
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	padding: 0 var(--spacing-md);
+}
+
+/* Приховування мобільного контейнера та кнопки FAB на десктопах */
+@media (min-width: 768px) {
+	.tree-mobile-container,
+	.mobile-menu-toggle {
+		display: none;
+	}
+}
+
+/* Глобальні мобільні адаптації для зовнішніх панелей */
+@media (max-width: 767px) {
+	/* Тотальне приховування елементів управління масштабом через підвищення специфічності */
+	#tree-view .zoom-controls,
+	.tree-container .zoom-controls,
+	.tree-zoom-panel,
+	.tree-bottom-panel,
+	.help-button-container {
+		display: none;
+	}
+
+	/* Головна кнопка виклику (Floating Action Button) */
+	.mobile-menu-toggle {
+		display: flex;
+		position: fixed;
+		bottom: var(--spacing-md);
+		right: var(--spacing-md);
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background-color: var(--color-primary);
+		color: var(--color-text-inverse);
+		justify-content: center;
+		align-items: center;
+		box-shadow: var(--shadow-lg);
+		z-index: 1001;
+		border: none;
+		cursor: pointer;
+		transition:
+			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			background-color 0.2s;
+	}
+
+	.mobile-menu-toggle:active {
+		transform: scale(0.9);
+	}
+
+	/* Контейнер інструментів (Speed Dial меню). Підвищена специфічність. */
+	#tree-view .top-bar-controls,
+	.app-wrapper .top-bar-controls {
+		position: fixed;
+		bottom: 96px;
+		right: var(--spacing-md);
+		top: auto;
+		left: auto;
+		width: auto;
+		height: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end; /* Вирівнювання по правому краю */
+		gap: 12px;
+		background: transparent;
+		border: none;
+		padding: 0;
+		z-index: 1000;
+		box-shadow: none;
+
+		/* Початковий стан: приховано зсувом вниз */
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(30px) scale(0.9);
+		transform-origin: bottom right;
+		transition:
+			opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			visibility 0.3s;
+	}
+
+	/* Стан відкритого меню */
+	#tree-view .top-bar-controls.is-open,
+	.app-wrapper .top-bar-controls.is-open {
+		opacity: 1;
+		visibility: visible;
+		transform: translateY(0) scale(1);
+		background: var(--color-bg-card);
+		z-index: 9999;
+	}
+
+	/* Пропорційне збільшення ширини кнопок у плаваючому меню */
+	#tree-view .top-bar-controls button,
+	.app-wrapper .top-bar-controls button {
+		width: 56px;
+		height: 48px;
+		border-radius: 24px; /* Овальна форма (pill) */
+		background-color: var(--color-bg-card);
+		box-shadow: var(--shadow-md);
+	}
+
+	#tree-view .top-bar-controls .control-group,
+	.app-wrapper .top-bar-controls .control-group {
+		display: flex;
+		flex-direction: column;
+		margin: 0;
+		background: transparent;
+		box-shadow: none;
+		gap: 12px;
+	}
+
+	/* Коригування випадаючого меню мов */
+	.lang-menu-wrapper {
+		position: relative;
+	}
+
+	.lang-menu-dropdown {
+		bottom: 0;
+		right: 100%;
+		margin-right: 12px;
+		top: auto;
+		transform-origin: bottom right;
+	}
+}
+
+.genealogy-tree-mobile-wrapper,
+#tree-view {
+	touch-action: pan-y;
+}

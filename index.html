@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="uk">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
+		<title>Родове Дерево</title>
+
+		<script>
+			(function () {
+				const savedTheme = localStorage.getItem("appTheme") || "light";
+				if (savedTheme === "dark")
+					document.documentElement.classList.add("theme-dark");
+			})();
+		</script>
+		<link rel="icon" href="data:," />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+			rel="stylesheet"
+		/>
+
+		<link rel="stylesheet" href="css/base/variables.css" />
+		<link rel="stylesheet" href="css/base/reset.css" />
+		<link rel="stylesheet" href="css/base/base.css" />
+		<link rel="stylesheet" href="css/layout.css" />
+
+		<link rel="stylesheet" href="css/components/shared/button.css" />
+		<link rel="stylesheet" href="css/components/shared/date.css" />
+		<link rel="stylesheet" href="css/components/shared/location.css" />
+		<link rel="stylesheet" href="css/components/shared/coat.css" />
+		<link rel="stylesheet" href="css/components/shared/participants.css" />
+		<link rel="stylesheet" href="css/components/shared/kinship-card.css" />
+
+		<link rel="stylesheet" href="css/components/profile/profile-header.css" />
+		<link rel="stylesheet" href="css/components/profile/profile-blocks.css" />
+		<link rel="stylesheet" href="css/components/profile/descendants.css" />
+		<link rel="stylesheet" href="css/components/profile/ancestors.css" />
+		<link rel="stylesheet" href="css/components/profile/marriage.css" />
+		<link rel="stylesheet" href="css/components/profile/relatives.css" />
+		<link rel="stylesheet" href="css/components/profile/records.css" />
+		<link rel="stylesheet" href="css/components/profile/education.css" />
+		<link rel="stylesheet" href="css/components/profile/job.css" />
+		<link rel="stylesheet" href="css/components/profile/awards.css" />
+		<link rel="stylesheet" href="css/components/profile/military.css" />
+		<link rel="stylesheet" href="css/components/profile/gallery.css" />
+		<link rel="stylesheet" href="css/components/profile/domicile.css" />
+		<link rel="stylesheet" href="css/components/profile/identity.css" />
+		<link rel="stylesheet" href="css/components/profile/personal.css" />
+		<link rel="stylesheet" href="css/components/profile/error-state.css" />
+
+		<link rel="stylesheet" href="css/components/interaction/relationship.css" />
+		<link rel="stylesheet" href="css/components/interaction/breadcrumbs.css" />
+		<link rel="stylesheet" href="css/components/interaction/zoom.css" />
+		<link rel="stylesheet" href="css/components/interaction/search.css" />
+		<link rel="stylesheet" href="css/components/interaction/gallery.css" />
+		<link rel="stylesheet" href="css/components/interaction/events.css" />
+		<link rel="stylesheet" href="css/components/interaction/popup.css" />
+		<link rel="stylesheet" href="css/components/interaction/lang-menu.css" />
+		<link rel="stylesheet" href="css/components/interaction/onboarding.css" />
+		<link rel="stylesheet" href="css/components/interaction/lineage.css" />
+		<link rel="stylesheet" href="css/components/interaction/navigation.css" />
+
+		<link rel="stylesheet" href="css/utilities.css" />
+		<link rel="stylesheet" href="css/states.css" />
+		<link rel="stylesheet" href="css/components/shared/loader.css" />
+
+		<link rel="stylesheet" href="css/components/tree/tree.css" />
+		<link rel="stylesheet" href="css/components/tree/tree-mobile.css" />
+	</head>
+
+	<body>
+		<div id="app-loader" class="loader">
+			<div class="loader__spinner"></div>
+			<div class="loader__text" data-i18n="system.loading">
+				Завантаження архіву...
+			</div>
+		</div>
+
+		<main class="app-wrapper">
+			<button
+				id="btn-prev"
+				class="nav-arrow nav-arrow--left"
+				title="Попередній"
+				data-i18n-title="ui.prev"
+			>
+				<i class="ri-arrow-left-s-line"></i>
+			</button>
+			<button
+				id="btn-next"
+				class="nav-arrow nav-arrow--right"
+				title="Наступний"
+				data-i18n-title="ui.next"
+			>
+				<i class="ri-arrow-right-s-line"></i>
+			</button>
+
+			<div id="breadcrumbs-container" class="breadcrumbs-wrapper hidden">
+				<nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
+			</div>
+
+			<button id="mobile-menu-btn" class="mobile-menu-toggle" aria-label="Меню">
+				<i class="ri-menu-line"></i>
+			</button>
+
+			<div class="top-bar-controls">
+				<div class="control-group unified-panel">
+					<button
+						id="btn-home"
+						class="btn btn-icon"
+						title="На головну"
+						data-i18n-title="ui.home"
+					>
+						<i class="ri-home-4-line"></i>
+					</button>
+					<button
+						id="btn-search"
+						class="btn btn-icon js-open-search"
+						title="Пошук"
+						data-i18n-title="ui.searchTitle"
+					>
+						<i class="ri-search-line"></i>
+					</button>
+					<button
+						id="btn-lineage"
+						class="btn btn-icon js-open-lineage"
+						title="Гілки роду"
+						data-i18n-title="kinship.toggleTitle"
+					>
+						<i class="ri-git-branch-line"></i>
+					</button>
+
+					<hr class="panel-divider" />
+
+					<button
+						id="btn-events"
+						class="btn btn-icon hidden"
+						title="Цей день в історії"
+						data-i18n-title="events.historyTitle"
+					>
+						<i class="ri-calendar-event-line"></i>
+						<span
+							id="events-badge"
+							class="badge-dot badge-dot--tr hidden"
+						></span>
+					</button>
+
+					<button
+						id="theme-toggle"
+						class="btn btn-icon"
+						title="Перемкнути тему"
+						data-i18n-title="ui.themeTitle"
+					>
+						<i class="ri-moon-line"></i>
+					</button>
+
+					<div class="lang-menu-wrapper">
+						<button
+							id="btn-lang-toggle"
+							class="btn btn-icon"
+							title="Змінити мову"
+							data-i18n-title="ui.langTitle"
+						>
+							<i class="ri-translate-2"></i>
+						</button>
+
+						<div
+							id="lang-menu"
+							class="breadcrumbs__dropdown-menu lang-menu-dropdown hidden"
+						>
+							<button class="breadcrumbs__dropdown-item" data-lang="uk">
+								Українська
+							</button>
+						</div>
+					</div>
+
+					<button
+						id="btn-help"
+						class="btn btn-icon js-open-help"
+						title="Довідка"
+						data-i18n-title="ui.help"
+					>
+						<i class="ri-question-mark"></i>
+					</button>
+				</div>
+			</div>
+
+			<div id="tree-view" class="tree-container">
+				<div class="zoom-controls">
+					<button
+						id="btn-zoom-in"
+						class="btn btn-icon"
+						title="Збільшити"
+						data-i18n-title="ui.zoomIn"
+					>
+						<i class="ri-add-line"></i>
+					</button>
+					<button
+						id="btn-zoom-reset"
+						class="btn btn-icon"
+						title="Скинути"
+						data-i18n-title="ui.zoomReset"
+					>
+						<i class="ri-fullscreen-line"></i>
+					</button>
+					<button
+						id="btn-zoom-out"
+						class="btn btn-icon"
+						title="Зменшити"
+						data-i18n-title="ui.zoomOut"
+					>
+						<i class="ri-subtract-line"></i>
+					</button>
+					<span id="zoom-level-display" class="text-meta zoom-display"
+						>100%</span
+					>
+				</div>
+
+				<div class="tree-scroll-wrapper">
+					<div id="tree-root" class="tree-chart"></div>
+				</div>
+			</div>
+
+			<div id="profile-content" class="hidden"></div>
+
+			<div id="lineage-modal" class="popup-overlay hidden" aria-hidden="true">
+				<div class="popup-container">
+					<div class="popup-header">
+						<h3 class="popup-name" data-i18n="kinship.toggleTitle">
+							Обрати лінію роду
+						</h3>
+						<button
+							id="btn-close-lineage"
+							class="modal-close"
+							data-i18n-title="ui.close"
+						>
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+					<div class="popup-body">
+						<div class="lineage-grid">
+							<button
+								class="lineage-option lineage-option--all active"
+								data-mode="all"
+							>
+								<span data-i18n="kinship.all">Усі родичі</span>
+							</button>
+							<button class="lineage-option" data-mode="father">
+								<span data-i18n="kinship.paternalSide">Тільки по Татові</span>
+							</button>
+							<button class="lineage-option" data-mode="mother">
+								<span data-i18n="kinship.maternalSide">Тільки по Мамі</span>
+							</button>
+							<button class="lineage-option" data-mode="fatherFather">
+								<span data-i18n="kinship.fatherFather">Дід (по татові)</span>
+							</button>
+							<button class="lineage-option" data-mode="motherFather">
+								<span data-i18n="kinship.motherFather">Дід (по мамі)</span>
+							</button>
+							<button class="lineage-option" data-mode="fatherMother">
+								<span data-i18n="kinship.fatherMother">Баба (по татові)</span>
+							</button>
+							<button class="lineage-option" data-mode="motherMother">
+								<span data-i18n="kinship.motherMother">Баба (по мамі)</span>
+							</button>
+						</div>
+					</div>
+					<div class="popup-footer">
+						<span
+							id="lineage-stats"
+							class="text-meta"
+							data-i18n="kinship.modeSelect"
+							>Оберіть режим</span
+						>
+					</div>
+				</div>
+			</div>
+
+			<div id="search-overlay" class="popup-overlay hidden">
+				<div class="popup-container">
+					<div class="popup-header popup-header--search">
+						<i class="ri-search-line text-muted"></i>
+						<input
+							type="text"
+							id="search-input"
+							class="search-input w-100"
+							placeholder="Пошук (ім'я, прізвище, ID)..."
+							data-i18n-placeholder="ui.searchPlaceholder"
+							autocomplete="off"
+						/>
+						<button
+							id="btn-close-search"
+							class="modal-close"
+							data-i18n-title="ui.close"
+						>
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+					<div class="popup-body popup-body--no-padding popup-body--scrollable">
+						<div
+							id="search-status"
+							class="text-meta search-status hidden"
+						></div>
+						<div id="search-results-list" class="search-results-list"></div>
+						<div
+							id="search-empty"
+							class="text-muted search-empty hidden"
+							data-i18n="ui.noResults"
+						>
+							Нічого не знайдено
+						</div>
+					</div>
+					<div class="popup-footer popup-footer--small flex-between text-meta">
+						<span
+							><kbd>↑</kbd> <kbd>↓</kbd>
+							<span data-i18n="ui.navHint">для навігації</span></span
+						>
+						<span
+							><kbd>Enter</kbd>
+							<span data-i18n="ui.selectHint">для вибору</span></span
+						>
+						<span
+							><kbd>Esc</kbd>
+							<span data-i18n="ui.closeHint">закрити</span></span
+						>
+					</div>
+				</div>
+			</div>
+
+			<div id="events-overlay" class="popup-overlay hidden">
+				<div class="popup-container">
+					<div class="popup-header">
+						<h3 class="popup-name popup-name--flex">
+							<i class="ri-calendar-check-line text-primary"></i>
+							<span data-i18n="events.historyTitle">Цей день в історії</span>
+							(<span id="current-date-display"></span>)
+						</h3>
+						<button
+							id="btn-close-events"
+							class="modal-close"
+							data-i18n-title="ui.close"
+						>
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+					<div class="popup-body">
+						<ul id="events-list" class="events-list-container"></ul>
+						<div
+							id="events-empty"
+							class="text-muted events-empty hidden"
+							data-i18n="events.historyEmpty"
+						>
+							На сьогодні подій не знайдено
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="help-overlay" class="popup-overlay hidden">
+				<div class="popup-container popup-container--help">
+					<div class="popup-header">
+						<h3 class="popup-name popup-name--flex">
+							<i class="ri-book-open-line text-primary"></i>
+							<span class="help-title-text" data-i18n="help.title"
+								>Довідкова інформація</span
+							>
+						</h3>
+						<button
+							id="btn-close-help"
+							class="modal-close"
+							title="Закрити"
+							data-i18n-title="common.close"
+						>
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+
+					<div class="popup-body popup-body--no-padding help-body--scrollable">
+						<div class="help-center-layout">
+							<aside class="help-sidebar">
+								<nav>
+									<ul class="help-nav-list">
+										<li>
+											<button
+												class="help-tab-btn active"
+												data-target="help-navigation"
+											>
+												<i class="ri-route-line"></i>
+												<span data-i18n="help.tabs.navigation">Навігація</span>
+											</button>
+										</li>
+										<li>
+											<button class="help-tab-btn" data-target="help-controls">
+												<i class="ri-dashboard-3-line"></i>
+												<span data-i18n="help.tabs.controls"
+													>Панель керування</span
+												>
+											</button>
+										</li>
+										<li>
+											<button class="help-tab-btn" data-target="help-zoom">
+												<i class="ri-zoom-in-line"></i>
+												<span data-i18n="help.tabs.zoom">Масштабування</span>
+											</button>
+										</li>
+										<li>
+											<button class="help-tab-btn" data-target="help-objects">
+												<i class="ri-profile-line"></i>
+												<span data-i18n="help.tabs.objects"
+													>Картки та Попапи</span
+												>
+											</button>
+										</li>
+										<li>
+											<button class="help-tab-btn" data-target="help-modes">
+												<i class="ri-layout-masonry-line"></i>
+												<span data-i18n="help.tabs.modes"
+													>Режими перегляду</span
+												>
+											</button>
+										</li>
+									</ul>
+								</nav>
+							</aside>
+
+							<main class="help-content-area">
+								<section id="help-navigation" class="help-pane active">
+									<div class="help-section-header">
+										<h3
+											class="help-section-title"
+											data-i18n="help.sections.navigation.title"
+										>
+											Система навігації
+										</h3>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-node-tree"></i>
+											<span
+												data-i18n="help.sections.navigation.breadcrumbs.title"
+												>Хлібні крихти</span
+											></strong
+										>
+										<p data-i18n="help.sections.navigation.breadcrumbs.desc">
+											Ланцюжок переглянутих профілів. Навігація здійснюється
+											горизонтальним скролінгом. Лінійний транзит завжди
+											зберігає кореневий вузол.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-arrow-left-s-line"></i> /
+											<i class="ri-arrow-right-s-line"></i>
+											<span data-i18n="help.sections.navigation.arrows.title"
+												>Стрілки навігації</span
+											></strong
+										>
+										<p data-i18n="help.sections.navigation.arrows.desc">
+											Транзит «Вперед» та «Назад» історією переглядів.
+											Підтримується керування стрілками клавіатури. Навігаційний
+											цикл замкнутий.
+										</p>
+									</div>
+								</section>
+
+								<section id="help-controls" class="help-pane hidden">
+									<div class="help-section-header">
+										<h3
+											class="help-section-title"
+											data-i18n="help.sections.controls.title"
+										>
+											Панель керування
+										</h3>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-home-4-line"></i>
+											<span data-i18n="help.sections.controls.home.title"
+												>Кореневий профіль</span
+											></strong
+										>
+										<p data-i18n="help.sections.controls.home.desc">
+											Миттєве центрування графа на головній особі системи.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-git-branch-line"></i>
+											<span data-i18n="help.sections.controls.branches.title"
+												>Перемикання гілок</span
+											></strong
+										>
+										<p data-i18n="help.sections.controls.branches.desc">
+											Просторова ізоляція родичів за визначеною лінією
+											(батьківська, материнська тощо).
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-search-line"></i>
+											<span data-i18n="help.sections.controls.search.title"
+												>Пошук</span
+											></strong
+										>
+										<p data-i18n="help.sections.controls.search.desc">
+											Повнотекстова індексація за іменами та ID. Фільтрується
+											обраною гілкою.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-calendar-event-line"></i>
+											<span data-i18n="help.sections.controls.events.title"
+												>Події сьогодні</span
+											></strong
+										>
+										<p data-i18n="help.sections.controls.events.desc">
+											Агрегація історичних річниць (народження, одруження,
+											смерті) для поточної дати.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-moon-line"></i> /
+											<i class="ri-translate-2"></i>
+											<span data-i18n="help.sections.controls.system.title"
+												>Система та Довідка</span
+											></strong
+										>
+										<p data-i18n="help.sections.controls.system.desc">
+											Перемикання візуальної теми, зміна мовної локалізації та
+											виклик поточної специфікації.
+										</p>
+									</div>
+								</section>
+
+								<section id="help-zoom" class="help-pane hidden">
+									<div class="help-section-header">
+										<h3
+											class="help-section-title"
+											data-i18n="help.sections.zoom.title"
+										>
+											Масштабування простору
+										</h3>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-add-line"></i>
+											<span data-i18n="help.sections.zoom.in.title"
+												>Збільшити</span
+											></strong
+										>
+										<p data-i18n="help.sections.zoom.in.desc">
+											Наближення оптичної дистанції графа.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-fullscreen-line"></i>
+											<span data-i18n="help.sections.zoom.reset.title"
+												>Центрувати</span
+											></strong
+										>
+										<p data-i18n="help.sections.zoom.reset.desc">
+											Скидання масштабу до базового показника 100%.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-subtract-line"></i>
+											<span data-i18n="help.sections.zoom.out.title"
+												>Зменшити</span
+											></strong
+										>
+										<p data-i18n="help.sections.zoom.out.desc">
+											Віддалення оптичної дистанції графа.
+										</p>
+									</div>
+								</section>
+
+								<section id="help-objects" class="help-pane hidden">
+									<div class="help-section-header">
+										<h3
+											class="help-section-title"
+											data-i18n="help.sections.objects.title"
+										>
+											Інформаційні об'єкти
+										</h3>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-external-link-line"></i>
+											<span data-i18n="help.sections.objects.popup.title"
+												>Попап персони</span
+											></strong
+										>
+										<p data-i18n="help.sections.objects.popup.desc">
+											Динамічне вікно швидкого огляду. Містить: шапку (фото,
+											ПРІЗВИЩЕ, ім'я, роки життя), основну інформацію, статус
+											родинного зв'язку та кнопку переходу до розгорнутого
+											профілю (для прямих родичів).
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-user-line"></i>
+											<span data-i18n="help.sections.objects.card.title"
+												>Плитка персони</span
+											></strong
+										>
+										<p data-i18n="help.sections.objects.card.desc">
+											Компактний блок візуалізації в списках (події, пошук).
+											Включає фотографію, соціальну роль, ім'я, ПРІЗВИЩЕ та
+											кнопку доступу до профілю.
+										</p>
+									</div>
+								</section>
+
+								<section id="help-modes" class="help-pane hidden">
+									<div class="help-section-header">
+										<h3
+											class="help-section-title"
+											data-i18n="help.sections.modes.title"
+										>
+											Режими перегляду
+										</h3>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-organization-chart"></i>
+											<span data-i18n="help.sections.modes.tree.title"
+												>Дерево роду</span
+											></strong
+										>
+										<p data-i18n="help.sections.modes.tree.desc">
+											Матриця карток персон. Кожна картка містить фото, ім'я,
+											роки життя та тригер переходу в профіль.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-file-user-line"></i>
+											<span data-i18n="help.sections.modes.profile.title"
+												>Профіль</span
+											></strong
+										>
+										<p data-i18n="help.sections.modes.profile.desc">
+											Розгорнуте досьє. Складається з шапки (із тригером
+											повернення до дерева) та масиву клікабельних і
+											неклікабельних інформаційних компонентів.
+										</p>
+									</div>
+									<div class="faq-item">
+										<strong
+											><i class="ri-scales-3-line"></i>
+											<span data-i18n="help.sections.modes.compare.title"
+												>Порівняння</span
+											></strong
+										>
+										<p data-i18n="help.sections.modes.compare.desc">
+											Компаративний аналіз. Відображає картки двох осіб. Містить
+											інтегрований футер розрахунку ступеня родинного зв'язку
+											між поточним та обраним вузлами.
+										</p>
+									</div>
+								</section>
+							</main>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+		<script type="module" src="scripts/main.js"></script>
+	</body>
+</html>

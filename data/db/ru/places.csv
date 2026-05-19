@@ -1,0 +1,9 @@
+place_id,name_hist,name_current,status,parent_place_id,geo_lat,geo_lng,note,google_maps_url
+UA_SAM,Самбір,Самбір,active,,,,,"google.com/maps?ll=49.51667,23.2&q=49.51667,23.2&hl=uk&t=m&z=12"
+UA_LVI,Львів,Львів,active,,,,,https://uk.wikipedia.org/wiki/%D0%9B%D1%8C%D0%B2%D1%96%D0%B2#/maplink/1
+RU_KOZ_BIG,Козлово,Козлово,active,,,,,
+RU_NEF,Нефтеюганськ,Нефтеюганськ,active,,,,,
+,,,,,,,,
+PL_12,Іздебки,Іздебки (Izdebki),active,,49.6900,22.0500,Родове село Станкевичів,https://goo.gl/maps/izdebki
+PL_13,Збоїща,Львів (р-н Збоїща),merged,PL_01,49.8700,24.0400,Приєднано до Львова у 1952,https://goo.gl/maps/zboiska
+PL_99,Ямна,–,vanished,,49.1234,22.5678,Виселене під час Акції Вісла,

@@ -1,0 +1,46 @@
+/* ./styles/components/interaction/zoom.css */
+
+/* Контейнер для кнопок масштабування */
+.zoom-controls {
+	position: fixed;
+	bottom: var(--spacing-md);
+	right: var(--spacing-md);
+	z-index: 1000;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+
+	background-color: var(--color-bg-card);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+
+	/* 🔥 Уніфікація ширини (як у верхніх кнопок) */
+	width: 44px;
+	box-sizing: border-box;
+	padding: var(--spacing-sm) 0; /* Зверху і знизу відступ є, по боках — 0 */
+}
+
+/* На мобільних екранах робимо горизонтальну панель */
+@media (max-width: 639px) {
+	.zoom-controls {
+		flex-direction: row;
+		bottom: var(--spacing-md);
+		right: var(--spacing-md);
+
+		/* 🔥 Адаптація розмірів під мобілку */
+		width: auto; /* Дозволяємо розтягнутися по горизонталі */
+		height: 44px; /* Тепер фіксуємо висоту */
+		padding: 0 var(--spacing-sm); /* Міняємо відступи: по боках є, зверху/знизу 0 */
+	}
+}
+
+/* Текст із відсотками зуму */
+.zoom-display {
+	font-size: 11px;
+	width: 100%;
+	text-align: center;
+	line-height: 1;
+	margin-top: 2px;
+}

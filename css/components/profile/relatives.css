@@ -1,0 +1,110 @@
+/* ./styles/components/profile/relatives.css */
+
+/* ==========================================
+   1. ПІДСЕКЦІЯ (Обгортка для групи родичів)
+   ========================================== */
+.subsection {
+	margin-bottom: var(--spacing-lg);
+}
+
+.subsection:last-child {
+	margin-bottom: 0;
+}
+
+/* ==========================================
+   2. ЗАГОЛОВКИ ПІДСЕКЦІЙ
+   ========================================== */
+.subsection-header {
+	font-size: var(--font-size-base);
+	color: var(--color-text-main);
+	margin-bottom: var(--spacing-md);
+	padding-bottom: var(--spacing-xs);
+	border-bottom: 2px solid var(--color-border-light);
+	text-align: center;
+}
+
+/* Модифікатор для менш акцентованого заголовка (напр., всередині гілки) */
+.subsection__header--muted {
+	font-size: var(--font-size-sm);
+	font-weight: 500;
+	color: var(--color-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	border-bottom: 1px solid var(--color-border);
+}
+
+/* ==========================================
+   3. РОЗПОДІЛ ЗА СТОРОНАМИ (Лінія батька / Лінія матері)
+   ========================================== */
+.relatives-side {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-lg);
+}
+
+.relatives-side:last-child {
+	margin-bottom: 0;
+}
+
+/* ==========================================
+   4. КОНТЕНТ СТОРОНИ (Сітка карток)
+   ========================================== */
+.relatives-side__content {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--spacing-sm);
+}
+
+/* Адаптивна сітка для карток далеких родичів */
+@media (min-width: 640px) {
+	.relatives-side__content {
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: var(--spacing-md);
+	}
+}
+
+/* Контейнер групи (Рідні / Вітчими) */
+.parent-group-section {
+	margin-bottom: 24px;
+}
+
+/* Заголовок з лініями по боках */
+.parent-group-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 20px 0 12px;
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--color-text-meta);
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.parent-header-line {
+	flex-grow: 1;
+	height: 1px;
+	background-color: var(--color-border);
+}
+
+.parent-header-text {
+	margin: 0 16px;
+}
+
+/* Сітка для карток */
+.parent-group-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr); /* Рівно 2 колонки */
+	gap: var(--spacing-xl);
+}
+
+/* На мобільних пристроях робимо в одну колонку */
+@media (max-width: 600px) {
+	.parent-group-grid {
+		grid-template-columns: 1fr;
+	}
+	.parent-tile-empty {
+		display: none; /* Ховаємо пустий блок на мобілках */
+	}
+}

@@ -1,0 +1,174 @@
+/* ./styles/components/interaction/events.css */
+
+/* ==========================================
+   1. КАРТКА ПОДІЇ (Event Card)
+   ========================================== */
+.event-card {
+	background-color: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	padding: var(--spacing-md);
+	margin-bottom: var(--spacing-md);
+	box-shadow: var(--shadow-sm);
+	transition:
+		transform var(--transition-fast),
+		box-shadow var(--transition-fast);
+}
+
+.event-card:last-child {
+	margin-bottom: 0;
+}
+
+.event-card:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-md);
+	border-color: var(--color-primary-light);
+}
+
+/* ==========================================
+   2. ШАПКА ПОДІЇ (Іконка + Тип + Дата)
+   ========================================== */
+.event-header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--spacing-sm);
+	margin-bottom: var(--spacing-sm);
+	border-bottom: 1px solid var(--color-border-light);
+	padding-bottom: var(--spacing-sm);
+}
+
+/* Контейнер для тексту в шапці */
+.event-header__info {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+
+/* Тип події (напр. "Народження", "Шлюб") */
+.event-header__title {
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	color: var(--color-text-main);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+/* Дата події */
+.event-header__date {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	margin-top: 2px;
+}
+
+/* Дата за старим стилем (юліанський календар) */
+.event-date--old-style {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-muted);
+	margin-left: var(--spacing-xs);
+}
+
+/* ==========================================
+   3. ІКОНКИ ПОДІЙ (Кольорове кодування)
+   ========================================== */
+/* Призначаємо кольори іконкам залежно від типу події */
+.event-icon--birth {
+	color: var(--color-primary);
+}
+.event-icon--death {
+	color: var(--color-text-muted);
+}
+.event-icon--marriage {
+	color: #db2777; /* Окремий акцент (рожевий) для шлюбів */
+}
+
+/* ==========================================
+   4. УЧАСНИКИ ПОДІЇ ТА ЛІНКИ (Імена)
+   ========================================== */
+.event-names {
+	font-size: var(--font-size-base);
+	line-height: var(--line-height-base);
+	color: var(--color-text-main);
+}
+
+/* Сполучник "та", "і" між іменами (для шлюбів) */
+.event-names__and {
+	color: var(--color-text-meta);
+	font-size: var(--font-size-sm);
+	margin: 0 var(--spacing-xs);
+	font-weight: 400;
+}
+
+/* Клікабельне ім'я персони */
+.event-person-link,
+.as-link {
+	color: var(--color-primary);
+	font-weight: 500;
+	text-decoration: none;
+	cursor: pointer;
+	transition: color var(--transition-fast);
+}
+
+.event-person-link:hover,
+.as-link:hover {
+	color: var(--color-primary-hover);
+	text-decoration: underline;
+}
+
+/* Роки життя поруч із ім'ям (напр. "(1890-1950)") */
+.event-years {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-muted);
+	margin-left: var(--spacing-xs);
+	white-space: nowrap;
+}
+
+/* ==========================================
+   5. ДОПОМІЖНІ ЕЛЕМЕНТИ (Індикатори)
+   ========================================== */
+/* Маленька крапка для сповіщень (напр., якщо є нові події) */
+.badge-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	background-color: var(--color-primary);
+	border-radius: var(--radius-full);
+	flex-shrink: 0;
+}
+
+.events-empty {
+	text-align: center;
+	padding: var(--spacing-lg) 0;
+}
+
+.event-group-header {
+	margin: 20px 0 12px;
+	font-size: 1.1em;
+	color: var(--color-text-main);
+	font-weight: 600;
+}
+
+.event-group-header i {
+	margin-right: 6px;
+	font-size: 1.2em;
+	vertical-align: middle;
+}
+
+.event-marriage-container {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.event-header {
+	margin-bottom: 12px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.event-header-date {
+	font-weight: 500;
+	font-size: 1em;
+	color: var(--color-text-main);
+	margin-top: 0;
+}

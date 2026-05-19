@@ -1,0 +1,10 @@
+p_id,p_photo,p_title,p_surname,p_noble_nicknames,p_origin_place,p_coat_of_arms,p_first_name,p_patronymic,p_gender,p_birth_date,p_birth_place,p_death_date,p_death_place,p_social_status_job,p_religion_confession,p_marital_status,p_kinship_degree,p_person_bio_url
+p1,,отець,,,,,Йоан,,m,,,,,,греко-католик,,,
+p2,,отець,,,,,Юрій,,m,,,,,,православний,,,
+p3,,,Косолапов,,,,Валерій,Васильович,m,1952,,,,нафтовик-геолог,,,,
+p4,,,Баранова,,,,Олена,Миколаївна,f,1954,,,,вчитель фізкультури,,,,
+p5,,отець,Петрущак,,,,Миколай,,m,,,,,,православний,,,
+p6,,,Сошинський,,,,Гнат,,m,,,,,,,,,
+p7,,,Сошинська (Нанівська),,,,Маркіяна,,f,,,,,,,,,
+p8,,,Сошинський,,,,Іван,Гнатович,m,,,,,,,,,
+p9,,,Сошинська,,,,Маріанна,Гнатівна,f,,,,,,,,,

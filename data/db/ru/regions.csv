@@ -1,0 +1,17 @@
+region_id,region_level,region_name,begin_date,end_date,places_id,flag_url
+REG_AH,0,Австро-Угорська Імперія,1867-06-08,1918-10-31,,at-hu.svg
+REG_POL_II,0,Друга Річ Посполита (Polska),1918-11-11,1939-09-17,,pl_2.svg
+REG_UKR,0,Україна,1991-08-24,9999-12-31,UA_SAM; UA_LVI,ua.svg
+REG_RUS,0,Російська Федерація,1991-12-25,9999-12-31,RU_NEF; RU_KOZ_BIG,ru.svg
+REG_USSR,0,Союз Радянських Соціалістичних Республік,1922-12-30,1991-12-26,UA_SAM; UA_LVI; RU_KOZ_BIG; RU_NEF,ussr.svg
+REG_POL_II_LWOW,1,Львівське воєводство,1920-12-23,1939-09-17,UA_SAM; UA_LVI,
+REG_AH_GALICIA,1,Королівство Галичини та Володимирії,1772-01-01,1918-10-31,,
+REG_USSR_RSFSR,1,Російська Радянська Федеративна Соціалістична Республіка,1922-12-30,1991-12-25,RU_KOZ_BIG; RU_NEF,
+REG_USSR_UKRSSR,1,Українська Радянська Соціалістична Республіка,1919-03-10,1991-08-24,UA_SAM; UA_LVI,
+REG_UKR_LVIV,2,Львівська область,1959-05-22,9999-12-31,UA_SAM; UA_LVI,
+REG_USSR_UKR_DROHOB,2,Дрогобицька область,1939-12-04,1959-05-21,UA_SAM,
+REG_USSR_RUS_KALIN,2,Калінінська область,1935-01-29,1990-07-17,RU_KOZ_BIG,
+REG_USSR_KALIN_KOZL,3,Козловський район,1937-07-09,1956-07-03,RU_KOZ_BIG,
+REG_USSR_KALIN_SPIR,3,Спіровський район,1956-07-04,9999-12-31,RU_KOZ_BIG,
+REG_USSR_TYUM_KHMAO,3,Ханти-Мансійській автономний округ,1977-10-07,9999-12-31,RU_NEF,
+REG_USSR_RUS_TYUMEN,2,Тюменська область,1944-08-14,9999-12-31,RU_NEF,

@@ -1,0 +1,64 @@
+/* ./styles/components/profile/ancestors.css */
+
+/* ==========================================
+   1. ГРУПА БАТЬКІВ (Біо, Названі, Вітчим/Мачуха)
+   ========================================== */
+.parent-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-xl);
+}
+
+/* Контейнер для карток батьків (щоб вони були в ряд) */
+.parent-group__grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+	.parent-group__grid {
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	}
+}
+
+/* ==========================================
+   2. ДІДУСІ ТА БАБУСІ (Дві колонки: Тато / Мама)
+   ========================================== */
+.grandparents-grid {
+	display: grid;
+	grid-template-columns: 1fr; /* На мобільних одна під одною */
+	gap: var(--spacing-xl);
+}
+
+@media (min-width: 768px) {
+	.grandparents-grid {
+		grid-template-columns: 1fr 1fr; /* 🔥 ВИМОГА 5: Дві рівні колонки */
+		align-items: start;
+	}
+}
+
+/* Гілка (татова чи мамина) */
+.ancestor-branch {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+/* 🔥 КОЛОНКА: Картки всередині гілки ЗАВЖДИ в колонку */
+.ancestor-branch__list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+/* ==========================================
+   3. БРАТИ ТА СЕСТРИ
+   ========================================== */
+.sibling-group {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-lg);
+}

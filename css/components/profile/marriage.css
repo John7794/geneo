@@ -1,0 +1,44 @@
+/* ./styles/components/profile/marriage.css */
+
+/* ==========================================
+   1. КОНТЕЙНЕР СВІДКІВ (Учасники шлюбу)
+   ========================================== */
+.marriage-witnesses {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+	margin-top: var(--spacing-md);
+	padding-top: var(--spacing-md);
+	border-top: 1px dashed var(--color-border-light);
+	background-color: var(--color-bg-body); /* Легке виділення зони свідків */
+	padding: var(--spacing-sm);
+	border-radius: var(--radius-sm);
+}
+
+/* На планшетах та більших екранах розташовуємо свідків у ряд або сітку */
+@media (min-width: 640px) {
+	.marriage-witnesses {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: stretch;
+	}
+
+	/* Кожна картка свідка займає рівну частку простору */
+	.marriage-witnesses > * {
+		flex: 1;
+		min-width: 200px; /* Захист від занадто сильного стиснення */
+	}
+}
+
+/* Заголовок блоку свідків (якщо він додається динамічно) */
+.marriage-witnesses::before {
+	/* Цей псевдоелемент можна використовувати для іконки або лейблу, 
+       але зазвичай заголовок рендериться в HTML. Залишаємо гнучкість. */
+	display: block;
+	width: 100%;
+	font-size: var(--font-size-xs);
+	color: var(--color-text-meta);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-bottom: var(--spacing-xs);
+}

@@ -1,0 +1,129 @@
+/* ./styles/components/profile/domicile.css */
+
+.domicile-container {
+	position: relative;
+	padding-left: var(--spacing-xs);
+}
+
+/* Вертикальна вісь */
+.domicile-timeline {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-md);
+}
+
+/* Сама лінія. Тягнеться вздовж усіх елементів */
+.domicile-timeline::before {
+	content: "";
+	position: absolute;
+	top: 8px; /* Відступ, щоб лінія починалася від центру першого маркера */
+	bottom: 0;
+	left: 5px; /* Центруємо відносно маркера */
+	width: 2px;
+	background-color: var(--color-border);
+	z-index: 0;
+}
+
+/* Кожен вузол (окрема адреса) */
+.domicile-node {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	padding-left: var(--spacing-xl); /* Відступ від лінії для контентної картки */
+	z-index: 1;
+}
+
+/* Кружечок-маркер на лінії */
+.domicile-marker {
+	position: absolute;
+	left: 0;
+	top: 5px;
+	width: 12px;
+	height: 12px;
+	border-radius: var(--radius-full);
+	background-color: var(--color-bg-card);
+	border: 2px solid var(--color-primary);
+	box-shadow: 0 0 0 4px var(--color-bg-card); /* Створює візуальний розрив лінії навколо маркера */
+	z-index: 2;
+}
+
+/* Контент адреси (картка) */
+.domicile-content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+	width: 100%;
+	background-color: var(--color-bg-body);
+	padding: var(--spacing-md);
+	border-radius: var(--radius-md);
+	border: 1px solid var(--color-border-light);
+	transition: border-color var(--transition-fast);
+}
+
+.domicile-content:hover {
+	border-color: var(--color-border);
+}
+
+/* Роки проживання */
+.domicile-period {
+	font-size: var(--font-size-xs);
+	font-weight: 700;
+	color: var(--color-primary);
+	letter-spacing: 0.5px;
+}
+
+/* Тип власності (оренда/власність) */
+.domicile-type {
+	font-size: var(--font-size-xs);
+	text-transform: uppercase;
+	color: var(--color-text-meta);
+}
+
+/* Географія (Місто, Регіон) */
+.domicile-place {
+	font-size: var(--font-size-base);
+	font-weight: 600;
+	color: var(--color-text-main);
+	line-height: var(--line-height-tight);
+}
+
+/* Вулиця та деталі */
+.domicile-address {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	margin-top: 4px;
+}
+
+.domicile-address i {
+	font-size: 1.1em;
+	color: var(--color-text-meta);
+	margin-top: 2px; /* Візуальне вирівнювання іконки відносно тексту */
+}
+
+/* Відрізаємо хвіст лінії після останнього елемента.
+   Це набагато надійніше, ніж вираховувати висоту через JS.
+*/
+.domicile-node:last-child::before {
+	content: "";
+	position: absolute;
+	left: 3px;
+	top: 17px; /* Починаємо перекриття одразу під останнім маркером */
+	bottom: -50px; /* Тягнемо вниз із запасом */
+	width: 6px; /* Ширше за саму лінію, щоб надійно "зафарбувати" її */
+	background-color: var(--color-bg-card);
+	z-index: 1;
+}
+
+/* Мобільна адаптація */
+@media (max-width: 576px) {
+	.domicile-content {
+		padding: var(--spacing-sm);
+	}
+	.domicile-place {
+		font-size: var(--font-size-sm);
+	}
+}

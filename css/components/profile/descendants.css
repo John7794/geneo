@@ -1,0 +1,84 @@
+/* ./styles/components/profile/descendants.css */
+
+/* ==========================================
+   1. КАТЕГОРІЯ НАЩАДКІВ (напр. "Спільні діти", "Від першого шлюбу")
+   ========================================== */
+.descendants-category {
+	margin-bottom: var(--spacing-lg);
+}
+
+.descendants-category:last-child {
+	margin-bottom: 0;
+}
+
+/* ==========================================
+   2. КОНТЕЙНЕР КОЛОНОК ПОКОЛІНЬ
+   ========================================== */
+.descendants-columns {
+	display: flex;
+	flex-direction: column; /* На мобільних екранах колонки стають рядами */
+	gap: var(--spacing-md);
+	margin-top: var(--spacing-sm);
+}
+
+/* Адаптивність для планшетів та десктопів */
+@media (min-width: 768px) {
+	.descendants-columns {
+		flex-direction: row;
+		flex-wrap: nowrap;
+		overflow-x: auto; /* Дозволяє горизонтальний скрол, якщо поколінь багато (напр. 5 колонок) */
+		padding-bottom: var(--spacing-xs); /* Місце для скролбару */
+
+		/* Плавний скрол для touch-падів */
+		scroll-behavior: smooth;
+		-webkit-overflow-scrolling: touch;
+	}
+}
+
+/* Примусове відображення списком (якщо користувач обрав такий вигляд) */
+.descendants-columns--stacked {
+	flex-direction: column !important;
+}
+
+/* ==========================================
+   3. ОКРЕМА КОЛОНКА (ОДНЕ ПОКОЛІННЯ)
+   ========================================== */
+.descendants-column {
+	flex: 1;
+	min-width: 260px; /* Оптимальна ширина для картки персони */
+	background-color: var(
+		--color-bg-body
+	); /* Легкий контраст на фоні основної картки */
+	border-radius: var(--radius-md);
+	padding: var(--spacing-md);
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm); /* Відстань між персонами в колонці */
+	border: 1px solid var(--color-border-light);
+}
+
+/* Модифікатор: Якщо колонка лише одна (наприклад, тільки діти, без онуків) */
+.descendants-column--full {
+	flex: 1 1 100%;
+	min-width: 100%;
+	background-color: transparent;
+	border: none;
+	padding: 0;
+}
+
+/* ==========================================
+   4. ЗАГОЛОВОК КОЛОНКИ (напр. "Онуки", "Правнуки")
+   ========================================== */
+.descendants-column__header {
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	color: var(--color-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-bottom: var(--spacing-sm);
+	padding-bottom: var(--spacing-xs);
+	border-bottom: 1px solid var(--color-border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}

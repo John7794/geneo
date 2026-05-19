@@ -1,0 +1,116 @@
+/* ./styles/components/profile/gallery.css */
+
+.photo-album-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xl);
+}
+
+/* Секція окремого альбому */
+.gallery-album-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-md);
+}
+
+.photo-card-album-name {
+	font-size: var(--font-size-md);
+	font-weight: 600;
+	color: var(--color-text-main);
+	border-bottom: 2px solid var(--color-border-light);
+	padding-bottom: 4px;
+	margin-bottom: 8px;
+}
+
+/* * Адаптивна сітка. 
+ * Браузер сам вирішує, скільки колонок влізе, але не менше 160px.
+ */
+.photo-album-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+	gap: var(--spacing-md);
+}
+
+/* Картка фотографії */
+.photo-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	cursor: pointer;
+	transition: transform var(--transition-fast);
+	/* Захист від випадання довгого тексту підпису */
+	overflow: hidden;
+}
+
+.photo-card:hover {
+	transform: translateY(-2px);
+}
+
+.photo-card:hover .award-tile-overlay {
+	opacity: 1;
+}
+
+/* Контейнер для зображення (диктатура пропорцій) */
+.photo-card-img-wrapper {
+	position: relative;
+	width: 100%;
+	/* Квадратні або злегка прямокутні прев'ю — найбезпечніший варіант для архівних солянок */
+	aspect-ratio: 1 / 1;
+	border-radius: var(--radius-md);
+	overflow: hidden;
+	background-color: var(
+		--color-bg-hover
+	); /* Плейсхолдер доки вантажиться фото */
+	border: 1px solid var(--color-border);
+}
+
+.photo-card-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover; /* Заповнює контейнер, зберігаючи пропорції, зайве — ріже */
+	object-position: top center; /* Для портретів краще фокусуватися на верхній частині (обличчя) */
+	transition: transform var(--transition-normal);
+}
+
+.photo-card:hover .photo-card-img {
+	transform: scale(1.03); /* Легкий зум при наведенні для динаміки */
+}
+
+/* Оверлей з лупою (використовуємо ваш існуючий клас award-tile-overlay або його аналог) */
+.award-tile-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.4);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity var(--transition-fast);
+	color: #ffffff;
+	font-size: 24px;
+}
+
+/* Підпис до фото */
+.photo-card-caption {
+	font-size: var(--font-size-xs);
+	color: var(--color-text-muted);
+	text-align: center;
+	line-height: var(--line-height-tight);
+	/* Обрізаємо занадто довгі описи в сітці, залишаючи три крапки */
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* Мобільна адаптація */
+@media (max-width: 576px) {
+	.photo-album-grid {
+		/* На смартфонах робимо мінімальну ширину меншою, щоб влізло 2 колонки */
+		grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+		gap: var(--spacing-sm);
+	}
+}

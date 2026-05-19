@@ -1,0 +1,115 @@
+/* ./styles/components/profile/personal.css */
+
+.personal-container {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Розділювачі підсекцій (Зовнішність, Хобі, тощо) */
+.personal-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+	padding-bottom: var(--spacing-md);
+	border-bottom: 1px dashed var(--color-border-light);
+}
+
+.personal-section:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.personal-section-title {
+	font-size: var(--font-size-xs);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--color-text-meta);
+	margin-bottom: 4px;
+}
+
+/* Грід для зовнішності (Key-Value) */
+.appearance-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.appearance-item {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	font-size: var(--font-size-sm);
+	padding: 6px 12px;
+	background-color: var(--color-bg-hover);
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--color-border-light);
+}
+
+.appearance-key {
+	color: var(--color-text-muted);
+	font-size: 0.9em;
+}
+
+.appearance-val {
+	color: var(--color-text-main);
+	font-weight: 500;
+}
+
+/* Тварини (Мікро-картки) */
+.pet-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--spacing-sm);
+}
+
+.pet-card {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 6px;
+	padding: 6px 14px;
+	background: linear-gradient(
+		to right,
+		var(--color-bg-card),
+		var(--color-bg-hover)
+	);
+	border-left: 3px solid var(--color-primary);
+	border-radius: 0 var(--radius-md) var(--radius-md) 0;
+	box-shadow: var(--shadow-sm);
+	font-size: var(--font-size-sm);
+}
+
+.pet-name {
+	font-weight: 600;
+	color: var(--color-text-main);
+}
+
+.pet-years {
+	font-size: 0.85em;
+	color: var(--color-text-muted);
+}
+
+/* Довгі текстові описи (Спосіб життя, Діяльність) */
+.personal-text {
+	font-size: var(--font-size-base);
+	line-height: var(--line-height-relaxed);
+	color: var(--color-text-main);
+	background-color: transparent;
+	border-left: 2px solid var(--color-border);
+	padding-left: var(--spacing-md);
+	margin-top: 4px;
+	font-style: italic; /* Візуально відділяємо наратив від сухих фактів */
+}
+
+/* Мобільна адаптація */
+@media (max-width: 576px) {
+	.appearance-list {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	.personal-text {
+		font-size: var(--font-size-sm);
+		padding-left: var(--spacing-sm);
+	}
+}

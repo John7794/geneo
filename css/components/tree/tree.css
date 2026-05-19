@@ -1,0 +1,329 @@
+/* ./styles/components/tree/tree.css */
+
+/* ==========================================
+   1. КОНФІГУРАЦІЯ ЛІНІЙ
+   ========================================== */
+.genealogy-tree {
+	--tree-line-width: 2px;
+	--tree-line-color: var(--color-tree-line);
+	--tree-v-gap: 44px;
+	--tree-radius: var(--radius-md);
+	display: inline-block;
+	white-space: nowrap;
+}
+/* ==========================================
+   2. КОНТЕЙНЕР ДЕРЕВА ТА СКРОЛ
+   ========================================== */
+#tree-view,
+.tree-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: var(--color-bg-body);
+	overflow: auto; /* Саме це дозволяє JS-скролу працювати! */
+	cursor: grab;
+	background-image: radial-gradient(
+		var(--color-tree-pattern) 1px,
+		transparent 1px
+	);
+	background-size: 24px 24px;
+	z-index: 1;
+	user-select: none;
+}
+
+#tree-view:active,
+.tree-container:active {
+	cursor: grabbing;
+}
+
+/* 🔥 Забороняємо браузеру нативно "тягати" фотографії і ламати наш скрол */
+.tree-node__photo {
+	-webkit-user-drag: none;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.tree-scroll-wrapper {
+	display: block;
+	width: max-content;
+	height: max-content;
+	min-width: 100%;
+	min-height: 100%;
+	padding: 80px;
+	box-sizing: border-box;
+	text-align: center;
+}
+
+#tree-root {
+	display: inline-block;
+	transform-origin: 0 0;
+	text-align: left;
+	position: relative;
+	transition: opacity 0.3s ease-in-out;
+	width: max-content;
+}
+
+/* 🔥 Ховаємо системні скролбари для краси (ефект нескінченного полотна) */
+.tree-container {
+	scrollbar-width: none; /* Для Firefox */
+}
+
+.tree-container::-webkit-scrollbar {
+	display: none; /* Для Chrome/Safari/Edge */
+}
+
+/* ==========================================
+   3. СТРУКТУРА ДЕРЕВА (ЛІНІЇ З'ЄДНАННЯ)
+   ========================================== */
+.genealogy-tree ul {
+	position: relative;
+	padding-top: var(--tree-v-gap);
+	display: flex;
+	justify-content: center;
+	margin: 0;
+	padding-left: 0;
+}
+
+.genealogy-tree li {
+	list-style-type: none;
+	position: relative;
+	padding: var(--tree-v-gap) 12px 0 12px;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+/* --- Горизонтальні лінії (Руки) --- */
+.genealogy-tree li::before,
+.genealogy-tree li::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 50%;
+	border-top: var(--tree-line-width) solid var(--tree-line-color);
+	width: 50%;
+	height: var(--tree-v-gap);
+}
+
+.genealogy-tree li::after {
+	right: auto;
+	left: 50%;
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+}
+
+/* --- Специфічні випадки ліній --- */
+.genealogy-tree li:only-child::after,
+.genealogy-tree li:only-child::before {
+	display: none; /* Лінії не потрібні єдиній дитині */
+}
+
+.genealogy-tree li:only-child {
+	padding-top: 0;
+}
+
+.genealogy-tree li:first-child::before,
+.genealogy-tree li:last-child::after {
+	border: 0 none; /* Прибираємо зайві вуса по краях */
+}
+
+.genealogy-tree li:last-child::before {
+	border-right: var(--tree-line-width) solid var(--tree-line-color);
+	border-radius: 0 var(--tree-radius) 0 0;
+}
+
+.genealogy-tree li:first-child::after {
+	border-radius: var(--tree-radius) 0 0 0;
+}
+
+/* --- Вертикальна лінія від батька вниз --- */
+.genealogy-tree ul ul::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+	width: 0;
+	height: var(--tree-v-gap);
+	transform: translateX(-50%);
+}
+
+/* ==========================================
+   4. КАРТКА ПЕРСОНИ (Tree Node)
+   ========================================== */
+.tree-node {
+	width: 210px;
+	height: 160px; /* 🔥 Зменшили висоту, бо тепер текст завжди в 1 рядок */
+	box-sizing: border-box;
+	background-color: var(--color-bg-card);
+	border-radius: 0 0 16px 16px;
+	padding: var(--spacing-md);
+	box-shadow: var(--shadow-sm);
+
+	position: relative;
+	z-index: 10;
+	display: inline-block;
+	cursor: pointer;
+	transition:
+		transform var(--transition-base),
+		box-shadow var(--transition-base);
+}
+
+.tree-node:hover {
+	transform: translateY(-5px);
+	box-shadow: var(--shadow-lg);
+	z-index: 20;
+}
+
+/* Прихований вузол */
+.tree-node--hidden {
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+	padding: 0;
+	min-height: 0;
+	border: none;
+}
+
+/* ==========================================
+   5. КОЛЬОРОВЕ КОДУВАННЯ (Як на старому скріні)
+   ========================================== */
+/* Повертаємо стильні кольорові смужки зверху замість градієнтів */
+.tree-node--male {
+	border-top: 5px solid #3498db; /* Яскраво-синій як у старій версії */
+}
+
+.tree-node--female {
+	border-top: 5px solid #e74c3c; /* Яскраво-червоний як у старій версії */
+}
+
+.tree-node--unknown {
+	border-top: 5px solid var(--color-text-meta);
+	opacity: 0.7;
+	pointer-events: none;
+	cursor: default;
+	box-shadow: none;
+}
+
+.tree-node--hypothetical {
+	border-top-style: dashed !important;
+	border-top-width: 4px !important;
+}
+
+/* ==========================================
+   6. ВНУТРІШНІ ЕЛЕМЕНТЫ КАРТКИ
+   ========================================== */
+.tree-node__inner {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	height: 100%; /* 🔥 Змушуємо контент розтягнутися на всю висоту картки */
+	pointer-events: none;
+}
+
+/* Фото */
+.tree-node__photo-box {
+	width: 64px;
+	height: 64px;
+	border-radius: var(--radius-full);
+	overflow: hidden;
+	background-color: var(--color-bg-body);
+	border: 3px solid var(--color-bg-card);
+	box-shadow: var(--shadow-sm);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.tree-node__photo {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.tree-node__placeholder {
+	font-size: var(--font-size-xl);
+	color: var(--color-text-meta);
+	font-weight: bold;
+}
+
+/* Текст */
+.tree-node__name {
+	display: block;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--color-text-main);
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: center;
+	max-width: 100%;
+}
+
+.tree-node__name--unknown {
+	font-style: italic;
+	font-weight: 400;
+}
+
+.tree-node__dates {
+	display: block;
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	font-weight: 500;
+	margin-top: auto; /* 🔥 Магія! Заповнює пустоту і завжди притискає роки до низу */
+}
+
+/* ==========================================
+   7. КНОПКА ПРОФІЛЮ (Пошук/Перехід)
+   ========================================== */
+.tree-node .btn-goto-profile {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 32px;
+	height: 32px;
+	border-radius: var(--radius-full);
+
+	/* 🔥 Робимо її "тихою": без фону і тіні за замовчуванням */
+	background-color: transparent;
+	border: 1px solid transparent;
+	box-shadow: none;
+	color: var(--color-text-meta); /* Блідо-сіра іконка, не відволікає */
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	z-index: 30;
+	transition: all var(--transition-fast);
+}
+
+/* При наведенні на саму картку робимо іконку трохи помітнішою */
+.tree-node:hover .btn-goto-profile {
+	color: var(--color-text-muted);
+}
+
+/* 🔥 А при наведенні саме на кнопку — вона гарно підсвічується */
+.tree-node .btn-goto-profile:hover {
+	background-color: var(--color-primary-light); /* Ніжно-синій фон */
+	color: var(--color-primary); /* Яскраво-синя іконка */
+	border-color: var(--color-primary-light);
+}
+
+/* Для темної теми (якщо вона увімкнена) */
+@media (prefers-color-scheme: dark) {
+	.tree-node .btn-goto-profile:hover {
+		background-color: var(--color-bg-hover);
+		color: var(--color-primary);
+		border-color: transparent;
+	}
+}
+
+@media (max-width: 768px) {
+	.tree-scroll-wrapper {
+		padding: 70px 0;
+	}
+}
