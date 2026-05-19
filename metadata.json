@@ -1,0 +1,6 @@
+{
+  "name": "Родове Дерево",
+  "description": "Ancestry and Family Tree view application imported from GitHub.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
