@@ -44,9 +44,10 @@ if (!admin.apps.length) {
 
 const firebaseAuth = getAuth();
 
+export const app = express();
+
 async function startServer() {
-  const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
 
   // Prevent indexing
   app.use((req, res, next) => {
@@ -384,9 +385,12 @@ async function startServer() {
     res.status(500).json({ error: "Express Error", message: err.message });
   });
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  if (!process.env.VERCEL) {
+    app.listen(PORT as number, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
+// Start setup
 startServer();
