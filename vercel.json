@@ -8,7 +8,7 @@
   ],
   "functions": {
     "api/**/*.js": {
-      "includeFiles": ["data/**", "firebase-applet-config.json", "dist/**"]
+      "includeFiles": "{data/**,firebase-applet-config.json,dist/**,scripts/**,css/**}"
     }
   }
 }

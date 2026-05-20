@@ -1,2 +1,2 @@
-import { app } from '../dist/server.cjs';
-export default app;
+import serverModule from '../dist/server.cjs';
+export default serverModule.app;
