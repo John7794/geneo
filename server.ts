@@ -3,52 +3,7 @@ import path from "path";
 import cookieParser from "cookie-parser";
 import fs from "fs";
 import "dotenv/config";
-import admin from "firebase-admin";
-import { getAuth } from "firebase-admin/auth";
 import nodemailer from "nodemailer";
-
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-  const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
-  let projectId = "celtic-biplane-j8gvj"; // Default from previous step
-  
-  try {
-    const config = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-    projectId = config.projectId;
-  } catch (e) {
-    console.warn("Could not read project ID from firebase-applet-config.json, using default");
-  }
-
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    try {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: projectId
-      });
-    } catch (e) {
-      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT, trying default credentials", e);
-      admin.initializeApp({ projectId });
-    }
-  } else {
-    try {
-      // In AI Studio / Cloud Run, if FIREBASE_SERVICE_ACCOUNT is not set, 
-      // it might work with default application credentials if enabled
-      admin.initializeApp({ projectId });
-    } catch (e) {
-      console.warn("Failed to initialize firebase-admin with default credentials", e);
-    }
-  }
-}
-
-function getFirebaseAuth() {
-  try {
-    return getAuth();
-  } catch (e) {
-    console.error("Firebase auth not initialized.", e);
-    return null;
-  }
-}
 
 export const app = express();
 const PORT = process.env.PORT || 3000;
@@ -133,16 +88,10 @@ app.use(cookieParser());
   };
 
   app.post('/auth-verify', async (req, res) => {
-    const { token: idToken } = req.body;
-    console.log("[Auth] Login attempt with ID token");
+    const { email: emailRaw } = req.body;
+    console.log("[Auth] Login attempt with email");
     try {
-      const authInstance = getFirebaseAuth();
-      if (!authInstance) {
-        return res.status(500).json({ error: "Внутрішня помилка сервера (Firebase не ініціалізовано)." });
-      }
-      const decodedToken = await authInstance.verifyIdToken(idToken);
-      const email = decodedToken.email ? decodedToken.email.toLowerCase().trim() : "";
-      console.log(`[Auth] Token verified for email: ${email}`);
+      const email = emailRaw ? emailRaw.toLowerCase().trim() : "";
 
       if (email && accessConfig[email]) {
         console.log(`[Auth] Access granted for ${email}`);
@@ -158,8 +107,8 @@ app.use(cookieParser());
         res.status(401).json({ error: `Ваша пошта (${email}) не має доступу. Зверніться до адміністратора.` });
       }
     } catch (error) {
-      console.error("[Auth] Error verifying ID token:", error);
-      res.status(401).json({ error: "Невалідний токен або помилка сервера авторизації" });
+      console.error("[Auth] Error verifying:", error);
+      res.status(401).json({ error: "Помилка сервера авторизації" });
     }
   });
 
@@ -247,13 +196,6 @@ app.use(cookieParser());
   });
 
   app.get('/login', (req, res) => {
-    let firebaseClientConfig = {};
-    try {
-      firebaseClientConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8'));
-    } catch(e) {
-      console.error("Could not read firebase-applet-config.json", e);
-    }
-
     return res.send(`
       <!DOCTYPE html>
       <html lang="uk">
@@ -279,44 +221,30 @@ app.use(cookieParser());
           <h2>Архів Генеалогії</h2>
           <p>Цей сайт є приватним. Для перегляду гілок родового дерева увійдіть через свій Google-акаунт.</p>
           
-          <button id="googleLoginBtn">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
-            Увійти через Google
+          <input type="email" id="emailInput" placeholder="Введіть ваш email" style="width: 100%; padding: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; box-sizing: border-box;">
+          <button id="loginBtn">
+            Увійти
           </button>
-          <a href="#" target="_blank" class="new-tab-btn" id="newTabBtn" aria-label="Відкрити в новій вкладці">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-            Відкрити додаток у новій вкладці
-          </a>
           <div id="error" class="error">Ваша пошта не має доступу до цієї версії сайту.</div>
         </div>
 
-        <script type="module">
-          // Check if app is running in an iframe
-          if (window !== window.parent) {
-            const newTabBtn = document.getElementById('newTabBtn');
-            newTabBtn.href = window.location.href;
-            newTabBtn.style.display = 'flex';
-          }
-
-          import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-          import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-          const firebaseConfig = ${JSON.stringify(firebaseClientConfig)};
-          const app = initializeApp(firebaseConfig);
-          const auth = getAuth(app);
-          const provider = new GoogleAuthProvider();
-
-          document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+        <script>
+          document.getElementById('loginBtn').addEventListener('click', async () => {
             const errorDiv = document.getElementById('error');
+            const email = document.getElementById('emailInput').value;
             errorDiv.style.display = 'none';
+            
+            if (!email) {
+              errorDiv.textContent = 'Будь ласка, введіть email';
+              errorDiv.style.display = 'block';
+              return;
+            }
+
             try {
-              const result = await signInWithPopup(auth, provider);
-              const idToken = await result.user.getIdToken();
-              
               const res = await fetch('/auth-verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: idToken })
+                body: JSON.stringify({ email: email })
               });
 
               const contentType = res.headers.get("content-type");
@@ -334,10 +262,7 @@ app.use(cookieParser());
               }
             } catch (error) {
               console.error("Auth error:", error);
-              const errorText = error.code === 'auth/network-request-failed' 
-                ? 'Помилка мережі/cookies. Відкрийте додаток у новій вкладці (іконка вгорі праворуч), або дозвольте сторонні cookie.' 
-                : 'Помилка авторизації: ' + error.message;
-              errorDiv.textContent = errorText;
+              errorDiv.textContent = 'Помилка авторизації: ' + error.message;
               errorDiv.style.display = 'block';
             }
           });
