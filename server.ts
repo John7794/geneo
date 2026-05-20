@@ -42,22 +42,27 @@ if (!admin.apps.length) {
   }
 }
 
-const firebaseAuth = getAuth();
+function getFirebaseAuth() {
+  try {
+    return getAuth();
+  } catch (e) {
+    console.error("Firebase auth not initialized.", e);
+    return null;
+  }
+}
 
 export const app = express();
+const PORT = process.env.PORT || 3000;
 
-async function startServer() {
-  const PORT = process.env.PORT || 3000;
+// Prevent indexing
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
 
-  // Prevent indexing
-  app.use((req, res, next) => {
-    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-    next();
-  });
-
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
   // Define access rules
   const accessConfigStr = (process.env.ACCESS_CONFIG || "").trim();
@@ -132,7 +137,11 @@ async function startServer() {
     const { token: idToken } = req.body;
     console.log("[Auth] Login attempt with ID token");
     try {
-      const decodedToken = await firebaseAuth.verifyIdToken(idToken);
+      const authInstance = getFirebaseAuth();
+      if (!authInstance) {
+        return res.status(500).json({ error: "Внутрішня помилка сервера (Firebase не ініціалізовано)." });
+      }
+      const decodedToken = await authInstance.verifyIdToken(idToken);
       const email = decodedToken.email ? decodedToken.email.toLowerCase().trim() : "";
       console.log(`[Auth] Token verified for email: ${email}`);
 
@@ -371,31 +380,41 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    (async () => {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+      
+      // Global Error Handler
+      app.use((err: any, req: any, res: any, next: any) => {
+        console.error("Express Error:", err);
+        res.status(500).json({ error: "Express Error", message: err.message });
+      });
+
+      if (!process.env.VERCEL) {
+        app.listen(PORT as number, "0.0.0.0", () => {
+          console.log(`Server running on http://localhost:${PORT}`);
+        });
+      }
+    })();
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
-  }
-
-  // Global Error Handler
-  app.use((err: any, req: any, res: any, next: any) => {
-    console.error("Express Error:", err);
-    res.status(500).json({ error: "Express Error", message: err.message });
-  });
-
-  if (!process.env.VERCEL) {
-    app.listen(PORT as number, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+    
+    // Global Error Handler
+    app.use((err: any, req: any, res: any, next: any) => {
+      console.error("Express Error:", err);
+      res.status(500).json({ error: "Express Error", message: err.message });
     });
-  }
-}
 
-// Start setup
-startServer();
+    if (!process.env.VERCEL) {
+      app.listen(PORT as number, "0.0.0.0", () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    }
+  }
