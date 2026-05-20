@@ -273,5 +273,9 @@ export function buildGenerationHTML(
 	clearTreeCache();
 	cardCache.clear();
 
+	if (context) {
+		context._currentBuildRootId = String(rootId);
+	}
+
 	return buildRecursiveTreeHTML(rootId, context, 1, maxGen, allowedIds, true);
 }

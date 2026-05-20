@@ -9,7 +9,7 @@ import { checkDataVersion, fetchCsv, fetchJson } from "./dataLoader.js";
  * MAIN DATA FETCH FUNCTION
  * Оркестрація завантаження системних файлів та ініціалізація логічного ядра.
  */
-export async function fetchAllData() {
+export async function fetchAllData(userConfig = {}) {
 	const lang = i18n.lang;
 	console.log(`🌍 Fetching data for language: [${lang}]`);
 
@@ -40,6 +40,28 @@ export async function fetchAllData() {
 	]);
 
 	const db = Object.fromEntries(fileResults);
+	
+	// Apply profile filtering based on userConfig
+	const hiddenProfiles = userConfig.hiddenProfiles || [];
+	if (hiddenProfiles.length > 0) {
+		const hideSet = new Set(hiddenProfiles.map(String));
+		
+		// List of tables where PID is used as a primary key
+		const tablesToFilterByPid = ['basic', 'identity', 'familyRoles', 'personal', 'names', 'identity', 'education', 'job', 'military'];
+		
+		tablesToFilterByPid.forEach(table => {
+			if (db[table]) {
+				db[table] = db[table].filter(row => !hideSet.has(String(row.pid)));
+			}
+		});
+
+		// Filter familyList (relationships) - remove rows where PID is either the person or the relative
+		if (db.familyList) {
+			db.familyList = db.familyList.filter(row => 
+				!hideSet.has(String(row.pid)) && !hideSet.has(String(row.relative_id))
+			);
+		}
+	}
 
 	console.log("⚙️ Initializing FamilyEngine...");
 	try {

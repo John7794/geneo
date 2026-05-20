@@ -112,7 +112,7 @@ export class AppRouter {
 		const internalAnchor = e.target.closest("a[href^='?id=']");
 		if (internalAnchor) {
 			if (stopPropEl) {
-				e.stopPropagation();
+				e.stopImmediatePropagation();
 			}
 			e.preventDefault();
 			const url = new URL(internalAnchor.href, window.location.origin);
@@ -126,7 +126,7 @@ export class AppRouter {
 		}
 
 		if (stopPropEl) {
-			e.stopPropagation();
+			e.stopImmediatePropagation();
 			return;
 		}
 
@@ -149,7 +149,7 @@ export class AppRouter {
 			profileBtn &&
 			document.getElementById("tree-root")?.contains(profileBtn)
 		) {
-			e.stopPropagation();
+			e.stopImmediatePropagation();
 			const targetId = profileBtn.getAttribute("data-profile-id");
 			if (targetId) {
 				this.navigateToId(targetId, false, "profile");
@@ -164,7 +164,7 @@ export class AppRouter {
 				treeCard.closest(".tree-mobile-container")) &&
 			!treeCard.classList.contains("tree-node--unknown")
 		) {
-			e.stopPropagation(); // Запобігаємо спливанню події до попапу
+			e.stopImmediatePropagation(); // Запобігаємо спливанню події до попапу
 			e.preventDefault();
 
 			const personId = treeCard.getAttribute("data-id");

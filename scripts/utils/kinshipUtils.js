@@ -573,13 +573,13 @@ export function getKinshipColumns(targetId, context) {
 
 	const columnsData = [];
 	for (let colIndex = 0; colIndex < 5; colIndex++) {
-		const col = buildColumnData(colIndex, allPaths, targetGender);
+		const col = buildColumnData(colIndex, allPaths, targetGender, cleanTargetId);
 		if (col) columnsData.push(col);
 	}
 	return columnsData;
 }
 
-function buildColumnData(generationIndex, allPaths, targetGender) {
+function buildColumnData(generationIndex, allPaths, targetGender, targetId) {
 	const descendantsMap = new Map();
 	let orderCounter = 0;
 	const colId = COLUMNS.basic?.id || "id";
@@ -592,6 +592,7 @@ function buildColumnData(generationIndex, allPaths, targetGender) {
 
 			if (distanceToTarget > 0) {
 				const pId = String(person[colId]);
+
 				if (!descendantsMap.has(pId)) {
 					descendantsMap.set(pId, {
 						person: person,

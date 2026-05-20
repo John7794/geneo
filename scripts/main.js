@@ -20,6 +20,7 @@ import { enableDragScroll } from "./components/interaction/dragScrollManager.js"
 import { LangManager } from "./components/interaction/langManager.js";
 import { ThemeManager } from "./components/interaction/themeManager.js";
 import { MobileMenuManager } from "./components/interaction/mobileMenuManager.js";
+import { ShareManager } from "./components/interaction/shareManager.js";
 import { GlobalModalInterceptor } from "./core/globalModalInterceptor.js";
 
 class App {
@@ -45,9 +46,27 @@ class App {
 			console.log("🔴 ТЕЛЕМЕТРІЯ: Запуск ініціалізації");
 
 			if (i18n.init) await i18n.init();
+			
+			let userConfig = { rootPerson: APP_CONFIG.rootId || "1", hiddenProfiles: [] };
+			try {
+				const configRes = await fetch('/api/config');
+				if (configRes.ok) {
+					const configData = await configRes.json();
+					if (configData.rootPerson) {
+						this.rootPersonId = configData.rootPerson;
+						userConfig.rootPerson = configData.rootPerson;
+					}
+					if (configData.hiddenProfiles) {
+						userConfig.hiddenProfiles = configData.hiddenProfiles;
+					}
+					window.userConfig = userConfig;
+				}
+			} catch(e) {
+				console.warn("⚠️ Could not fetch user config, using defaults", e);
+			}
 
 			console.log("🔴 ТЕЛЕМЕТРІЯ: Старт fetchAllData()");
-			this.engine = await fetchAllData();
+			this.engine = await fetchAllData(userConfig);
 			console.log("🟢 ТЕЛЕМЕТРІЯ: fetchAllData() завершено. Engine отримано.");
 
 			if (!this.engine) throw new Error("Engine is null");
@@ -151,6 +170,7 @@ class App {
 		window.zoomManager = this.managers.zoom;
 		this.managers.lang = new LangManager();
 		this.managers.theme = new ThemeManager();
+		this.managers.share = new ShareManager();
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();
@@ -158,6 +178,12 @@ class App {
 		const btnHome = document.getElementById("btn-home");
 		if (btnHome) {
 			btnHome.addEventListener("click", this._handleHomeClick);
+		}
+
+		const btnUpdate = document.getElementById("btn-update-data");
+		if (btnUpdate) {
+			this._handleUpdateDataClick = this._handleUpdateDataClick.bind(this);
+			btnUpdate.addEventListener("click", this._handleUpdateDataClick);
 		}
 
 		setTimeout(() => {
@@ -183,6 +209,44 @@ class App {
 		e.preventDefault();
 		if (String(this.currentProfileId) !== String(this.rootPersonId)) {
 			this.navigateToId(this.rootPersonId);
+		}
+	}
+
+	async _handleUpdateDataClick(e) {
+		e.preventDefault();
+		const loader = document.getElementById("app-loader");
+		if (loader) {
+			loader.classList.remove("hidden");
+			loader.querySelector(".loader__text").textContent = "Оновлення даних (може тривати кілька хвилин)...";
+		}
+		
+		try {
+			// Виклик API ендпоінта, який запустить node scripts/build/sync-data.js
+			const response = await fetch('/api/sync-data', { method: 'POST' });
+			const result = await response.json();
+			
+			if (!response.ok) {
+				throw new Error(result.error || "Помилка сервера");
+			}
+
+			if (typeof localforage !== "undefined") {
+				await localforage.clear();
+			}
+			
+			// Оновити версію після синхронізації
+			const cacheBust = Date.now();
+			const metaResponse = await fetch(`./data/db/metadata.json?t=${cacheBust}`);
+			if (metaResponse.ok) {
+				const meta = await metaResponse.json();
+				if (typeof localforage !== "undefined") {
+					await localforage.setItem("DB_VERSION", meta.timestamp || cacheBust);
+				}
+			}
+			window.location.reload();
+		} catch (error) {
+			console.error("Помилка під час оновлення даних", error);
+			if (loader) loader.classList.add("hidden");
+			alert("Помилка оновлення даних: " + error.message);
 		}
 	}
 }

@@ -14,7 +14,7 @@ const pendingRequests = new Map();
 if (typeof localforage !== "undefined") {
 	localforage.config({
 		name: STORE_NAME,
-		storeName: "app_data_v2", // 🔥 Змінено назву сховища для примусового скидання кешу старих версій
+		storeName: "app_data_v3", // 🔥 Змінено назву сховища для примусового скидання кешу старих версій
 		description: "Cached genealogy data",
 	});
 } else {

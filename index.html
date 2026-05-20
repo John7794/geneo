@@ -121,6 +121,14 @@
 						<i class="ri-home-4-line"></i>
 					</button>
 					<button
+						id="btn-share"
+						class="btn btn-icon js-open-share"
+						title="Поділитися"
+						data-i18n-title="ui.share"
+					>
+						<i class="ri-share-line"></i>
+					</button>
+					<button
 						id="btn-search"
 						class="btn btn-icon js-open-search"
 						title="Пошук"
@@ -180,6 +188,15 @@
 							</button>
 						</div>
 					</div>
+
+					<button
+						id="btn-update-data"
+						class="btn btn-icon"
+						title="Оновити дані"
+						data-i18n-title="ui.updateData"
+					>
+						<i class="ri-refresh-line"></i>
+					</button>
 
 					<button
 						id="btn-help"
@@ -358,6 +375,50 @@
 							data-i18n="events.historyEmpty"
 						>
 							На сьогодні подій не знайдено
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="share-overlay" class="popup-overlay hidden">
+				<div class="popup-container">
+					<div class="popup-header">
+						<h3 class="popup-name popup-name--flex">
+							<i class="ri-share-line text-primary"></i>
+							<span>Поділитися деревом</span>
+						</h3>
+						<button id="btn-close-share" class="modal-close" title="Закрити">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+					<div class="popup-body">
+						<div class="search-form" style="margin-bottom: 24px;">
+							<label style="display:block; margin-bottom: 8px; font-weight: 500;">Вкажіть email отримувача:</label>
+							<div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg); width: 100%; box-sizing: border-box;">
+								<i class="ri-mail-line text-muted"></i>
+								<input type="email" id="share-email-input" placeholder="email@example.com" style="flex: 1; min-width: 0; width: 100%; border: none; background: transparent; outline: none; font-family: inherit; font-size: 16px; color: var(--color-text-main); padding: 0;" />
+							</div>
+						</div>
+						<div style="margin-bottom: 24px;">
+							<label style="display:block; margin-bottom: 8px; font-weight: 500;">Які гілки дозволити переглядати:</label>
+							<div style="display: flex; flex-direction: column; gap: 8px;">
+								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+									<input type="checkbox" checked /> Лінія дідуся (по батьковій лінії)
+								</label>
+								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+									<input type="checkbox" checked /> Лінія бабусі (по батьковій лінії)
+								</label>
+								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+									<input type="checkbox" checked /> Лінія дідуся (по материнській лінії)
+								</label>
+								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+									<input type="checkbox" checked /> Лінія бабусі (по материнській лінії)
+								</label>
+							</div>
+						</div>
+						<div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+							<button class="btn btn-outline" id="btn-cancel-share">Скасувати</button>
+							<button class="btn btn-primary" id="btn-submit-share" disabled>Надіслати запрошення</button>
 						</div>
 					</div>
 				</div>
