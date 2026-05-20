@@ -367,7 +367,8 @@ app.use(cookieParser());
   app.get('/api/debug-csv', async (req, res) => {
      try {
        const csv = fs.readFileSync('data/db/uk/basic.csv', 'utf8');
-       const Papa = await import('papaparse');
+       const PapaModule = await import('papaparse');
+       const Papa = PapaModule.default || PapaModule;
        const parseConfig = { header: true, skipEmptyLines: true };
        const parsed = Papa.parse(csv, parseConfig);
        res.json(parsed.data[0]);
@@ -379,7 +380,8 @@ app.use(cookieParser());
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     (async () => {
-      const { createServer: createViteServer } = await import("vite");
+      const viteName = "vi" + "te";
+      const { createServer: createViteServer } = await import(/* @vite-ignore */ viteName);
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "spa",
