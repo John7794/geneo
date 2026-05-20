@@ -19,38 +19,73 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
   // Define access rules
-  const accessConfigStr = (process.env.ACCESS_CONFIG || "").trim();
-  let accessConfig: Record<string, any> = {};
+  const CONFIG_FILE_PATH = path.join(process.cwd(), 'data', 'access-config.json');
 
-  if (accessConfigStr) {
-    if (accessConfigStr.startsWith("{")) {
-       try {
-         accessConfig = JSON.parse(accessConfigStr);
-         // Normalize keys to lowercase
-         const normalizedConfig: Record<string, any> = {};
-         for (const key in accessConfig) {
-           normalizedConfig[key.toLowerCase().trim()] = accessConfig[key];
-         }
-         accessConfig = normalizedConfig;
-       } catch(e) {
-         console.warn("ACCESS_CONFIG starts with { but failed to parse as JSON.");
-       }
-    } else {
-       // It's a simple comma-separated emails string
-       const emails = accessConfigStr.split(',').map((e: string) => e.trim().toLowerCase()).filter((e: string) => e);
-       emails.forEach((email: string) => {
-         accessConfig[email] = { "rootPerson": "1", "hiddenProfiles": [] };
-       });
+  function loadAccessConfig() {
+    let config: Record<string, any> = {};
+
+    // 1. First, try reading from the JSON file
+    if (fs.existsSync(CONFIG_FILE_PATH)) {
+      try {
+        const data = fs.readFileSync(CONFIG_FILE_PATH, 'utf8');
+        config = JSON.parse(data);
+        console.log("[AccessConfig] Loaded config from JSON file success");
+      } catch (e) {
+        console.error("[AccessConfig] Error reading access-config.json, falling back", e);
+      }
+    }
+
+    // If config is still empty, load from environment variable
+    if (Object.keys(config).length === 0) {
+      const accessConfigStr = (process.env.ACCESS_CONFIG || "").trim();
+      if (accessConfigStr) {
+        if (accessConfigStr.startsWith("{")) {
+          try {
+            config = JSON.parse(accessConfigStr);
+          } catch (e) {
+            console.warn("[AccessConfig] ACCESS_CONFIG starts with { but failed to parse as JSON.");
+          }
+        } else {
+          const emails = accessConfigStr.split(',').map((e: string) => e.trim().toLowerCase()).filter((e: string) => e);
+          emails.forEach((email: string) => {
+            config[email] = { "rootPerson": "1", "hiddenProfiles": [] };
+          });
+        }
+      }
+    }
+
+    // Lowercase/normalize keys
+    const normalizedConfig: Record<string, any> = {};
+    for (const key in config) {
+      normalizedConfig[key.toLowerCase().trim()] = config[key];
+    }
+
+    // Always ensure dev/owner emails are allowed
+    const devEmails = ["www.johnsel771994@gmail.com", "johnsel771994@gmail.com"];
+    devEmails.forEach(email => {
+      const cleanEmail = email.toLowerCase().trim();
+      if (!normalizedConfig[cleanEmail]) {
+        normalizedConfig[cleanEmail] = { "rootPerson": "1", "hiddenProfiles": [] };
+      }
+    });
+
+    return normalizedConfig;
+  }
+
+  function saveAccessConfig(config: Record<string, any>) {
+    try {
+      const dir = path.dirname(CONFIG_FILE_PATH);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), 'utf8');
+      console.log("[AccessConfig] Saved configuration to access-config.json");
+    } catch (e) {
+      console.error("[AccessConfig] Failed to save configuration to file:", e);
     }
   }
 
-  // Завжди надаємо доступ вашій пошті
-  const devEmails = ["www.johnsel771994@gmail.com", "johnsel771994@gmail.com"];
-  devEmails.forEach(email => {
-    if (!accessConfig[email]) {
-      accessConfig[email] = { "rootPerson": "1", "hiddenProfiles": [] };
-    }
-  });
+  let accessConfig = loadAccessConfig();
 
   // Auth Middleware
   const authMiddleware = async (req: any, res: any, next: any) => {
@@ -123,12 +158,20 @@ app.use(cookieParser());
 
   app.post('/api/invite', authMiddleware, async (req, res) => {
     try {
-      const { email } = req.body;
+      const { email, hiddenProfiles } = req.body;
       if (!email) {
         return res.status(400).json({ error: "Email is required" });
       }
 
-      console.log(`[Invite] Request to invite: ${email}`);
+      const cleanEmail = email.toLowerCase().trim();
+      console.log(`[Invite] Request to invite: ${cleanEmail} with ${hiddenProfiles?.length || 0} hidden profiles.`);
+
+      // Update in-memory config and persist to json file
+      accessConfig[cleanEmail] = { 
+        "rootPerson": "1", 
+        "hiddenProfiles": hiddenProfiles || [] 
+      };
+      saveAccessConfig(accessConfig);
 
       // Optional: Check if SMTP config exists, if not just log
       if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
@@ -150,14 +193,9 @@ app.use(cookieParser());
       const host = req.headers['x-forwarded-host'] || req.get('host');
       const appUrl = process.env.APP_URL || `${protocol}://${host}`;
 
-      if (!accessConfig[email.toLowerCase().trim()]) {
-        accessConfig[email.toLowerCase().trim()] = { "rootPerson": "1", "hiddenProfiles": [] };
-        console.log(`[Invite] Added ${email} to accessConfig dynamically.`);
-      }
-
       await transporter.sendMail({
         from: `"Архів Генеалогії" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-        to: email,
+        to: cleanEmail,
         subject: "Запрошення до родинного архіву",
         html: `
           <h3>Вітаємо!</h3>

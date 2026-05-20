@@ -201,15 +201,6 @@
 					</div>
 
 					<button
-						id="btn-update-data"
-						class="btn btn-icon"
-						title="Оновити дані"
-						data-i18n-title="ui.updateData"
-					>
-						<i class="ri-refresh-line"></i>
-					</button>
-
-					<button
 						id="btn-help"
 						class="btn btn-icon js-open-help"
 						title="Довідка"
@@ -414,16 +405,16 @@
 							<label style="display:block; margin-bottom: 8px; font-weight: 500;">Які гілки дозволити переглядати:</label>
 							<div style="display: flex; flex-direction: column; gap: 8px;">
 								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-									<input type="checkbox" checked /> Лінія дідуся (по батьковій лінії)
+									<input type="checkbox" id="share-branch-paternal-f" checked /> Лінія дідуся (по батьковій лінії)
 								</label>
 								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-									<input type="checkbox" checked /> Лінія бабусі (по батьковій лінії)
+									<input type="checkbox" id="share-branch-paternal-m" checked /> Лінія бабусі (по батьковій лінії)
 								</label>
 								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-									<input type="checkbox" checked /> Лінія дідуся (по материнській лінії)
+									<input type="checkbox" id="share-branch-maternal-f" checked /> Лінія дідуся (по материнській лінії)
 								</label>
 								<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-									<input type="checkbox" checked /> Лінія бабусі (по материнській лінії)
+									<input type="checkbox" id="share-branch-maternal-m" checked /> Лінія бабусі (по материнській лінії)
 								</label>
 							</div>
 						</div>

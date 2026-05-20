@@ -170,7 +170,7 @@ class App {
 		window.zoomManager = this.managers.zoom;
 		this.managers.lang = new LangManager();
 		this.managers.theme = new ThemeManager();
-		this.managers.share = new ShareManager();
+		this.managers.share = new ShareManager(this);
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();

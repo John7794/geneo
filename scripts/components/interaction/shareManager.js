@@ -1,7 +1,8 @@
 import { UI_CLASSES } from "../../core/uiClasses.js";
 
 export class ShareManager {
-	constructor() {
+	constructor(app) {
+		this.app = app;
 		this.overlay = document.getElementById("share-overlay");
 		this.btnOpen = document.getElementById("btn-share");
 		this.btnClose = document.getElementById("btn-close-share");
@@ -58,11 +59,39 @@ export class ShareManager {
 		this.btnSubmit.disabled = true;
 		this.emailInput.disabled = true;
 
+		// Calculate hidden profiles based on unchecked checkboxes
+		const hiddenProfiles = [];
+		try {
+			const isPaternalFChecked = document.getElementById("share-branch-paternal-f")?.checked ?? true;
+			const isPaternalMChecked = document.getElementById("share-branch-paternal-m")?.checked ?? true;
+			const isMaternalFChecked = document.getElementById("share-branch-maternal-f")?.checked ?? true;
+			const isMaternalMChecked = document.getElementById("share-branch-maternal-m")?.checked ?? true;
+
+			const ahnentafelMap = this.app?.managers?.lineage?.logic?.ahnentafelMap;
+			if (ahnentafelMap) {
+				for (const [id, data] of ahnentafelMap.entries()) {
+					const branches = data.branches;
+					if (!isPaternalFChecked && branches.has(4)) {
+						hiddenProfiles.push(id);
+					} else if (!isPaternalMChecked && branches.has(5)) {
+						hiddenProfiles.push(id);
+					} else if (!isMaternalFChecked && branches.has(6)) {
+						hiddenProfiles.push(id);
+					} else if (!isMaternalMChecked && branches.has(7)) {
+						hiddenProfiles.push(id);
+					}
+				}
+			}
+			console.log("[Invite] Calculated hidden profiles count:", hiddenProfiles.length, hiddenProfiles);
+		} catch (err) {
+			console.error("[Invite] Error calculating hidden profiles:", err);
+		}
+
 		try {
 			const res = await fetch("/api/invite", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email }),
+				body: JSON.stringify({ email, hiddenProfiles }),
 			});
 			
 			const data = await res.json();
