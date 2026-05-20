@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import fs from "fs";
-import { createServer as createViteServer } from "vite";
 import "dotenv/config";
 import admin from "firebase-admin";
 import { getAuth } from "firebase-admin/auth";
@@ -365,15 +364,14 @@ app.use(cookieParser());
 
   app.get('/sw.js', (req, res) => res.sendFile(path.join(process.cwd(), 'sw.js')));
 
-  app.get('/api/debug-csv', (req, res) => {
+  app.get('/api/debug-csv', async (req, res) => {
      try {
-       const fs = require('fs');
        const csv = fs.readFileSync('data/db/uk/basic.csv', 'utf8');
+       const Papa = await import('papaparse');
        const parseConfig = { header: true, skipEmptyLines: true };
-       const Papa = require('papaparse');
        const parsed = Papa.parse(csv, parseConfig);
        res.json(parsed.data[0]);
-     } catch (e) {
+     } catch (e: any) {
        res.status(500).json({ error: e.message });
      }
   });
@@ -381,6 +379,7 @@ app.use(cookieParser());
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     (async () => {
+      const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "spa",
