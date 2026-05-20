@@ -48,6 +48,12 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Prevent indexing
+  app.use((req, res, next) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    next();
+  });
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
@@ -93,6 +99,7 @@ async function startServer() {
     // Allow public access to assets, scripts, css, and sw.js
     if (normalizedPath === "/login" || 
         normalizedPath === "/auth-verify" || 
+        normalizedPath === "/robots.txt" ||
         normalizedPath === "/api/firebase-config" || 
         normalizedPath === "/sw.js" ||
         normalizedPath.startsWith("/assets") ||
@@ -321,6 +328,11 @@ async function startServer() {
   });
 
   // Apply auth middleware to all other routes
+  app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.send('User-agent: *\nDisallow: /');
+  });
+
   app.use(authMiddleware);
 
   // Explicitly serve static data dirs for both dev and prod
