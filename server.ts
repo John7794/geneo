@@ -118,106 +118,10 @@ async function startServer() {
          return res.status(401).json({ error: "Unauthorized" });
       }
       
-      // Redirect to login for page loads
-      let firebaseClientConfig = {};
-      try {
-        firebaseClientConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8'));
-      } catch(e) {
-        console.error("Could not read firebase-applet-config.json", e);
+      // Redirect to login for page loads built statically
+      if (!req.path.startsWith('/login')) {
+         return res.redirect('/login');
       }
-
-      return res.send(`
-        <!DOCTYPE html>
-        <html lang="uk">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Вхід — Архів Генеалогії</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f8fafc; color: #1e293b; }
-            .login-box { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-            h2 { margin-top: 0; margin-bottom: 0.5rem; font-size: 1.5rem; font-weight: 700; }
-            p { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5; }
-            button { width: 100%; padding: 0.875rem; background: white; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; }
-            button:hover { background: #f1f5f9; border-color: #cbd5e1; }
-            .error { color: #dc2626; font-size: 0.875rem; margin-top: 1rem; display: none; background: #fef2f2; padding: 0.5rem; border-radius: 4px; word-break: break-word; }
-            .google-icon { width: 20px; height: 20px; }
-            .new-tab-btn { margin-top: 1rem; color: #3b82f6; text-decoration: none; font-size: 0.875rem; display: none; align-items: center; justify-content: center; gap: 4px; font-weight: 500; }
-            .new-tab-btn:hover { text-decoration: underline; }
-          </style>
-        </head>
-        <body>
-          <div class="login-box">
-            <h2>Архів Генеалогії</h2>
-            <p>Цей сайт є приватним. Для перегляду гілок родового дерева увійдіть через свій Google-акаунт.</p>
-            
-            <button id="googleLoginBtn">
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
-              Увійти через Google
-            </button>
-            <a href="#" target="_blank" class="new-tab-btn" id="newTabBtn" aria-label="Відкрити в новій вкладці">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              Відкрити додаток у новій вкладці
-            </a>
-            <div id="error" class="error">Ваша пошта не має доступу до цієї версії сайту.</div>
-          </div>
-
-          <script type="module">
-            // Check if app is running in an iframe
-            if (window !== window.parent) {
-              const newTabBtn = document.getElementById('newTabBtn');
-              newTabBtn.href = window.location.href;
-              newTabBtn.style.display = 'flex';
-            }
-
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-            import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-            const firebaseConfig = ${JSON.stringify(firebaseClientConfig)};
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const provider = new GoogleAuthProvider();
-
-            document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-              const errorDiv = document.getElementById('error');
-              errorDiv.style.display = 'none';
-              try {
-                const result = await signInWithPopup(auth, provider);
-                const idToken = await result.user.getIdToken();
-                
-                const res = await fetch('/auth-verify', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ token: idToken })
-                });
-
-                const contentType = res.headers.get("content-type");
-                if (res.ok) {
-                  window.location.href = '/';
-                } else if (contentType && contentType.indexOf("application/json") !== -1) {
-                  const data = await res.json();
-                  errorDiv.textContent = data.error || 'Доступ заборонено';
-                  errorDiv.style.display = 'block';
-                } else {
-                  const text = await res.text();
-                  console.error("Non-JSON response:", text);
-                  // errorDiv.textContent = 'Помилка сервера (некоректна відповідь). Спробуйте ще раз.';
-                  errorDiv.textContent = 'Server err: ' + text.substring(0, 150);
-                  errorDiv.style.display = 'block';
-                }
-              } catch (error) {
-                console.error("Auth error:", error);
-                const errorText = error.code === 'auth/network-request-failed' 
-                  ? 'Помилка мережі/cookies. Відкрийте додаток у новій вкладці (іконка вгорі праворуч), або дозвольте сторонні cookie.' 
-                  : 'Помилка авторизації: ' + error.message;
-                errorDiv.textContent = errorText;
-                errorDiv.style.display = 'block';
-              }
-            });
-          </script>
-        </body>
-        </html>
-      `);
     }
     
     req.userConfig = accessConfig[email];
@@ -332,6 +236,107 @@ async function startServer() {
   app.get('/robots.txt', (req, res) => {
     res.type('text/plain');
     res.send('User-agent: *\nDisallow: /');
+  });
+
+  app.get('/login', (req, res) => {
+    let firebaseClientConfig = {};
+    try {
+      firebaseClientConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8'));
+    } catch(e) {
+      console.error("Could not read firebase-applet-config.json", e);
+    }
+
+    return res.send(`
+      <!DOCTYPE html>
+      <html lang="uk">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Вхід — Архів Генеалогії</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f8fafc; color: #1e293b; }
+          .login-box { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+          h2 { margin-top: 0; margin-bottom: 0.5rem; font-size: 1.5rem; font-weight: 700; }
+          p { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5; }
+          button { width: 100%; padding: 0.875rem; background: white; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; }
+          button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+          .error { color: #dc2626; font-size: 0.875rem; margin-top: 1rem; display: none; background: #fef2f2; padding: 0.5rem; border-radius: 4px; word-break: break-word; }
+          .google-icon { width: 20px; height: 20px; }
+          .new-tab-btn { margin-top: 1rem; color: #3b82f6; text-decoration: none; font-size: 0.875rem; display: none; align-items: center; justify-content: center; gap: 4px; font-weight: 500; }
+          .new-tab-btn:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        <div class="login-box">
+          <h2>Архів Генеалогії</h2>
+          <p>Цей сайт є приватним. Для перегляду гілок родового дерева увійдіть через свій Google-акаунт.</p>
+          
+          <button id="googleLoginBtn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
+            Увійти через Google
+          </button>
+          <a href="#" target="_blank" class="new-tab-btn" id="newTabBtn" aria-label="Відкрити в новій вкладці">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            Відкрити додаток у новій вкладці
+          </a>
+          <div id="error" class="error">Ваша пошта не має доступу до цієї версії сайту.</div>
+        </div>
+
+        <script type="module">
+          // Check if app is running in an iframe
+          if (window !== window.parent) {
+            const newTabBtn = document.getElementById('newTabBtn');
+            newTabBtn.href = window.location.href;
+            newTabBtn.style.display = 'flex';
+          }
+
+          import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+          import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+          const firebaseConfig = ${JSON.stringify(firebaseClientConfig)};
+          const app = initializeApp(firebaseConfig);
+          const auth = getAuth(app);
+          const provider = new GoogleAuthProvider();
+
+          document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+            const errorDiv = document.getElementById('error');
+            errorDiv.style.display = 'none';
+            try {
+              const result = await signInWithPopup(auth, provider);
+              const idToken = await result.user.getIdToken();
+              
+              const res = await fetch('/auth-verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: idToken })
+              });
+
+              const contentType = res.headers.get("content-type");
+              if (res.ok) {
+                window.location.href = '/';
+              } else if (contentType && contentType.indexOf("application/json") !== -1) {
+                const data = await res.json();
+                errorDiv.textContent = data.error || 'Доступ заборонено';
+                errorDiv.style.display = 'block';
+              } else {
+                const text = await res.text();
+                console.error("Non-JSON response:", text);
+                errorDiv.textContent = 'Server err: ' + text.substring(0, 150);
+                errorDiv.style.display = 'block';
+              }
+            } catch (error) {
+              console.error("Auth error:", error);
+              const errorText = error.code === 'auth/network-request-failed' 
+                ? 'Помилка мережі/cookies. Відкрийте додаток у новій вкладці (іконка вгорі праворуч), або дозвольте сторонні cookie.' 
+                : 'Помилка авторизації: ' + error.message;
+              errorDiv.textContent = errorText;
+              errorDiv.style.display = 'block';
+            }
+          });
+        </script>
+      </body>
+      </html>
+    `);
   });
 
   app.use(authMiddleware);

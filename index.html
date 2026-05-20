@@ -78,6 +78,16 @@
 	</head>
 
 	<body>
+		<script>
+			fetch('/api/config', { cache: "no-store" }).then(res => {
+				if (!res.ok) {
+					window.location.href = "/login";
+				}
+			}).catch(e => {
+				console.error("Failed to check auth, redirecting to login");
+				window.location.href = "/login";
+			});
+		</script>
 		<div id="app-loader" class="loader">
 			<div class="loader__spinner"></div>
 			<div class="loader__text" data-i18n="system.loading">
