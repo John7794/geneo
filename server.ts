@@ -9,6 +9,15 @@ import zlib from "zlib";
 import { main as syncDataMain } from "./scripts/api-tasks/sync-data.js";
 import { main as generateKinshipMain } from "./scripts/api-tasks/generate-kinship.js";
 
+declare global {
+  namespace Express {
+    interface Request {
+      userConfig?: any;
+      userEmail?: string;
+    }
+  }
+}
+
 export const app = express();
 const PORT = process.env.PORT || 3000;
 
