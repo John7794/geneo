@@ -4,9 +4,7 @@ import cookieParser from "cookie-parser";
 import fs from "fs";
 import "dotenv/config";
 import nodemailer from "nodemailer";
-
-import { main as syncDataMain } from "./scripts/build/sync-data.js";
-import { main as generateKinshipMain } from "./scripts/build/generate-kinship.js";
+import { pathToFileURL } from "url";
 
 export const app = express();
 const PORT = process.env.PORT || 3000;
@@ -220,8 +218,14 @@ app.use(cookieParser());
   app.post('/api/sync-data', authMiddleware, async (req, res) => {
     console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
     try {
-      await syncDataMain();
-      await generateKinshipMain();
+      const syncPath = pathToFileURL(path.join(process.cwd(), 'scripts', 'build', 'sync-data.js')).href;
+      const kinshipPath = pathToFileURL(path.join(process.cwd(), 'scripts', 'build', 'generate-kinship.js')).href;
+
+      const syncModule = await import(syncPath);
+      const kinshipModule = await import(kinshipPath);
+
+      await syncModule.main();
+      await kinshipModule.main();
       
       console.log("[Data Sync] Completed successfully");
       res.json({ success: true, message: 'Data synced successfully', log: 'Sync completed.' });
