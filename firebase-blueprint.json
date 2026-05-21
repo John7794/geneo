@@ -1,0 +1,23 @@
+{
+  "entities": {
+    "Share": {
+      "title": "Share Settings",
+      "description": "Rules determining who can see which roots in the tree",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "rootPersons": { "type": "array", "items": { "type": "string" } },
+        "hiddenProfiles": { "type": "array", "items": { "type": "string" } },
+        "canShare": { "type": "boolean" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["email", "rootPersons"]
+    }
+  },
+  "firestore": {
+    "shares/{shareId}": {
+      "schema": "Share",
+      "description": "Store who can see what"
+    }
+  }
+}

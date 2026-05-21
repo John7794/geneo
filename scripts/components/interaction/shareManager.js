@@ -61,6 +61,9 @@ export class ShareManager {
 
 		// Calculate hidden profiles based on unchecked checkboxes
 		const hiddenProfiles = [];
+		const canShare = document.getElementById("share-can-share")?.checked ?? false;
+		const canSync = document.getElementById("share-can-sync")?.checked ?? false;
+
 		try {
 			const isPaternalFChecked = document.getElementById("share-branch-paternal-f")?.checked ?? true;
 			const isPaternalMChecked = document.getElementById("share-branch-paternal-m")?.checked ?? true;
@@ -91,7 +94,7 @@ export class ShareManager {
 			const res = await fetch("/api/invite", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, hiddenProfiles }),
+				body: JSON.stringify({ email, hiddenProfiles, canShare, canSync }),
 			});
 			
 			const data = await res.json();

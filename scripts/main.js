@@ -47,7 +47,7 @@ class App {
 
 			if (i18n.init) await i18n.init();
 			
-			let userConfig = { rootPerson: APP_CONFIG.rootId || "1", hiddenProfiles: [] };
+			let userConfig = { rootPerson: APP_CONFIG.rootId || "1", hiddenProfiles: [], canShare: false, canSync: false, isMainAdmin: false };
 			try {
 				const configRes = await fetch('/api/config');
 				if (configRes.ok) {
@@ -59,7 +59,19 @@ class App {
 					if (configData.hiddenProfiles) {
 						userConfig.hiddenProfiles = configData.hiddenProfiles;
 					}
+					userConfig.canShare = configData.canShare || configData.isMainAdmin || false;
+					userConfig.canSync = configData.canSync || configData.isMainAdmin || false;
+					userConfig.isMainAdmin = configData.isMainAdmin || false;
 					window.userConfig = userConfig;
+
+					const btnShare = document.getElementById("btn-share");
+					if (btnShare) {
+						btnShare.style.display = userConfig.canShare ? "" : "none";
+					}
+					const btnUpdate = document.getElementById("btn-update-data");
+					if (btnUpdate) {
+						btnUpdate.style.display = userConfig.canSync ? "" : "none";
+					}
 				}
 			} catch(e) {
 				console.warn("⚠️ Could not fetch user config, using defaults", e);

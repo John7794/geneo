@@ -24,71 +24,51 @@ app.use(cookieParser());
   // Define access rules
   const CONFIG_FILE_PATH = path.join(process.cwd(), 'data', 'access-config.json');
 
-  function loadAccessConfig() {
-    let config: Record<string, any> = {};
+  import admin from 'firebase-admin';
 
-    // 1. First, try reading from the JSON file
-    if (fs.existsSync(CONFIG_FILE_PATH)) {
-      try {
-        const data = fs.readFileSync(CONFIG_FILE_PATH, 'utf8');
-        config = JSON.parse(data);
-        console.log("[AccessConfig] Loaded config from JSON file success");
-      } catch (e) {
-        console.error("[AccessConfig] Error reading access-config.json, falling back", e);
-      }
-    }
+  admin.initializeApp({ projectId: "celtic-biplane-j8gvj" });
+  const fdb = admin.firestore();
 
-    // If config is still empty, load from environment variable
-    if (Object.keys(config).length === 0) {
-      const accessConfigStr = (process.env.ACCESS_CONFIG || "").trim();
-      if (accessConfigStr) {
-        if (accessConfigStr.startsWith("{")) {
-          try {
-            config = JSON.parse(accessConfigStr);
-          } catch (e) {
-            console.warn("[AccessConfig] ACCESS_CONFIG starts with { but failed to parse as JSON.");
-          }
-        } else {
-          const emails = accessConfigStr.split(',').map((e: string) => e.trim().toLowerCase()).filter((e: string) => e);
-          emails.forEach((email: string) => {
-            config[email] = { "rootPerson": "1", "hiddenProfiles": [] };
-          });
-        }
-      }
-    }
-
-    // Lowercase/normalize keys
-    const normalizedConfig: Record<string, any> = {};
-    for (const key in config) {
-      normalizedConfig[key.toLowerCase().trim()] = config[key];
-    }
-
-    // Always ensure dev/owner emails are allowed
+  // Function to get user access securely from Firestore
+  async function getUserAccess(email: string) {
+    // 1. the main admin
+    const cleanEmail = email.toLowerCase().trim();
     const devEmails = ["www.johnsel771994@gmail.com", "johnsel771994@gmail.com"];
-    devEmails.forEach(email => {
-      const cleanEmail = email.toLowerCase().trim();
-      if (!normalizedConfig[cleanEmail]) {
-        normalizedConfig[cleanEmail] = { "rootPerson": "1", "hiddenProfiles": [] };
-      }
-    });
-
-    return normalizedConfig;
-  }
-
-  function saveAccessConfig(config: Record<string, any>) {
-    try {
-      const dir = path.dirname(CONFIG_FILE_PATH);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), 'utf8');
-      console.log("[AccessConfig] Saved configuration to access-config.json");
-    } catch (e) {
-      console.error("[AccessConfig] Failed to save configuration to file:", e);
+    if (devEmails.includes(cleanEmail)) {
+      return { 
+        rootPerson: "1", 
+        hiddenProfiles: [],
+        canShare: true,
+        canSync: true,
+        isMainAdmin: true
+      };
     }
-  }
 
-  let accessConfig = loadAccessConfig();
+    // 2. Fetch from Firestore
+    try {
+      const sharesSnap = await fdb.collection('shares')
+        .where('email', '==', cleanEmail).get();
+      if (!sharesSnap.empty) {
+        let bestShare = null;
+        for (let doc of sharesSnap.docs) {
+           const data = doc.data();
+           // if multiple shares, we can merge or just pick the first.
+           // for now just pick the first valid one
+           bestShare = {
+             rootPerson: data.rootPersons?.[0] || "1",
+             hiddenProfiles: data.hiddenProfiles || [],
+             canShare: data.canShare === true,
+             canSync: data.canSync === true
+           };
+        }
+        if (bestShare) return bestShare;
+      }
+    } catch (e) {
+      console.error("[Auth] Error reading Firestore shares", e);
+    }
+
+    return null;
+  }
 
   // Auth Middleware
   const authMiddleware = async (req: any, res: any, next: any) => {
@@ -109,29 +89,39 @@ app.use(cookieParser());
     }
 
     const email = req.cookies.auth_email ? req.cookies.auth_email.toLowerCase().trim() : null;
-    if (!email || !accessConfig[email]) {
+    
+    if (!email) {
       if (req.path.startsWith('/api/') || req.path.startsWith('/data/') || req.path.startsWith('/assets/')) {
-         console.log(`[Auth] Blocked API/Asset access to ${req.path} - No valid email or not in accessConfig`);
          return res.status(401).json({ error: "Unauthorized" });
       }
-      
-      // Redirect to login for page loads built statically
       if (!req.path.startsWith('/login')) {
          return res.redirect('/login');
       }
     }
+
+    const userConfig = await getUserAccess(email);
+    if (!userConfig) {
+      if (req.path.startsWith('/api/') || req.path.startsWith('/data/')) {
+         return res.status(401).json({ error: "Unauthorized access" });
+      }
+      return res.redirect('/login');
+    }
     
-    req.userConfig = accessConfig[email];
+    req.userConfig = userConfig;
+    req.userEmail = email;
     next();
   };
 
   app.post('/auth-verify', async (req, res) => {
-    const { email: emailRaw } = req.body;
-    console.log("[Auth] Login attempt with email");
+    const { token } = req.body;
+    console.log("[Auth] Login attempt with id token");
     try {
-      const email = emailRaw ? emailRaw.toLowerCase().trim() : "";
+      const decoded = await admin.auth().verifyIdToken(token);
+      const email = decoded.email ? decoded.email.toLowerCase().trim() : "";
 
-      if (email && accessConfig[email]) {
+      const userConfig = await getUserAccess(email);
+
+      if (email && userConfig) {
         console.log(`[Auth] Access granted for ${email}`);
         res.cookie('auth_email', email, { 
           httpOnly: true, 
@@ -139,14 +129,14 @@ app.use(cookieParser());
           secure: true, 
           sameSite: 'strict' 
         });
-        res.json({ success: true });
+        res.json({ success: true, email, config: userConfig });
       } else {
-        console.warn(`[Auth] Access denied for ${email}. Not in accessConfig keys:`, Object.keys(accessConfig));
+        console.warn(`[Auth] Access denied for ${email}.`);
         res.status(401).json({ error: `Ваша пошта (${email}) не має доступу. Зверніться до адміністратора.` });
       }
     } catch (error) {
-      console.error("[Auth] Error verifying:", error);
-      res.status(401).json({ error: "Помилка сервера авторизації" });
+      console.error("[Auth] Error verifying token:", error);
+      res.status(401).json({ error: "Помилка сервера авторизації (Невірний токен)" });
     }
   });
 
@@ -161,25 +151,36 @@ app.use(cookieParser());
 
   app.post('/api/invite', authMiddleware, async (req, res) => {
     try {
-      const { email, hiddenProfiles } = req.body;
+      const { email, hiddenProfiles, rootPersons, canShare, canSync } = req.body;
       if (!email) {
         return res.status(400).json({ error: "Email is required" });
       }
 
-      const cleanEmail = email.toLowerCase().trim();
-      console.log(`[Invite] Request to invite: ${cleanEmail} with ${hiddenProfiles?.length || 0} hidden profiles.`);
+      // Check if user is allowed to invite others
+      if (!req.userConfig?.canShare) {
+        return res.status(403).json({ error: "You don't have permission to share" });
+      }
 
-      // Update in-memory config and persist to json file
-      accessConfig[cleanEmail] = { 
-        "rootPerson": "1", 
-        "hiddenProfiles": hiddenProfiles || [] 
+      const cleanEmail = email.toLowerCase().trim();
+      console.log(`[Invite] Request to invite: ${cleanEmail}`);
+
+      // Save to Firestore
+      const newShare = {
+        email: cleanEmail,
+        rootPersons: rootPersons || [req.userConfig?.rootPerson || "1"],
+        hiddenProfiles: hiddenProfiles || [],
+        canShare: canShare === true,
+        canSync: canSync === true,
+        createdBy: req.userEmail || "unknown",
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       };
-      saveAccessConfig(accessConfig);
+      
+      await fdb.collection('shares').add(newShare);
 
       // Optional: Check if SMTP config exists, if not just log
       if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
         console.warn("[Invite] SMTP environment variables missing. Only simulating email send.");
-        return res.json({ success: true, mock: true, message: "Лист імітовано. Для реальної відправки додайте SMTP налаштування." });
+        return res.json({ success: true, mock: true, message: "Запрошення збережено. Лист імітовано." });
       }
 
       const transporter = nodemailer.createTransport({
@@ -203,7 +204,7 @@ app.use(cookieParser());
         html: `
           <h3>Вітаємо!</h3>
           <p>Вас запрошено переглянути родинний архів.</p>
-          <p>Перейдіть за посиланням, щоб авторизуватися:</p>
+          <p>Перейдіть за посиланням, щоб авторизуватися через Google аккаунт:</p>
           <a href="${appUrl}" style="display:inline-block;padding:10px 20px;background:#007BFF;color:#fff;text-decoration:none;border-radius:5px;">Відкрити архів</a>
           <br><br>
           <p><small>Або скопіюйте це посилання: ${appUrl}</small></p>
@@ -212,13 +213,18 @@ app.use(cookieParser());
 
       res.json({ success: true });
     } catch (e: any) {
-      console.error("[Invite] Failed to send email:", e);
-      res.status(500).json({ error: `Failed to send email: ${e.message || String(e)}` });
+      console.error("[Invite] Failed to send email / save config:", e);
+      res.status(500).json({ error: `Failed: ${e.message || String(e)}` });
     }
   });
 
   app.post('/api/sync-data', authMiddleware, async (req, res) => {
     console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
+    
+    if (!req.userConfig?.canSync && !req.userConfig?.isMainAdmin) {
+      return res.status(403).json({ error: 'You do not have permission to sync data' });
+    }
+
     try {
       await syncDataMain();
       await generateKinshipMain();
@@ -260,54 +266,43 @@ app.use(cookieParser());
           button { width: 100%; padding: 0.875rem; background: white; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; }
           button:hover { background: #f1f5f9; border-color: #cbd5e1; }
           .error { color: #dc2626; font-size: 0.875rem; margin-top: 1rem; display: none; background: #fef2f2; padding: 0.5rem; border-radius: 4px; word-break: break-word; }
-          .google-icon { width: 20px; height: 20px; }
-          .new-tab-btn { margin-top: 1rem; color: #3b82f6; text-decoration: none; font-size: 0.875rem; display: none; align-items: center; justify-content: center; gap: 4px; font-weight: 500; }
-          .new-tab-btn:hover { text-decoration: underline; }
         </style>
-      </head>
-      <body>
-        <div class="login-box">
-          <h2>Архів Генеалогії</h2>
-          <p>Цей сайт є приватним. Для перегляду гілок родового дерева увійдіть через свій Google-акаунт.</p>
+        <script type="module">
+          import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+          import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
           
-          <input type="email" id="emailInput" placeholder="Введіть ваш email" style="width: 100%; padding: 0.875rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; box-sizing: border-box;">
-          <button id="loginBtn">
-            Увійти
-          </button>
-          <div id="error" class="error">Ваша пошта не має доступу до цієї версії сайту.</div>
-        </div>
+          const firebaseConfig = {
+            projectId: "celtic-biplane-j8gvj",
+            appId: "1:110687233405:web:aac484cf179a08fbcad814",
+            apiKey: "AIzaSyCfAbVNqq6_kmsUeUiAlVYbVr3J1VVMbdE",
+            authDomain: "celtic-biplane-j8gvj.firebaseapp.com"
+          };
+          
+          const app = initializeApp(firebaseConfig);
+          const auth = getAuth(app);
+          const provider = new GoogleAuthProvider();
 
-        <script>
           document.getElementById('loginBtn').addEventListener('click', async () => {
             const errorDiv = document.getElementById('error');
-            const email = document.getElementById('emailInput').value;
             errorDiv.style.display = 'none';
             
-            if (!email) {
-              errorDiv.textContent = 'Будь ласка, введіть email';
-              errorDiv.style.display = 'block';
-              return;
-            }
-
             try {
+              const result = await signInWithPopup(auth, provider);
+              const idToken = await result.user.getIdToken();
+              
               const res = await fetch('/auth-verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
+                body: JSON.stringify({ token: idToken })
               });
 
-              const contentType = res.headers.get("content-type");
               if (res.ok) {
                 window.location.href = '/';
-              } else if (contentType && contentType.indexOf("application/json") !== -1) {
-                const data = await res.json();
+              } else {
+                const data = await res.json().catch(() => ({}));
                 errorDiv.textContent = data.error || 'Доступ заборонено';
                 errorDiv.style.display = 'block';
-              } else {
-                const text = await res.text();
-                console.error("Non-JSON response:", text);
-                errorDiv.textContent = 'Server err: ' + text.substring(0, 150);
-                errorDiv.style.display = 'block';
+                auth.signOut();
               }
             } catch (error) {
               console.error("Auth error:", error);
@@ -316,6 +311,14 @@ app.use(cookieParser());
             }
           });
         </script>
+      </head>
+      <body>
+        <div class="login-box">
+          <h2>Архів Генеалогії</h2>
+          <p>Цей сайт є приватним. Для перегляду гілок родового дерева увійдіть через свій Google-акаунт.</p>
+          <button id="loginBtn">Увійти через Google</button>
+          <div id="error" class="error">Помилка входу.</div>
+        </div>
       </body>
       </html>
     `);
