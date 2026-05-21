@@ -221,7 +221,7 @@ class App {
 		}
 		
 		try {
-			// Виклик API ендпоінта, який запустить node scripts/build/sync-data.js та node scripts/build/generate-kinship.js
+			// Оновлення таблиць і генерація зв'язків через API
 			const response = await fetch('/api/sync-data', { method: 'POST' });
 			const result = await response.json();
 			
@@ -231,39 +231,25 @@ class App {
 				throw new Error(errMsg + details);
 			}
 
-			// 1. Очистка сховища IndexedDB (localforage)
+			// Очищення кешу
 			if (typeof localforage !== "undefined") {
 				await localforage.clear();
-				console.log("[Update Data] IndexedDB localforage cleared successfully.");
 			}
 
-			// 2. Очистка Cache Storage в браузері
 			if (typeof caches !== "undefined" && caches.keys) {
-				try {
-					const cacheNames = await caches.keys();
-					for (const name of cacheNames) {
-						await caches.delete(name);
-					}
-					console.log("[Update Data] Cache Storage cleared successfully.");
-				} catch (cacheErr) {
-					console.warn("[Update Data] Failed to clear Cache Storage:", cacheErr);
+				const cacheNames = await caches.keys();
+				for (const name of cacheNames) {
+					await caches.delete(name);
 				}
 			}
 
-			// 3. Скасування реєстрації Service Workers для усунення застарілого кешу запитів
 			if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-				try {
-					const registrations = await navigator.serviceWorker.getRegistrations();
-					for (const reg of registrations) {
-						await reg.unregister();
-					}
-					console.log("[Update Data] Service Worker registrations cancelled successfully.");
-				} catch (swErr) {
-					console.warn("[Update Data] Failed to unregister Service Workers:", swErr);
+				const registrations = await navigator.serviceWorker.getRegistrations();
+				for (const reg of registrations) {
+					await reg.unregister();
 				}
 			}
 			
-			// Оновити версію локально після синхронізації
 			const cacheBust = Date.now();
 			const metaResponse = await fetch(`./data/db/metadata.json?t=${cacheBust}`);
 			if (metaResponse.ok) {
