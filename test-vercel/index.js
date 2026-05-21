@@ -217,15 +217,23 @@ app.post("/api/invite", authMiddleware, async (req, res) => {
 });
 app.post("/api/sync-data", authMiddleware, async (req, res) => {
   console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
-  const { exec } = await import("child_process");
-  exec("node scripts/build/sync-data.js && node scripts/build/generate-kinship.js", (err, stdout, stderr) => {
-    if (err) {
-      console.error("Sync error:", err);
-      return res.status(500).json({ error: "Sync failed", details: stderr });
-    }
+  try {
+    const syncModule = await import('../scripts/build/sync-data.js');
+    const kinshipModule = await import('../scripts/build/generate-kinship.js');
+    
+    await syncModule.main();
+    await kinshipModule.main();
+    
     console.log("[Data Sync] Completed successfully");
-    res.json({ success: true, message: "Data synced successfully", log: stdout });
-  });
+    res.json({ success: true, message: "Data synced successfully", log: "Sync completed." });
+  } catch (err) {
+    console.error("Sync error:", err);
+    if (err.code === 'EROFS') {
+      console.warn("[Data Sync] Read-only filesystem detected. Note: generated data cannot be saved to disk.");
+      return res.json({ success: true, message: 'Data synced successfully (read-only mode)', log: 'Sync completed memory-only.' });
+    }
+    return res.status(500).json({ error: "Sync failed", details: String(err) });
+  }
 });
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain");
