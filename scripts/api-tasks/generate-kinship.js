@@ -27,7 +27,7 @@ function parseCSVList(str) {
 export async function main() {
 	console.log("🧬 Starting kinship calculation and tree index precompilation...");
 
-	const rootDir = process.cwd();
+	const rootDir = process.env.DATA_DIR ? path.dirname(process.env.DATA_DIR) : process.cwd();
 	const basicPath = path.join(rootDir, "data", "db", "uk", "basic.csv");
 	const rolesPath = path.join(rootDir, "data", "db", "uk", "familyRoles.csv");
 	const outputPath = path.join(rootDir, "data", "kinshipIndex.json");

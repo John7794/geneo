@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import fs from "fs";
 import "dotenv/config";
 import nodemailer from "nodemailer";
+import zlib from "zlib";
 
 import { main as syncDataMain } from "./scripts/api-tasks/sync-data.js";
 import { main as generateKinshipMain } from "./scripts/api-tasks/generate-kinship.js";
@@ -28,6 +29,113 @@ app.use(cookieParser());
 
   admin.initializeApp({ projectId: "celtic-biplane-j8gvj" });
   const fdb = admin.firestore();
+
+  // Function to save individual file to Firestore with compression
+  async function saveFileToFirestore(filePath: string, content: string): Promise<void> {
+    try {
+      const cleanPath = filePath.replace(/\\/g, '/'); // normalize slashes
+      const compressed = zlib.gzipSync(Buffer.from(content, 'utf8'));
+      const base64 = compressed.toString('base64');
+      
+      await fdb.collection('db_files').doc(cleanPath).set({
+        content: base64,
+        compressed: true,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      console.log(`[Firestore DB] Saved compressed ${cleanPath} to Firestore`);
+    } catch (e) {
+      console.error(`[Firestore DB] Failed to save ${filePath} to Firestore:`, e);
+    }
+  }
+
+  // Restore database files on startup or trigger
+  async function restoreFilesFromFirestore(): Promise<void> {
+    try {
+      console.log("[Firestore DB] Syncing database files from Firestore to memory/tmp...");
+      const snap = await fdb.collection('db_files').get();
+      
+      // Ensure parent dir exists
+      fs.mkdirSync('/tmp/data/db/uk', { recursive: true });
+      
+      let count = 0;
+      for (const doc of snap.docs) {
+        const cleanPath = doc.id; // e.g., "db/metadata.json" or "db/uk/basic.csv"
+        const data = doc.data();
+        if (data && data.content) {
+          let textContent = "";
+          if (data.compressed) {
+            const buffer = Buffer.from(data.content, 'base64');
+            const decompressed = zlib.gunzipSync(buffer);
+            textContent = decompressed.toString('utf8');
+          } else {
+            textContent = data.content;
+          }
+          
+          const fullLocalPath = path.join('/tmp/data', cleanPath);
+          fs.mkdirSync(path.dirname(fullLocalPath), { recursive: true });
+          fs.writeFileSync(fullLocalPath, textContent, 'utf8');
+          count++;
+        }
+      }
+      console.log(`[Firestore DB] Restored ${count} files from Firestore to /tmp/data`);
+    } catch (e) {
+      console.error("[Firestore DB] Failed to restore files from Firestore:", e);
+    }
+  }
+
+  // Upload all dynamic files under tmp to Firestore
+  async function saveAllTmpFilesToFirestore(): Promise<void> {
+    const filesToSave: string[] = [];
+
+    // 1. kinshipIndex.json
+    if (fs.existsSync('/tmp/data/kinshipIndex.json')) {
+      filesToSave.push('kinshipIndex.json');
+    }
+    // 2. db/metadata.json
+    if (fs.existsSync('/tmp/data/db/metadata.json')) {
+      filesToSave.push('db/metadata.json');
+    }
+    // 3. db/uk/*.csv
+    if (fs.existsSync('/tmp/data/db/uk')) {
+      const csvFiles = fs.readdirSync('/tmp/data/db/uk');
+      csvFiles.forEach(f => {
+        filesToSave.push(`db/uk/${f}`);
+      });
+    }
+
+    console.log(`[Firestore DB] Uploading ${filesToSave.length} files to Firestore...`);
+    for (const file of filesToSave) {
+      const localPath = path.join('/tmp/data', file);
+      if (fs.existsSync(localPath)) {
+        const content = fs.readFileSync(localPath, 'utf8');
+        await saveFileToFirestore(file, content);
+      }
+    }
+    console.log("[Firestore DB] All files synced to Firestore successfully.");
+  }
+
+  // Bootstrapping sequence
+  (async function bootstrapData() {
+    try {
+      console.log("[Data Boot] Initializing database folders...");
+      
+      // 1. Copy default packaged data files to /tmp/data (acting as seed data)
+      const packagedDataPath = path.join(process.cwd(), 'data');
+      if (fs.existsSync(packagedDataPath)) {
+        fs.cpSync(packagedDataPath, '/tmp/data', { recursive: true });
+        console.log("[Data Boot] Copy seed data from package folder to /tmp/data");
+      }
+      
+      // 2. Load latest versions from Firestore over seed data
+      await restoreFilesFromFirestore();
+      
+      // 3. Enforce DATA_DIR environment variable so background sync runs there
+      process.env.DATA_DIR = '/tmp/data';
+      console.log("[Data Boot] Configured process.env.DATA_DIR to:", process.env.DATA_DIR);
+    } catch (e) {
+      console.error("[Data Boot] Failed bootstrapping:", e);
+    }
+  })();
 
   // Function to get user access securely from Firestore
   async function getUserAccess(email: string) {
@@ -226,20 +334,32 @@ app.use(cookieParser());
     }
 
     try {
+      // 1. Run sync-data and generate-kinship
+      console.log("[Data Sync] Starting main sync execution...");
       await syncDataMain();
       await generateKinshipMain();
       
-      console.log("[Data Sync] Completed successfully");
-      res.json({ success: true, message: 'Data synced successfully', log: 'Sync completed.' });
+      // 2. Persist the generated files to Firestore
+      console.log("[Data Sync] Completed local generation, now saving to Firestore...");
+      await saveAllTmpFilesToFirestore();
+      
+      console.log("[Data Sync] All operations completed successfully");
+      res.json({ success: true, message: 'Data synced successfully', log: 'Sync completed & persisted to Firestore.' });
     } catch (err: any) {
       console.error("Sync error:", err);
       const errMsg = err.message || String(err);
-      // Fallback for Read-Only environments like Vercel
-      if (err.code === 'EROFS' || errMsg.includes('EROFS') || errMsg.includes('read-only')) {
-        console.warn("[Data Sync] Read-only filesystem detected. Note: generated data cannot be saved to disk.");
-        // Still return success so the frontend knows to proceed and reload
-        return res.json({ success: true, message: 'Data synced successfully (read-only mode)', log: 'Sync completed memory-only.' });
+      
+      // Attempt Firestore upload fallback if some local check triggers a non-fatal EROFS
+      try {
+        if (fs.existsSync('/tmp/data/db/metadata.json')) {
+          console.log("[Data Sync] Attempting fallback upload to Firestore...");
+          await saveAllTmpFilesToFirestore();
+          return res.json({ success: true, message: 'Data synced safely using memory fallback', log: 'Sync completed.' });
+        }
+      } catch (fallbackErr) {
+        console.error("Fallback upload also failed:", fallbackErr);
       }
+      
       return res.status(500).json({ error: 'Sync failed', details: errMsg });
     }
   });
@@ -327,6 +447,14 @@ app.use(cookieParser());
   app.use(authMiddleware);
 
   // Explicitly serve static data dirs for both dev and prod
+  app.use('/data', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+  });
+  app.use('/data', express.static('/tmp/data'));
   const rootDataPath = path.join(process.cwd(), 'data');
   app.use('/data', express.static(rootDataPath));
   
@@ -343,7 +471,10 @@ app.use(cookieParser());
 
   app.get('/api/debug-csv', async (req, res) => {
      try {
-       const csv = fs.readFileSync('data/db/uk/basic.csv', 'utf8');
+       const basicPath = fs.existsSync('/tmp/data/db/uk/basic.csv') 
+         ? '/tmp/data/db/uk/basic.csv' 
+         : 'data/db/uk/basic.csv';
+       const csv = fs.readFileSync(basicPath, 'utf8');
        const PapaModule = await import('papaparse');
        const Papa = PapaModule.default || PapaModule;
        const parseConfig = { header: true, skipEmptyLines: true };

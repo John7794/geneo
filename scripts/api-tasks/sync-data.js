@@ -68,7 +68,7 @@ const DATABASES = {
 export async function main() {
 	console.log("📥 Starting database synchronization from Google Sheets...");
 
-	const rootDir = process.cwd();
+	const rootDir = process.env.DATA_DIR ? path.dirname(process.env.DATA_DIR) : process.cwd();
 	const metadataPath = path.join(rootDir, "data", "db", "metadata.json");
 
 	try {
