@@ -1,4 +1,4 @@
-person_id,person_id,name,patronymic,gender,status,photo_id,vital_status,profile_slug
+person_id,surname,name,patronymic,gender,status,photo_id,vital_status,profile_slug
 1,Станкевич,Іван,Йосипович,m,1,,,
 2,Станкевич,Йосип,Гнатович,m,1,,,
 3,Станкевич,Марія,Андріївна,f,1,,,
