@@ -218,8 +218,8 @@ app.post("/api/invite", authMiddleware, async (req, res) => {
 app.post("/api/sync-data", authMiddleware, async (req, res) => {
   console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
   try {
-    const syncModule = await import('../scripts/build/sync-data.js');
-    const kinshipModule = await import('../scripts/build/generate-kinship.js');
+    const syncModule = await import('../scripts/tasks/sync-data.js');
+    const kinshipModule = await import('../scripts/tasks/generate-kinship.js');
     
     await syncModule.main();
     await kinshipModule.main();
