@@ -1,11 +1,4 @@
 cemetery_id,place_id,cemetery_name,cemetery_address,status,cemetery_map_url
-RU_BAB_CEM,RU_BAB,Сільський цвинтар,,,
-RU_GORBUN_CEM,RU_GORB,Сільський цвинтар,,,
-RU_KOZ_S_CEM,RU_KOZ_S,Парафіяльний цвинтар,,,
-RU_NAZ_CEM,RU_NAZ,Сільський цвинтар,,,
-RU_LEL_CEM,RU_LEL,Парафіяльний цвинтар,,,
-RU_MAT_CEM,RU_MAT,Сільський цвинтар,,,
-RU_OSE_CEM,RU_OSE,Парафіяльний цвинтар,,,
 UA_DRO_CEM_HOSP,UA_DRO,Шпитальний цвинтар,,,
 UA_HORD_CEM,UA_HORD,Сільський цвинтар,,,
 UA_HOROD_CEM,UA_HOROD,Сільський цвинтар,,,
