@@ -216,7 +216,7 @@ app.post("/api/invite", authMiddleware, async (req, res) => {
 app.post("/api/sync-data", authMiddleware, async (req, res) => {
   console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
   const { exec } = await import("child_process");
-  exec("npx tsx scripts/build/sync-data.js && npx tsx scripts/build/generate-kinship.js", (err, stdout, stderr) => {
+  exec("node scripts/build/sync-data.js && node scripts/build/generate-kinship.js", (err, stdout, stderr) => {
     if (err) {
       console.error("Sync error:", err);
       return res.status(500).json({ error: "Sync failed", details: stderr });
