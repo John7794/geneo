@@ -82,7 +82,8 @@ export async function main() {
 
 			for (const [filename, url] of Object.entries(tables)) {
 				console.log(`[Sync] Downloading ${lang}/${filename}...`);
-				const response = await fetch(url);
+				const cacheBustUrl = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+				const response = await fetch(cacheBustUrl, { cache: 'no-store' });
 				if (!response.ok) {
 					throw new Error(`Failed to download ${url}: ${response.statusText}`);
 				}

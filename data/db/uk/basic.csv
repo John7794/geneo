@@ -1,5 +1,5 @@
 person_id,surname,name,patronymic,gender,status,photo_id,vital_status,profile_slug
-1,Селіванов,Іван,Сергійович,m,1,1,1,selivanov_ivan_1994
+1,Селіванов,Ivan,Сергійович,m,1,1,1,selivanov_ivan_1994
 2,Селіванов,Сергій,Іванович,m,1,2,,
 3,Селіванова,Лілія,Іванівна,f,1,3,1,selivanova_lilia_1951
 4,Селіванов,Іван,Лаврентійович,m,1,4,,
