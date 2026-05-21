@@ -5,8 +5,8 @@ import fs from "fs";
 import "dotenv/config";
 import nodemailer from "nodemailer";
 
-import { main as syncDataMain } from "./scripts/tasks/sync-data.js";
-import { main as generateKinshipMain } from "./scripts/tasks/generate-kinship.js";
+import { main as syncDataMain } from "./scripts/api-tasks/sync-data.js";
+import { main as generateKinshipMain } from "./scripts/api-tasks/generate-kinship.js";
 
 export const app = express();
 const PORT = process.env.PORT || 3000;
