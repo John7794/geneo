@@ -226,7 +226,9 @@ class App {
 			const result = await response.json();
 			
 			if (!response.ok) {
-				throw new Error(result.error || "Помилка сервера");
+				const errMsg = result.error || "Помилка сервера";
+				const details = result.details ? `\nДеталі: ${result.details}` : "";
+				throw new Error(errMsg + details);
 			}
 
 			// 1. Очистка сховища IndexedDB (localforage)

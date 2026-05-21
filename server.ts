@@ -5,6 +5,9 @@ import fs from "fs";
 import "dotenv/config";
 import nodemailer from "nodemailer";
 
+import { main as syncDataMain } from "./scripts/build/sync-data.js";
+import { main as generateKinshipMain } from "./scripts/build/generate-kinship.js";
+
 export const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -217,23 +220,21 @@ app.use(cookieParser());
   app.post('/api/sync-data', authMiddleware, async (req, res) => {
     console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
     try {
-      const syncModule = await import('./scripts/build/sync-data.js');
-      const kinshipModule = await import('./scripts/build/generate-kinship.js');
-      
-      await syncModule.main();
-      await kinshipModule.main();
+      await syncDataMain();
+      await generateKinshipMain();
       
       console.log("[Data Sync] Completed successfully");
       res.json({ success: true, message: 'Data synced successfully', log: 'Sync completed.' });
     } catch (err: any) {
       console.error("Sync error:", err);
+      const errMsg = err.message || String(err);
       // Fallback for Read-Only environments like Vercel
-      if (err.code === 'EROFS') {
+      if (err.code === 'EROFS' || errMsg.includes('EROFS') || errMsg.includes('read-only')) {
         console.warn("[Data Sync] Read-only filesystem detected. Note: generated data cannot be saved to disk.");
         // Still return success so the frontend knows to proceed and reload
         return res.json({ success: true, message: 'Data synced successfully (read-only mode)', log: 'Sync completed memory-only.' });
       }
-      return res.status(500).json({ error: 'Sync failed', details: err.message || String(err) });
+      return res.status(500).json({ error: 'Sync failed', details: errMsg });
     }
   });
 
