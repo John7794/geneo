@@ -7,13 +7,13 @@ import { freezeSet } from "../utils/helpers.js";
  * Об'єкт заморожено для запобігання мутаціям під час виконання.
  */
 export const APP_CONFIG = Object.freeze({
-	photoBasePath: "/assets/imgs/portraits/",
-	defaultMale: "/assets/icons/profiles/male.png",
-	defaultFemale: "/assets/icons/profiles/female.png",
-	coatBasePath: "/assets/icons/coats/",
+	photoBasePath: "./assets/imgs/portraits/",
+	defaultMale: "./assets/icons/profiles/male.png",
+	defaultFemale: "./assets/icons/profiles/female.png",
+	coatBasePath: "./assets/icons/coats/",
 	coatExtension: ".svg",
 	rootId: "1",
-	flagsBasePath: "/assets/icons/flags/",
+	flagsBasePath: "./assets/icons/flags/",
 	flagsExtension: ".svg",
 });
 
@@ -81,9 +81,9 @@ export const GENDER_MARKERS = Object.freeze({
 });
 
 export const PATHS = Object.freeze({
-	portraits: "/assets/imgs/portraits/",
-	iconMale: "/assets/icons/profiles/male.png",
-	iconFemale: "/assets/icons/profiles/female.png",
+	portraits: "./assets/imgs/portraits/",
+	iconMale: "./assets/icons/profiles/male.png",
+	iconFemale: "./assets/icons/profiles/female.png",
 });
 
 export const CHILD_ROLES = {

@@ -11,7 +11,7 @@ import { SearchManager } from "./components/interaction/searchManager.js";
 import { EventsManager } from "./components/interaction/eventsManager.js";
 import { OnboardingController } from "./components/onboarding/OnboardingController.js";
 import { PersonPopupManager } from "./components/interaction/personPopupManager.js";
-import { NavigationManager } from "./components/interaction/navigationManager.js";
+
 import { BreadcrumbManager } from "./components/interaction/breadcrumbManager.js";
 import { RelationshipManager } from "./components/interaction/relationshipManager.js";
 import { LineageManager } from "./components/interaction/lineageManager.js";
@@ -115,12 +115,12 @@ class App {
 		this.managers.breadcrumbs = new BreadcrumbManager({
 			onNavigate: this.navigateToId,
 		});
-		this.managers.navigation = new NavigationManager([], this.navigateToId);
+
 
 		console.log("   ➤ Ініціалізація LineageManager...");
 		this.managers.lineage = new LineageManager(this.engine, this.rootPersonId, {
 			onModeChange: (newQueue) => {
-				this.managers.navigation.updateList(newQueue);
+
 				setTimeout(() => this.router.handlePopState(), 0);
 			},
 			onRefreshEvents: () => {
@@ -128,7 +128,7 @@ class App {
 			},
 		});
 
-		this.managers.navigation.updateList(this.managers.lineage.queue);
+
 
 		console.log("   ➤ Ініціалізація Search/Events...");
 		this.managers.search = new SearchManager(

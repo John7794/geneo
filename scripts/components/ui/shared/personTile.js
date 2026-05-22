@@ -41,7 +41,7 @@ export function renderPersonTile(
 	const nameHtml = formatPersonNameHtml(person, options);
 	const isFem = isFemale(person.gender);
 
-	const rawPhotoSrc = getAvatarUrl(person.photo || person.rawPhoto, isFem);
+	const rawPhotoSrc = getAvatarUrl(person.photo || person.rawPhoto || person.id, isFem);
 	const photoSrc = encodeURI(rawPhotoSrc);
 
 	const rawFallbackSrc = isFem

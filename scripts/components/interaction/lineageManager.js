@@ -104,7 +104,7 @@ export class LineageManager {
 				: APP_CONFIG.defaultFemale;
 
 			const photoSrc = imgId
-				? `/assets/imgs/portraits/${imgId}.png`
+				? `./assets/imgs/portraits/${imgId}.png`
 				: fallbackIcon;
 
 			opt.innerHTML = `

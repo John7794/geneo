@@ -268,7 +268,7 @@ export class SearchManager {
 			const fullName =
 				getFullName(person) || person[COLUMNS.basic?.name || "name"] || "";
 			const photoSrc = getAvatarUrl(
-				person[COLUMNS.basic?.photo || "photo"],
+				person[COLUMNS.basic?.photo || "photo"] || person[COLUMNS.basic?.id || "id"],
 				isFemale(person[COLUMNS.basic?.gender || "gender"]),
 			);
 			const safeId = person[COLUMNS.basic?.id || "id"] || "";

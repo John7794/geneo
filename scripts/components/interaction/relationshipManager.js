@@ -317,21 +317,7 @@ export class RelationshipManager {
 
 		scenario.root.forEach((r) => this.focusIds.add(String(r.id)));
 
-		const iconLeft = UI_CLASSES.icons?.arrowLeftSLine || "ri-arrow-left-s-line";
-		const iconRight =
-			UI_CLASSES.icons?.arrowRightSLine || "ri-arrow-right-s-line";
-
-		const navHTML =
-			total > 1
-				? `
-            <button class="nav-arrow nav-arrow--left" id="rel-btn-prev" aria-label="Попередній варіант">
-                <i class="${iconLeft}" aria-hidden="true"></i>
-            </button>
-            <button class="nav-arrow nav-arrow--right" id="rel-btn-next" aria-label="Наступний варіант">
-                <i class="${iconRight}" aria-hidden="true"></i>
-            </button>
-        `
-				: "";
+		const navHTML = "";
 
 		const isCouple = scenario.root.length > 1;
 		const mainNodes = scenario.branch.main || [];

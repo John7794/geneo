@@ -19,7 +19,7 @@ export function renderBasicBlock(person) {
 	const female = isFemale(person.gender);
 	const themeClass = female ? UI_CLASSES.themeFemale : UI_CLASSES.themeMale;
 
-	const rawPhotoSrc = getAvatarUrl(person.photo, female);
+	const rawPhotoSrc = getAvatarUrl(person.photo || person.id, female);
 	const safePhotoSrc = encodeURI(rawPhotoSrc);
 	const defaultAvatar = encodeURI(
 		female ? APP_CONFIG.defaultFemale : APP_CONFIG.defaultMale,

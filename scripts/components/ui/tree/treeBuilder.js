@@ -158,7 +158,7 @@ export function renderCardHTML(
 		? UI_CLASSES.treeNodeFemale
 		: UI_CLASSES.treeNodeMale;
 	const photoSrc = escapeHTML(
-		getAvatarUrl(person.photo || person.fam_photo, isFem),
+		getAvatarUrl(person.photo || person.fam_photo || person.id, isFem),
 	);
 	const fallbackSrc = escapeHTML(getAvatarUrl(null, isFem));
 

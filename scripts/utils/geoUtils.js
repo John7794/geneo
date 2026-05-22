@@ -443,7 +443,7 @@ export function resolveFlag(adminName, eventDate, ctx) {
 				if (!fileName.endsWith(".svg") && !fileName.endsWith(".png")) {
 					fileName += APP_CONFIG.flagsExtension || ".svg";
 				}
-				return `${APP_CONFIG.flagsBasePath || "/assets/icons/flags/"}${fileName}`;
+				return `${APP_CONFIG.flagsBasePath || "./assets/icons/flags/"}${fileName}`;
 			}
 		}
 		return null;
@@ -480,7 +480,7 @@ export function resolveFlag(adminName, eventDate, ctx) {
 					fileName += APP_CONFIG.flagsExtension || ".svg";
 				}
 				// Синхронізовано з APP_CONFIG
-				return `${APP_CONFIG.flagsBasePath || "/assets/icons/flags/"}${fileName}`;
+				return `${APP_CONFIG.flagsBasePath || "./assets/icons/flags/"}${fileName}`;
 			}
 		}
 	}

@@ -160,7 +160,7 @@ class PersonDAO {
 				: `[ID: ${p.id}]`;
 		}
 
-		p.photoSrc = getAvatarUrl(p.rawPhoto, isFemale(p.gender));
+		p.photoSrc = getAvatarUrl(p.rawPhoto || p.id, isFemale(p.gender));
 		p.lifeString = this._buildLifeString(data, famRow, p, engine);
 
 		return p;

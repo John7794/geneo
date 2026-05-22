@@ -45,7 +45,7 @@ function renderRecordCard(record, ctx) {
 		const folder = isMilitary ? "military" : "records";
 		const ext = cleanName.includes(".") ? "" : ".png";
 
-		return `/assets/imgs/${folder}/${cleanName}${ext}`;
+		return `./assets/imgs/${folder}/${cleanName}${ext}`;
 	};
 
 	const imagesKey = COLUMNS.records?.images || "images";
