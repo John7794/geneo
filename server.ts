@@ -36,8 +36,20 @@ app.use(cookieParser());
 
   import admin from 'firebase-admin';
 
-  admin.initializeApp({ projectId: "celtic-biplane-j8gvj" });
-  const fdb = admin.firestore();
+  let adminConfig = { projectId: "geneo-b8e63" };
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      adminConfig.credential = admin.credential.cert(serviceAccount);
+      console.log("Using provided FIREBASE_SERVICE_ACCOUNT for credentials.");
+    } catch (e) {
+      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT. Falling back to default.", e);
+    }
+  }
+
+  admin.initializeApp(adminConfig);
+  import { getFirestore } from 'firebase-admin/firestore';
+  const fdb = getFirestore(admin.app(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
 
   // Function to save individual file to Firestore with compression
   async function saveFileToFirestore(filePath: string, content: string): Promise<void> {
@@ -447,10 +459,10 @@ app.use(cookieParser());
           import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
           
           const firebaseConfig = {
-            projectId: "celtic-biplane-j8gvj",
-            appId: "1:110687233405:web:aac484cf179a08fbcad814",
-            apiKey: "AIzaSyCfAbVNqq6_kmsUeUiAlVYbVr3J1VVMbdE",
-            authDomain: "celtic-biplane-j8gvj.firebaseapp.com"
+            projectId: "geneo-b8e63",
+            appId: "1:241221120342:web:9575c2edf16c29ac81a6f7",
+            apiKey: "AIzaSyASdK-k9JaA4FcjVkMuga6uigstkhxznVY",
+            authDomain: "geneo-b8e63.firebaseapp.com"
           };
           
           const app = initializeApp(firebaseConfig);
