@@ -570,14 +570,16 @@ app.use(cookieParser());
   const rootDataPath = path.join(process.cwd(), 'data');
   app.use('/data', express.static(rootDataPath));
   
-  const rootScriptsPath = path.join(process.cwd(), 'scripts');
-  app.use('/scripts', express.static(rootScriptsPath));
+  if (process.env.NODE_ENV !== "production") {
+    const rootScriptsPath = path.join(process.cwd(), 'scripts');
+    app.use('/scripts', express.static(rootScriptsPath));
 
-  const rootCssPath = path.join(process.cwd(), 'css');
-  app.use('/css', express.static(rootCssPath));
+    const rootCssPath = path.join(process.cwd(), 'css');
+    app.use('/css', express.static(rootCssPath));
 
-  const rootAssetsPath = path.join(process.cwd(), 'assets');
-  app.use('/assets', express.static(rootAssetsPath));
+    const rootAssetsPath = path.join(process.cwd(), 'assets');
+    app.use('/assets', express.static(rootAssetsPath));
+  }
 
   app.get('/sw.js', (req, res) => res.sendFile(path.join(process.cwd(), 'sw.js')));
 
