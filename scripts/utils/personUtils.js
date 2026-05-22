@@ -3,7 +3,7 @@
 import { COLUMNS } from "../core/dbSchema.js";
 import { PATHS } from "../core/appConfig.js";
 import { i18n } from "../core/i18n.js";
-import { splitString } from "./helpers.js";
+import { splitString, convertDriveLink } from "./helpers.js";
 import { normalizeGender } from "./genderUtils.js";
 
 function extractBaseId(exactId) {
@@ -168,6 +168,11 @@ export function getAvatarUrl(identifier, genderParam) {
 	}
 
 	const exactId = String(identifier).trim();
+	
+	if (exactId.includes("google.com")) {
+		return convertDriveLink(exactId);
+	}
+
 	const baseId = extractBaseId(exactId);
 
 	if (baseId.includes("/")) return baseId;

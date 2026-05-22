@@ -100,7 +100,7 @@ class App {
 		} finally {
 			if (loader) {
 				loader.classList.add("hidden");
-				setTimeout(() => loader.remove(), 500);
+				// Do not remove it from DOM, so we can reuse it later
 			}
 		}
 	}
