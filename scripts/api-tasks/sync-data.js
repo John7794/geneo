@@ -116,10 +116,7 @@ export async function main() {
 		console.log(`[Metadata] Updated version timestamp: ${newMeta.timestamp}. Total sheets synced: ${newMeta.sheetsSynced}`);
 		console.log(`[Local] Verified local databases in /data/db/ as up-to-date.`);
 		
-		console.log("⚙️ Running kinship index generation...");
-		execSync("npx tsx scripts/api-tasks/generate-kinship.js", { stdio: "inherit" });
-
-		console.log("✅ Data sync and kinship index compilation completed successfully!");
+		console.log("✅ Data sync (CSV download) completed successfully!");
 	} catch (error) {
 		console.error("❌ Data sync failed:", error);
 		throw error;

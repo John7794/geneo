@@ -123,28 +123,37 @@ app.use(cookieParser());
     console.log("[Firestore DB] All files synced to Firestore successfully.");
   }
 
+  let bootPromise: Promise<void> | null = null;
   // Bootstrapping sequence
-  (async function bootstrapData() {
-    try {
-      console.log("[Data Boot] Initializing database folders...");
-      
-      // 1. Copy default packaged data files to /tmp/data (acting as seed data)
-      const packagedDataPath = path.join(process.cwd(), 'data');
-      if (fs.existsSync(packagedDataPath)) {
-        fs.cpSync(packagedDataPath, '/tmp/data', { recursive: true });
-        console.log("[Data Boot] Copy seed data from package folder to /tmp/data");
-      }
-      
-      // 2. Load latest versions from Firestore over seed data
-      await restoreFilesFromFirestore();
-      
-      // 3. Enforce DATA_DIR environment variable so background sync runs there
-      process.env.DATA_DIR = '/tmp/data';
-      console.log("[Data Boot] Configured process.env.DATA_DIR to:", process.env.DATA_DIR);
-    } catch (e) {
-      console.error("[Data Boot] Failed bootstrapping:", e);
+  function ensureBootstrapData() {
+    if (!bootPromise) {
+      bootPromise = (async () => {
+        try {
+          console.log("[Data Boot] Initializing database folders...");
+          
+          // 1. Copy default packaged data files to /tmp/data (acting as seed data)
+          const packagedDataPath = path.join(process.cwd(), 'data');
+          if (fs.existsSync(packagedDataPath)) {
+            fs.cpSync(packagedDataPath, '/tmp/data', { recursive: true });
+            console.log("[Data Boot] Copy seed data from package folder to /tmp/data");
+          }
+          
+          // 2. Load latest versions from Firestore over seed data
+          await restoreFilesFromFirestore();
+          
+          // 3. Enforce DATA_DIR environment variable so background sync runs there
+          process.env.DATA_DIR = '/tmp/data';
+          console.log("[Data Boot] Configured process.env.DATA_DIR to:", process.env.DATA_DIR);
+        } catch (e) {
+          console.error("[Data Boot] Failed bootstrapping:", e);
+        }
+      })();
     }
-  })();
+    return bootPromise;
+  }
+  
+  // Kick off early
+  ensureBootstrapData();
 
   // Function to get user access securely from Firestore
   async function getUserAccess(email: string) {
@@ -189,7 +198,34 @@ app.use(cookieParser());
 
   // Auth Middleware
   const authMiddleware = async (req: any, res: any, next: any) => {
+    await ensureBootstrapData();
+    
     const normalizedPath = req.path.replace(/\/$/, ""); // Remove trailing slash
+    
+    // Quick re-validation on page loads (not API or data loads) to keep multiple Vercel instances in sync
+    if (normalizedPath === "" || normalizedPath === "/index.html") {
+      try {
+        const metaDoc = await fdb.collection('db_files').doc('db/metadata.json').get();
+        if (metaDoc.exists) {
+          const remoteData = metaDoc.data();
+          const remoteTime = remoteData?.updatedAt?.toMillis() || 0;
+          let localTime = 0;
+          const localMetaPath = '/tmp/data/db/metadata.json';
+          if (fs.existsSync(localMetaPath)) {
+            const stat = fs.statSync(localMetaPath);
+            localTime = stat.mtimeMs;
+          }
+          // If remote is newer (fuzzy by 5 seconds due to clock differences), reload
+          if (remoteTime > localTime + 5000) {
+            console.log("[Data Sync] Remote data is significantly newer. Reloading in this container...");
+            bootPromise = null; 
+            await ensureBootstrapData();
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
     
     // Allow public access to assets, scripts, css, and sw.js
     if (normalizedPath === "/login" || 
@@ -260,6 +296,16 @@ app.use(cookieParser());
   app.post('/api/logout', (req, res) => {
     res.clearCookie('auth_email');
     res.json({ success: true });
+  });
+
+  app.get('/api/debug-firestore', async (req, res) => {
+    try {
+      const snap = await fdb.collection('db_files').get();
+      const files = snap.docs.map(doc => ({ id: doc.id, updatedAt: doc.data().updatedAt }));
+      res.json({ files });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   app.get('/api/config', authMiddleware, (req, res) => {
@@ -435,7 +481,11 @@ app.use(cookieParser());
               }
             } catch (error) {
               console.error("Auth error:", error);
-              errorDiv.textContent = 'Помилка авторизації: ' + error.message;
+              let msg = error.message;
+              if (msg.includes('auth/unauthorized-domain')) {
+                 msg = "Домен не авторизовано у Firebase! Зайдіть у Firebase Console -> Authentication -> Settings -> Authorized domains і додайте ваш домен (напр. geneo-rho.vercel.app).";
+              }
+              errorDiv.textContent = 'Помилка: ' + msg;
               errorDiv.style.display = 'block';
             }
           });
