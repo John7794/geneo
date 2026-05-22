@@ -4,6 +4,7 @@ import { LineageNavigator } from "../../utils/lineageNavigatorUtils.js";
 import { i18n } from "../../core/i18n.js";
 import { UI_CLASSES } from "../../core/uiClasses.js";
 import { APP_CONFIG } from "../../core/appConfig.js";
+import { getAvatarUrl } from "../../utils/personUtils.js";
 
 export class LineageManager {
 	constructor(engine, rootId, callbacks) {
@@ -70,21 +71,31 @@ export class LineageManager {
 	}
 
 	_updateOptionIcons() {
-		// Словникова маршрутизація іконок O(1)
+		// Словникова маршрутизація іконок
 		const ICON_MAP = {
-			paternal: "2",
-			father: "2",
-			maternal: "3",
-			mother: "3",
-			paternal_f: "4",
-			fatherFather: "4",
-			paternal_m: "5",
-			fatherMother: "5",
-			maternal_f: "6",
-			motherFather: "6",
-			maternal_m: "7",
-			motherMother: "7",
+			paternal: 2,
+			father: 2,
+			maternal: 3,
+			mother: 3,
+			paternal_f: 4,
+			fatherFather: 4,
+			paternal_m: 5,
+			fatherMother: 5,
+			maternal_f: 6,
+			motherFather: 6,
+			maternal_m: 7,
+			motherMother: 7,
 		};
+
+		// Знаходимо ID родичів за їхніми номерами Анентафеля
+		const roleIdMap = {};
+		if (this.logic && this.logic.ahnentafelMap) {
+			for (const [pId, data] of this.logic.ahnentafelMap.entries()) {
+				if (data.minNum <= 7) {
+					roleIdMap[data.minNum] = pId;
+				}
+			}
+		}
 
 		this.options.forEach((opt) => {
 			const mode = opt.dataset.mode;
@@ -97,15 +108,27 @@ export class LineageManager {
 				return;
 			}
 
-			const imgId = ICON_MAP[mode];
-			const isMale = ["2", "4", "6"].includes(imgId);
+			const requiredMinNum = ICON_MAP[mode];
+			const isMale = [2, 4, 6].includes(requiredMinNum);
 			const fallbackIcon = isMale
 				? APP_CONFIG.defaultMale
 				: APP_CONFIG.defaultFemale;
 
-			const photoSrc = imgId
-				? `/assets/imgs/portraits/${imgId}.png`
-				: fallbackIcon;
+			let photoSrc = fallbackIcon;
+			const personId = requiredMinNum ? roleIdMap[requiredMinNum] : null;
+
+			if (personId) {
+				const pNode =
+					(this.engine && this.engine.getPerson ? this.engine.getPerson(personId) : null) ||
+					(this.logic && this.logic._basicIndex ? this.logic._basicIndex.get(personId) : null);
+
+				if (pNode) {
+					const photoId = pNode.photo_id || pNode.photo || pNode.fam_photo;
+					const gender = String(pNode.gender || pNode.fam_gender || "");
+					const isFem = gender[0]?.toLowerCase() === "f" || gender[0]?.toLowerCase() === "ж";
+					photoSrc = getAvatarUrl(photoId, isFem);
+				}
+			}
 
 			opt.innerHTML = `
                 <img class="${UI_CLASSES.lineageTileAvatar || "lineage-tile-avatar"}" 
