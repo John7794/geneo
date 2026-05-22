@@ -404,6 +404,36 @@ app.use(cookieParser());
     }
   });
 
+  app.get('/api/shares', authMiddleware, async (req, res) => {
+    if (!req.userConfig?.canShare) {
+       return res.status(403).json({ error: "Only admins can view shares" });
+    }
+    try {
+      const sharesSnap = await fdb.collection('shares').get();
+      const shares = sharesSnap.docs.map(doc => ({
+         id: doc.id,
+         ...doc.data()
+      }));
+      res.json(shares);
+    } catch (e) {
+      console.error("[Invite] Error loading shares:", e);
+      res.status(500).json({ error: "Failed to load shares" });
+    }
+  });
+
+  app.delete('/api/shares/:id', authMiddleware, async (req, res) => {
+    if (!req.userConfig?.canShare) {
+       return res.status(403).json({ error: "Only admins can delete shares" });
+    }
+    try {
+      await fdb.collection('shares').doc(req.params.id).delete();
+      res.json({ success: true });
+    } catch (e) {
+      console.error("[Invite] Error deleting share:", e);
+      res.status(500).json({ error: "Failed to delete share" });
+    }
+  });
+
   app.post('/api/sync-data', authMiddleware, async (req, res) => {
     console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
     

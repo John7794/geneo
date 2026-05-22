@@ -80,6 +80,8 @@ export class ShareManager {
 				this.btnSubmit.style.borderColor = "var(--color-success)";
 				this.btnSubmit.style.color = "#fff";
 				
+				this.loadActiveShares();
+				
 				setTimeout(() => {
 					this.close();
 					setTimeout(() => {
@@ -124,6 +126,62 @@ export class ShareManager {
 			this.overlay.classList.add("show");
 			if (this.emailInput) this.emailInput.focus();
 		});
+		
+		this.loadActiveShares();
+	}
+
+	async loadActiveShares() {
+		const listContainer = document.getElementById("active-shares-list");
+		if (!listContainer) return;
+		
+		listContainer.innerHTML = '<li style="color: var(--color-text-muted); font-size: 14px;">Завантаження...</li>';
+		
+		try {
+			const res = await fetch('/api/shares');
+			if (!res.ok) throw new Error("Failed connecting to API");
+			const shares = await res.json();
+			
+			if (shares.length === 0) {
+				listContainer.innerHTML = '<li style="color: var(--color-text-muted); font-size: 14px;">Немає наданих доступів</li>';
+				return;
+			}
+			
+			listContainer.innerHTML = shares.map(share => `
+				<li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--color-border-light);">
+					<span style="font-size: 14px; color: var(--color-text-main);">${share.email}</span>
+					<button class="btn btn-icon js-revoke-share" data-id="${share.id}" style="color: var(--color-error); padding: 4px;" title="Скасувати доступ">
+						<i class="ri-delete-bin-line"></i>
+					</button>
+				</li>
+			`).join("");
+			
+			const revokeBtns = listContainer.querySelectorAll('.js-revoke-share');
+			revokeBtns.forEach(btn => {
+				btn.addEventListener('click', async (e) => {
+					e.preventDefault();
+					const id = btn.getAttribute('data-id');
+					if (confirm("Ви впевнені, що хочете скасувати доступ для цього користувача?")) {
+						btn.disabled = true;
+						try {
+							const delRes = await fetch(`/api/shares/${id}`, { method: 'DELETE' });
+							if (delRes.ok) {
+								this.loadActiveShares();
+							} else {
+								alert("Не вдалося скасувати доступ.");
+								btn.disabled = false;
+							}
+						} catch(err) {
+							console.error(err);
+							btn.disabled = false;
+						}
+					}
+				});
+			});
+			
+		} catch (e) {
+			listContainer.innerHTML = '<li style="color: var(--color-error); font-size: 14px;">Помилка завантаження</li>';
+			console.error("Помилка завантаження доступів:", e);
+		}
 	}
 
 	close() {
