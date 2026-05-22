@@ -59,36 +59,10 @@ export class ShareManager {
 		this.btnSubmit.disabled = true;
 		this.emailInput.disabled = true;
 
-		// Calculate hidden profiles based on unchecked checkboxes
+		// Default permissions: no hidden profiles, cannot share or sync
 		const hiddenProfiles = [];
-		const canShare = document.getElementById("share-can-share")?.checked ?? false;
-		const canSync = document.getElementById("share-can-sync")?.checked ?? false;
-
-		try {
-			const isPaternalFChecked = document.getElementById("share-branch-paternal-f")?.checked ?? true;
-			const isPaternalMChecked = document.getElementById("share-branch-paternal-m")?.checked ?? true;
-			const isMaternalFChecked = document.getElementById("share-branch-maternal-f")?.checked ?? true;
-			const isMaternalMChecked = document.getElementById("share-branch-maternal-m")?.checked ?? true;
-
-			const ahnentafelMap = this.app?.managers?.lineage?.logic?.ahnentafelMap;
-			if (ahnentafelMap) {
-				for (const [id, data] of ahnentafelMap.entries()) {
-					const branches = data.branches;
-					if (!isPaternalFChecked && branches.has(4)) {
-						hiddenProfiles.push(id);
-					} else if (!isPaternalMChecked && branches.has(5)) {
-						hiddenProfiles.push(id);
-					} else if (!isMaternalFChecked && branches.has(6)) {
-						hiddenProfiles.push(id);
-					} else if (!isMaternalMChecked && branches.has(7)) {
-						hiddenProfiles.push(id);
-					}
-				}
-			}
-			console.log("[Invite] Calculated hidden profiles count:", hiddenProfiles.length, hiddenProfiles);
-		} catch (err) {
-			console.error("[Invite] Error calculating hidden profiles:", err);
-		}
+		const canShare = false;
+		const canSync = false;
 
 		try {
 			const res = await fetch("/api/invite", {
