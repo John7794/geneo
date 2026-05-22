@@ -74,6 +74,8 @@ export async function main() {
 	try {
 		let downloadedCount = 0;
 
+		const fetchPromises = [];
+
 		for (const [lang, tables] of Object.entries(DATABASES)) {
 			const langDir = path.join(rootDir, "data", "db", lang);
 			if (!fs.existsSync(langDir)) {
@@ -81,23 +83,28 @@ export async function main() {
 			}
 
 			for (const [filename, url] of Object.entries(tables)) {
-				console.log(`[Sync] Downloading ${lang}/${filename}...`);
-				const cacheBustUrl = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
-				const response = await fetch(cacheBustUrl, { cache: 'no-store' });
-				if (!response.ok) {
-					throw new Error(`Failed to download ${url}: ${response.statusText}`);
-				}
-				let csvText = await response.text();
-				
-				if (filename === 'basic.csv') {
-					csvText = csvText.replace(/^person_id,person_id,/i, 'person_id,surname,');
-				}
+				const promise = (async () => {
+					console.log(`[Sync] Downloading ${lang}/${filename}...`);
+					const cacheBustUrl = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+					const response = await fetch(cacheBustUrl, { cache: 'no-store' });
+					if (!response.ok) {
+						throw new Error(`Failed to download ${url}: ${response.statusText}`);
+					}
+					let csvText = await response.text();
+					
+					if (filename === 'basic.csv') {
+						csvText = csvText.replace(/^person_id,person_id,/i, 'person_id,surname,');
+					}
 
-				const filePath = path.join(langDir, filename);
-				fs.writeFileSync(filePath, csvText, "utf8");
-				downloadedCount++;
+					const filePath = path.join(langDir, filename);
+					fs.writeFileSync(filePath, csvText, "utf8");
+					downloadedCount++;
+				})();
+				fetchPromises.push(promise);
 			}
 		}
+		
+		await Promise.all(fetchPromises);
 
 		// Оновлюємо версіонований timestamp у metadata.json
 		const oldMeta = fs.existsSync(metadataPath)

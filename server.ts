@@ -36,14 +36,23 @@ app.use(cookieParser());
 
   import admin from 'firebase-admin';
 
-  let adminConfig = { projectId: "geneo-b8e63" };
+  let adminConfig: any = { projectId: "geneo-b8e63" };
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      let raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+      // if Vercel passed it surrounded by single quotes
+      if (raw.startsWith("'") && raw.endsWith("'")) raw = raw.slice(1, -1);
+      const serviceAccount = JSON.parse(raw);
+      
+      // Sometimes newlines in private_key get double escaped
+      if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      }
+
       adminConfig.credential = admin.credential.cert(serviceAccount);
       console.log("Using provided FIREBASE_SERVICE_ACCOUNT for credentials.");
-    } catch (e) {
-      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT. Falling back to default.", e);
+    } catch (e: any) {
+      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT. Falling back to default.", e.message);
     }
   }
 
@@ -349,8 +358,9 @@ app.use(cookieParser());
         createdBy: req.userEmail || "unknown",
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       };
-      
+      console.log("[Invite] Saving to Firestore...");
       await fdb.collection('shares').add(newShare);
+      console.log("[Invite] Saved successfully.");
 
       // Optional: Check if SMTP config exists, if not just log
       if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
