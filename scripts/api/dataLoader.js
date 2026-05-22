@@ -31,7 +31,7 @@ export async function checkDataVersion() {
 
 	try {
 		// cache-busting запит до metadata.json залишається, оскільки це первинна перевірка
-		const response = await fetch(`./data/db/metadata.json?t=${Date.now()}`);
+		const response = await fetch(`./data/db/metadata.json?t=${Date.now()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
 
 		if (response.ok) {
 			const meta = await response.json();
@@ -85,7 +85,7 @@ export async function fetchCsv(url) {
 
 	const fetchPromise = (async () => {
 		// URL вже містить параметр версії, сформований у модулі api.js
-		const response = await fetch(url);
+		const response = await fetch(url, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
 
 		if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
 
@@ -147,7 +147,7 @@ export async function fetchJson(url) {
 
 	const fetchPromise = (async () => {
 		// URL вже містить параметр версії
-		const response = await fetch(url);
+		const response = await fetch(url, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
 
 		if (!response.ok)
 			throw new Error(`JSON HTTP ${response.status} for ${url}`);

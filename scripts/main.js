@@ -263,7 +263,7 @@ class App {
 			}
 			
 			const cacheBust = Date.now();
-			const metaResponse = await fetch(`./data/db/metadata.json?t=${cacheBust}`);
+			const metaResponse = await fetch(`./data/db/metadata.json?t=${cacheBust}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
 			if (metaResponse.ok) {
 				const meta = await metaResponse.json();
 				if (typeof localforage !== "undefined") {
