@@ -36,6 +36,7 @@ app.use(cookieParser());
 
   import admin from 'firebase-admin';
 
+  // Initialize Firebase Admin configuration
   let adminConfig: any = { projectId: "geneo-b8e63" };
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
