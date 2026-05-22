@@ -97,6 +97,8 @@ export class LineageManager {
 			}
 		}
 
+		console.log("[LineageManager] roleIdMap:", roleIdMap);
+
 		this.options.forEach((opt) => {
 			const mode = opt.dataset.mode;
 			const rawText = (opt.innerText || opt.textContent)
@@ -123,8 +125,10 @@ export class LineageManager {
 					(this.logic && this.logic._basicIndex ? this.logic._basicIndex.get(personId) : null);
 
 				if (pNode) {
-					const photoId = pNode.photo_id || pNode.photo || pNode.fam_photo;
-					const gender = String(pNode.gender || pNode.fam_gender || "");
+					// pNode could be from engine (has .raw) or direct raw row
+					const rawRow = pNode.raw || pNode;
+					const photoId = rawRow.photo_id || rawRow.photo || rawRow.fam_photo;
+					const gender = String(pNode.gender || rawRow.gender || rawRow.fam_gender || "");
 					const isFem = gender[0]?.toLowerCase() === "f" || gender[0]?.toLowerCase() === "ж";
 					photoSrc = getAvatarUrl(photoId, isFem);
 				}
