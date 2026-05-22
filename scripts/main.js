@@ -229,7 +229,7 @@ class App {
 		const loader = document.getElementById("app-loader");
 		if (loader) {
 			loader.classList.remove("hidden");
-			loader.querySelector(".loader__text").textContent = "Оновлення даних (може тривати кілька хвилин)...";
+			loader.querySelector(".loader__text").textContent = "Оновлення даних (завантаження з Google Таблиць)...";
 		}
 		
 		try {
@@ -270,7 +270,9 @@ class App {
 					await localforage.setItem("DB_VERSION", meta.timestamp || cacheBust);
 				}
 			}
-			window.location.reload();
+			
+			alert("✅ Дані успішно синхронізовано з хмарою!\n\n⚠️ Зверніть увагу: після внесення змін у Google Таблиці, вони можуть з'являтися тут із затримкою до 5 хвилин (через особливості кешування Google).\n\nЗараз сторінку буде перезавантажено.");
+			window.location.href = window.location.pathname + "?_t=" + Date.now();
 		} catch (error) {
 			console.error("Помилка під час оновлення даних", error);
 			if (loader) loader.classList.add("hidden");
