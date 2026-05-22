@@ -11,7 +11,6 @@ import { SearchManager } from "./components/interaction/searchManager.js";
 import { EventsManager } from "./components/interaction/eventsManager.js";
 import { OnboardingController } from "./components/onboarding/OnboardingController.js";
 import { PersonPopupManager } from "./components/interaction/personPopupManager.js";
-
 import { NavigationManager } from "./components/interaction/navigationManager.js";
 import { BreadcrumbManager } from "./components/interaction/breadcrumbManager.js";
 import { RelationshipManager } from "./components/interaction/relationshipManager.js";
@@ -230,7 +229,7 @@ class App {
 		const loader = document.getElementById("app-loader");
 		if (loader) {
 			loader.classList.remove("hidden");
-			loader.querySelector(".loader__text").textContent = "Оновлення даних (завантаження з Google Таблиць)...";
+			loader.querySelector(".loader__text").textContent = "Оновлення даних (може тривати кілька хвилин)...";
 		}
 		
 		try {
@@ -271,9 +270,7 @@ class App {
 					await localforage.setItem("DB_VERSION", meta.timestamp || cacheBust);
 				}
 			}
-			
-			alert("✅ Дані успішно синхронізовано з хмарою!\n\n⚠️ Зверніть увагу: після внесення змін у Google Таблиці, вони можуть з'являтися тут із затримкою до 5 хвилин (через особливості кешування Google).\n\nЗараз сторінку буде перезавантажено.");
-			window.location.href = window.location.pathname + "?_t=" + Date.now();
+			window.location.reload();
 		} catch (error) {
 			console.error("Помилка під час оновлення даних", error);
 			if (loader) loader.classList.add("hidden");
