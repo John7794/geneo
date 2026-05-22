@@ -12,7 +12,7 @@
   ],
   "functions": {
     "api/**/*": {
-      "includeFiles": "{data/**,firebase-applet-config.json,dist/**,scripts/**,css/**}"
+      "includeFiles": "{data/**,firebase-applet-config.json,dist/**,scripts/**,css/**,assets/**}"
     }
   }
 }

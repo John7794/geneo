@@ -18,6 +18,14 @@ export default defineConfig(() => {
           {
             src: 'scripts',
             dest: '.'
+          },
+          {
+            src: 'assets',
+            dest: '.'
+          },
+          {
+            src: 'css',
+            dest: '.'
           }
         ]
       })
