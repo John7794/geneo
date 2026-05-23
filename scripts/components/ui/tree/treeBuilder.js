@@ -76,13 +76,10 @@ export function renderCardHTML(
 	const isFemForName = isFemale(person.gender || person.fam_gender);
 	if (isFemForName && person.maidenName) {
 		const cleanMaiden = String(person.maidenName).trim().toUpperCase();
-		const currentSurname = String(surname).trim().toUpperCase();
-		if (cleanMaiden && currentSurname && cleanMaiden !== currentSurname) {
-			surname = `${currentSurname} (${cleanMaiden})`;
-		} else if (cleanMaiden) {
+		if (cleanMaiden) {
 			surname = cleanMaiden;
-		} else {
-			surname = surname.toUpperCase(); // Fallback if maiden is empty but has surname
+		} else if (surname) {
+			surname = surname.toUpperCase(); 
 		}
 	} else if (surname) {
 		surname = surname.toUpperCase();
