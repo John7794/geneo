@@ -14,17 +14,26 @@ import {
  * РІВЕНЬ UI: Розраховує та форматує вік на момент смерті (повертає HTML)
  */
 export function formatAgeHtml(birthData, deathRecord) {
-	if (!birthData || !deathRecord) return "";
+	if (!deathRecord) return "";
 
-	const deathData = {
-		year: deathRecord[COLUMNS.death.year],
-		month: deathRecord[COLUMNS.death.month],
-		day: deathRecord[COLUMNS.death.day],
-	};
+	let calcAge = null;
+	if (birthData) {
+		const deathData = {
+			year: deathRecord[COLUMNS.death.year],
+			month: deathRecord[COLUMNS.death.month],
+			day: deathRecord[COLUMNS.death.day],
+		};
+		calcAge = calculateAgeAtDeath(birthData, deathData);
+	}
 
-	const calcAge = calculateAgeAtDeath(birthData, deathData);
+	if (calcAge === null) {
+		const explicitAge = deathRecord[COLUMNS.death.age];
+		if (explicitAge !== undefined && explicitAge !== null && String(explicitAge).trim() !== "") {
+			calcAge = parseInt(explicitAge, 10);
+		}
+	}
 
-	if (calcAge === null) return "";
+	if (calcAge === null || isNaN(calcAge)) return "";
 
 	if (calcAge === 0) {
 		return escapeHtml(i18n.t("time.infant") || "менше 1 року");

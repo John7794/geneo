@@ -121,6 +121,7 @@ export const COLUMNS = Object.freeze({
 		day: "d_day",
 		month: "d_month",
 		year: "d_year",
+		age: "d_age",
 		dateSort: "date_sort",
 		placeId: "place_id",
 		cause: "d_cause",
