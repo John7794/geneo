@@ -335,12 +335,26 @@ export function calculateComplexRelationship(engine, idA, idB) {
 export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 	const strId = String(id).trim();
 
-	const formatRawDates = (bStr, dStr) => {
-		const b = typeof extractYear === "function" ? extractYear(bStr) : "";
-		const d = typeof extractYear === "function" ? extractYear(dStr) : "";
+	const formatRawDates = (bStr, dStr, vStatus) => {
+		const b = typeof extractYear === "function" ? extractYear(bStr) : bStr;
+		const d = typeof extractYear === "function" ? extractYear(dStr) : dStr;
+
+		let isDead = false;
+		if (d) {
+			isDead = true;
+		} else if (vStatus !== undefined && vStatus !== null && String(vStatus).trim() !== "") {
+			const v = String(vStatus).trim().toLowerCase();
+			if (v === "0" || v === "false" || v === "-") isDead = true;
+		} else if (b) {
+			const currentYear = new Date().getFullYear();
+			const bNum = parseInt(String(b).match(/\d{4}/)?.[0] || b, 10);
+			if (!isNaN(bNum) && currentYear - bNum > 120) {
+				isDead = true;
+			}
+		}
 
 		if (!b && !d) return "";
-		if (d) return `${b || "?"} – ${d}`;
+		if (isDead) return `${b || "?"} – ${d || "?"}`;
 		return `* ${b}`;
 	};
 
@@ -350,7 +364,11 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 			basicRow[COLUMNS.basic?.birthDate || "birth_date"] || birthMap.get(strId);
 		const dDate =
 			basicRow[COLUMNS.basic?.deathDate || "death_date"] || deathMap.get(strId);
-		return formatRawDates(bDate, dDate);
+		const vStatus =
+			basicRow.vital_status !== undefined
+				? basicRow.vital_status
+				: basicRow[COLUMNS.basic?.vitalStatus || "vitalStatus"];
+		return formatRawDates(bDate, dDate, vStatus);
 	};
 
 	// Сувора інвертована логіка бази даних
@@ -407,6 +425,7 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 			lifeYears: formatRawDates(
 				fam[COLUMNS.familyList?.birthDate || "fam_birth_date"],
 				fam[COLUMNS.familyList?.deathDate || "fam_death_date"],
+				fam.vital_status !== undefined ? fam.vital_status : fam[COLUMNS.familyList?.vitalStatus || "vitalStatus"]
 			),
 		};
 	}

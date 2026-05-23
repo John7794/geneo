@@ -30,6 +30,11 @@ const calculateLifeCycle = (bStr, dStr, vStatus, hasDeathRecord = false) => {
 	let isAlive = !actualDYear;
 	if (actualDYear === "?" || hasDeathRecord) {
 		isAlive = false;
+	} else if (actualBYear) {
+		const currentYear = new Date().getFullYear();
+		if (currentYear - parseInt(actualBYear, 10) > 120) {
+			isAlive = false;
+		}
 	}
 
 	if (

@@ -138,6 +138,17 @@ export function renderCardHTML(
 		person.isAlive !== undefined
 			? person.isAlive
 			: !actualDYear || actualDYear === "?";
+
+	if (
+		person.isAlive === undefined &&
+		(!actualDYear || actualDYear === "?") &&
+		actualBYear
+	) {
+		const currentYear = new Date().getFullYear();
+		if (currentYear - parseInt(actualBYear, 10) > 120) {
+			isAlive = false;
+		}
+	}
 	const vStatus =
 		person.vitalStatus !== undefined ? person.vitalStatus : person.vital_status;
 
