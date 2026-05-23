@@ -315,6 +315,36 @@ app.use(cookieParser());
     }
   });
 
+  app.post('/auth-email', async (req, res) => {
+    const { email } = req.body;
+    console.log(`[Auth] Login attempt with simple email: ${email}`);
+    try {
+      if (!email) {
+        return res.status(400).json({ error: "Вкажіть email" });
+      }
+      
+      const cleanEmail = email.toLowerCase().trim();
+      const userConfig = await getUserAccess(cleanEmail);
+
+      if (userConfig) {
+        console.log(`[Auth] Access granted (simple) for ${cleanEmail}`);
+        res.cookie('auth_email', cleanEmail, { 
+          httpOnly: true, 
+          maxAge: 30 * 24 * 60 * 60 * 1000, 
+          secure: true, 
+          sameSite: 'strict' 
+        });
+        res.json({ success: true, email: cleanEmail, config: userConfig });
+      } else {
+        console.warn(`[Auth] Access denied (simple) for ${cleanEmail}.`);
+        res.status(401).json({ error: `Ваша пошта (${cleanEmail}) не має доступу. Зверніться до адміністратора.` });
+      }
+    } catch (error) {
+      console.error("[Auth] Error in simple email auth:", error);
+      res.status(500).json({ error: "Внутрішня помилка сервера" });
+    }
+  });
+
   app.post('/api/logout', (req, res) => {
     res.clearCookie('auth_email');
     res.json({ success: true });
@@ -493,11 +523,23 @@ app.use(cookieParser());
           p { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5; }
           button { width: 100%; padding: 0.875rem; background: white; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; }
           button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+          .google-btn { margin-bottom: 1rem; }
+          .divider { margin: 1.5rem 0; color: #94a3b8; font-size: 0.875rem; position: relative; }
+          .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 40%; height: 1px; background: #e2e8f0; }
+          .divider::before { left: 0; }
+          .divider::after { right: 0; }
+          input { width: 100%; padding: 0.875rem; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+          input:focus { outline: none; border-color: #3b82f6; ring: 2px solid #3b82f6; }
+          .primary-btn { background: #0f172a; color: white; border: none; }
+          .primary-btn:hover { background: #334155; }
+          .links { margin-top: 1rem; font-size: 0.875rem; display: flex; justify-content: space-between; }
+          .links a { color: #3b82f6; text-decoration: none; cursor: pointer; }
+          .links a:hover { text-decoration: underline; }
           .error { color: #dc2626; font-size: 0.875rem; margin-top: 1rem; display: none; background: #fef2f2; padding: 0.5rem; border-radius: 4px; word-break: break-word; }
         </style>
         <script type="module">
           import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-          import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+          import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
           
           const firebaseConfig = {
             projectId: "geneo-b8e63",
@@ -510,45 +552,91 @@ app.use(cookieParser());
           const auth = getAuth(app);
           const provider = new GoogleAuthProvider();
 
-          document.getElementById('loginBtn').addEventListener('click', async () => {
-            const errorDiv = document.getElementById('error');
-            errorDiv.style.display = 'none';
-            
-            try {
-              const result = await signInWithPopup(auth, provider);
-              const idToken = await result.user.getIdToken();
-              
-              const res = await fetch('/auth-verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: idToken })
-              });
+          async function handleAuthResult(result) {
+            const idToken = await result.user.getIdToken();
+            const res = await fetch('/auth-verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: idToken })
+            });
 
-              if (res.ok) {
-                window.location.href = '/';
-              } else {
-                const data = await res.json().catch(() => ({}));
-                errorDiv.textContent = data.error || 'Доступ заборонено';
-                errorDiv.style.display = 'block';
-                auth.signOut();
-              }
-            } catch (error) {
-              console.error("Auth error:", error);
-              let msg = error.message;
-              if (msg.includes('auth/unauthorized-domain')) {
-                 msg = "Домен не авторизовано у Firebase! Зайдіть у Firebase Console -> Authentication -> Settings -> Authorized domains і додайте ваш домен (напр. geneo-rho.vercel.app).";
-              }
-              errorDiv.textContent = 'Помилка: ' + msg;
-              errorDiv.style.display = 'block';
+            if (res.ok) {
+              window.location.href = '/';
+            } else {
+              const data = await res.json().catch(() => ({}));
+              throw new Error(data.error || 'Доступ заборонено (ваш email не знайдено в списку гостей)');
             }
+          }
+
+          function showError(msg) {
+            const errorDiv = document.getElementById('error');
+            if (msg.includes('auth/unauthorized-domain')) {
+               msg = "Домен не авторизовано у Firebase! Зайдіть у Firebase Console -> Authentication -> Settings -> Authorized domains і додайте ваш домен.";
+            } else if (msg.includes('auth/invalid-credential')) {
+               msg = "Неправильний email або пароль.";
+            } else if (msg.includes('auth/email-already-in-use')) {
+               msg = "Такий акаунт вже існує. Увійдіть замість реєстрації.";
+            } else if (msg.includes('auth/weak-password')) {
+               msg = "Пароль занадто слабкий (мінімум 6 символів).";
+            }
+            errorDiv.textContent = 'Помилка: ' + msg;
+            errorDiv.style.display = 'block';
+          }
+
+          document.getElementById('loginBtn').addEventListener('click', async () => {
+             document.getElementById('error').style.display = 'none';
+             try {
+               const result = await signInWithPopup(auth, provider);
+               await handleAuthResult(result);
+             } catch (error) {
+               console.error("Auth error:", error);
+               showError(error.message);
+               auth.signOut();
+             }
+          });
+
+          document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('error').style.display = 'none';
+            const email = document.getElementById('email').value.trim();
+            
+             try {
+                const res = await fetch('/auth-email', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email })
+                });
+
+                if (res.ok) {
+                  window.location.href = '/';
+                } else {
+                  const data = await res.json().catch(() => ({}));
+                  throw new Error(data.error || 'Доступ заборонено (ваш email не знайдено в списку гостей)');
+                }
+             } catch (error) {
+                console.error("Auth error:", error);
+                showError(error.message);
+             }
           });
         </script>
       </head>
       <body>
         <div class="login-box">
           <h2>Архів Генеалогії</h2>
-          <p>Цей сайт є приватним. Для перегляду гілок родового дерева увійдіть через свій Google-акаунт.</p>
-          <button id="loginBtn">Увійти через Google</button>
+          <p>Цей сайт є приватним. Увійдіть через будь-яку пошту, котрій надано доступ.</p>
+          
+          <button id="loginBtn" class="google-btn">
+            <svg style="width: 18px; margin-right: 8px;" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Увійти через Google
+          </button>
+          
+          <div class="divider">або вкажіть просто пошту</div>
+          
+          <form id="emailForm" data-mode="login">
+            <input type="email" id="email" placeholder="Email (напр. user@yahoo.com)" required />
+            <button type="submit" id="emailSubmitBtn" class="primary-btn">Увійти</button>
+          </form>
+
           <div id="error" class="error">Помилка входу.</div>
         </div>
       </body>
