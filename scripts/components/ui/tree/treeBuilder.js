@@ -71,9 +71,25 @@ export function renderCardHTML(
 
 	const safeId = escapeHTML(person.id || person.fam_id || cleanId);
 	const name = person.name || person.fam_first_name || person.firstName || "";
-	const surname = person.surname || person.fam_surname || "";
+	let surname = person.surname || person.fam_surname || "";
+	
+	const isFemForName = isFemale(person.gender || person.fam_gender);
+	if (isFemForName && person.maidenName) {
+		const cleanMaiden = String(person.maidenName).trim().toUpperCase();
+		const currentSurname = String(surname).trim().toUpperCase();
+		if (cleanMaiden && currentSurname && cleanMaiden !== currentSurname) {
+			surname = `${currentSurname} (${cleanMaiden})`;
+		} else if (cleanMaiden) {
+			surname = cleanMaiden;
+		} else {
+			surname = surname.toUpperCase(); // Fallback if maiden is empty but has surname
+		}
+	} else if (surname) {
+		surname = surname.toUpperCase();
+	}
+
 	const fullName = escapeHTML(
-		(surname ? `${name} ${surname.toUpperCase()}` : name).trim(),
+		(surname ? `${name} ${surname}` : name).trim(),
 	);
 
 	// 🔥 Строга верифікація статусу. Відсутність маркера = пунктир

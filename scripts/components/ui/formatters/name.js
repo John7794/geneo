@@ -27,7 +27,11 @@ export function formatPersonNameHtml(person) {
 	const isFem = normalizeGender(person.gender) === "f";
 	if (isFem && person.maidenName) {
 		const cleanMaiden = String(person.maidenName).trim().toUpperCase();
-		if (cleanMaiden) surnameRaw = cleanMaiden;
+		if (cleanMaiden && surnameRaw && cleanMaiden !== surnameRaw) {
+			surnameRaw = `${surnameRaw} (${cleanMaiden})`;
+		} else if (cleanMaiden) {
+			surnameRaw = cleanMaiden;
+		}
 	}
 
 	const name = escapeHtml(nameRaw);
