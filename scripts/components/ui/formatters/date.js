@@ -50,10 +50,10 @@ export function formatEventDateHtml(d, m, y, isOldStyle = false) {
 
 	if (details.isDual) {
 		const newStyleLabel = escapeHtml(
-			i18n.t("time.newStyle") || "(за новим стилем)",
+			i18n.t("time.newStyle") || "за новим стилем",
 		);
 		const oldStyleLabel = escapeHtml(
-			i18n.t("time.oldStyle") || "(за старим стилем)",
+			i18n.t("time.oldStyle") || "за старим стилем",
 		);
 
 		const oldStyleClass =

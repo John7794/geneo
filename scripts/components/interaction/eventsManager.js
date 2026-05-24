@@ -231,7 +231,7 @@ export class EventsManager {
 		if (evt.original.isOldStyle) {
 			const oMonthName = escapeHtml(getMonthName(parseInt(evt.original.month)));
 			const oldStyleLabel = escapeHtml(i18n.t("time.oldStyle") || "за ст. ст.");
-			displayStr += ` <span class="${UI_CLASSES.eventDateOldStyle}">(${escapeHtml(evt.original.day)} ${oMonthName} ${oldStyleLabel})</span>`;
+			displayStr += `<br><span class="${UI_CLASSES.eventDateOldStyle}">${escapeHtml(evt.original.day)} ${oMonthName} ${oldStyleLabel}</span>`;
 		}
 		return displayStr;
 	}
