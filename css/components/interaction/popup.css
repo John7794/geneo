@@ -327,6 +327,11 @@
 	display: flex;
 	align-items: center;
 	gap: var(--spacing-sm);
+	flex-grow: 1;
+}
+#current-date-display {
+	margin-left: auto;
+	margin-right: var(--spacing-sm);
 }
 
 .popup-rel-list {
