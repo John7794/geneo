@@ -1,8 +1,8 @@
 record_id,persons_ids,category,type,title,archive_id,archive_ref,images,transcription,external_link,participants
 rec_4_b,4:дитина; 8:батько; 9:мати,Метричні книги,b,Запис про народження,GATO,"Фонд 160 'Тверская духовная консистория, г. Тверь Тверского уезда Тверской губернии (09.07.1744 - 23.01.1918)' / Опись 15-3 'Метрические книги церквей Тверской губернии' / Дело 2952 'Метрические книги Преображенской церкви села Спасоклинье, Введенской церкви села Козлово Вышневолоцкого у. Тверской губ.' / Оборот 417 (Скан 413)",https://drive.google.com/file/d/1haYVzWjgjPvDyHtqqzgs6eF2u8hYa28D/view?usp=sharing,"[""Cчет родившихся мужеского пола|50"",""Мъсяц и день рождения|28 сентября 1911"",""Мъсяц и день крещения|29 сентября 1911"",""Имена родившихся|Іоаннъ"",""Звание, имя, отчество и фамилия родителей и какого вероисповедания|Полицейскій урядникъ 21 участка 4 стана Вышневолоцкаго уъезда Лаврентій Филипповъ Селивановъ и законная жена его Марія Михайлова, оба православные"",""Звание, имя, отчество и фамилия восприемников|Села Козлова крест. Іосіфъ Михайловъ Державинъ"",""Кто совершал таинство крещения|Священникъ Іоаннъ Кустовъ, діаконъ Николай Тачановъ, псаломщик Иванъ Тяжеловъ""]",,4;8;9
-rec_4_a-1,4: солдат,Документи нагород,a,Нагорода 1,CAMORF,,award-record-selivanov-1,"[""за то, что в боях с 13 августа по 9 октября 1943 г. по преследованию отходящего на запад противника в группе разграничения сопровождая танковые подразделения, разминируя под огнём противника заминированные участки. За это время тов. Селиванов обезвредил 50 противотанковых мин""]",http://podvignaroda.ru/?#id=19395971&tab=navDetailManAward,4
-rec_4_a-2,4: солдат,Документи нагород,a,Нагорода 2,CAMORF,,award-record-selivanov-2,"[""за самоотверженную работу под огнём противника по разминированию минных полей противника в полосе действия танков и за восстановление мостов при преодолении противника в боях с 24 июня по 4 июля 1944 г.""]",http://podvignaroda.ru/?#id=22185109&tab=navDetailManAward,4
-rec_4_a-3,4: солдат,Документи нагород,a,Нагорода 3,CAMORF,,award-record-selivanov-3,"[""за самоотверженную работу по разминированию проходов в минных полях противника и за сопровождение танков на направлении атаки в наступательных боях в р-не г. Бауска и м. Тришкяй с 14 сентября по 11 октября 1944""]",http://podvignaroda.ru/?#id=37768339&tab=navDetailManAward,4
+rec_4_a-1,4:солдат,Документи нагород,a,Нагорода 1,CAMORF,,award-record-selivanov-1,"[""за то, что в боях с 13 августа по 9 октября 1943 г. по преследованию отходящего на запад противника в группе разграничения сопровождая танковые подразделения, разминируя под огнём противника заминированные участки. За это время тов. Селиванов обезвредил 50 противотанковых мин""]",http://podvignaroda.ru/?#id=19395971&tab=navDetailManAward,4
+rec_4_a-2,4:солдат,Документи нагород,a,Нагорода 2,CAMORF,,award-record-selivanov-2,"[""за самоотверженную работу под огнём противника по разминированию минных полей противника в полосе действия танков и за восстановление мостов при преодолении противника в боях с 24 июня по 4 июля 1944 г.""]",http://podvignaroda.ru/?#id=22185109&tab=navDetailManAward,4
+rec_4_a-3,4:солдат,Документи нагород,a,Нагорода 3,CAMORF,,award-record-selivanov-3,"[""за самоотверженную работу по разминированию проходов в минных полях противника и за сопровождение танков на направлении атаки в наступательных боях в р-не г. Бауска и м. Тришкяй с 14 сентября по 11 октября 1944""]",http://podvignaroda.ru/?#id=37768339&tab=navDetailManAward,4
 rec_6_b,6:дитина; 12:батько; 13:мати,Метричні книги,b,Запис про народження,CDAMO,,https://drive.google.com/file/d/1hWEa11DAOTKgM-h7g9I8HrV2Zguqo61v/view?usp=drive_link,,,6;12;13
 rec_6_m-1,6:наречений; 7:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1PYYov4ZUKRyofSoOCkv1PjDNhnbseZI5/view?usp=drive_link,,,6;7
 rec_7_b,7:дитина; 14:батько; 15:мати,Метричні книги,b,Запис про народження,CDIAL,,https://drive.google.com/file/d/1nW3pWayhqynq2YzYYggCK_eJR4DDoiFh/view?usp=drive_link,,,7;14;15
@@ -42,6 +42,49 @@ rec_30_b,30:дитина; 60:батько; 61:мати,Метричні книг
 rec_30_m-1,30:наречений; 31:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1kilZ_2G0RqR2pVBB4Fwi9bZUwYVII7Yn/view?usp=drive_link,,,30;31
 rec_30_m-2,30:наречений; 31:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1stwVezOPaJr60n9u2DsOnCcVIcDG0fdH/view?usp=drive_link,,,30;31
 rec_31_b,31:дитина; 62:батько; 63:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1y30juQYQzp1ldeALI1Sb1BaSfU_yosWs/view?usp=drive_link,,,31;62;63
+rec_56_b,56:дитина; 112:батько; 113:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1zgsz2kCzpGAQzYNoll_Xm93Qbc6Xxt8u/view?usp=drive_link,,,
+rec_57_b,57:дитина; 114:батько; 115:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1T4yqItuc9_GjsHbZ1bHYtYvcb-ohnzOH/view?usp=drive_link,,,
+rec_58_b,58:дитина; 116:батько; 117:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1QM699-C2kceE5uhdxrytn-VghdhC6hwW/view?usp=drive_link,,,
+rec_59_b,59:дитина; 118:батько; 119:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1r3MsNtO_qRxH8NYSySJAGZgwd-BQlTD7/view?usp=drive_link,,,
+rec_60_b,60:дитина; 120:батько; 121:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1q3kY8opLUkRIYKBBT_7IBAqQ7uLmrfp4/view?usp=drive_link,,,
+rec_62_b,62:дитина; 124:батько; 125:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1mhYbcEIiH3bfu1nRGk2fz4agPE0q1YsM/view?usp=drive_link,,,
+rec_114_b,114:дитина; 228:батько; 229:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/18k4ovCURKSdAOb6VkOuGcxofFBivFm2d/view?usp=drive_link,,,
+rec_116_b,116:дитина; 232:батько; 233:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1E-Ys52MXYd-9Vx-8EiEZxdJ37q3hEOCz/view?usp=drive_link,,,
+rec_117_b,117:дитина; 234:батько; 235:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Bc2cjLh59cOsnb2dtrT_I_49RWt-x4UH/view?usp=drive_link,,,
+rec_117_b,,,,,,,https://drive.google.com/file/d/1z3ArS1tnMjBWHcELfIXdXij4ZcRLVBfn/view?usp=drive_link,,,
+rec_118_b,118:дитина; 236:батько; 237:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/18BoGYcvU95s9A3hVepT4c7yjzqTTHcjm/view?usp=drive_link,,,
+rec_118_b,,,,,,,https://drive.google.com/file/d/1D-skkyG--ONdKWcdMamnbItuaIIKS3YD/view?usp=drive_link,,,
+rec_118_b,,,,,,,https://drive.google.com/file/d/1_Zz-zUN65d8QqKoriaYun32wMtaJzwfK/view?usp=drive_link,,,
+rec_120_b,120:дитина; 240:батько; 241:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1vhzH3hWavEtKIPt7CmWLrqmJ2w8KuXM9/view?usp=drive_link,,,
+rec_121_b,121:дитина; 242:батько; 243:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/13-bAAtDCzVdYerF8IvVNWM8VlNEQkJAu/view?usp=drive_link,,,
+rec_121_b,,,,,,,https://drive.google.com/file/d/1z6BEHdZ4A7I5I3SyY4lBACcUppI-Jzk6/view?usp=drive_link,,,
+rec_122_b,122:дитина; 244:батько; 245:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1WwAAiNDJlguVgxWXrKWO7AaGHBNxzwat/view?usp=drive_link,,,
+rec_123_b,123:дитина; 246:батько; 247:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1WeWatHksoQwduoNoXC-PeqetUF5b2jpU/view?usp=drive_link,,,
+rec_126_b,126:дитина; 252:батько; 253:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1GTqNRdUPKyI-nL10oKpMrs4W9tNopMMS/view?usp=drive_link,,,
+rec_127_b,127:дитина; 254:батько; 255:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1FQs75BdmVb6v6q1nmmHReyA6IG6Tpue2/view?usp=drive_link,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
 rec_49,49:померла,Метричні книги,d,Запис про смерть,CDAMO,Фонд 13895 / Опис 1 / Справа 292,https://drive.google.com/file/d/1nFcm6pDeyPRtHOza9CCp05V8-yunkBrn/view?usp=sharing,,https://yandex.ru/archive/catalog/c920e1b2-54ff-45e6-b99b-a82a934077ca/77?center=1558+895,49
 rec_76_b,76:дитина;f8;f9;f10,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/16obKkkJ9UucC-YMOXo6FnXahoVhD7rYX/view?usp=sharing,"[""№|6"",""Числа|17 января"",""Въ іенваръ|Деревни Горатка у крестьянина Ивана Игнатьева жена Евдокъя Петрова родила младенца сна Антона которой сего жъ іенваря 19 числа крещенъ и восприемники ему были тоиже деревни Горотка крестьянинъ Иванъ Тимафъевъ а восприемница тоиже деревни крестьянская жена Дарья Семенова""]",,152;153;f8;f9;f10
 rec_76_m,76:наречений,Метричні книги,m,Запис про шлюб,GATO,,https://drive.google.com/file/d/17U5fmrsnh74P2Y-FyHlyw6n1vpbwx0wN/view?usp=sharing,,,f8;f9;f10
