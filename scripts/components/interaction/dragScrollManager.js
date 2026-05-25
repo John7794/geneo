@@ -103,12 +103,6 @@ export function enableDragScroll(container) {
 	container.addEventListener("mouseup", stopDragging);
 	container.addEventListener("mousemove", move);
 
-	// Слухачі тачпадів
-	container.addEventListener("touchstart", startDragging, { passive: true });
-	container.addEventListener("touchend", stopDragging);
-	container.addEventListener("touchcancel", stopDragging); // Додано для переривання свайпу системою
-	container.addEventListener("touchmove", move, { passive: false });
-
 	// Запобіжник кліку
 	container.addEventListener("click", preventClickIfDragged, true);
 
@@ -117,11 +111,6 @@ export function enableDragScroll(container) {
 		container.removeEventListener("mouseleave", stopDragging);
 		container.removeEventListener("mouseup", stopDragging);
 		container.removeEventListener("mousemove", move);
-
-		container.removeEventListener("touchstart", startDragging);
-		container.removeEventListener("touchend", stopDragging);
-		container.removeEventListener("touchcancel", stopDragging);
-		container.removeEventListener("touchmove", move);
 
 		container.removeEventListener("click", preventClickIfDragged, true);
 
