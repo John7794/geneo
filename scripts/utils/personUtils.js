@@ -381,6 +381,8 @@ function buildBasicPersonObj(basicPerson, nameInfo, exactId, allData) {
 		maidenName:
 			nameInfo?.[COLUMNS.names?.bSurname || "bSurname"] ||
 			nameInfo?.bSurname ||
+			nameInfo?.b_surname ||
+			nameInfo?.b_surnames ||
 			"",
 		title: nameInfo?.[COLUMNS.names?.title || "title"] || nameInfo?.title || "",
 		job: nameInfo?.job || "",

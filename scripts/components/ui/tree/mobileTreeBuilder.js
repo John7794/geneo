@@ -121,8 +121,6 @@ export function buildMobileGenerationHTML(
 			let renderData = person;
 			if (person) {
 				renderData = { ...person };
-				renderData.surnameBirth = "";
-				renderData.maidenName = "";
 			}
 
 			htmlBuffer.push(

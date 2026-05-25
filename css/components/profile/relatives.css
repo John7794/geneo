@@ -96,7 +96,7 @@
 .parent-group-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr); /* Рівно 2 колонки */
-	gap: var(--spacing-xl);
+	gap: var(--spacing-sm);
 }
 
 /* На мобільних пристроях робимо в одну колонку */

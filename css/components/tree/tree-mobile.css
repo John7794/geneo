@@ -206,6 +206,36 @@
 		top: auto;
 		transform-origin: bottom right;
 	}
+
+	@media (orientation: landscape) {
+		#tree-view .top-bar-controls,
+		.app-wrapper .top-bar-controls {
+			bottom: var(--spacing-md);
+			right: 80px;
+			flex-direction: row-reverse;
+			align-items: center;
+			transform: translateX(30px) scale(0.9);
+			transform-origin: center right;
+		}
+
+		#tree-view .top-bar-controls.is-open,
+		.app-wrapper .top-bar-controls.is-open {
+			transform: translateX(0) scale(1);
+		}
+
+		#tree-view .top-bar-controls .control-group,
+		.app-wrapper .top-bar-controls .control-group {
+			flex-direction: row-reverse;
+		}
+
+		.lang-menu-dropdown {
+			right: 0;
+			bottom: 100%;
+			margin-bottom: 12px;
+			margin-right: 0;
+			transform-origin: bottom right;
+		}
+	}
 }
 
 .genealogy-tree-mobile-wrapper,
