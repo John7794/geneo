@@ -306,6 +306,15 @@
 		width: 100%;
 		justify-content: center;
 	}
+
+	.popup-name--flex {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+	#current-date-display {
+		margin-left: 0;
+	}
 }
 
 /* Модифікатори */
@@ -328,6 +337,11 @@
 	align-items: center;
 	gap: var(--spacing-sm);
 	flex-grow: 1;
+}
+.popup-name-title {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
 }
 #current-date-display {
 	margin-left: auto;
