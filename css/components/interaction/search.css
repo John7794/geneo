@@ -95,3 +95,38 @@
 	padding: var(--spacing-md);
 	text-align: center;
 }
+
+/* Футер пошуку з підказками (тільки десктоп) */
+.search-footer {
+	justify-content: center;
+	background-color: var(--color-bg-card);
+}
+
+.search-hotkeys {
+	display: flex;
+	gap: var(--spacing-lg);
+	align-items: center;
+}
+
+.search-hotkeys span {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.search-hotkeys kbd {
+	background-color: var(--color-bg-hover);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	padding: 2px 6px;
+	font-family: inherit;
+	font-size: 0.85em;
+	color: var(--color-text-main);
+	line-height: 1;
+}
+
+@media (max-width: 768px) {
+	.search-footer {
+		display: none;
+	}
+}
