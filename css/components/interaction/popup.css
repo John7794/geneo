@@ -269,54 +269,6 @@
 	flex-shrink: 0;
 }
 
-/* ==========================================
-   АДАПТАЦІЯ ДЛЯ МOБІЛЬНИХ ПРИСТРОЇВ (POPUP)
-   ========================================== */
-@media (max-width: 480px) {
-	.popup-overlay {
-		padding: 12px; /* Зменшення відступів екрана для розширення попапу */
-	}
-
-	.popup-header {
-		padding: var(--spacing-md);
-	}
-
-	/* Фото зверху, текст по центру */
-	.popup-header-layout {
-		flex-direction: column;
-		text-align: center;
-		gap: 16px;
-	}
-
-	.popup-person-info {
-		align-items: center;
-		min-height: auto;
-	}
-
-	.popup-life-dates {
-		width: 100%;
-	}
-
-	/* Кнопки футера на всю ширину */
-	.popup-footer {
-		flex-direction: column;
-		padding: var(--spacing-md);
-	}
-	.popup-footer .btn {
-		width: 100%;
-		justify-content: center;
-	}
-
-	.popup-name--flex {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 4px;
-	}
-	#current-date-display {
-		margin-left: 0;
-	}
-}
-
 /* Модифікатори */
 .popup-header--search {
 	gap: var(--spacing-sm);
@@ -374,4 +326,55 @@
 .popup-rel-action {
 	white-space: nowrap;
 	margin-left: 15px;
+}
+
+/* ==========================================
+   АДАПТАЦІЯ ДЛЯ МOБІЛЬНИХ ПРИСТРОЇВ (POPUP)
+   ========================================== */
+@media (max-width: 480px) {
+	.popup-overlay {
+		padding: 12px; /* Зменшення відступів екрана для розширення попапу */
+	}
+
+	.popup-header {
+		padding: var(--spacing-md);
+	}
+
+	/* Фото зверху, текст по центру */
+	.popup-header-layout {
+		flex-direction: column;
+		text-align: center;
+		gap: 16px;
+	}
+
+	.popup-person-info {
+		align-items: center;
+		min-height: auto;
+	}
+
+	.popup-life-dates {
+		width: 100%;
+	}
+
+	/* Кнопки футера на всю ширину */
+	.popup-footer {
+		flex-direction: column;
+		padding: var(--spacing-md);
+	}
+	.popup-footer .btn {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.popup-name--flex {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+	}
+	#current-date-display {
+		margin-left: 0;
+		margin-right: 0;
+		font-size: 0.9em;
+		color: var(--color-text-muted);
+	}
 }
