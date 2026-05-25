@@ -48,30 +48,21 @@
 }
 
 /* Плавний ефект неонового градієнту по контуру при наведенні (стиль Gemini) */
-.kinship-card::before,
 .kinship-card::after {
 	content: "";
 	position: absolute;
 	inset: -2px;
 	border-radius: inherit;
+	padding: 2px;
 	background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570, #4285f4);
 	background-size: 200% auto;
-	opacity: 0;
-	pointer-events: none;
-	transition: opacity 0.2s ease;
-}
-
-.kinship-card::before {
-	z-index: -1;
-	filter: blur(12px);
-}
-
-.kinship-card::after {
-	padding: 2px;
 	-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
 	-webkit-mask-composite: xor;
 	mask-composite: exclude;
+	opacity: 0;
 	z-index: 1;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
 }
 
 .kinship-card--person {
@@ -88,13 +79,6 @@
 	box-shadow: var(--shadow-sm);
 	transform: translateY(-1px);
 	text-decoration: none;
-}
-
-.kinship-card:hover::before,
-.kinship-card:focus-visible::before,
-.kinship-card.kinship-card__affinity:hover::before {
-	opacity: 0.8;
-	animation: neon-border-glow 3s linear infinite;
 }
 
 .kinship-card:hover::after,
@@ -117,7 +101,6 @@
 	background-color: transparent;
 	box-shadow: none;
 }
-.kinship-card--placeholder:hover::before,
 .kinship-card--placeholder:hover::after {
 	display: none;
 }

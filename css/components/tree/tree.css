@@ -171,41 +171,27 @@
 }
 
 /* Плавний ефект неонового градієнту по контуру при наведенні (стиль Gemini) */
-.tree-node::before,
 .tree-node::after {
 	content: "";
 	position: absolute;
 	inset: -2px; /* Перекриває зазори */
 	border-radius: inherit;
+	padding: 2px; /* Товщина обводки */
 	background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570, #4285f4);
 	background-size: 200% auto;
-	opacity: 0;
-	pointer-events: none;
-	transition: opacity var(--transition-base);
-}
-
-.tree-node::before {
-	z-index: -1;
-	filter: blur(12px);
-}
-
-.tree-node::after {
-	padding: 2px; /* Товщина обводки */
 	-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
 	-webkit-mask-composite: xor;
 	mask-composite: exclude;
+	opacity: 0;
 	z-index: 1; /* Щоб перекривати вертикальні лінії та зазори */
+	pointer-events: none;
+	transition: opacity var(--transition-base);
 }
 
 .tree-node:hover {
 	transform: translateY(-5px);
 	box-shadow: var(--shadow-lg);
 	z-index: 20;
-}
-
-.tree-node:hover::before {
-	opacity: 0.8;
-	animation: neon-border-glow 3s linear infinite;
 }
 
 .tree-node:hover::after {
