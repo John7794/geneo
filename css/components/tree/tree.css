@@ -170,10 +170,27 @@
 		box-shadow var(--transition-base);
 }
 
+/* Плавний ефект легкого градієнту по контуру при наведенні */
+.tree-node::before {
+	content: "";
+	position: absolute;
+	inset: -1.5px;
+	z-index: -1;
+	background: linear-gradient(135deg, rgba(37, 99, 235, 0.5), rgba(56, 189, 248, 0.5), rgba(168, 85, 247, 0.4));
+	border-radius: inherit;
+	opacity: 0;
+	transition: opacity var(--transition-base);
+	filter: blur(5px);
+}
+
 .tree-node:hover {
 	transform: translateY(-5px);
 	box-shadow: var(--shadow-lg);
 	z-index: 20;
+}
+
+.tree-node:hover::before {
+	opacity: 1;
 }
 
 /* Прихований вузол */

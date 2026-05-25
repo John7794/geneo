@@ -35,6 +35,7 @@
    ========================================== */
 .kinship-card {
 	position: relative;
+	z-index: 1;
 	display: flex;
 	align-items: center;
 	padding: var(--spacing-sm);
@@ -44,6 +45,19 @@
 	text-decoration: none; /* Важливо для тегу <a> */
 	color: var(--color-text-main);
 	transition: all 0.2s ease;
+}
+
+/* Плавний ефект легкого градієнту по контуру при наведенні */
+.kinship-card::before {
+	content: "";
+	position: absolute;
+	inset: -1.5px;
+	z-index: -1;
+	background: linear-gradient(135deg, rgba(37, 99, 235, 0.4), rgba(56, 189, 248, 0.4), rgba(168, 85, 247, 0.3));
+	border-radius: inherit;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+	filter: blur(4px);
 }
 
 .kinship-card--person {
@@ -62,6 +76,12 @@
 	text-decoration: none;
 }
 
+.kinship-card:hover::before,
+.kinship-card:focus-visible::before,
+.kinship-card.kinship-card__affinity:hover::before {
+	opacity: 1;
+}
+
 /* Картка-заглушка (Placeholder) */
 .kinship-card--placeholder {
 	background-color: transparent;
@@ -74,6 +94,9 @@
 	border-color: var(--color-border);
 	background-color: transparent;
 	box-shadow: none;
+}
+.kinship-card--placeholder:hover::before {
+	display: none;
 }
 
 /* ==========================================
