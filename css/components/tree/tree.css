@@ -185,7 +185,7 @@
 	opacity: 0;
 	z-index: 1; /* Щоб перекривати вертикальні лінії та зазори */
 	pointer-events: none;
-	transition: opacity var(--transition-base);
+	transition: opacity var(--transition-base, 0.3s ease);
 }
 
 .tree-node:hover {
@@ -196,12 +196,15 @@
 
 .tree-node:hover::after {
 	opacity: 1;
-	animation: neon-border-glow 3s linear infinite;
+	animation: gradient-flow 3s linear infinite;
 }
 
-@keyframes neon-border-glow {
-	to {
-		background-position: 200% center;
+@keyframes gradient-flow {
+	0% {
+		background-position: 0% 50%;
+	}
+	100% {
+		background-position: 200% 50%;
 	}
 }
 

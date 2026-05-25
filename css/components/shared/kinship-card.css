@@ -85,7 +85,16 @@
 .kinship-card:focus-visible::after,
 .kinship-card.kinship-card__affinity:hover::after {
 	opacity: 1;
-	animation: neon-border-glow 3s linear infinite;
+	animation: gradient-flow 3s linear infinite;
+}
+
+@keyframes gradient-flow {
+	0% {
+		background-position: 0% 50%;
+	}
+	100% {
+		background-position: 200% 50%;
+	}
 }
 
 /* Картка-заглушка (Placeholder) */
