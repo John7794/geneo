@@ -32,6 +32,9 @@ export class GalleryManager {
 		this.handleDragStart = this.handleDragStart.bind(this);
 		this.handleDragMove = this.handleDragMove.bind(this);
 		this.handleDragEnd = this.handleDragEnd.bind(this);
+		this.handleTouchStart = this.handleTouchStart.bind(this);
+		this.handleTouchMove = this.handleTouchMove.bind(this);
+		this.handleTouchEnd = this.handleTouchEnd.bind(this);
 		this.handlePanelToggle = this.handlePanelToggle.bind(this);
 		this.next = this.next.bind(this);
 		this.prev = this.prev.bind(this);
@@ -194,6 +197,11 @@ export class GalleryManager {
 		this.wrapper.addEventListener("mousedown", this.handleDragStart);
 		window.addEventListener("mousemove", this.handleDragMove);
 		window.addEventListener("mouseup", this.handleDragEnd);
+
+		this.wrapper.addEventListener("touchstart", this.handleTouchStart, { passive: false });
+		window.addEventListener("touchmove", this.handleTouchMove, { passive: false });
+		window.addEventListener("touchend", this.handleTouchEnd);
+		window.addEventListener("touchcancel", this.handleTouchEnd);
 	}
 
 	handleOverlayClick(e) {
@@ -414,6 +422,118 @@ export class GalleryManager {
 		this.isDragging = false;
 		if (this.wrapper) {
 			this.wrapper.style.cursor = this.scale > 1 ? "grab" : "default";
+		}
+	}
+
+	handleTouchStart(e) {
+		if (e.touches.length === 2) {
+			e.preventDefault();
+			this.initialPinchDistance = Math.hypot(
+				e.touches[0].clientX - e.touches[1].clientX,
+				e.touches[0].clientY - e.touches[1].clientY
+			);
+			this.initialScale = this.scale;
+		} else if (e.touches.length === 1) {
+			this.isDragging = true;
+			this.wasDragged = false;
+			this.lastX = e.touches[0].clientX;
+			this.lastY = e.touches[0].clientY;
+			this.touchStartX = this.lastX;
+			this.touchStartY = this.lastY;
+			this.swipeProcessed = false;
+		}
+	}
+
+	handleTouchMove(e) {
+		if (this.overlay.classList.contains(UI_CLASSES.hidden || "hidden")) return;
+		
+		if (e.touches.length === 2) {
+			e.preventDefault();
+			const currentDistance = Math.hypot(
+				e.touches[0].clientX - e.touches[1].clientX,
+				e.touches[0].clientY - e.touches[1].clientY
+			);
+			
+			if (this.initialPinchDistance) {
+				const delta = currentDistance / this.initialPinchDistance;
+				const newScale = Math.min(Math.max(1, this.initialScale * delta), 8);
+				
+				const rect = this.wrapper.getBoundingClientRect();
+				const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+				const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+				const mouseX = centerX - (rect.left + rect.width / 2);
+				const mouseY = centerY - (rect.top + rect.height / 2);
+
+				if (this.scale !== newScale) {
+					const valX = (mouseX - this.translateX) / this.scale;
+					const valY = (mouseY - this.translateY) / this.scale;
+
+					this.translateX = mouseX - valX * newScale;
+					this.translateY = mouseY - valY * newScale;
+					this.scale = newScale;
+				}
+
+				if (this.scale <= 1) {
+					this.scale = 1;
+					this.translateX = 0;
+					this.translateY = 0;
+				}
+
+				if (!this.ticking) {
+					window.requestAnimationFrame(() => {
+						this.applyTransform();
+						this.ticking = false;
+					});
+					this.ticking = true;
+				}
+			}
+		} else if (e.touches.length === 1 && this.isDragging) {
+			const deltaX = e.touches[0].clientX - this.lastX;
+			const deltaY = e.touches[0].clientY - this.lastY;
+
+			this.lastX = e.touches[0].clientX;
+			this.lastY = e.touches[0].clientY;
+
+			if (this.scale > 1) {
+				e.preventDefault();
+				if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+					this.wasDragged = true;
+				}
+
+				const panSpeed = 1.8;
+				this.translateX += deltaX * panSpeed;
+				this.translateY += deltaY * panSpeed;
+
+				if (!this.ticking) {
+					window.requestAnimationFrame(() => {
+						this.applyTransform();
+						this.ticking = false;
+					});
+					this.ticking = true;
+				}
+			} else if (!this.swipeProcessed) {
+				// Detect horizontal swipe when scale == 1
+				const totalDx = this.lastX - this.touchStartX;
+				const totalDy = this.lastY - this.touchStartY;
+				if (Math.abs(totalDx) > 40 && Math.abs(totalDx) > Math.abs(totalDy) * 1.5) {
+					e.preventDefault();
+					this.swipeProcessed = true;
+					if (totalDx > 0) {
+						this.prev();
+					} else {
+						this.next();
+					}
+				}
+			}
+		}
+	}
+
+	handleTouchEnd(e) {
+		if (e.touches.length < 2) {
+			this.initialPinchDistance = null;
+		}
+		if (e.touches.length === 0) {
+			this.isDragging = false;
 		}
 	}
 

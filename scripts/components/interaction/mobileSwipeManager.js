@@ -90,8 +90,8 @@ export class MobileSwipeManager {
 		const dx = this.startX - currentX;
 		const dy = this.startY - currentY;
 
-		// Якщо користувач свайпає горизонтально (X > Y), блокуємо скрол та історію браузера
-		if (Math.abs(dx) > Math.abs(dy) * 1.5 && Math.abs(dx) > 10) {
+		// Якщо користувач свайпає горизонтально переважно (X > Y) і перетнув базовий поріг
+		if (Math.abs(dx) > Math.abs(dy) * 1.2 && Math.abs(dx) > 10) {
 			this.isSwiping = true;
 			if (e.cancelable) {
 				e.preventDefault();
@@ -107,19 +107,19 @@ export class MobileSwipeManager {
 
 		const currentX = e.changedTouches[0].clientX;
 		const currentY = e.changedTouches[0].clientY;
-		const dx = this.startX - currentX; // Позитивне значення = рух вліво
+		const dx = this.startX - currentX; // Позитивне значення = рух вліво (Next)
 		const dy = this.startY - currentY;
 		const elapsedTime = Date.now() - this.startTime;
 
 		this.startX = 0;
 		this.startY = 0;
 
-		// Перевірка порогів (відстань, час, відсутність значного вертикального відхилення)
+		// Більш м'які пороги: dy <= 160 дозволяє дугоподібні свайпи
 		if (
 			this.isSwiping &&
 			elapsedTime <= this.timeout &&
 			Math.abs(dx) >= this.threshold &&
-			Math.abs(dy) <= 100
+			Math.abs(dy) <= 160
 		) {
 			if (dx > 0) {
 				// Змах вліво (наступний елемент)
