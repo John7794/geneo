@@ -171,17 +171,18 @@
 		opacity: 1;
 		visibility: visible;
 		transform: translateY(0) scale(1);
-		background: var(--color-bg-card);
+		background: transparent;
 		z-index: 9999;
 	}
 
 	/* Пропорційне збільшення ширини кнопок у плаваючому меню */
 	#tree-view .top-bar-controls button,
 	.app-wrapper .top-bar-controls button {
-		width: 56px;
-		height: 48px;
-		border-radius: 24px; /* Овальна форма (pill) */
-		background-color: var(--color-bg-card);
+		width: 48px !important; /* Утвердити розмір */
+		height: 48px !important; /* Зробили квадратними (width = height) */
+		border-radius: var(--radius-sm) !important; /* Квадратні з заокругленими кутами */
+		background-color: transparent !important;
+		flex-shrink: 0 !important;
 	}
 
 	#tree-view .top-bar-controls .control-group,
@@ -189,9 +190,13 @@
 		display: flex;
 		flex-direction: column;
 		margin: 0;
-		background: transparent;
-		box-shadow: none;
-		gap: 12px;
+		width: auto;
+		background: var(--color-bg-card); /* Повертаємо фон на рівень групи */
+		box-shadow: var(--shadow-md);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		padding: var(--spacing-xs);
+		gap: var(--spacing-xs);
 	}
 
 	/* Коригування випадаючого меню мов */
