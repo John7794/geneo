@@ -170,42 +170,10 @@
 		box-shadow var(--transition-base);
 }
 
-/* Плавний ефект неонового градієнту по контуру при наведенні (стиль Gemini) */
-.tree-node::after {
-	content: "";
-	position: absolute;
-	inset: -2px; /* Перекриває зазори */
-	border-radius: inherit;
-	padding: 2px; /* Товщина обводки */
-	background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570, #4285f4);
-	background-size: 200% auto;
-	-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-	-webkit-mask-composite: xor;
-	mask-composite: exclude;
-	opacity: 0;
-	z-index: 1; /* Щоб перекривати вертикальні лінії та зазори */
-	pointer-events: none;
-	transition: opacity var(--transition-base, 0.3s ease);
-}
-
 .tree-node:hover {
 	transform: translateY(-5px);
 	box-shadow: var(--shadow-lg);
 	z-index: 20;
-}
-
-.tree-node:hover::after {
-	opacity: 1;
-	animation: gradient-flow 3s linear infinite;
-}
-
-@keyframes gradient-flow {
-	0% {
-		background-position: 0% 50%;
-	}
-	100% {
-		background-position: 200% 50%;
-	}
 }
 
 /* Прихований вузол */
