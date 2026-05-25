@@ -50,40 +50,86 @@ export class AppRouter {
 
 	_navigateSibling(direction) {
 		const managers = this.app.managers;
-		if (
-			!managers.lineage ||
-			typeof managers.lineage.logic?.buildPath !== "function"
-		)
+		const url = new URL(window.location);
+		const mode = url.searchParams.get("mode");
+
+		// 1. Comparison Mode (Показує декілька спільних гілок)
+		if (mode === "relationship") {
+			if (managers.relationship) {
+				const container = document.querySelector("#tree-view:not(.hidden)");
+				if (container) {
+					const translateX = direction > 0 ? "-30px" : "30px";
+					container.style.transition = "transform 0.15s ease-out, opacity 0.15s ease-out";
+					container.style.transform = `translateX(${translateX})`;
+					container.style.opacity = "0.3";
+
+					setTimeout(() => {
+						if (direction > 0) managers.relationship.nextScenario(this.app.currentProfileId);
+						else managers.relationship.prevScenario(this.app.currentProfileId);
+						
+						container.style.transform = "";
+						container.style.opacity = "1";
+					}, 150);
+				} else {
+					if (direction > 0) managers.relationship.nextScenario(this.app.currentProfileId);
+					else managers.relationship.prevScenario(this.app.currentProfileId);
+				}
+			}
 			return;
+		}
 
-		const path = managers.lineage.logic.buildPath(this.app.currentProfileId);
-		if (!path || path.length === 0) return;
+		// 2. Profile or Tree Mode (Свайп по братам і сестрам)
+		let targetSiblingId = null;
 
-		const currentItem = path[path.length - 1];
-		if (
-			!currentItem ||
-			!currentItem.siblings ||
-			currentItem.siblings.length <= 1
-		)
-			return;
+		// Спробуємо використати активну лінію навігації (якщо lineage.mode !== "all")
+		if (managers.lineage && typeof managers.lineage.logic?.buildPath === "function") {
+			const path = managers.lineage.logic.buildPath(this.app.currentProfileId);
+			if (path && path.length > 0) {
+				const currentItem = path[path.length - 1];
+				if (currentItem && currentItem.siblings && currentItem.siblings.length > 1) {
+					const currentIndex = currentItem.siblings.findIndex(
+						(s) => String(s.id) === String(currentItem.id) || String(s.id) === String(this.app.currentProfileId),
+					);
+					if (currentIndex !== -1) {
+						let tIndex = currentIndex + direction;
+						if (tIndex >= currentItem.siblings.length) tIndex = 0;
+						if (tIndex < 0) tIndex = currentItem.siblings.length - 1;
+						targetSiblingId = currentItem.siblings[tIndex]?.id;
+					}
+				}
+			}
+		}
 
-		const currentIndex = currentItem.siblings.findIndex(
-			(s) =>
-				String(s.id) === String(currentItem.id) ||
-				String(s.id) === String(this.app.currentProfileId),
-		);
+		// Відкат до глобального пошуку братів і сестер для поточної особи
+		if (!targetSiblingId) {
+			const p = buildPersonObject(this.app.currentProfileId, this.app.engine);
+			if (p) {
+				let siblingIds = [String(this.app.currentProfileId)];
+				
+				if (p.siblings) {
+					const addIds = (arr) => {
+						if (Array.isArray(arr)) arr.forEach(s => siblingIds.push(String(s.id)));
+					};
+					addIds(p.siblings.full);
+					addIds(p.siblings.half_p);
+					addIds(p.siblings.half_m);
+				}
 
-		if (currentIndex === -1) return;
+				siblingIds = [...new Set(siblingIds)]; // Дедуплікація
 
-		let targetIndex = currentIndex + direction;
+				if (siblingIds.length > 1) {
+					const currentIndex = siblingIds.indexOf(String(this.app.currentProfileId));
+					if (currentIndex !== -1) {
+						let tIndex = currentIndex + direction;
+						if (tIndex >= siblingIds.length) tIndex = 0;
+						if (tIndex < 0) tIndex = siblingIds.length - 1;
+						targetSiblingId = siblingIds[tIndex];
+					}
+				}
+			}
+		}
 
-		// Топологічне замикання графа (Loop)
-		if (targetIndex >= currentItem.siblings.length) targetIndex = 0;
-		if (targetIndex < 0) targetIndex = currentItem.siblings.length - 1;
-
-		const targetSibling = currentItem.siblings[targetIndex];
-
-		if (targetSibling && targetSibling.id) {
+		if (targetSiblingId) {
 			const viewContainer = document.querySelector(
 				"#tree-view:not(.hidden), #profile-content:not(.hidden)",
 			);
@@ -96,12 +142,12 @@ export class AppRouter {
 				viewContainer.style.opacity = "0.3";
 
 				setTimeout(() => {
-					this.navigateToId(targetSibling.id, false);
+					this.navigateToId(targetSiblingId, false);
 					viewContainer.style.transform = "";
 					viewContainer.style.opacity = "1";
 				}, 150);
 			} else {
-				this.navigateToId(targetSibling.id, false);
+				this.navigateToId(targetSiblingId, false);
 			}
 		}
 	}
