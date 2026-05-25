@@ -8,25 +8,26 @@ rec_6_m-1,6:наречений; 7:наречена,Метричні книги,m
 rec_7_b,7:дитина; 14:батько; 15:мати,Метричні книги,b,Запис про народження,CDIAL,,https://drive.google.com/file/d/1nW3pWayhqynq2YzYYggCK_eJR4DDoiFh/view?usp=drive_link,,,7;14;15
 rec_8_b,8:дитина; 16:батько; 17:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1rrlvYHtMYfNAB_kkc0vGVFkglAcL3Kc7/view?usp=drive_link,,,8;16;17
 rec_10_b,10:дитина; 20:батько; 21:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1ybJXQliSFZylyy7Khi1yKCuCijCgpNiz/view?usp=drive_link,,,10;20;21
-rec_10_m,10:наречений; 11:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1hCUSHBmHMzMhpv7EJF-5tNJmxMXohw2M/view?usp=drive_link,,,10;11
+rec_10_m,10:наречений; 11:наречена,Метричні книги,m,Запис про шлюб,GATO,,https://drive.google.com/file/d/1hCUSHBmHMzMhpv7EJF-5tNJmxMXohw2M/view?usp=drive_link,,,10;11
 rec_11_b,11:дитина; 22:батько; 23:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1a6HUB1Ve7EjTXAkaMnNd_BuC-_ZKBIqu/view?usp=drive_link,,,11;22;23
-rec_12_b,12:дитина; 24:батько; 25:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1MWktaXR3hjj3YPDbqNdWak63FNPzyiDu/view?usp=drive_link,,,12;24;25
-rec_12_m,12:наречений; 13:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1l6wCxrODjqWJXSr3iQk8u0jp_Yp6XraW/view?usp=drive_link,,,12;13
-rec_13_b,13:дитина; 26:батько; 27:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1TYsljB2idBXqjJAsXbDWtr2qaDKioCj6/view?usp=drive_link,,,13;26;27
-rec_14_b-1,14:дитина; 28:батько; 29:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1RVcunDiMn4e5oesHfffWwx46uikK-WiS/view?usp=drive_link,,,14;28;29
+rec_12_b,12:дитина; 24:батько; 25:мати,Метричні книги,b,Запис про народження,CDAMO,,https://drive.google.com/file/d/1MWktaXR3hjj3YPDbqNdWak63FNPzyiDu/view?usp=drive_link,,,12;24;25
+rec_12_m,12:наречений; 13:наречена,Метричні книги,m,Запис про шлюб,CDAMO,,https://drive.google.com/file/d/1l6wCxrODjqWJXSr3iQk8u0jp_Yp6XraW/view?usp=drive_link,,,12;13
+rec_12_m-1,,,,,,,https://drive.google.com/file/d/1YSL2eomBgxM-3ZUGheJ77KkL_dgoY_aU/view?usp=drive_link,,https://yandex.ru/archive/catalog/d8fedec9-7584-4e51-bbd5-473dd06709ed/31,
+rec_13_b,13:дитина; 26:батько; 27:мати,Метричні книги,b,Запис про народження,CDAMO,,https://drive.google.com/file/d/1TYsljB2idBXqjJAsXbDWtr2qaDKioCj6/view?usp=drive_link,,https://yandex.ru/archive/catalog/c8895e38-dc44-441c-833c-d98cdcd28cfc/37,13;26;27
+rec_14_b-1,14:дитина; 28:батько; 29:мати,Метричні книги,b,Запис про народження,AGAD,,https://drive.google.com/file/d/1RVcunDiMn4e5oesHfffWwx46uikK-WiS/view?usp=drive_link,,,14;28;29
 rec_14_b-2,14:дитина; 28:батько; 29:мати,Метричні книги,b,Запис про народження,CDIAL,,https://drive.google.com/file/d/1l52nn99FPq1GzqUNP7tsG9wogmTzk7fn/view?usp=drive_link,,,14;28;29
-rec_14_m,14:наречений; 15:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1FGffpltW2fmD8cSL1tvW75Z3Evw48Q_w/view?usp=drive_link,,,14;15
+rec_14_m,14:наречений; 15:наречена,Метричні книги,m,Запис про шлюб,CDIAL,,https://drive.google.com/file/d/1FGffpltW2fmD8cSL1tvW75Z3Evw48Q_w/view?usp=drive_link,,,14;15
 rec_15_b,15:дитина; 30:батько; 31:мати,Метричні книги,b,Запис про народження,CDIAL,,https://drive.google.com/file/d/17fnSr_NR2Pl3X0d51LtY51e8wNA0F-kr/view?usp=drive_link,,,15;30;31
-rec_16_b,16:дитина; 32:батько; 33:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/15mAf8TSgKRcJyhPhpKaZ_R5-VMxmmEY3/view?usp=drive_link,,,16;32;33
-rec_16_m,16:наречений; 17:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/19_S9S33FH1_5dP5hMRI8jYG3YWhNGPdt/view?usp=drive_link,,,16;17
-rec_17_b,17:дитина; 34:батько; 35:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1_J978eYTGH7OrSRWdXt5TSrtML1F3g1I/view?usp=drive_link,,,17;34;35
-rec_18_b,18:дитина; 36:батько; 37:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1DW93UoKrmzG6AcYbocVYOU1mRRauw-Iy/view?usp=drive_link,,,18;36;37
-rec_19_b,19:дитина; 38:батько; 39:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1ZQUUy-HNawcpivi2duxGyujtACsIkzGZ/view?usp=drive_link,,,19;38;39
-rec_20_b-1,20:дитина; 40:батько; 41:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1WCCCa-rxdG3eP6tycIZilL6xnxffR9ok/view?usp=drive_link,,,20;40;41
-rec_20_b-2,20:дитина; 40:батько; 41:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1zM1F2aW9rIW3iKUwKyvkcuABT-xI8cQB/view?usp=drive_link,,,20;40;41
-rec_21_b-1,21:дитина; 42:батько; 43:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1oBsCqT44qD8cN3aTTKO7KTQ961l_M22o/view?usp=drive_link,,,21;42;43
-rec_21_b-2,21:дитина; 42:батько; 43:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1GVY9otcg6gpWDg31c_H8m-rW-C0TqMRH/view?usp=drive_link,,,21;42;43
-rec_22_m,22:наречений; 23:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1KsRe6bPEy2Z50YhPJuEXVLPK4GRf9rqC/view?usp=drive_link,,,22;23
+rec_16_b,16:дитина; 32:батько; 33:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/15mAf8TSgKRcJyhPhpKaZ_R5-VMxmmEY3/view?usp=drive_link,,,16;32;33
+rec_16_m,16:наречений; 17:наречена,Метричні книги,m,Запис про шлюб,GATO,,https://drive.google.com/file/d/19_S9S33FH1_5dP5hMRI8jYG3YWhNGPdt/view?usp=drive_link,,,16;17
+rec_17_b,17:дитина; 34:батько; 35:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1_J978eYTGH7OrSRWdXt5TSrtML1F3g1I/view?usp=drive_link,,,17;34;35
+rec_18_b,18:дитина; 36:батько; 37:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1DW93UoKrmzG6AcYbocVYOU1mRRauw-Iy/view?usp=drive_link,,,18;36;37
+rec_19_b,19:дитина; 38:батько; 39:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1ZQUUy-HNawcpivi2duxGyujtACsIkzGZ/view?usp=drive_link,,,19;38;39
+rec_20_b-1,20:дитина; 40:батько; 41:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1WCCCa-rxdG3eP6tycIZilL6xnxffR9ok/view?usp=drive_link,,,20;40;41
+rec_20_b-2,20:дитина; 40:батько; 41:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1zM1F2aW9rIW3iKUwKyvkcuABT-xI8cQB/view?usp=drive_link,,,20;40;41
+rec_21_b-1,21:дитина; 42:батько; 43:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1oBsCqT44qD8cN3aTTKO7KTQ961l_M22o/view?usp=drive_link,,,21;42;43
+rec_21_b-2,21:дитина; 42:батько; 43:мати,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/1GVY9otcg6gpWDg31c_H8m-rW-C0TqMRH/view?usp=drive_link,,,21;42;43
+rec_22_m,22:наречений; 23:наречена,Метричні книги,m,Запис про шлюб,GATO,,https://drive.google.com/file/d/1KsRe6bPEy2Z50YhPJuEXVLPK4GRf9rqC/view?usp=drive_link,,,22;23
 rec_24_b,24:дитина; 48:батько; 49:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/18AE-RrX88cBet_mVDlCvWoaRveGDSsEo/view?usp=drive_link,,,24;48;49
 rec_24_m,24:наречений; 25:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1GVFjpu6FRSiTGiRWL9CPyockgU3JE8zx/view?usp=drive_link,,,24;25
 rec_25_b,25:дитина; 51:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1YJS6ULJBEh_qSUJgSTkhBh4vO2TntQ2j/view?usp=drive_link,,,25;51
@@ -42,12 +43,46 @@ rec_30_b,30:дитина; 60:батько; 61:мати,Метричні книг
 rec_30_m-1,30:наречений; 31:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1kilZ_2G0RqR2pVBB4Fwi9bZUwYVII7Yn/view?usp=drive_link,,,30;31
 rec_30_m-2,30:наречений; 31:наречена,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1stwVezOPaJr60n9u2DsOnCcVIcDG0fdH/view?usp=drive_link,,,30;31
 rec_31_b,31:дитина; 62:батько; 63:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1y30juQYQzp1ldeALI1Sb1BaSfU_yosWs/view?usp=drive_link,,,31;62;63
+rec_32_b,32:дитина;64:батько;65:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1N7WzAL8DN2L8c4axkir0YfxLLbERtrSN/view?usp=drive_link,,,
+rec_36_b,36:дитина;72:батько;73:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1v9pBVFA5kC1cnAE-vmnvn_xfY7TalYXg/view?usp=drive_link,,,
+rec_40_b,40:дитина;80:батько;81:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/14rFiCMHlCoag21aQc6kv4UESZpLq-DoZ/view?usp=drive_link,,,
+rec_41_b,41:дитина;82:батько;83:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/16afB9kYs5-VgERfhXyIDB2GVjiKpK-He/view?usp=drive_link,,,
+rec_42_b,42:дитина;84:батько;85:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/11eBtGAHiDhhx13e7n3a-IBPfpm1jThu0/view?usp=drive_link,,,
+rec_43_b,43:дитина;86:батько;87:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1nLu-eYjRwS5OyKhVVoEvC-jApXBmiMyG/view?usp=drive_link,,,
+rec_44_b,44:дитина;88:батько;89:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1U4GU_ViUhgB_HMnayBtEs0UZsCEqio0j/view?usp=drive_link,,,
+rec_46_b,46:дитина;92:батько;93:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1JegYZl2NCKRPKX6NAQYwEdms2DaQlG6o/view?usp=drive_link,,,
+rec_47_b,47:дитина;94:батько;95:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1C9l1-l1eh91vVcN_NOc6WqoR6_ZJa4bR/view?usp=drive_link,,,
+rec_48_b,48:дитина;96:батько;97:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1SR-FezgnWNra5ck5jRY2mF6KOOMtj-uv/view?usp=drive_link,,,
+rec_50_b,50:дитина;100:батько;101:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1vCoqZfctTpslBDvL-768P8KjI8IsagPK/view?usp=drive_link,,,
+rec_52_b,52:дитина;104:батько;105:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1VRjf_AiJLzDMbmoycSZ3eOwSUoJoq8x3/view?usp=drive_link,,,
+rec_53_b,53:дитина;106:батько;107:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1W_4YW_TGP9KBqBi_HZUa2EZ-aaJ1cqnv/view?usp=drive_link,,,
+rec_54_b,54:дитина;108:батько;109:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1-YfOy6WdvtEvZM17gkjnEO0yP_XD3Cvc/view?usp=drive_link,,,
+rec_55_b,55:дитина;110:батько;111:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1DXwzRgy8SgvvvqvB15rt7i_SFHJqSksw/view?usp=drive_link,,,
 rec_56_b,56:дитина; 112:батько; 113:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1zgsz2kCzpGAQzYNoll_Xm93Qbc6Xxt8u/view?usp=drive_link,,,
 rec_57_b,57:дитина; 114:батько; 115:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1T4yqItuc9_GjsHbZ1bHYtYvcb-ohnzOH/view?usp=drive_link,,,
 rec_58_b,58:дитина; 116:батько; 117:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1QM699-C2kceE5uhdxrytn-VghdhC6hwW/view?usp=drive_link,,,
 rec_59_b,59:дитина; 118:батько; 119:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1r3MsNtO_qRxH8NYSySJAGZgwd-BQlTD7/view?usp=drive_link,,,
 rec_60_b,60:дитина; 120:батько; 121:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1q3kY8opLUkRIYKBBT_7IBAqQ7uLmrfp4/view?usp=drive_link,,,
 rec_62_b,62:дитина; 124:батько; 125:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1mhYbcEIiH3bfu1nRGk2fz4agPE0q1YsM/view?usp=drive_link,,,
+rec_73_b,73:дитина;146:батько;147:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1GbJ7yFFtijZL0kKloQKZkdgu9ZPYmhxo/view?usp=drive_link,,,
+rec_76_b,76:дитина;152:батько;153:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/16obKkkJ9UucC-YMOXo6FnXahoVhD7rYX/view?usp=drive_link,,,
+rec_77_b,77:дитина;154:батько;155:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/16UMx2TR_IK7H6Ix9ecXQxA5w4AZv8Aw0/view?usp=drive_link,,,
+rec_78_b,78:дитина;156:батько;157:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1T-4k3e0f-mprMK8Uf39MlJkwfoHCY15n/view?usp=drive_link,,,
+rec_87_b,87:дитина;174:батько;175:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1VLyZ3uN2nCgJS6kLWLsQBj9_dMK5GiUb/view?usp=drive_link,,,
+rec_91_b,91:дитина;182:батько;183:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1l2AUEMvPclZ7R5JqD402W_YLAw3CktFr/view?usp=drive_link,,,
+rec_95_b,95:дитина;190:батько;191:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/141zk8cHK4lHu72UpV1IOAwVNXmXszroO/view?usp=drive_link,,,
+rec_96_b,96:дитина;192:батько;193:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1IyFAO2LnQP9VpB-5QH4N_znL-NFvbaNe/view?usp=drive_link,,,
+rec_97_b,97:дитина;194:батько;195:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1d46QrSzlm0a-jIWwIzubR927BspkEWRU/view?usp=drive_link,,,
+rec_100_b,100:дитина;200:батько;201:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1kxZpKFc-PCrxjDk5M89ZV2Mjcafzixre/view?usp=drive_link,,,
+rec_101_b,101:дитина;202:батько;203:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1GudBCOIuMfZ644vszFbwMcTGy-vVf3PR/view?usp=drive_link,,,
+rec_103_b,103:дитина;206:батько;207:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1qLF8dCbfJ9xb3fGMH50ePShowapURaw1/view?usp=drive_link,,,
+rec_104_b,104:дитина;208:батько;209:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1mxSLEBcCxLuQpeB6SP0o7gjaOSskhhzY/view?usp=drive_link,,,
+rec_105_b,105:дитина;210:батько;211:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1BR7WhdSrWXtS4SFxMY-1AJZa_5Mwz794/view?usp=drive_link,,,
+rec_106_b,106:дитина;212:батько;213:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1ikC18U15jAWoUNqfpERSK-zD0W3LNuIP/view?usp=drive_link,,,
+rec_107_b,107:дитина;214:батько;215:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1U9lWy2iqeG6HmCY-rHpNrF7bZSW5SyFT/view?usp=drive_link,,,
+rec_108_b,108:дитина;216:батько;217:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Tqo34Z6boh4qJGtKvHgdrNm99vSrRp8h/view?usp=drive_link,,,
+rec_109_b,109:дитина;218:батько;219:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/16sVjuoLS6fXQnt7qr3-v8ddTpKxrIl-p/view?usp=drive_link,,,
+rec_110_b,110:дитина;220:батько;221:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1KLeCoOp7KxIzPqYeZuq2cy504JEyMoB2/view?usp=drive_link,,,
 rec_114_b,114:дитина; 228:батько; 229:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/18k4ovCURKSdAOb6VkOuGcxofFBivFm2d/view?usp=drive_link,,,
 rec_116_b,116:дитина; 232:батько; 233:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1E-Ys52MXYd-9Vx-8EiEZxdJ37q3hEOCz/view?usp=drive_link,,,
 rec_117_b,117:дитина; 234:батько; 235:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Bc2cjLh59cOsnb2dtrT_I_49RWt-x4UH/view?usp=drive_link,,,
@@ -62,29 +97,82 @@ rec_122_b,122:дитина; 244:батько; 245:мати,Метричні кн
 rec_123_b,123:дитина; 246:батько; 247:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1WeWatHksoQwduoNoXC-PeqetUF5b2jpU/view?usp=drive_link,,,
 rec_126_b,126:дитина; 252:батько; 253:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1GTqNRdUPKyI-nL10oKpMrs4W9tNopMMS/view?usp=drive_link,,,
 rec_127_b,127:дитина; 254:батько; 255:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1FQs75BdmVb6v6q1nmmHReyA6IG6Tpue2/view?usp=drive_link,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
+rec_140_b,140:дитина;280:батько;281:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1PwA6ruWhyf53r7Roj5I1rCS795A2vVny/view?usp=drive_link,,,
+rec_142_b,142:дитина;284:батько;285:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1MzZ2iYCvoPtc7zXpJYLlsGaYn8O3iC1p/view?usp=drive_link,,,
+rec_144_b,144:дитина;288:батько;289:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1HRNsxgNnMdvErTZGDPt91gCdl38jGRVO/view?usp=drive_link,,,
+rec_144-1_b,,,,,,,https://drive.google.com/file/d/1s8-i2cVDUeQ1Gexk9FzBds5Qxvr6QJUn/view?usp=drive_link,,,
+rec_148_b,148:дитина;296:батько;297:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1juUjn0UeQ0zUU063HLqj9MwEzySdHhcf/view?usp=drive_link,,,
+rec_150_b,150:дитина;300:батько;301:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1p83YZ9EwBCB4BmDozjJj90_4CGFpUGQd/view?usp=drive_link,,,
+rec_152_b,152:дитина;304:батько;305:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1-UIdxsnPQUqXLGa2WmLeMzkzDCJVjub4/view?usp=drive_link,,,
+rec_157_b,157:дитина;314:батько;315:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1PRl-TBHeU0JZUx1lZGqWqC6uaJin3fyB/view?usp=drive_link,,,
+rec_160_b,160:дитина;320:батько;321:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1yPNfbhr_TvuKkgBgnjJMmiU-Ypcb6cBH/view?usp=drive_link,,,
+rec_168_b,168:дитина;336:батько;337:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1nkMv9RplwmEcz9MxGdYesq81Lxg7fUz6/view?usp=drive_link,,,
+rec_169_b,169:дитина;338:батько;339:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1T1dHFF13Lb4EG9PfO4rVlD6fb3TxP6Ys/view?usp=drive_link,,,
+rec_170_b,170:дитина;340:батько;341:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1USmt4GFAUDm6_VY8vTWkCECGNJqrIUkz/view?usp=drive_link,,,
+rec_173_b,173:дитина;346:батько;347:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1ejnFR4m7BeMEFr4HWMBqiOY0wPkeI4LT/view?usp=drive_link,,,
+rec_180_b,180:дитина;360:батько;361:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1XjM41Y7NpWy1T-6LVNZwHLy8D45O50M5/view?usp=drive_link,,,
+rec_185_b,185:дитина;370:батько;371:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1XUq20D-SCnwbOeXJ9NQYtTknwOb-ypsR/view?usp=drive_link,,,
+rec_188_b,188:дитина;376:батько;377:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1YbRRYoBRd1ulUYL7x9o-8dYuL-6pryJV/view?usp=drive_link,,,
+rec_188-1_b,,,,,,,https://drive.google.com/file/d/1kguGjTRbQ6l1WsRj4A99Uf0TMXfrhKOI/view?usp=drive_link,,,
+rec_198_b,198:дитина;396:батько;397:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Ji2etaxioJhD2u7HxK-VZczOitq_ySce/view?usp=drive_link,,,
+rec_199_b,199:дитина;398:батько;399:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1w20LoRWKdn818A-FphfIyLPr3oveJxv5/view?usp=drive_link,,,
+rec_200_b,200:дитина;400:батько;401:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1GvWpwiWZHbpiyGFSNW3J4I4v4Ukh3UaL/view?usp=drive_link,,,
+rec_203_b,203:дитина;406:батько;407:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1gveWyWMA_2rdweN9wq5h7bm54l9A9zqV/view?usp=drive_link,,,
+rec_208_b,208:дитина;416:батько;417:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1fiG_lOWJsra-uegCu0h0zZlGAY7Sb99d/view?usp=drive_link,,,
+rec_209_b,209:дитина;418:батько;419:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1TwDT5GtRVT7aCOVNJfQhkLsymic3HE7g/view?usp=drive_link,,,
+rec_211_b,211:дитина;422:батько;423:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1LNaMOW9SMlRWPHjgpwK8DfodPI6Jonti/view?usp=drive_link,,,
+rec_212_b,212:дитина;424:батько;425:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/12hZqJfsiyFbzT8O_5vyBGiGy_0qNgTWT/view?usp=drive_link,,,
+rec_216_b,216:дитина;432:батько;433:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/15Zdp9d4rIpqDgIyq9WIgQ7emW4d0E__t/view?usp=drive_link,,,
+rec_217_b,217:дитина;434:батько;435:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1koxsjIw2K0FZy8qmJiDM0j9Gkn0bH7eD/view?usp=drive_link,,,
+rec_219_b,219:дитина;438:батько;439:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1XUaj-DW8P1b0Dp_RK1CbaWnDfXPgkJgO/view?usp=drive_link,,,
+rec_221_b,221:дитина;442:батько;443:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1vavERdw-0KIb2M80J0lFoQgzrPfTk1zi/view?usp=drive_link,,,
+rec_222_b,222:дитина;444:батько;445:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/159xK-U6ebmxCswyDGuclseFiZ_JPwzSf/view?usp=drive_link,,,
+rec_223_b,223:дитина;446:батько;447:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1YbpFyjqMtT3sTyTWLG5UX-fV2RdwpY64/view?usp=drive_link,,,
+rec_240_b,240:дитина;480:батько;481:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1MSHAGXpwcEYkSb5zbzwgO7svOifaCZiX/view?usp=drive_link,,,
+rec_240-1_b,,,,,,,https://drive.google.com/file/d/1J0RKlJzYX7DQcyQKunB970xAuhWdTei9/view?usp=drive_link,,,
+rec_241_b,241:дитина;482:батько;483:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1teB2d5Z-v-ahC5stmMLCTX_bId-sZprb/view?usp=drive_link,,,
+rec_241-1_b,,,,,,,https://drive.google.com/file/d/1YOyILr2lm1tU3x8u1pXSBPTXptJEkNF0/view?usp=drive_link,,,
+rec_241-2_b,,,,,,,https://drive.google.com/file/d/1gqnBkyPNJ1olx5KVp7rpJFO9P7fiZbh6/view?usp=drive_link,,,
+rec_246_b,246:дитина;492:батько;493:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1CGQX1hJpq21PEWle6VuSUy3UJ0moJo8p/view?usp=drive_link,,,
+rec_247_b,247:дитина;494:батько;495:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Z6dYDuzAjYWIf6MVWomPF51csttea1bb/view?usp=drive_link,,,
+rec_250_b,250:дитина;500:батько;501:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1lMN11YTk09DxbFsN8J3a8e3Q7X6zFvJ6/view?usp=drive_link,,,
+rec_254_b,254:дитина;508:батько;509:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1ZN39T7wTK1OH8yHqIHV9w_DhM8TYGRci/view?usp=drive_link,,,
+rec_294_b,294:дитина;588:батько;589:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1sc7E43uSx0HuTq5y3SNfme8PaqIm0c3l/view?usp=drive_link,,,
+rec_296_b,296:дитина;592:батько;593:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/15GNBUzkdt0NY173_ohC7lKB_pUikH55D/view?usp=drive_link,,,
+rec_302_b,302:дитина;604:батько;605:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/14OF-O_EptrN1OoQRHwtiFiR5TEXXPU7d/view?usp=drive_link,,,
+rec_320_b,320:дитина;640:батько;641:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1qL7Yy4_lq1f7Txqf_QdXJZACti6n4Ccz/view?usp=drive_link,,,
+rec_322_b,322:дитина;644:батько;645:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1YcpoO09ftIhjoo41CYzjrDsP0DhNGIIH/view?usp=drive_link,,,
+rec_327_b,327:дитина;654:батько;655:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1U_abSd11DImrsHhn8VM_xERDoTsHPqiE/view?usp=drive_link,,,
+rec_328_b,328:дитина;656:батько;657:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/110ZRRkCPgVq0dH4vjl2_8bOfQeBSEsOQ/view?usp=drive_link,,,
+rec_330_b,330:дитина;660:батько;661:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1xe3TXTLMPp_FU9gz0F2AzwlFBdvwEerG/view?usp=drive_link,,,
+rec_331_b,331:дитина;662:батько;663:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1KBZa6zDiQouIEuk0qWaEir5YqkzYbT_-/view?usp=drive_link,,,
+rec_334_b,334:дитина;668:батько;669:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Et6v3uN38KDhlGb2HPCa3FuXZyDQH4YX/view?usp=drive_link,,,
+rec_335_b,335:дитина;670:батько;671:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1e2uu1-TkwScvLMD6eFleo5W8qgqP9gCE/view?usp=drive_link,,,
+rec_337_b,337:дитина;674:батько;675:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/12K3_AklbozxlTkWEdiGhjZhZ5UYzFyNb/view?usp=drive_link,,,
+rec_344_b,344:дитина;688:батько;689:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1VRONV2nNDUjTSm8AxY3VLBKTo_V4NetV/view?usp=drive_link,,,
+rec_349_b,349:дитина;698:батько;699:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1oCq7w5eoTM4ELGAvL3kYVtk1T7QKZWhF/view?usp=drive_link,,,
+rec_367_b,367:дитина;734:батько;735:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1u4PPBzDxUeAx0NYsiiVulxjR1NsOPcFT/view?usp=drive_link,,,
+rec_368_b,368:дитина;736:батько;737:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Aijd0Tea9pPTnTXHWEURpcW8KigBUf_3/view?usp=drive_link,,,
+rec_369_b,369:дитина;738:батько;739:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Z5lJHCqKPdM04TKew0aQn1z2iYF9A-XX/view?usp=drive_link,,,
+rec_372_b,372:дитина;744:батько;745:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1c2RoErZrtfQWTL06LJrZ7afA8d-GNPWb/view?usp=drive_link,,,
+rec_373_b,373:дитина;746:батько;747:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/12luiN57ET3BuTL8k1tX6-YnT2X550yXL/view?usp=drive_link,,,
+rec_377_b,377:дитина;754:батько;755:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1x3cqhny-PaeyECISCeSP_fCl5xlsYCoH/view?usp=drive_link,,,
+rec_404_b,404:дитина;808:батько;809:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1WsMy13nO5n9q0U_uUN8HpQ2bpASw5rwN/view?usp=drive_link,,,
+rec_406_b,406:дитина;812:батько;813:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1pEOoHJU4xaJ6ZIwsON2uHqpLce-5oLCf/view?usp=drive_link,,,
+rec_410_b,410:дитина;820:батько;821:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1lBzJhdCDwspx3pk-BCjPPN4H_Jexp4Mt/view?usp=drive_link,,,
+rec_414_b,414:дитина;828:батько;829:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1VlB076JXtOV0lMN7XtV9z6KWcZd598WL/view?usp=drive_link,,,
+rec_418_b,418:дитина;836:батько;837:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1ObxE408k23SyhGHDSOHPJhve2IKAnVB8/view?usp=drive_link,,,
+rec_419_b,419:дитина;838:батько;839:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1DObFcKdkdaRkCFU9KEfKpfYl6OiHZulf/view?usp=drive_link,,,
+rec_432_b,432:дитина;864:батько;865:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1lC28Yf4V-CYMYPG2uqm3wExhbo-q9Am1/view?usp=drive_link,,,
+rec_436_b,436:дитина;872:батько;873:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1wPSklhg4U4jh3aO_SI1oeEhFtDQZoKSQ/view?usp=drive_link,,,
+rec_438_b,438:дитина;876:батько;877:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Z8Et8lYCmO7SQE5BgT_O5-CeMAvr7VrN/view?usp=drive_link,,,
+rec_440_b,440:дитина;880:батько;881:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/16u7aLnluHV1Ei8oOH9_khAwen7b7nL00/view?usp=drive_link,,,
+rec_442_b,442:дитина;884:батько;885:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1NitM7v1VGLa4ARxOZ-XclIecacQ9ry4F/view?usp=drive_link,,,
+rec_445_b,445:дитина;890:батько;891:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1cjv7I1Vy2AQrTnO1gBykuSt4RlxcUniq/view?usp=drive_link,,,
+rec_867_b,867:дитина;1734:батько;1735:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1k_fP7zTj_vy2FKXPofm2kJtvTS3NJecJ/view?usp=drive_link,,,
+rec_868_b,868:дитина;1736:батько;1737:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1PxeSD3eeA1BjOK1wDxtxGkNcdEtCZhu8/view?usp=drive_link,,,
+rec_890_b,890:дитина;1780:батько;1781:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1NLta4gC8EvF2mnJ73P3C4S-Av8lS6Yqa/view?usp=drive_link,,,
+rec_892_b,892:дитина;1784:батько;1785:мати,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/139G4R1X_4po1fVLBtx1hmwChFC71Cl30/view?usp=drive_link,,,
 rec_49,49:померла,Метричні книги,d,Запис про смерть,CDAMO,Фонд 13895 / Опис 1 / Справа 292,https://drive.google.com/file/d/1nFcm6pDeyPRtHOza9CCp05V8-yunkBrn/view?usp=sharing,,https://yandex.ru/archive/catalog/c920e1b2-54ff-45e6-b99b-a82a934077ca/77?center=1558+895,49
 rec_76_b,76:дитина;f8;f9;f10,Метричні книги,b,Запис про народження,GATO,,https://drive.google.com/file/d/16obKkkJ9UucC-YMOXo6FnXahoVhD7rYX/view?usp=sharing,"[""№|6"",""Числа|17 января"",""Въ іенваръ|Деревни Горатка у крестьянина Ивана Игнатьева жена Евдокъя Петрова родила младенца сна Антона которой сего жъ іенваря 19 числа крещенъ и восприемники ему были тоиже деревни Горотка крестьянинъ Иванъ Тимафъевъ а восприемница тоиже деревни крестьянская жена Дарья Семенова""]",,152;153;f8;f9;f10
 rec_76_m,76:наречений,Метричні книги,m,Запис про шлюб,GATO,,https://drive.google.com/file/d/17U5fmrsnh74P2Y-FyHlyw6n1vpbwx0wN/view?usp=sharing,,,f8;f9;f10
