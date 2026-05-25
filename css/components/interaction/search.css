@@ -127,6 +127,6 @@
 
 @media (max-width: 768px) {
 	.search-footer {
-		display: none;
+		display: none !important;
 	}
 }
