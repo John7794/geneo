@@ -182,7 +182,17 @@ function renderCategory(categoryName, items, ctx) {
 			: defaultCategory,
 	);
 
-	const itemsHtml = items
+	const itemsHtml = [...items]
+		.sort((a, b) => {
+			const yearKey = COLUMNS.records?.year || "year";
+			const valA = String(a[yearKey] || a.year || "").trim();
+			const valB = String(b[yearKey] || b.year || "").trim();
+			let numA = parseInt(valA, 10);
+			let numB = parseInt(valB, 10);
+			if (isNaN(numA)) numA = 9999;
+			if (isNaN(numB)) numB = 9999;
+			return numA - numB;
+		})
 		.map((record) => renderRecordCard(record, ctx))
 		.join("");
 
