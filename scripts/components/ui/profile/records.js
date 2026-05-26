@@ -191,7 +191,18 @@ function renderCategory(categoryName, items, ctx) {
 			let numB = parseInt(valB, 10);
 			if (isNaN(numA)) numA = 9999;
 			if (isNaN(numB)) numB = 9999;
-			return numA - numB;
+			if (numA !== numB) return numA - numB;
+
+			const titleKey = COLUMNS.records?.title || "title";
+			const typeKey = COLUMNS.records?.type || "type";
+			const getWeight = (rec) => {
+				const combined = (String(rec[titleKey] || "") + " " + String(rec[typeKey] || "")).toLowerCase();
+				if (combined.includes("народжен") || combined.includes("birth") || combined.includes("baptism") || combined.includes("хрещен")) return 1;
+				if (combined.includes("шлюб") || combined.includes("marriage")) return 2;
+				if (combined.includes("смерт") || combined.includes("death") || combined.includes("funeral") || combined.includes("похован") || combined.includes("померл")) return 4;
+				return 3;
+			};
+			return getWeight(a) - getWeight(b);
 		})
 		.map((record) => renderRecordCard(record, ctx))
 		.join("");
