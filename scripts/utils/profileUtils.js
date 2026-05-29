@@ -104,21 +104,14 @@ export const processRecords = (records, targetId, DB) => {
 	if (!Array.isArray(records) || records.length === 0) return [];
 
 	const cleanTargetId = String(targetId).trim();
-	const result = [];
-
-	const archiveIndex = new Map();
-	if (Array.isArray(DB?.archives)) {
-		const idCol = COLUMNS.archives?.id || "id";
-		for (let i = 0; i < DB.archives.length; i++) {
-			const a = DB.archives[i];
-			archiveIndex.set(String(a[idCol]).trim(), a);
-		}
-	}
-
 	const personIdsCol = COLUMNS.records?.personIds || "persons_ids";
+	const idCol = COLUMNS.records?.id || "record_id";
 	const yearCol = COLUMNS.records?.year || "year";
 	const archiveIdCol = COLUMNS.records?.archiveId || "archive_id";
 	const archiveRefCol = COLUMNS.records?.archiveRef || "archive_ref";
+
+	// 1. Знайти всі record_id, до яких прив'язана дана особа (явна роль)
+	const personRecordRoles = new Map();
 
 	for (let i = 0; i < records.length; i++) {
 		const record = records[i];
@@ -126,8 +119,6 @@ export const processRecords = (records, targetId, DB) => {
 		if (!rawLinks) continue;
 
 		let foundRole = null;
-
-		// 🔥 ОПТИМІЗАЦІЯ GC: Без створення проміжних масивів (без split)
 		const linksStr = String(rawLinks);
 		let searchIdx = 0;
 		while (searchIdx < linksStr.length) {
@@ -153,6 +144,34 @@ export const processRecords = (records, targetId, DB) => {
 		}
 
 		if (foundRole !== null) {
+			// Якщо record_id пустий, генеруємо унікальний fallback, щоб не сплутати з іншими порожніми
+			const recId = String(record[idCol] || record.id || `gen_fallback_${i}`).trim();
+			if (!personRecordRoles.has(recId)) {
+				personRecordRoles.set(recId, foundRole);
+			}
+		}
+	}
+
+	const result = [];
+
+	const archiveIndex = new Map();
+	if (Array.isArray(DB?.archives)) {
+		const aidCol = COLUMNS.archives?.id || "id";
+		for (let i = 0; i < DB.archives.length; i++) {
+			const a = DB.archives[i];
+			archiveIndex.set(String(a[aidCol]).trim(), a);
+		}
+	}
+
+	// 2. Зібрати всі рядки, які відповідають знайденим record_id. 
+	// Це підтягне заголовні рядки з картинками, навіть якщо в них немає persons_id,
+	// за умови що вони містять 5 важливих полів (record_id і тд).
+	for (let i = 0; i < records.length; i++) {
+		const record = records[i];
+		const recId = String(record[idCol] || record.id || `gen_fallback_${i}`).trim();
+		const roleForPerson = personRecordRoles.get(recId);
+
+		if (roleForPerson !== undefined) {
 			const archiveId = String(record[archiveIdCol] || "").trim();
 			const archiveObj = archiveIndex.get(archiveId) || null;
 
@@ -167,7 +186,7 @@ export const processRecords = (records, targetId, DB) => {
 
 			result.push({
 				...record,
-				_role: foundRole,
+				_role: roleForPerson,
 				_archive: archiveObj,
 				_archiveDisplay: archiveInfo,
 				_sortYear: parseInt(record[yearCol], 10) || 0,
