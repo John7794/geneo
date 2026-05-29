@@ -116,31 +116,41 @@ export const processRecords = (records, targetId, DB) => {
 	for (let i = 0; i < records.length; i++) {
 		const record = records[i];
 		const rawLinks = record[personIdsCol];
-		if (!rawLinks) continue;
 
 		let foundRole = null;
-		const linksStr = String(rawLinks);
-		let searchIdx = 0;
-		while (searchIdx < linksStr.length) {
-			let semiIdx = linksStr.indexOf(";", searchIdx);
-			if (semiIdx === -1) semiIdx = linksStr.length;
+		
+		if (rawLinks) {
+			const linksStr = String(rawLinks);
+			let searchIdx = 0;
+			while (searchIdx < linksStr.length) {
+				let semiIdx = linksStr.indexOf(";", searchIdx);
+				if (semiIdx === -1) semiIdx = linksStr.length;
 
-			const pairStr = linksStr.substring(searchIdx, semiIdx).trim();
-			const colonIdx = pairStr.indexOf(":");
+				const pairStr = linksStr.substring(searchIdx, semiIdx).trim();
+				const colonIdx = pairStr.indexOf(":");
 
-			if (colonIdx !== -1) {
-				const pId = pairStr.substring(0, colonIdx).trim();
-				if (pId === cleanTargetId) {
-					foundRole = pairStr.substring(colonIdx + 1).trim() || "Учасник";
-					break;
+				if (colonIdx !== -1) {
+					const pId = pairStr.substring(0, colonIdx).trim();
+					if (pId === cleanTargetId) {
+						foundRole = pairStr.substring(colonIdx + 1).trim() || "Учасник";
+						break;
+					}
+				} else {
+					if (pairStr === cleanTargetId) {
+						foundRole = "Учасник";
+						break;
+					}
 				}
-			} else {
-				if (pairStr === cleanTargetId) {
-					foundRole = "Учасник";
-					break;
-				}
+				searchIdx = semiIdx + 1;
 			}
-			searchIdx = semiIdx + 1;
+		}
+
+		if (foundRole === null) {
+			const recIdStr = String(record[idCol] || record.id || "").trim();
+			// Підтримка формату rec_ID або rec_ID_...
+			if (recIdStr === `rec_${cleanTargetId}` || recIdStr.startsWith(`rec_${cleanTargetId}_`)) {
+				foundRole = "Учасник";
+			}
 		}
 
 		if (foundRole !== null) {
