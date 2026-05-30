@@ -236,6 +236,12 @@ export function renderRecords(person) {
 	);
 
 	const contentHtml = Object.entries(grouped)
+		.sort(([catA], [catB]) => {
+			const isMetric = (cat) => cat.toLowerCase().includes("метрич");
+			if (isMetric(catA) && !isMetric(catB)) return -1;
+			if (!isMetric(catA) && isMetric(catB)) return 1;
+			return catA.localeCompare(catB);
+		})
 		.map(([category, items]) =>
 			renderCategory(category, items, person._context),
 		)
