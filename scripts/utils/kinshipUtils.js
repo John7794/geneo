@@ -469,7 +469,10 @@ export function generateRelationshipLabel(distS, distT, genderTarget) {
 					: i18n.t("roles.greatGrandparent") || "Прабаба / Прадід";
 
 		const count = Math.max(0, distS - 2);
-		const pra = (i18n.t("kinship.praPrefix") || "Пра").repeat(count);
+		const basePra = i18n.t("kinship.praPrefix") || "Пра";
+		let pra = "";
+		if (count === 1) pra = basePra;
+		else if (count > 1) pra = `${basePra}(${count})`;
 		const base = fem
 			? i18n.t("roles.grandmother") || "бабуся"
 			: mal
@@ -499,7 +502,10 @@ export function generateRelationshipLabel(distS, distT, genderTarget) {
 					: i18n.t("roles.greatGrandchild") || "Правнук / Правнучка";
 
 		const count = Math.max(0, distT - 2);
-		const pra = (i18n.t("kinship.praPrefix") || "Пра").repeat(count);
+		const basePra = i18n.t("kinship.praPrefix") || "Пра";
+		let pra = "";
+		if (count === 1) pra = basePra;
+		else if (count > 1) pra = `${basePra}(${count})`;
 		const base = fem
 			? i18n.t("roles.granddaughter") || "онука"
 			: mal

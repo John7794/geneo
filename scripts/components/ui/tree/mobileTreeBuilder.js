@@ -22,7 +22,7 @@ function getGenerationLabel(index) {
 			return i18n.t("profile.greatgrandparents") || "Прадіди та прабабусі";
 		case 4:
 			return (
-				i18n.t("profile.greatgreatgrandparents") || "Прапрадіди та прапрабабусі"
+				i18n.t("profile.greatgreatgrandparents") || "Пра(2)діди та пра(2)бабусі"
 			);
 		default: {
 			const ancestors = i18n.t("profile.ancestors") || "Предки";
