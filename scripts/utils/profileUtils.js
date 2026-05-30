@@ -194,12 +194,21 @@ export const processRecords = (records, targetId, DB) => {
 				archiveInfo += archiveInfo ? `, ${refData}` : refData;
 			}
 
+			let sortY = parseInt(record[yearCol], 10) || 0;
+			if (!sortY) {
+				const titleStr = record.title || record["title"] || "";
+				const match = titleStr.match(/(\d+)/);
+				if (match) {
+					sortY = parseInt(match[1], 10);
+				}
+			}
+
 			result.push({
 				...record,
 				_role: roleForPerson,
 				_archive: archiveObj,
 				_archiveDisplay: archiveInfo,
-				_sortYear: parseInt(record[yearCol], 10) || 0,
+				_sortYear: sortY,
 			});
 		}
 	}
