@@ -200,6 +200,10 @@ export const processRecords = (records, targetId, DB) => {
 				const match = titleStr.match(/(\d+)/);
 				if (match) {
 					sortY = parseInt(match[1], 10);
+				} else {
+					const lowerTitle = titleStr.toLowerCase();
+					if (lowerTitle.includes("перша")) sortY = -1;
+					else if (lowerTitle.includes("остання")) sortY = 9999;
 				}
 			}
 
