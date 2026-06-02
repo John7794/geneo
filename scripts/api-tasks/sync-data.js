@@ -65,7 +65,7 @@ const DATABASES = {
   },
 };
 
-export async function main() {
+export async function main(targetVersion = null) {
   console.log("📥 Starting database synchronization from Google Sheets...");
 
   const rootDir = process.env.DATA_DIR
@@ -117,6 +117,7 @@ export async function main() {
     const newMeta = {
       lastUpdated: new Date().toISOString(),
       timestamp: Date.now(),
+      version: targetVersion || Date.now().toString(),
       sheetsSynced: downloadedCount,
     };
 

@@ -464,6 +464,57 @@ app.use(cookieParser());
     }
   });
 
+  app.get('/api/version', async (req, res) => {
+    try {
+        const metaUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=1147079557&single=true&output=csv';
+        let targetVersion = "";
+        try {
+            const response = await fetch(metaUrl + '&_cb=' + Date.now());
+            if (response.ok) {
+                const csvText = await response.text();
+                const lines = csvText.split(/\r?\n/);
+                for (const line of lines) {
+                     const parts = line.split(',');
+                     if (parts.length >= 2 && parts[0].trim().toLowerCase() === 'version') {
+                         targetVersion = parts[1].trim();
+                         break;
+                     }
+                }
+            }
+        } catch(e) {
+            console.error("Could not fetch Meta from Google:", e);
+        }
+
+        const localMetaPath = '/tmp/data/db/metadata.json';
+        let localVersion = "";
+        if (fs.existsSync(localMetaPath)) {
+            try {
+                const metaJson = JSON.parse(fs.readFileSync(localMetaPath, 'utf8'));
+                localVersion = metaJson.version || metaJson.timestamp?.toString() || "";
+            } catch(e) {}
+        }
+        
+        if (targetVersion && targetVersion !== localVersion) {
+            console.log(`[Auto-Sync] Google Version (${targetVersion}) differs from local (${localVersion}). Triggering sync...`);
+            await syncDataMain(targetVersion); 
+            await generateKinshipMain();
+            await saveAllTmpFilesToFirestore();
+            return res.json({ version: targetVersion });
+        }
+        
+        return res.json({ version: localVersion || Date.now().toString() });
+    } catch(e) {
+        console.error("Error in /api/version:", e);
+        let v = Date.now().toString();
+        try {
+            const m = JSON.parse(fs.readFileSync('/tmp/data/db/metadata.json', 'utf8'));
+            if(m.version) v = m.version;
+            else if(m.timestamp) v = m.timestamp?.toString();
+        } catch(err) {}
+        return res.json({ version: v });
+    }
+  });
+
   app.post('/api/sync-data', authMiddleware, async (req, res) => {
     console.log("[Data Sync] Triggered via UI by:", req.cookies.auth_email);
     
