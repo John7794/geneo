@@ -30,12 +30,12 @@ export async function checkDataVersion() {
 	let serverVersion = "unknown";
 
 	try {
-		// Звертаємося до нового апі, який автоматично синхронізує бекенд якщо є нові зміни в Google Sheet
-		const response = await fetch(`/api/version?t=${Date.now()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+		// cache-busting запит до metadata.json залишається, оскільки це первинна перевірка
+		const response = await fetch(`./data/db/metadata.json?t=${Date.now()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
 
 		if (response.ok) {
 			const meta = await response.json();
-			serverVersion = meta.version || meta.timestamp || Date.now();
+			serverVersion = meta.timestamp || Date.now();
 
 			if (typeof localforage !== "undefined") {
 				const localVersion = await localforage.getItem(STORE_VERSION_KEY);
