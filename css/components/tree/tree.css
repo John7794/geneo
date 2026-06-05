@@ -114,19 +114,12 @@
 }
 
 /* --- Специфічні випадки ліній --- */
+.genealogy-tree li:only-child::after,
 .genealogy-tree li:only-child::before {
-	display: none;
+	display: none; /* Лінії не потрібні єдиній дитині */
 }
 
-.genealogy-tree li:only-child::after {
-	border-top: 0 none;
-}
-
-.genealogy-tree > li:only-child::after {
-	display: none;
-}
-
-.genealogy-tree > li:only-child {
+.genealogy-tree li:only-child {
 	padding-top: 0;
 }
 
