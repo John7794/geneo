@@ -9,6 +9,7 @@ let _fallbackIdCounter = 0;
 const EXCLUDED_FIELDS = new Set([
 	COLUMNS.records?.images || "images",
 	COLUMNS.records?.transcription || "transcription",
+	COLUMNS.records?.archiveRef || "archive_ref",
 	"_images",
 	"_groupId",
 ]);
@@ -36,6 +37,13 @@ export function mergeMultipageRecords(rawRecords) {
 			recId = `gen_${++_fallbackIdCounter}`;
 		} else {
 			recId = String(recId).trim();
+			
+			// Автоматичне групування (суміщення) записів про смерть в одну плитку.
+			// Якщо це дублікат запису про смерть (напр., rec_1336_d-1), зводимо до базового ID (rec_1336_d)
+			const deathMatch = recId.match(/^(rec_\d+_d)(-\d+)?$/i);
+			if (deathMatch) {
+				recId = deathMatch[1];
+			}
 		}
 
 		if (!latestStateById.has(recId)) {
@@ -72,6 +80,28 @@ export function mergeMultipageRecords(rawRecords) {
 				existing[imagesKey] = currentImages
 					? `${currentImages};${newImages}`
 					: newImages;
+			}
+
+			// Склеювання розшифровок
+			const transKey = COLUMNS.records?.transcription || "transcription";
+			const newTrans = record[transKey];
+			if (newTrans && (typeof newTrans !== "string" || newTrans.trim() !== "")) {
+				const currentTrans = existing[transKey] || "";
+				existing[transKey] = currentTrans
+					? `${currentTrans}\n\n---\n\n${newTrans}`
+					: newTrans;
+			}
+
+			// Злиття шифрів справ (без дублювання однакових)
+			const refKey = COLUMNS.records?.archiveRef || "archive_ref";
+			const newRef = String(record[refKey] || "").trim();
+			if (newRef) {
+				const currentRef = String(existing[refKey] || "").trim();
+				if (!currentRef) {
+					existing[refKey] = newRef;
+				} else if (!currentRef.includes(newRef)) {
+					existing[refKey] = `${currentRef}; ${newRef}`;
+				}
 			}
 		}
 	}
