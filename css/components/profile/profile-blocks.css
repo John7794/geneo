@@ -158,8 +158,8 @@ html[data-theme="dark"] .data-row {
 	.profile-sidebar {
 		display: block;
 		position: fixed;
-		top: 90px; /* Offset from top */
-		left: max(16px, calc(50% - 450px - 200px)); /* Margin from the left edge */
+		top: 90px;
+		left: 30px;
 		width: 180px;
 		max-height: calc(100vh - 120px);
 		overflow-y: auto;
@@ -169,7 +169,7 @@ html[data-theme="dark"] .data-row {
 
 @media (min-width: 1200px) {
 	.profile-sidebar {
-		left: max(24px, calc(50% - 450px - 220px));
+		left: 30px;
 		width: 200px;
 	}
 }
