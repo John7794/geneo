@@ -130,7 +130,7 @@ export function renderProfile(person) {
         ${headerHTML}
         <div class="profile-layout-with-sidebar">
 			${tocHTML}
-			<div class="${bodyContainerClass}" style="flex: 1; min-width: 0;">
+			<div class="${bodyContainerClass}">
 				${bodyHTML}
 			</div>
         </div>

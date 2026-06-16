@@ -147,42 +147,35 @@ html[data-theme="dark"] .data-row {
    4. ПРОФІЛЬНИЙ ТАБЛИЦЯ ЗМІСТУ (TOC)
    ========================================== */
 .profile-layout-with-sidebar {
-	display: flex;
-	flex-direction: column;
-	gap: 24px;
-	position: relative;
-}
-
-@media (min-width: 1024px) {
-	.profile-layout-with-sidebar {
-		flex-direction: row;
-		align-items: flex-start;
-	}
+	display: block;
 }
 
 .profile-sidebar {
-	width: 100%;
+	display: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
 	.profile-sidebar {
-		width: 240px;
-		flex-shrink: 0;
-		position: sticky;
-		top: 80px;
-		max-height: calc(100vh - 100px);
+		display: block;
+		position: fixed;
+		top: 90px; /* Offset from top */
+		left: max(16px, calc(50% - 450px - 200px)); /* Margin from the left edge */
+		width: 180px;
+		max-height: calc(100vh - 120px);
 		overflow-y: auto;
+		z-index: 100;
+	}
+}
+
+@media (min-width: 1200px) {
+	.profile-sidebar {
+		left: max(24px, calc(50% - 450px - 220px));
+		width: 200px;
 	}
 }
 
 .profile-toc-container {
 	padding: 0;
-}
-
-@media (min-width: 1024px) {
-	.profile-toc-container {
-		padding-right: 24px;
-	}
 }
 
 .profile-toc-title {
@@ -216,5 +209,5 @@ html[data-theme="dark"] .data-row {
 }
 
 .profile-section-anchor {
-	scroll-margin-top: 80px;
+	scroll-margin-top: 120px;
 }
