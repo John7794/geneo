@@ -27,6 +27,7 @@ import { renderPersonalBlock } from "./personal.js";
 import { renderGalleryBlock } from "./gallery.js";
 import { renderSpiritualSection } from "./spiritualKinship.js";
 
+import { i18n } from "../../../core/i18n.js";
 import { renderErrorState } from "../shared/errorState.js";
 import { StickyHeaderManager } from "../../interaction/stickyHeaderManager.js";
 import { UI_CLASSES } from "../../../core/uiClasses.js";
