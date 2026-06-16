@@ -86,17 +86,52 @@ export function renderProfile(person) {
 
 	const headerHTML = renderBasicBlock(person) || "";
 
-	const bodyHTML = SECTION_RENDERERS.map((renderFn) => renderFn(person))
-		.filter(Boolean)
-		.join("");
+	const tocLinks = [];
+	const bodySections = SECTION_RENDERERS.map((renderFn, i) => {
+		let html = renderFn(person);
+		if (!html) return null;
+
+		const sectionId = `profile-section-${i}`;
+		const match = html.match(/<h2[^>]*>(.*?)<\/h2>/);
+		if (match) {
+			const title = match[1].replace(/<[^>]*>/g, '').trim();
+			tocLinks.push({ id: sectionId, title });
+			html = `<div id="${sectionId}" class="profile-section-anchor"></div>${html}`;
+		}
+		return html;
+	}).filter(Boolean);
+
+	const bodyHTML = bodySections.join("");
+
+	let tocHTML = "";
+	if (tocLinks.length > 0) {
+		const tocTitle = i18n.t("profile.contents") || "Зміст";
+		const linksHTML = tocLinks.map(link => 
+			`<li><a href="#${link.id}" class="profile-toc-link">${link.title}</a></li>`
+		).join("");
+		
+		tocHTML = `
+			<aside class="profile-sidebar">
+				<div class="profile-toc-container">
+					<h3 class="profile-toc-title">${tocTitle}</h3>
+					<ul class="profile-toc-list">
+						${linksHTML}
+					</ul>
+				</div>
+			</aside>
+		`;
+	}
 
 	const bodyContainerClass =
 		UI_CLASSES.profileBodyBlocks || "profile-body-blocks";
 
 	container.innerHTML = `
         ${headerHTML}
-        <div class="${bodyContainerClass}">
-            ${bodyHTML}
+        <div class="profile-layout-with-sidebar">
+			${tocHTML}
+			<div class="${bodyContainerClass}" style="flex: 1; min-width: 0;">
+				${bodyHTML}
+			</div>
         </div>
     `;
 
