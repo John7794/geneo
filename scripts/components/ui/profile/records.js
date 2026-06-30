@@ -105,7 +105,7 @@ function renderRecordCard(record, ctx) {
 	const placeholderClass =
 		UI_CLASSES.recordCardPlaceholder || "record-card-placeholder";
 	const coverContent = hasImage
-		? `<img src="${thumbUrl}" alt="${title}" loading="lazy" class="record-card-img" referrerpolicy="no-referrer">`
+		? `<img src="${thumbUrl}" alt="${title}" loading="lazy" class="record-card-img" referrerpolicy="no-referrer" onerror="this.onerror=null; this.outerHTML='<div class=\\'${placeholderClass}\\'><i class=\\'${docIcon}\\'></i></div>';">`
 		: `<div class="${placeholderClass}"><i class="${docIcon}"></i></div>`;
 
 	const badgeClass = UI_CLASSES.recordCardBadge || "record-card-badge";
