@@ -96,7 +96,7 @@ export function convertDriveLink(url) {
 		}
 
 		if (id) {
-			return `https://lh3.googleusercontent.com/d/${id}`;
+			return `https://lh3.googleusercontent.com/d/${id}=s0`;
 		}
 	} catch (e) {
 		console.warn("Помилка конвертації посилання:", url);
