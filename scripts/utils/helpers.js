@@ -96,7 +96,7 @@ export function convertDriveLink(url) {
 		}
 
 		if (id) {
-			return `https://drive.google.com/thumbnail?id=${id}&sz=w2500`;
+			return `https://drive.google.com/uc?export=view&id=${id}`;
 		}
 	} catch (e) {
 		console.warn("Помилка конвертації посилання:", url);
