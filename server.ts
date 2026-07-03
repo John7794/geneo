@@ -68,7 +68,8 @@ app.use(cookieParser());
       const compressed = zlib.gzipSync(Buffer.from(content, 'utf8'));
       const base64 = compressed.toString('base64');
       
-      await fdb.collection('db_files').doc(cleanPath).set({
+      const docId = cleanPath.replace(/\//g, '___');
+      await fdb.collection('db_files').doc(docId).set({
         content: base64,
         compressed: true,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -90,7 +91,7 @@ app.use(cookieParser());
       
       let count = 0;
       for (const doc of snap.docs) {
-        const cleanPath = doc.id; // e.g., "db/metadata.json" or "db/uk/basic.csv"
+        const cleanPath = doc.id.replace(/___/g, '/'); // e.g., "db/metadata.json" or "db/uk/basic.csv"
         const data = doc.data();
         if (data && data.content) {
           let textContent = "";
