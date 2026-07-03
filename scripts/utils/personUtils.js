@@ -517,10 +517,9 @@ export function findPersonDetails(personId, allData) {
 		}
 	}
 
-	const idPrefix = i18n.t("common.id") || "ID";
 	return {
 		id: exactId,
-		name: exactId ? `${idPrefix}: ${exactId}` : "",
+		name: "",
 		surname: "",
 		hasProfile: false,
 		source: "unknown",

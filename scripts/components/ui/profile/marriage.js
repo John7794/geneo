@@ -7,7 +7,7 @@ import { UI_CLASSES } from "../../../core/uiClasses.js";
 
 import { resolvePlaceDetails } from "../../../utils/geoUtils.js";
 import { resolveChurchDetails } from "../../../utils/churchUtils.js";
-import { isFemale } from "../../../utils/genderUtils.js";
+import { isFemale, getGenderCode } from "../../../utils/genderUtils.js";
 import {
 	getMarriageTitle,
 	mergeMarriageRows,
@@ -224,7 +224,19 @@ export function renderMarriageBlock(person) {
 			const currentSpouseId = m._partner ? m._partner.id : null;
 
 			if (m._partner) {
-				const isFemalePartner = isFemale(m._partner.gender);
+				const mainGenderCode = getGenderCode(person?.gender);
+				const partnerGenderCode = getGenderCode(m._partner.gender);
+				
+				let isFemalePartner;
+				if (partnerGenderCode === "f") {
+					isFemalePartner = true;
+				} else if (partnerGenderCode === "m") {
+					isFemalePartner = false;
+				} else {
+					// Infer from main person
+					isFemalePartner = mainGenderCode === "m";
+				}
+				
 				const roleKey = isFemalePartner ? "roles.bride" : "roles.groom";
 				const tileRoleLabel = escapeHtml(
 					i18n.t(roleKey) || (isFemalePartner ? "Наречена" : "Наречений"),
