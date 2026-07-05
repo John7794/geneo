@@ -1,19 +1,8 @@
-import { findPersonDetails } from './scripts/utils/personUtils.js';
+import './mock.js';
 import fs from 'fs';
 import Papa from 'papaparse';
-
-const basicCsv = fs.readFileSync('/tmp/data/db/uk/basic.csv', 'utf8');
-const namesCsv = fs.readFileSync('/tmp/data/db/uk/names.csv', 'utf8');
-
+import { findPersonDetails } from './scripts/utils/personUtils.js';
+const basicCsv = fs.readFileSync('data/db/uk/basic.csv', 'utf8');
 const basicData = Papa.parse(basicCsv, { header: true }).data;
-const namesData = Papa.parse(namesCsv, { header: true }).data;
-
-const allData = {
-  db: {
-    basic: basicData,
-    names: namesData
-  }
-};
-
-const res = findPersonDetails('511', allData);
-console.log(res);
+const allData = { db: { basic: basicData }, _indexes: {} };
+console.log(findPersonDetails("f510_m2", allData));
