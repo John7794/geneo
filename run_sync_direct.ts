@@ -10,15 +10,16 @@ import "dotenv/config";
 async function saveFileToFirestore(filePath, content, fdb) {
   try {
     const cleanPath = filePath.replace(/\\/g, '/');
+    const docId = cleanPath.replace(/\//g, '___');
     const compressed = zlib.gzipSync(Buffer.from(content, 'utf8'));
     const base64 = compressed.toString('base64');
     
-    await fdb.collection('db_files').doc(cleanPath).set({
+    await fdb.collection('db_files').doc(docId).set({
       content: base64,
       compressed: true,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
-    console.log(`[Firestore DB] Saved compressed ${cleanPath} to Firestore`);
+    console.log(`[Firestore DB] Saved compressed ${docId} to Firestore`);
   } catch (e) {
     console.error(`[Firestore DB] Failed to save ${filePath} to Firestore:`, e);
   }
