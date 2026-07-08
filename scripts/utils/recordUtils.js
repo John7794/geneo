@@ -38,11 +38,11 @@ export function mergeMultipageRecords(rawRecords) {
 		} else {
 			recId = String(recId).trim();
 			
-			// Автоматичне групування (суміщення) записів про смерть в одну плитку.
-			// Якщо це дублікат запису про смерть (напр., rec_1336_d-1), зводимо до базового ID (rec_1336_d)
-			const deathMatch = recId.match(/^(rec_\d+_d)(-\d+)?$/i);
-			if (deathMatch) {
-				recId = deathMatch[1];
+			// Автоматичне групування (суміщення) багатосторінкових записів або їх дублікатів в одну плитку.
+			// Зводимо ID виду rec_1336_d-1 або rec_12_m-1 до базового ID (rec_1336_d, rec_12_m)
+			const baseMatch = recId.match(/^(rec_\d+_[a-z]+)(-\d+)?$/i);
+			if (baseMatch) {
+				recId = baseMatch[1];
 			}
 		}
 
