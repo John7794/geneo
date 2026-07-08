@@ -162,6 +162,7 @@ export class LineageManager {
 			} else {
 				currentUrl.searchParams.set("line", mode);
 			}
+			currentUrl.hash = "";
 			window.history.pushState({}, "", currentUrl);
 		}
 

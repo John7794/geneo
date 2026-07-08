@@ -388,7 +388,9 @@
 	.relationship-mode .rel-tree-wrapper {
 		width: 100%;
 		box-sizing: border-box;
-		padding-top: 0px;
+		padding-top: 24px;
+		padding-left: 12px;
+		padding-right: 12px;
 		background-image: none;
 	}
 
@@ -424,7 +426,7 @@
 
 	.relationship-mode .rel-mobile-cell--center {
 		width: 100%;
-		max-width: 340px;
+		max-width: none;
 	}
 
 	/* Приховуємо лінії з десктопу */

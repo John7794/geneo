@@ -83,8 +83,7 @@ export class StickyHeaderManager {
 
 				if (
 					this.headerNode &&
-					this.placeholderNode &&
-					this.placeholderNode.offsetWidth > 0
+					this.placeholderNode
 				) {
 					if (
 						!this.headerNode.style.width ||
@@ -93,7 +92,7 @@ export class StickyHeaderManager {
 						this.syncLayout();
 					}
 
-					const scrollY = window.scrollY || document.documentElement.scrollTop;
+					const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
 					const isCollapsed = this.headerNode.classList.contains(
 						UI_CLASSES.isCollapsed,
 					);

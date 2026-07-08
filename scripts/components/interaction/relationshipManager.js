@@ -140,6 +140,7 @@ export class RelationshipManager {
 		url.searchParams.set("id", displayIdInUrl);
 		url.searchParams.set("target_id", idB);
 		url.searchParams.set("rel_idx", this.currentIndex);
+		url.hash = "";
 		url.searchParams.delete("view");
 		url.searchParams.delete("rel_p1");
 		url.searchParams.delete("rel_p2");
