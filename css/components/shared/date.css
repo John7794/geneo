@@ -17,6 +17,6 @@
 /* Додаткова інформація (напр. вік: "56 років", старий стиль) */
 .date-format-sub {
 	font-size: var(--font-size-sm);
-	color: var(--color-text-meta);
-font-family: var(--font-family-secondary);
-	}
+	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
+}

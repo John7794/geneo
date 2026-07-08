@@ -63,10 +63,7 @@
 
 /* Дата за старим стилем (юліанський календар) */
 .event-date--old-style {
-	font-size: var(--font-size-xs);
-	color: var(--color-text-muted);
-font-family: var(--font-family-secondary);
-	}
+}
 
 /* ==========================================
    3. ІКОНКИ ПОДІЙ (Кольорове кодування)
