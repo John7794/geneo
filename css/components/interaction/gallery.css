@@ -250,6 +250,7 @@
 .gal-archive__address {
 	font-size: var(--font-size-sm);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	margin-bottom: 4px;
 	display: flex;
 	align-items: center;
@@ -361,7 +362,8 @@
 
 .panel-resizer:hover::after {
 	background-color: var(--color-text-muted, rgba(255, 255, 255, 0.5));
-}
+font-family: var(--font-family-secondary);
+	}
 
 .panel-resizer:active::after {
 	background-color: var(--color-primary, #007bff);

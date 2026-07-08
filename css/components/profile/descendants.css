@@ -73,6 +73,7 @@
 	font-size: var(--font-size-sm);
 	font-weight: 600;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	margin-bottom: var(--spacing-sm);

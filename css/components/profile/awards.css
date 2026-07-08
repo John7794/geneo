@@ -171,11 +171,13 @@
 	gap: 6px;
 	font-size: var(--font-size-sm, 13px);
 	color: var(--color-text-muted);
-}
+font-family: var(--font-family-secondary);
+	}
 
 .award-tile-meta i {
 	color: var(--color-text-meta);
-}
+font-family: var(--font-family-secondary);
+	}
 
 .award-tile-text {
 	font-size: var(--font-size-sm, 14px);
@@ -191,6 +193,7 @@
 .award-document {
 	font-size: var(--font-size-sm, 13px);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	display: flex;
 	align-items: flex-start;
 	gap: 6px;
@@ -202,7 +205,8 @@
 .award-document i {
 	margin-top: 2px;
 	color: var(--color-text-meta);
-}
+font-family: var(--font-family-secondary);
+	}
 
 .award-tile-group {
 	display: flex;

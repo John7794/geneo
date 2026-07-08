@@ -26,6 +26,7 @@
 	letter-spacing: 0.5px;
 	color: var(--color-text-meta);
 	margin-bottom: 4px;
+	font-family: var(--font-family-secondary);
 }
 
 /* Грід для зовнішності (Key-Value) */
@@ -49,6 +50,7 @@
 .appearance-key {
 	color: var(--color-text-muted);
 	font-size: 0.9em;
+	font-family: var(--font-family-secondary);
 }
 
 .appearance-val {
@@ -87,6 +89,7 @@
 .pet-years {
 	font-size: 0.85em;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 }
 
 /* Довгі текстові описи (Спосіб життя, Діяльність) */

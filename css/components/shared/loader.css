@@ -53,6 +53,7 @@
 	font-weight: 600;
 	color: var(--color-text-muted);
 
+	font-family: var(--font-family-secondary);
 	/* Легка пульсація тексту */
 	animation: pulse 2s infinite ease-in-out;
 }

@@ -71,6 +71,7 @@
 .btn-rel-arrow {
 	padding: var(--spacing-sm);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	border-radius: var(--radius-sm);
 }
 
@@ -325,6 +326,7 @@
 
 .rel-lbl {
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	white-space: nowrap;
 }
 .rel-val {

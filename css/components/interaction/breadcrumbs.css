@@ -17,6 +17,7 @@
 /* Розділювач між елементами (напр. " / " або ">") */
 .breadcrumbs__separator {
 	color: var(--color-text-meta);
+	font-family: var(--font-family-secondary);
 	margin: 0 var(--spacing-sm);
 	font-size: var(--font-size-sm);
 	user-select: none;
@@ -31,6 +32,7 @@
 	font-size: var(--font-size-sm);
 	font-weight: 500;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	text-decoration: none;
 	padding: var(--spacing-xs) var(--spacing-sm);
 	border-radius: var(--radius-sm);
@@ -68,6 +70,7 @@
 	padding: var(--spacing-xs) var(--spacing-sm);
 	border-radius: var(--radius-sm);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	transition: background-color var(--transition-fast);
 }
 

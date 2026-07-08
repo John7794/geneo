@@ -10,6 +10,7 @@
 .date-format-label {
 	font-size: var(--font-size-sm);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	margin-right: 0.25rem;
 }
 
@@ -17,4 +18,5 @@
 .date-format-sub {
 	font-size: var(--font-size-sm);
 	color: var(--color-text-meta);
-}
+font-family: var(--font-family-secondary);
+	}

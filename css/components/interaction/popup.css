@@ -69,6 +69,7 @@
 	background-color: var(--color-bg-body);
 	border: none;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	font-size: var(--font-size-xl);
 	width: 32px;
 	height: 32px;
@@ -152,6 +153,7 @@
 	margin-top: 4px;
 	font-style: italic;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	font-size: 0.85rem;
 }
 
@@ -179,6 +181,7 @@
 
 .popup-life-dates {
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	font-size: 0.85rem;
 	line-height: 1.4;
 	border-top: 1px solid var(--color-border-light);
@@ -211,6 +214,7 @@
 .popup-label {
 	width: 35%;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	font-weight: 500;
 	flex-shrink: 0;
 	padding-right: var(--spacing-sm);
@@ -252,6 +256,7 @@
 	font-weight: 600;
 	letter-spacing: 0.1em;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	white-space: nowrap;
 }
 
@@ -322,6 +327,7 @@
 .popup-rel-context {
 	font-size: 0.85em;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	margin-top: 2px;
 }
 .popup-rel-action {

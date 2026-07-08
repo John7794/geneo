@@ -115,6 +115,7 @@
 .lineage-option i {
 	font-size: 18px;
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	transition: color var(--transition-fast);
 }
 

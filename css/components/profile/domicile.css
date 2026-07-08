@@ -78,7 +78,8 @@
 	font-size: var(--font-size-xs);
 	text-transform: uppercase;
 	color: var(--color-text-meta);
-}
+font-family: var(--font-family-secondary);
+	}
 
 /* Географія (Місто, Регіон) */
 .domicile-place {
@@ -92,6 +93,7 @@
 .domicile-address {
 	font-size: var(--font-size-sm);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	display: flex;
 	align-items: flex-start;
 	gap: 6px;
@@ -101,6 +103,7 @@
 .domicile-address i {
 	font-size: 1.1em;
 	color: var(--color-text-meta);
+	font-family: var(--font-family-secondary);
 	margin-top: 2px; /* Візуальне вирівнювання іконки відносно тексту */
 }
 

@@ -77,7 +77,8 @@
 	gap: 10px;
 	font-size: var(--font-size-sm, 13px);
 	color: var(--color-text-muted);
-}
+font-family: var(--font-family-secondary);
+	}
 
 .job-meta span {
 	display: flex;
@@ -107,6 +108,7 @@
 .job-label {
 	font-weight: 600;
 	color: var(--color-text-meta);
+	font-family: var(--font-family-secondary);
 	margin-right: 4px;
 }
 
@@ -114,6 +116,7 @@
 .job-document {
 	font-size: var(--font-size-sm, 13px);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	display: flex;
 	align-items: flex-start;
 	gap: 6px;
@@ -125,4 +128,5 @@
 .job-document i {
 	margin-top: 2px;
 	color: var(--color-text-meta);
-}
+font-family: var(--font-family-secondary);
+	}

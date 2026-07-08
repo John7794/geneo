@@ -246,6 +246,7 @@
 .tree-node__placeholder {
 	font-size: var(--font-size-xl);
 	color: var(--color-text-meta);
+	font-family: var(--font-family-secondary);
 	font-weight: bold;
 }
 
@@ -272,6 +273,7 @@
 	display: block;
 	font-size: var(--font-size-sm);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	font-weight: 500;
 	margin-top: auto; /* 🔥 Магія! Заповнює пустоту і завжди притискає роки до низу */
 }
@@ -291,7 +293,8 @@
 	background-color: transparent;
 	border: 1px solid transparent;
 	box-shadow: none;
-	color: var(--color-text-meta); /* Блідо-сіра іконка, не відволікає */
+	color: var(--color-text-meta); font-family: var(--font-family-secondary);
+	/* Блідо-сіра іконка, не відволікає */
 
 	display: flex;
 	align-items: center;
@@ -304,7 +307,8 @@
 /* При наведенні на саму картку робимо іконку трохи помітнішою */
 .tree-node:hover .btn-goto-profile {
 	color: var(--color-text-muted);
-}
+font-family: var(--font-family-secondary);
+	}
 
 /* 🔥 А при наведенні саме на кнопку — вона гарно підсвічується */
 .tree-node .btn-goto-profile:hover {

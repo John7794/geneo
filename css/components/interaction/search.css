@@ -64,6 +64,7 @@
 .search-meta {
 	font-size: var(--font-size-xs);
 	color: var(--color-text-meta);
+	font-family: var(--font-family-secondary);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;

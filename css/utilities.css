@@ -10,10 +10,12 @@
 
 .text-muted {
 	color: var(--color-text-muted) !important;
+	font-family: var(--font-family-secondary);
 }
 .text-meta {
 	color: var(--color-text-meta) !important;
 	font-size: var(--font-size-sm) !important;
+	font-family: var(--font-family-secondary);
 }
 
 /* Стилізація тексту під посилання (без використання тегу <a>) */

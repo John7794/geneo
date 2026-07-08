@@ -94,7 +94,8 @@
 	gap: 10px;
 	font-size: var(--font-size-sm, 13px);
 	color: var(--color-text-muted);
-}
+font-family: var(--font-family-secondary);
+	}
 
 .edu-meta span {
 	display: flex;
@@ -124,6 +125,7 @@
 .edu-label {
 	font-weight: 600;
 	color: var(--color-text-meta);
+	font-family: var(--font-family-secondary);
 	margin-right: 4px;
 }
 
@@ -131,6 +133,7 @@
 .edu-document {
 	font-size: var(--font-size-sm, 13px);
 	color: var(--color-text-muted);
+	font-family: var(--font-family-secondary);
 	display: flex;
 	align-items: flex-start;
 	gap: 6px;
@@ -142,4 +145,5 @@
 .edu-document i {
 	margin-top: 2px;
 	color: var(--color-text-meta);
-}
+font-family: var(--font-family-secondary);
+	}

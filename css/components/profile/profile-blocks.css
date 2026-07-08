@@ -52,8 +52,9 @@ html[data-theme="dark"] .data-row {
 	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* Останньому рядку лінія не потрібна */
-.data-row:last-child {
+/* Останньому рядку лінія не потрібна, так само як і рядку перед новим розділювачем */
+.data-row:last-child,
+.data-row:has(+ .block-divider) {
 	border-bottom: none;
 }
 
@@ -70,6 +71,7 @@ html[data-theme="dark"] .data-row {
 	color: var(--color-text-meta); /* Приглушений колір */
 	font-size: 14px;
 	margin-bottom: 6px;
+	font-family: var(--font-family-secondary);
 }
 
 @media (min-width: 640px) {
@@ -98,6 +100,7 @@ html[data-theme="dark"] .data-row {
 	font-size: 0.85rem;
 	font-style: normal;
 	color: var(--color-text-muted, #6c757d);
+	font-family: var(--font-family-secondary);
 }
 
 /* Обмеження ширини для картки партнера у блоці шлюбу */
