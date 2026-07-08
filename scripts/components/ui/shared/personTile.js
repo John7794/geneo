@@ -71,7 +71,7 @@ export function renderPersonTile(
 				: "?view=profile";
 		}
 
-		const profileUrl = encodeURI(profileUrlRaw);
+		const currentHash = typeof window !== "undefined" ? (window.location.hash || "") : ""; const profileUrl = encodeURI(profileUrlRaw) + currentHash;
 		const searchIcon = escapeHtml(
 			UI_CLASSES.icons?.userSearch || "ri-user-search-line",
 		);

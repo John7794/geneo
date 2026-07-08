@@ -77,7 +77,7 @@ export function renderProfile(person) {
 		activeStickyHeader = null;
 	}
 
-	window.scrollTo(0, 0);
+	if (!window.location.hash) { window.scrollTo(0, 0); }
 	container.innerHTML = "";
 
 	if (!person || person._isMissing) {
@@ -140,6 +140,13 @@ export function renderProfile(person) {
 	queueMicrotask(() => {
 		requestAnimationFrame(() => {
 			activeStickyHeader = new StickyHeaderManager();
+			const hash = window.location.hash;
+			if (hash) {
+				const targetElement = document.querySelector(hash);
+				if (targetElement) {
+					targetElement.scrollIntoView();
+				}
+			}
 		});
 	});
 }
