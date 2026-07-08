@@ -407,7 +407,7 @@
 
 	.relationship-mode .rel-mobile-row {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		width: 100%;
 		gap: 6px;
 	}
@@ -415,6 +415,7 @@
 	.relationship-mode .rel-mobile-row--merged {
 		display: flex;
 		justify-content: center;
+		width: 100%;
 	}
 
 	.relationship-mode .rel-mobile-cell {
@@ -427,6 +428,10 @@
 	.relationship-mode .rel-mobile-cell--center {
 		width: 100%;
 		max-width: none;
+	}
+	.relationship-mode .rel-mobile-cell--center .kinship-card {
+		width: 100% !important;
+		max-width: 100% !important;
 	}
 
 	/* Приховуємо лінії з десктопу */

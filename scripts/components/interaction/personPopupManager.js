@@ -331,6 +331,12 @@ export class PersonPopupManager {
 	}
 
 	handlePopupClick(e) {
+		// Закриття при кліку поза контейнером (на оверлей)
+		if (e.target === this.popupElement) {
+			this.close();
+			return;
+		}
+		
 		if (e.target.closest(`.${UI_CLASSES.jsClosePopup}`)) {
 			this.close();
 			return;

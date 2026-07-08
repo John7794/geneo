@@ -257,12 +257,13 @@ export class AppRouter {
 		} else if (!url.searchParams.has("view")) {
 			url.searchParams.set("view", "tree");
 		}
-		url.hash = "";
+		// Видаляємо hash повністю, щоб не залишалося "#"
+		const cleanUrl = url.pathname + url.search;
 
 		if (replaceHistory) {
-			window.history.replaceState({ id }, "", url);
+			window.history.replaceState({ id }, "", cleanUrl);
 		} else {
-			window.history.pushState({ id }, "", url);
+			window.history.pushState({ id }, "", cleanUrl);
 		}
 
 		this.handlePopState();

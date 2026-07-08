@@ -151,9 +151,11 @@ export class RelationshipManager {
 			target_id: idB,
 			rel_idx: this.currentIndex,
 		};
+		
+		const cleanUrl = url.pathname + url.search;
 
-		if (!isSameState) window.history.pushState(stateObj, "", url);
-		else window.history.replaceState(stateObj, "", url);
+		if (!isSameState) window.history.pushState(stateObj, "", cleanUrl);
+		else window.history.replaceState(stateObj, "", cleanUrl);
 
 		document
 			.getElementById("profile-content")
