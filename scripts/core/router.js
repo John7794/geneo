@@ -257,6 +257,7 @@ export class AppRouter {
 		} else if (!url.searchParams.has("view")) {
 			url.searchParams.set("view", "tree");
 		}
+		url.hash = "";
 
 		if (replaceHistory) {
 			window.history.replaceState({ id }, "", url);

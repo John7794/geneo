@@ -192,7 +192,7 @@ export class BreadcrumbManager {
 				link.setAttribute("aria-current", "page");
 			} else {
 				link.className = `${UI_CLASSES.breadcrumbsLink} ${UI_CLASSES.breadcrumbItem}`;
-				const currentHash = window.location.hash || ""; link.href = `?id=${escapeHtml(item.id)}${viewString}${currentHash}`;
+				link.href = `?id=${escapeHtml(item.id)}${viewString}`;
 				link.onclick = (e) => {
 					e.preventDefault();
 

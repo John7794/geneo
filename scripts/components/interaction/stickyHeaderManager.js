@@ -38,6 +38,7 @@ export class StickyHeaderManager {
 			if (this._acquireElements()) {
 				this.observer.observe(this.placeholderNode);
 				this.syncLayout();
+				this.onScroll();
 			} else if (attempts < 20) {
 				setTimeout(() => tryHydrate(attempts + 1), 50);
 			}
