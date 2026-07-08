@@ -4,19 +4,23 @@
 .date-format-main {
 	color: var(--color-text-main);
 	white-space: nowrap;
-}
-
-/* Префікс/лейбл (напр. "нар.", "пом.", "бл.", "за новим стилем") */
-.date-format-label {
-	font-size: 0.85em;
-	color: var(--color-text-muted);
-	margin-right: 0.25rem;
-	margin-left: 0.25rem;
+	font-family: var(--font-family-secondary);
 }
 
 /* Додаткова інформація (напр. вік: "56 років", старий стиль) */
 .date-format-sub {
-	font-size: var(--font-size-xs);
+	font-size: 0.85em; /* Менша за основну */
 	color: var(--color-text-muted);
 	margin-top: 4px;
+	font-family: var(--font-family-secondary);
+}
+
+/* Префікс/лейбл (напр. "нар.", "пом.", "бл.", "за новим стилем") */
+.date-format-label {
+	font-size: 0.85em; /* Менша за дату, до якої належить */
+	color: var(--color-text-muted);
+	margin-right: 0.25rem;
+	margin-left: 0.25rem;
+	font-family: var(--font-family-secondary);
+	font-weight: normal;
 }
