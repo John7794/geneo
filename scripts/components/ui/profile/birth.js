@@ -88,7 +88,8 @@ export function renderBirthBlock(person) {
 				const age = calculateCurrentAge(day, month, year, timeVal);
 				if (age !== null) {
 					const yearsLabel = escapeHtml(getPluralYears(age));
-					ageHTML = escapeHtml(String(age)) + ` ${yearsLabel}`;
+					const isApprox = !day || !month;
+					ageHTML = (isApprox ? "~" : "") + escapeHtml(String(age)) + ` ${yearsLabel}`;
 				}
 			}
 

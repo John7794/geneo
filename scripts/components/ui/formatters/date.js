@@ -39,7 +39,20 @@ export function formatAgeHtml(birthData, deathRecord) {
 		return escapeHtml(i18n.t("time.infant") || "менше 1 року");
 	}
 
-	return `${calcAge} ${escapeHtml(getPluralYears(calcAge))}`;
+	let isApprox = false;
+	if (birthData) {
+		const deathData = {
+			year: deathRecord[COLUMNS.death.year],
+			month: deathRecord[COLUMNS.death.month],
+			day: deathRecord[COLUMNS.death.day],
+		};
+		if (!birthData.day || !birthData.month || !deathData.day || !deathData.month) {
+			isApprox = true;
+		}
+	}
+
+	const prefix = isApprox ? "~" : "";
+	return `${prefix}${calcAge} ${escapeHtml(getPluralYears(calcAge))}`;
 }
 
 /**

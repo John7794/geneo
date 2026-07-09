@@ -1,5 +1,5 @@
 record_id,persons_ids,category,type,title,archive_id,archive_ref,images,transcription,external_link,participants,,,
-rec_4_b,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1SDaAN0sCt_3zfl-InkPeLIRwPeTtaqvJ/view?usp=drive_link,,,,28.09.1911,29.09.1911,
+rec_4_b,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1SDaAN0sCt_3zfl-InkPeLIRwPeTtaqvJ/view?usp=drive_web,,,,28.09.1911,29.09.1911,
 rec_6_b-1,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/182FS14HeVHsaCL980_zi8V56yoxEthLN/view?usp=drive_web,,https://yandex.ru/archive/catalog/f58dba16-b349-4d88-a31c-a854114114a0/95,,15.09.1913,15.09.1913,
 rec_6_b,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1KVI4z5-Igi2_Sq41Wf3sYy2F8eltqnL3/view?usp=drive_web,,https://yandex.ru/archive/catalog/239bf123-651c-4896-be9f-3a6fdcfe909f/157,,,,
 rec_7_b,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1t0s7YoakQ3CRNTExpV9dcaaiKeGazFIo/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3QHN-2QTF-1SXB-3?view=explore&groupId=TH-7772-131491-188574-0&lang=uk,,24.05.1925,25.05.1925,
@@ -162,7 +162,7 @@ rec_867_b,,Метричні книги,b,Запис про народження,
 rec_868_b,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1ua9vqSsZ-Vs4zB-vrE7FiF23CD_rSxfE/view?usp=drive_web,,https://yandex.ru/archive/catalog/16cce40c-3447-4f25-a35d-23b11c6b624b/112,,03.10.1742,,
 rec_890_b,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/1Bu9BbmDm6ZkV68zAR-j0ycBK5D46sSz-/view?usp=drive_web,,https://yandex.ru/archive/catalog/21bc0faa-fdd1-4fcb-a726-f6480ab91354/50,,27.04.1745,,
 rec_892_b,,Метричні книги,b,Запис про народження,,,https://drive.google.com/file/d/14ig3gYEq866mJJ9n7BTVc3D31dnyO9jt/view?usp=drive_web,,https://yandex.ru/archive/catalog/6acfbdec-8239-448f-8f55-d3fd60152958/86,,13.03.1753,,
-rec_6_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1aRd7YkyGA38uEJf9tjgvFq2uG2GGITjP/view?usp=drive_link,,,,14,12,1945
+rec_6_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1aRd7YkyGA38uEJf9tjgvFq2uG2GGITjP/view?usp=drive_web,,,,14,12,1945
 rec_10_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1BfZ5qNjJ1P8G9GOEmz9Fmb5KGrG-9PK4/view?usp=drive_web,,,,31,1,1914
 rec_12_m-1,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1B57mnQKZ5b2j-qhlDqNfKwvx_q2Gl5tq/view?usp=drive_web,,https://yandex.ru/archive/catalog/d8fedec9-7584-4e51-bbd5-473dd06709ed/31,,9,4,1906
 rec_12_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1lWLRdHojNEtKSVMiNvQVTjag-jMAw37a/view?usp=drive_web,,https://yandex.ru/archive/catalog/8c45fdc5-9dfa-4ee5-b691-329a7d5ee12e/428,,,,
@@ -207,10 +207,10 @@ rec_94_m,,Метричні книги,m,Запис про шлюб,,,https://dri
 rec_96_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1ex4jmf-VpbJ8U-kAYqLvw_tn7qR8XJCm/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/163,,21,9,1804
 rec_100_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/16i_ps5MIWrpPpS0OCKACwEVyzAbH0rVE/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/214,,22,9,1813
 rec_102_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/13BmuiZByUG0rF9PzDSlG6qomhp960JIt/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/195,,18,5,1809
-rec_104_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1q1bC8sHDhxGFJs6TO4YVl3RcKCZ5P7_b/view?usp=drive_link,,,,3,6,1818
+rec_104_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1q1bC8sHDhxGFJs6TO4YVl3RcKCZ5P7_b/view?usp=drive_web,,,,3,6,1818
 rec_106_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1bybs6Tx5tgVF6iXnLgt32En05AXswMm6/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/220,,17,5,1814
-rec_108_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1BUOjGENLiBGAc1AXLS90kYTEQ6LI6vPE/view?usp=drive_link,,,,23,5,1827
-rec_110_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/16Y_V6YYwzSmqybpK71_H4vqrbsebJFsp/view?usp=drive_link,,,,8,1,1832
+rec_108_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1BUOjGENLiBGAc1AXLS90kYTEQ6LI6vPE/view?usp=drive_web,,,,23,5,1827
+rec_110_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/16Y_V6YYwzSmqybpK71_H4vqrbsebJFsp/view?usp=drive_web,,,,8,1,1832
 rec_112_m-1,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/11r_Mt5VQ-Z9uFNLkwglIAOpZ-6-fLYwz/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3QHN-P7MD-H9R3?view=explore&groupId=TH-7768-135368-1613-49&lang=uk,,11,11,1798
 rec_112_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1lJBucnIIK6QM0EkTVw0QCrxxMXbjRX4S/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3Q9M-C95P-H9Q7-Z?lang=uk&i=133,,,,
 rec_116_m,,Метричні книги,m,Запис про шлюб,,,https://drive.google.com/file/d/1PGKruE96DWxePOH--KzYieSFYRD7OkRj/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3Q9M-C9PT-Q1HB?cat=2997966&i=112&lang=uk,,15,2,1807
@@ -615,7 +615,7 @@ rec_506_d-1,,Метричні книги,d,Запис про смерть,,,http
 rec_506_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1L97NtgaLGpIXYntZ0gClpRnIvVQP3mP-/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GRSM-DJJ?wc=QV6D-4GM%3A180600901%2C192872401%2C192909601%26cc%3D1910265&lang=uk&i=13&cc=1910265,,,,
 rec_508_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1jURa93KxTXXBcUmf-hgslRCa0gUAur-m/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3Q9M-C9PT-Q937-J?cat=2997966&i=182&lang=uk,,,,
 rec_508_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1JSQxFoTCT3t8dKmfs7BLVaQqg8-SC5KI/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GRSM-DD9?wc=QV6D-4GM%3A180600901%2C192872401%2C192909601%26cc%3D1910265&lang=uk&i=40&cc=1910265,,,,
-rec_509_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1N33OevAF5xglBdNbPYHADBIUG4xrHGDn/view?usp=drive_link,,https://www.familysearch.org/ark:/61903/3:1:3Q9M-C9PT-Q1Y3?cat=2997966&i=56&lang=uk,,,,
+rec_509_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1N33OevAF5xglBdNbPYHADBIUG4xrHGDn/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3Q9M-C9PT-Q1Y3?cat=2997966&i=56&lang=uk,,,,
 rec_509_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1O3ASnSSNH0xHdTSzfWDY-xCfqd3ukyu-/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GRSM-DJJ?wc=QV6D-4GM%3A180600901%2C192872401%2C192909601%26cc%3D1910265&lang=uk&i=13&cc=1910265,,,,
 rec_510_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1GeiRrmf4SgnmZioazNzCBwawuMPfodS3/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GRSX-ZQ?i=58&wc=QVPH-NQ7%3A180600901%2C204815901%2C204817101&cc=1910265&lang=uk,,,,
 rec_518_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1kY2l1_Ch24-8f89nWUxq58HRkA9ifR_t/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33S7-9GN6-2XW?i=76&wc=Q866-VXX%3A375541101%2C378598501%2C379069801%2C379939701&cc=1921824&lang=uk,,,,
@@ -687,7 +687,7 @@ rec_866_d,,Метричні книги,d,Запис про смерть,,,https:
 rec_867_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1ND7D8J4XKnECa3s9EGmU-mUceKsHKohf/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/155,,,,
 rec_868_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1Efj8h3oLLM2PV1cyavcEbWvai8rlCgS3/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/178,,,,
 rec_869_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/13B7_Y02hEngLF9qLEKKJgiqAV5ziS61e/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/201,,,,
-rec_870_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/12uBwQ_LswINsXFbXGheN8G_JH7yj44Ac/view?usp=drive_link,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/125,,,,
+rec_870_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/12uBwQ_LswINsXFbXGheN8G_JH7yj44Ac/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/125,,,,
 rec_873_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1thayHYmGoJwefU33GnrrBDDJxipUlxYl/view?usp=drive_web,,https://yandex.ru/archive/catalog/cefb634a-84ff-4100-b4ec-85b965c429e2/220,,,,
 rec_874_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1RKgR00ITHwYD52DM4j38iDlwmN28kOaP/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/172,,,,
 rec_875_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/173WBfL4ZMYCFevvxRIEwYbegbXHR3L1A/view?usp=drive_web,,https://yandex.ru/archive/catalog/f63fa92c-ca88-4ee4-a829-dce23b2ab746/32,,,,
@@ -699,15 +699,15 @@ rec_883_d-1,,Метричні книги,d,Запис про смерть,,,http
 rec_883_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1toRv_T7e165oWU_S8h7SqPYxDy48AOqy/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/105,,,,
 rec_885_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/12movkQDVrRULbCsjMpvBgVHZoRxIZuoR/view?usp=drive_web,,https://yandex.ru/archive/catalog/73f648da-39db-4dcc-9241-4ffdb10ebdec/47,,,,
 rec_885_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1Yd4tF3Ntt7GzgWFKvJIXjcHYGakYS6Gw/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/84,,,,
-rec_887_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1pSXBdVlKQKhan18M-JniJBMHC-Ph4S99/view?usp=drive_link,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/58,,,,
-rec_887_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1cdwr4VaM5Y206HTxtNtTji8e0pHKvLJB/view?usp=drive_link,,https://yandex.ru/archive/catalog/fd14551a-e02c-40fb-9633-7084eea6846f/75,,,,
-rec_888_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/19ALeN-tX05eaZP1-Vevf_mAgYUDReVYQ/view?usp=drive_link,,,,,,
+rec_887_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1pSXBdVlKQKhan18M-JniJBMHC-Ph4S99/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/58,,,,
+rec_887_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1cdwr4VaM5Y206HTxtNtTji8e0pHKvLJB/view?usp=drive_web,,https://yandex.ru/archive/catalog/fd14551a-e02c-40fb-9633-7084eea6846f/75,,,,
+rec_888_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/19ALeN-tX05eaZP1-Vevf_mAgYUDReVYQ/view?usp=drive_web,,,,,,
 rec_889_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1UtABHk18REsIN61RUHtnk8dJ3Q0il4ZH/view?usp=drive_web,,https://yandex.ru/archive/catalog/3334cf83-d33d-45f4-9478-e0798978393e/309,,,,
 rec_889_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1aWtux5Idr488Vj0qjanif25wEMYOkoEX/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/111,,,,
 rec_890_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/16iDQxr8JpvRavzg3g4hjkW4Thhrlj4dE/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/206,,,,
 rec_891_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/173WBfL4ZMYCFevvxRIEwYbegbXHR3L1A/view?usp=drive_web,,https://yandex.ru/archive/catalog/f63fa92c-ca88-4ee4-a829-dce23b2ab746/32,,,,
 rec_891_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1UdoJ-9VOanUiVkkBP6PTQHKkxN7v_ZqA/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/89,,,,
-rec_892_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1krGMXoGdwxkx9rreX2-AUm51gYXHaH-5/view?usp=drive_link,,,,,,
+rec_892_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1krGMXoGdwxkx9rreX2-AUm51gYXHaH-5/view?usp=drive_web,,,,,,
 rec_894_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/18RnIUIcjFLmiiZavgiOw-LzpMo4LtNtV/view?usp=drive_web,,,,,,
 rec_895_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/13B7_Y02hEngLF9qLEKKJgiqAV5ziS61e/view?usp=drive_web,,https://yandex.ru/archive/catalog/a6452de3-b577-4e71-906a-f8e0175e46cc/201,,,,
 rec_964_d-1,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1hF61vfLlE6EWz8zwyIf5EkduHqFPFxh7/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3Q9M-C9PT-Q9MP-X?cat=2997966&i=16&lang=uk,,,,
@@ -716,6 +716,8 @@ rec_970_d,,Метричні книги,d,Запис про смерть,,,https:
 rec_971_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1yMLv7iudoFITURJIdEHBtK8nGkuQwjLh/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GRSJ-XP9?wc=QVG9-F4W%3A180600901%2C204054701%2C204055801%26cc%3D1910265&lang=uk&i=42&cc=1910265,,,,
 rec_991_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1wUAXAZQczKMIQK_LnoNumCvegGgdN0q2/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GRSJ-XTW?wc=QVG9-F4W%3A180600901%2C204054701%2C204055801%26cc%3D1910265&lang=uk&i=39&cc=1910265,,,,
 rec_1014_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1tXcpOU-SvsotjikPMimB9P7lHtGHsGnz/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33S7-9RSH-9C8V?wc=QV6D-4P4%3A180600901%2C192872401%2C192915701%26cc%3D1910265&lang=uk&i=4&cc=1910265,,,,
+rec_1018_d-1,,,,,,,https://drive.google.com/file/d/1N33OevAF5xglBdNbPYHADBIUG4xrHGDn/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:3Q9M-C9PT-Q1Y3?cat=2997966&i=56&lang=uk,,,,
+rec_1018_d,,,,,,,https://drive.google.com/file/d/1O3ASnSSNH0xHdTSzfWDY-xCfqd3ukyu-/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GRSM-DJJ?wc=QV6D-4GM%3A180600901%2C192872401%2C192909601%26cc%3D1910265&lang=uk&i=13&cc=1910265&groupId=1910265,,,,
 rec_1044_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1_XyAkNWLrQePUQBty8ESQ05yzaX18gNU/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33S7-9GFQ-9VDM?i=95&wc=Q866-N3N%3A375541101%2C378598501%2C379069801%2C379572201&cc=1921824&lang=uk,,,,
 rec_1176_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/1dR1CiKs27VzL62m7sGslRRMJzn1A6HUG/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33S7-9GNX-4P3?i=109&wc=Q866-VL9%3A375541101%2C378598501%2C379069801%2C379942501&cc=1921824&lang=uk,,,,
 rec_1280_d,,Метричні книги,d,Запис про смерть,,,https://drive.google.com/file/d/196Laz-YdRijHQS8amHNG18gw6meyz_gY/view?usp=drive_web,,https://www.familysearch.org/ark:/61903/3:1:33SQ-GTWL-9ZKJ?i=45&wc=Q866-GNJ%3A375541101%2C378598501%2C378674901%2C378821501&cc=1921824&lang=uk,,,,
