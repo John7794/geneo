@@ -31,7 +31,7 @@ export function renderPersonTile(
                 <div class="${UI_CLASSES.avatarPlaceholder}">?</div>
             </div>
             <div class="${UI_CLASSES.kinshipCardInfo}">
-                <div class="${UI_CLASSES.kinshipCardRoleLabel}">${roleLabel}</div>
+                <div class="${UI_CLASSES.kinshipCardRoleLabel}" title="${roleLabel}">${roleLabel}</div>
                 <div class="${UI_CLASSES.kinshipCardName}">${unknownLabel}</div>
             </div>
         </div>`;
@@ -107,7 +107,7 @@ export function renderPersonTile(
         </div>
         
         <div class="${UI_CLASSES.kinshipCardInfo}">
-            <div class="${UI_CLASSES.kinshipCardRoleLabel}">${roleLabel}</div>
+            <div class="${UI_CLASSES.kinshipCardRoleLabel}" title="${roleLabel}">${roleLabel}</div>
             <div class="${UI_CLASSES.kinshipCardName}">${nameHtml}</div>
         </div>
 

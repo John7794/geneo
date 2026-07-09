@@ -18,7 +18,7 @@
 /* Префікс/лейбл (напр. "нар.", "пом.", "бл.", "за новим стилем") */
 .date-format-label {
 	font-size: 0.85em; /* Менша за дату, до якої належить */
-	color: var(--color-text-muted);
+	color: inherit;
 	margin-right: 0.25rem;
 	margin-left: 0.25rem;
 	font-family: var(--font-family-secondary);

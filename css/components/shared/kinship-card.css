@@ -129,6 +129,9 @@
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	margin-bottom: 2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /* ІМ'Я */

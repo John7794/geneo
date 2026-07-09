@@ -157,23 +157,16 @@ html[data-theme="dark"] .data-row {
 	display: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
 	.profile-sidebar {
 		display: block;
 		position: fixed;
 		top: 90px;
 		left: 30px;
-		width: 180px;
+		width: 200px;
 		max-height: calc(100vh - 120px);
 		overflow-y: auto;
 		z-index: 100;
-	}
-}
-
-@media (min-width: 1200px) {
-	.profile-sidebar {
-		left: 30px;
-		width: 200px;
 	}
 }
 

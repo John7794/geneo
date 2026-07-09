@@ -105,7 +105,7 @@ export function renderSiblingsSection(person) {
 
 	contentHTML += renderSiblingGroup(
 		full,
-		"siblings.full",
+		"profile.siblingsFull",
 		"Рідні",
 		ctx,
 		myId,
@@ -114,7 +114,7 @@ export function renderSiblingsSection(person) {
 
 	contentHTML += renderSiblingGroup(
 		halfP,
-		"siblings.consanguine",
+		"profile.siblingsConsanguine",
 		"Єдинокровні (по татові)",
 		ctx,
 		myId,
@@ -123,7 +123,7 @@ export function renderSiblingsSection(person) {
 
 	contentHTML += renderSiblingGroup(
 		halfM,
-		"siblings.uterine",
+		"profile.siblingsUterine",
 		"Єдиноутробні (по мамі)",
 		ctx,
 		myId,
@@ -132,7 +132,7 @@ export function renderSiblingsSection(person) {
 
 	contentHTML += renderSiblingGroup(
 		step,
-		"siblings.step",
+		"profile.siblingsStep",
 		"Зведені",
 		ctx,
 		myId,

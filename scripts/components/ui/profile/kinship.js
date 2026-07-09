@@ -19,7 +19,7 @@ function renderKinshipCard(item, ctx) {
 	const formattedName = getFormattedGenitiveNameHtml(item);
 	const safeRole = escapeHtml(item.role || "");
 
-	const roleHtml = `<div class="${UI_CLASSES.kinshipCardRole}">${safeRole}</div>`;
+	const roleHtml = `<div class="${UI_CLASSES.kinshipCardRole}" title="${safeRole}">${safeRole}</div>`;
 	const nameHtml = `<div class="${UI_CLASSES.kinshipCardName}">${formattedName}</div>`;
 
 	if (item.personId) {
