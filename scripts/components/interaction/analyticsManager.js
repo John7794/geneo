@@ -282,38 +282,27 @@ export class AnalyticsManager {
         
         const renderLifespanBlock = (title, spans) => {
             if (spans.length === 0) return '';
-            let maxObj = spans[0], minObj = spans[0];
 			let sum = 0;
 			for(let i=0; i<spans.length; i++) {
-				if(spans[i].age > maxObj.age) maxObj = spans[i];
-				if(spans[i].age < minObj.age) minObj = spans[i];
 				sum += spans[i].age;
 			}
 			const avg = Math.round(sum / spans.length);
 			
-			const makeLink = (obj) => {
-				const person = this.engine.getPerson(obj.id);
-				const yearsLabel = `${obj.bYear || "?"} - ${obj.dYear || "?"}`;
-				if (person) {
-				    return `<span class="analytics-stat-value" style="margin-bottom:8px; display:inline-block;">${obj.age}</span><br>${renderPersonTile(person, {}, yearsLabel, false)}`;
-				}
+			const sortedSpans = [...spans].sort((a, b) => b.age - a.age);
+			
+			const makeTag = (obj) => {
 				const shortName = obj.name ? obj.name.replace(/[\?0-9]/g, '').trim() : "Невідомо";
-				return `<span class="analytics-stat-value">${obj.age}</span><br><span class="analytics-stat-label">(<a href="#" onclick="event.preventDefault(); if(window.app && window.app.navigateToId) { window.app.navigateToId('${obj.id}', false, 'profile');  }" class="analytics-link">${shortName}</a>)</span>`;
+				return `<a href="#" onclick="event.preventDefault(); if(window.app && window.app.navigateToId) { window.app.navigateToId('${obj.id}', false, 'profile'); }" style="display: inline-flex; align-items: center; background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 20px; padding: 4px 12px 4px 4px; text-decoration: none; color: var(--color-text-main); font-size: 14px; gap: 8px; transition: background 0.2s;" onmouseover="this.style.background='var(--color-bg)'" onmouseout="this.style.background='var(--color-surface)'">
+					<span style="background: var(--color-primary); color: white; border-radius: 16px; padding: 2px 8px; font-weight: bold; font-size: 13px;">${obj.age}</span>
+					<span>${shortName}</span>
+				</a>`;
 			};
 			
             return `
-                <div class="analytics-stat-title">${title}</div>
-                <div class="analytics-stat-card">
-					<div class="analytics-stat-value">${avg}</div>
-					<div class="analytics-stat-label">Середня</div>
-				</div>
-				<div class="analytics-stat-card">
-					<div class="analytics-stat-value">${makeLink(maxObj)}</div>
-					<div class="analytics-stat-label">Найбільша</div>
-				</div>
-				<div class="analytics-stat-card">
-					<div class="analytics-stat-value">${makeLink(minObj)}</div>
-					<div class="analytics-stat-label">Найменша</div>
+                <div class="analytics-stat-title" style="margin-bottom: 4px;">${title}</div>
+				<div style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 12px;">Середній вік: ${avg}</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;">
+					${sortedSpans.map(s => makeTag(s)).join('')}
 				</div>
             `;
         };
