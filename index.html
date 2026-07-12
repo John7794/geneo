@@ -77,6 +77,7 @@
 		<link rel="stylesheet" href="css/components/interaction/onboarding.css" />
 		<link rel="stylesheet" href="css/components/interaction/lineage.css" />
 		<link rel="stylesheet" href="css/components/interaction/navigation.css" />
+		<link rel="stylesheet" href="css/components/interaction/analytics.css" />
 
 		<link rel="stylesheet" href="css/utilities.css" />
 		<link rel="stylesheet" href="css/states.css" />
@@ -117,6 +118,7 @@
 
 			<div class="top-bar-controls">
 				<div class="control-group unified-panel">
+
 					<button
 						id="btn-home"
 						class="btn btn-icon"
@@ -125,6 +127,7 @@
 					>
 						<i class="ri-home-4-line"></i>
 					</button>
+
 					<button
 						id="btn-share"
 						class="btn btn-icon js-open-share"
@@ -134,6 +137,7 @@
 					>
 						<i class="ri-share-line"></i>
 					</button>
+
 					<button
 						id="btn-search"
 						class="btn btn-icon js-open-search"
@@ -142,6 +146,7 @@
 					>
 						<i class="ri-search-line"></i>
 					</button>
+
 					<button
 						id="btn-lineage"
 						class="btn btn-icon js-open-lineage"
@@ -153,6 +158,15 @@
 
 					<hr class="panel-divider" />
 
+
+
+					<button
+						id="btn-analytics"
+						class="btn btn-icon js-open-analytics"
+						title="Аналітика"
+					>
+						<i class="ri-bar-chart-2-line"></i>
+					</button>
 					<button
 						id="btn-events"
 						class="btn btn-icon hidden"
@@ -166,6 +180,7 @@
 						></span>
 					</button>
 
+
 					<button
 						id="theme-toggle"
 						class="btn btn-icon"
@@ -177,7 +192,7 @@
 
 					<div class="lang-menu-wrapper">
 						<button
-							id="btn-lang-toggle"
+						id="btn-lang-toggle"
 							class="btn btn-icon"
 							title="Змінити мову"
 							data-i18n-title="ui.langTitle"
@@ -195,6 +210,7 @@
 						</div>
 					</div>
 
+
 					<button
 						id="btn-help"
 						class="btn btn-icon js-open-help"
@@ -210,6 +226,7 @@
 
 			<div id="tree-view" class="tree-container">
 				<div class="zoom-controls">
+
 					<button
 						id="btn-zoom-in"
 						class="btn btn-icon"
@@ -218,6 +235,7 @@
 					>
 						<i class="ri-add-line"></i>
 					</button>
+
 					<button
 						id="btn-zoom-reset"
 						class="btn btn-icon"
@@ -226,6 +244,7 @@
 					>
 						<i class="ri-fullscreen-line"></i>
 					</button>
+
 					<button
 						id="btn-zoom-out"
 						class="btn btn-icon"
@@ -253,7 +272,7 @@
 							Обрати лінію роду
 						</h3>
 						<button
-							id="btn-close-lineage"
+						id="btn-close-lineage"
 							class="modal-close"
 							data-i18n-title="ui.close"
 						>
@@ -312,7 +331,7 @@
 							autocomplete="off"
 						/>
 						<button
-							id="btn-close-search"
+						id="btn-close-search"
 							class="modal-close"
 							data-i18n-title="ui.close"
 						>
@@ -354,7 +373,7 @@
 							</div>
 						</h3>
 						<button
-							id="btn-close-events"
+						id="btn-close-events"
 							class="modal-close"
 							data-i18n-title="ui.close"
 						>
@@ -387,10 +406,10 @@
 					</div>
 					<div class="popup-body">
 						<div class="search-form" style="margin-bottom: 24px;">
-							<label style="display:block; margin-bottom: 8px; font-weight: 500;">Вкажіть email отримувача:</label>
+							<label style="display:block; margin-bottom: 8px; font-weight: 500;">Вкажіть email або телефон отримувача:</label>
 							<div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg); width: 100%; box-sizing: border-box;">
-								<i class="ri-mail-line text-muted"></i>
-								<input type="email" id="share-email-input" placeholder="email@example.com" style="flex: 1; min-width: 0; width: 100%; border: none; background: transparent; outline: none; font-family: inherit; font-size: 16px; color: var(--color-text-main); padding: 0;" />
+								<i class="ri-user-add-line text-muted"></i>
+								<input type="text" id="share-email-input" placeholder="email@example.com або +380123456789" style="flex: 1; min-width: 0; width: 100%; border: none; background: transparent; outline: none; font-family: inherit; font-size: 16px; color: var(--color-text-main); padding: 0;" />
 							</div>
 						</div>
 						<div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
@@ -408,6 +427,90 @@
 				</div>
 			</div>
 
+			<!-- Analytics Modal -->
+						<div id="analytics-view" class="hidden analytics-view">
+				<div class="analytics-header">
+					<div class="analytics-header-left">
+						<button id="btn-back-analytics" class="btn-icon" title="Назад">
+							<i class="ri-arrow-left-line"></i>
+						</button>
+						<i class="ri-bar-chart-2-line text-primary"></i>
+						<h1>Аналітика родоводу</h1>
+					</div>
+					<button id="btn-close-analytics" class="btn-icon" title="Закрити">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+				<div class="profile-body analytics-body">
+					<div id="analytics-content" class="analytics-content">
+						<!-- General Stats -->
+						<div class="analytics-section">
+<h4>Загальна статистика</h4>
+<div class="analytics-section-content">
+<div id="analytics-general" class="analytics-grid-2">
+</div>
+</div>
+						</div>
+						<!-- Lifespan Stats -->
+						<div class="analytics-section">
+<h4>Тривалість життя</h4>
+<div class="analytics-section-content">
+<div id="analytics-lifespan" class="analytics-grid-3">
+</div>
+</div>
+						</div>
+						<!-- Surnames -->
+						<div class="analytics-section">
+<h4>Прізвища родоводів</h4>
+<div class="analytics-section-content">
+<ul id="analytics-surnames" class="analytics-list-none"></ul>
+</div>
+</div>
+                        <!-- Popular Names -->
+						<div class="analytics-section">
+<h4>Імена</h4>
+<div class="analytics-section-content">
+<div class="analytics-names-grid">
+								<div>
+									<h5>Чоловічі</h5>
+									<ul id="analytics-names-m" class="analytics-list-none"></ul>
+								</div>
+								<div>
+									<h5>Жіночі</h5>
+									<ul id="analytics-names-f" class="analytics-list-none"></ul>
+								</div>
+							</div>
+						</div>
+						<!-- Popular Places -->
+						<div class="analytics-section">
+<h4>Населені пункти</h4>
+<div class="analytics-section-content">
+<ul id="analytics-places" class="analytics-list-none"></ul>
+</div>
+</div>
+						
+						<!-- Causes of Death -->
+						<div class="analytics-section">
+<h4>Причини смерті</h4>
+<div class="analytics-section-content">
+<ul id="analytics-deaths" class="analytics-list-none"></ul>
+</div>
+</div>
+
+						<!-- Religions -->
+						
+
+						<!-- Coats of arms -->
+						<div class="analytics-section">
+<h4>Герби</h4>
+<div class="analytics-section-content">
+<ul id="analytics-coats" class="analytics-coats-grid"></ul>
+</div>
+</div>
+					</div>
+				</div>
+			</div>
+			</div>
 			<div id="help-overlay" class="popup-overlay hidden">
 				<div class="popup-container popup-container--help">
 					<div class="popup-header">
@@ -418,7 +521,7 @@
 							>
 						</h3>
 						<button
-							id="btn-close-help"
+						id="btn-close-help"
 							class="modal-close"
 							title="Закрити"
 							data-i18n-title="common.close"

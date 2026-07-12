@@ -43,8 +43,9 @@ export class ShareManager {
 	handleInput(e) {
 		const val = e.target.value.trim();
 		const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+		const isValidPhone = /^\+?[0-9\s\-\(\)]{7,20}$/.test(val);
 		if (this.btnSubmit) {
-			this.btnSubmit.disabled = !isValidEmail;
+			this.btnSubmit.disabled = !(isValidEmail || isValidPhone);
 		}
 	}
 

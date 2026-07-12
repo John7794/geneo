@@ -320,6 +320,8 @@ export class AppRouter {
 	_setUIVisibility(mode) {
 		const treeViewEl = document.getElementById("tree-view");
 		const profileContentEl = document.getElementById("profile-content");
+		const analyticsViewEl = document.getElementById("analytics-view");
+		if (analyticsViewEl) analyticsViewEl.classList.add("hidden");
 
 		if (mode === "error") {
 			document.body.classList.add("error-state-active");
@@ -341,6 +343,17 @@ export class AppRouter {
 				treeViewEl.style.transition = "";
 			}
 			if (profileContentEl) profileContentEl.classList.remove("hidden");
+		} else if (mode === "analytics") {
+			document.body.classList.remove("error-state-active");
+			if (treeViewEl) treeViewEl.classList.add("hidden");
+			if (profileContentEl) profileContentEl.classList.add("hidden");
+			if (analyticsViewEl) analyticsViewEl.classList.remove("hidden");
+		}
+		
+		const breadcrumbsEl = document.getElementById("breadcrumbs-container");
+		if (breadcrumbsEl) {
+		    if (mode === "analytics") breadcrumbsEl.style.display = "none";
+		    else breadcrumbsEl.style.display = "";
 		}
 	}
 
@@ -447,10 +460,15 @@ export class AppRouter {
 
 		managers.relationship?.restoreUI(false);
 
-		if (viewParam !== "profile") {
-			this._renderTree(id, engine);
-		} else {
+		console.log("View param:", viewParam);
+		if (viewParam === "analytics") {
+			console.log("Analytics view triggered");
+			this._setUIVisibility("analytics");
+			if (managers.analytics) managers.analytics.render();
+		} else if (viewParam === "profile") {
 			this._renderProfile(personData);
+		} else {
+			this._renderTree(id, engine);
 		}
 
 		managers.navigation?.start(id);

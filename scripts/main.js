@@ -18,6 +18,7 @@ import { LineageManager } from "./components/interaction/lineageManager.js";
 import { ZoomManager } from "./components/interaction/zoomManager.js";
 import { enableDragScroll } from "./components/interaction/dragScrollManager.js";
 import { LangManager } from "./components/interaction/langManager.js";
+import { AnalyticsManager } from "./components/interaction/analyticsManager.js";
 import { ThemeManager } from "./components/interaction/themeManager.js";
 import { MobileMenuManager } from "./components/interaction/mobileMenuManager.js";
 import { ShareManager } from "./components/interaction/shareManager.js";
@@ -66,7 +67,7 @@ class App {
 
 					const btnShare = document.getElementById("btn-share");
 					if (btnShare) {
-						btnShare.style.display = userConfig.canShare ? "" : "none";
+						btnShare.style.display = ""; // Always show share button for now, as user wants it back
 					}
 					const btnUpdate = document.getElementById("btn-update-data");
 					if (btnUpdate) {
@@ -141,6 +142,8 @@ class App {
 			this.navigateToId,
 			() => this.managers.lineage,
 		);
+		console.log("   ➤ Ініціалізація AnalyticsManager...");
+		this.managers.analytics = new AnalyticsManager(this.engine);
 
 		console.log("   ➤ Ініціалізація RelationshipManager...");
 		this.managers.relationship = new RelationshipManager(
