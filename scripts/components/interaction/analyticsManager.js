@@ -331,10 +331,20 @@ export class AnalyticsManager {
                     sortedEntries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
                 }
 
+                
+                container.style.display = "flex";
+                container.style.flexWrap = "wrap";
+                container.style.gap = "8px";
                 container.innerHTML = sortedEntries.map(s => {
                     let hasNicknames = includeNicknames && nicknamesMap[s[0]];
-                    let html = `<li class="analytics-list-item ${hasNicknames ? 'has-sublist' : ''}">`;
-                    html += `<div class="analytics-list-item-content"><span>${s[0]}</span> <span class="analytics-list-count">(${s[1]})</span></div>`;
+                    
+                    let html = `<li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">`;
+                    
+                    html += `<div style="display: flex; align-items: center; gap: 6px;">
+                        <span>${s[0]}</span> 
+                        <span style="background: var(--color-bg); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${s[1]}</span>
+                    </div>`;
+
                     if (hasNicknames) {
                         let sortedNn = [];
                         if (sortMode === 'appearance') {
@@ -346,14 +356,15 @@ export class AnalyticsManager {
                         }
                         
                         if (sortedNn.length > 0) {
-                            html += `<ul class="analytics-sublist">`;
-                            html += sortedNn.map(nn => `<li class="analytics-sublist-item"><span>${nn[0]}</span> <span class="analytics-list-count">(${nn[1]})</span></li>`).join('');
-                            html += `</ul>`;
+                            html += `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--color-border-light);">`;
+                            html += sortedNn.map(nn => `<span style="font-size: 12px; color: var(--color-text-muted);">${nn[0]} (${nn[1]})</span>`).join('');
+                            html += `</div>`;
                         }
                     }
                     html += `</li>`;
                     return html;
                 }).join('');
+
             };
             
             // Set up sorting controls inside the section header
