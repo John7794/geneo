@@ -283,6 +283,7 @@ export class AnalyticsManager {
         const renderLifespanBlock = (title, spans) => {
             if (spans.length === 0) return '';
 			let sum = 0;
+            let maxAge = spans.length > 0 ? Math.max(...spans.map(s => s.age)) : 0;
 			for(let i=0; i<spans.length; i++) {
 				sum += spans[i].age;
 			}
@@ -292,17 +293,40 @@ export class AnalyticsManager {
 			
 			const makeTag = (obj) => {
 				const shortName = obj.name ? obj.name.replace(/[\?0-9]/g, '').trim() : "Невідомо";
-				return `<a href="#" onclick="event.preventDefault(); if(window.app && window.app.navigateToId) { window.app.navigateToId('${obj.id}', false, 'profile'); }" style="display: inline-flex; align-items: center; background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 20px; padding: 4px 12px 4px 4px; text-decoration: none; color: var(--color-text-main); font-size: 14px; gap: 8px; transition: background 0.2s;" onmouseover="this.style.background='var(--color-bg)'" onmouseout="this.style.background='var(--color-surface)'">
-					<span style="background: var(--color-primary); color: white; border-radius: 16px; padding: 2px 8px; font-weight: bold; font-size: 13px;">${obj.age}</span>
-					<span>${shortName}</span>
+                const widthPercent = maxAge > 0 ? (obj.age / maxAge) * 100 : 0;
+				return `<a href="#" onclick="event.preventDefault(); if(window.app && window.app.navigateToId) { window.app.navigateToId('${obj.id}', false, 'profile'); }" style="display: flex; align-items: center; background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 20px; padding: 4px 12px 4px 4px; text-decoration: none; color: var(--color-text-main); font-size: 14px; gap: 8px; transition: background 0.2s; width: ${widthPercent}%; min-width: 120px; margin-bottom: 4px;" onmouseover="this.style.background='var(--color-bg)'" onmouseout="this.style.background='var(--color-surface)'">
+					<span style="background: var(--color-primary); color: white; border-radius: 16px; padding: 2px 8px; font-weight: bold; font-size: 13px; flex-shrink: 0;">${obj.age}</span>
+					<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shortName}</span>
 				</a>`;
 			};
 			
+            let rowsHtml = '';
+            let avgLineInserted = false;
+            
+            sortedSpans.forEach(s => {
+                if (!avgLineInserted && s.age < avg) {
+                    rowsHtml += `<div style="display: flex; align-items: center; margin: 8px 0; color: var(--color-text-muted); font-size: 13px; width: 100%;">
+                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light); margin-right: 12px;"></div>
+                        Середній вік: ${avg}
+                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light); margin-left: 12px;"></div>
+                    </div>`;
+                    avgLineInserted = true;
+                }
+                rowsHtml += makeTag(s);
+            });
+            
+            if (!avgLineInserted) {
+                 rowsHtml += `<div style="display: flex; align-items: center; margin: 8px 0; color: var(--color-text-muted); font-size: 13px; width: 100%;">
+                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light); margin-right: 12px;"></div>
+                        Середній вік: ${avg}
+                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light); margin-left: 12px;"></div>
+                    </div>`;
+            }
+
             return `
-                <div class="analytics-stat-title" style="margin-bottom: 4px;">${title}</div>
-				<div style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 12px;">Середній вік: ${avg}</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;">
-					${sortedSpans.map(s => makeTag(s)).join('')}
+                <div class="analytics-stat-title" style="margin-bottom: 12px; font-weight: bold;">${title}</div>
+                <div style="display: flex; flex-direction: column; width: 100%; margin-bottom: 24px;">
+					${rowsHtml}
 				</div>
             `;
         };
