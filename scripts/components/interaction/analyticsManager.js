@@ -517,16 +517,16 @@ export class AnalyticsManager {
                                 <span>${s[0]}</span>
                                 <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${s[1]}</span>
                             </div>
-                            ${hasNicknames ? `<div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--color-border-light);">${Array.from(nicknamesMap[s[0]]).join(', ')}</div>` : ''}
+                            ${hasNicknames ? `<div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--color-border-light);">${Object.keys(nicknamesMap[s[0]]).join(', ')}</div>` : ''}
                         </li>
                     `;
                 }).join("");
             };
         };
 
-        const renderNamesM = createSortRenderer(this.containerNamesM, namesM, namesMOrder, true);
-        const renderNamesF = createSortRenderer(this.containerNamesF, namesF, namesFOrder, true);
-        const renderSurnames = createSortRenderer(document.getElementById("analytics-surnames-list"), surnamesMap, surnamesOrder, false);
+        const renderNamesM = createSortRenderer(this.containerNamesM, namesM, namesMOrder, false);
+        const renderNamesF = createSortRenderer(this.containerNamesF, namesF, namesFOrder, false);
+        const renderSurnames = createSortRenderer(document.getElementById("analytics-surnames"), surnamesMap, surnamesOrder, true);
 
         // Initial render: sort by appearance (за згадкою)
         renderNamesM('appearance');
@@ -549,7 +549,12 @@ export class AnalyticsManager {
             }
         }
         
-        // Surnames might need their own sorting buttons if added later, right now they are static or can use the same logic if added.
+        
+                // Surnames sorting bindings
+                document.querySelectorAll('.btn-sort-freq-s').forEach(b => b.onclick = (e) => { e.preventDefault(); renderSurnames('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+                document.querySelectorAll('.btn-sort-alpha-s').forEach(b => b.onclick = (e) => { e.preventDefault(); renderSurnames('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+                document.querySelectorAll('.btn-sort-app-s').forEach(b => b.onclick = (e) => { e.preventDefault(); renderSurnames('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+
 
 
         console.log("namesM length:", Object.keys(namesM).length); const uniqueNamesMCount = Object.keys(namesM).length;
