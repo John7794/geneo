@@ -203,7 +203,7 @@ export class AnalyticsManager {
         }
 
 
-        const normalizeSurname = (surname) => {
+        console.log("Basic length:", this.engine.db.basic?.length); const normalizeSurname = (surname) => {
             let s = surname.replace(/[\?0-9]/g, '').trim();
             const boundary = "(?![А-Яа-яЄєІіЇїҐґa-zA-Z])";
             s = s.replace(new RegExp("ська" + boundary, "g"), "ський");
@@ -493,10 +493,10 @@ export class AnalyticsManager {
 
 
 		// Helper to render sortable list
-        const renderSortableList = (container, dataMap, orderArray, includeNicknames = false) => {
-            if (!container) return;
-            
-            const renderData = (sortMode) => {
+        
+        const createSortRenderer = (container, dataMap, orderArray, includeNicknames = false) => {
+            if (!container) return () => {};
+            return (sortMode) => {
                 let sortedEntries = [];
                 if (sortMode === 'appearance') {
                     sortedEntries = orderArray.map(k => [k, dataMap[k]]);
@@ -505,7 +505,6 @@ export class AnalyticsManager {
                 } else if (sortMode === 'frequency') {
                     sortedEntries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
                 }
-
                 
                 container.style.display = "flex";
                 container.style.flexWrap = "wrap";
@@ -523,30 +522,37 @@ export class AnalyticsManager {
                     `;
                 }).join("");
             };
-            
-            renderData('frequency');
-            
-            const btnSortFreq = container.parentElement.querySelector('.btn-sort-freq');
-            const btnSortAlpha = container.parentElement.querySelector('.btn-sort-alpha');
-            const btnSortApp = container.parentElement.querySelector('.btn-sort-app');
-            
-            if (btnSortFreq) {
-                 btnSortFreq.onclick = (e) => { e.preventDefault(); renderData('frequency'); };
-            }
-            if (btnSortAlpha) {
-                 btnSortAlpha.onclick = (e) => { e.preventDefault(); renderData('alphabet'); };
-            }
-            if (btnSortApp) {
-                 btnSortApp.onclick = (e) => { e.preventDefault(); renderData('appearance'); };
-            }
         };
 
-        
-        renderSortableList(this.containerNamesM, namesM, namesMOrder, true);
-        renderSortableList(this.containerNamesF, namesF, namesFOrder, true);
-        renderSortableList(document.getElementById("analytics-surnames-list"), surnamesMap, surnamesOrder);
+        const renderNamesM = createSortRenderer(this.containerNamesM, namesM, namesMOrder, true);
+        const renderNamesF = createSortRenderer(this.containerNamesF, namesF, namesFOrder, true);
+        const renderSurnames = createSortRenderer(document.getElementById("analytics-surnames-list"), surnamesMap, surnamesOrder, false);
 
-        const uniqueNamesMCount = Object.keys(namesM).length;
+        // Initial render: sort by appearance (за згадкою)
+        renderNamesM('appearance');
+        renderNamesF('appearance');
+        renderSurnames('frequency');
+
+        // Bind global names sort buttons
+        if (this.containerNamesM) {
+            const namesSection = this.containerNamesM.closest('.analytics-section-content');
+            if (namesSection) {
+                const updateSort = (mode) => {
+                    renderNamesM(mode);
+                    renderNamesF(mode);
+                };
+                
+                // Bind all buttons with these classes globally or within document
+                document.querySelectorAll('.btn-sort-freq').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+                document.querySelectorAll('.btn-sort-alpha').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+                document.querySelectorAll('.btn-sort-app').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+            }
+        }
+        
+        // Surnames might need their own sorting buttons if added later, right now they are static or can use the same logic if added.
+
+
+        console.log("namesM length:", Object.keys(namesM).length); const uniqueNamesMCount = Object.keys(namesM).length;
         const uniqueNamesFCount = Object.keys(namesF).length;
         const uniqueSurnamesCount = Object.keys(surnamesMap).length;
         const uniquePlacesCount = Object.keys(placesCount).length;

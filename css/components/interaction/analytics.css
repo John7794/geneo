@@ -351,3 +351,16 @@
         display: inline-block !important;
     }
 }
+
+
+@media (max-width: 600px) {
+    .analytics-sort-desktop {
+        display: none !important;
+    }
+    .analytics-sort-mobile {
+        display: block !important;
+    }
+    .analytics-names-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

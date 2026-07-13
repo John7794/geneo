@@ -485,16 +485,45 @@
 						<div class="analytics-section">
 <h4>Імена</h4>
 <div class="analytics-section-content">
-<div class="analytics-names-grid">
-								<div>
-									<h5>Чоловічі</h5>
-									<ul id="analytics-names-m" class="analytics-list-none"></ul>
-								</div>
-								<div>
-									<h5>Жіночі</h5>
-									<ul id="analytics-names-f" class="analytics-list-none"></ul>
-								</div>
-							</div>
+
+<div class="analytics-sort-controls">
+    <!-- Desktop sort buttons -->
+    <div class="analytics-sort-desktop" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+        <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
+        <button class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
+        <button class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
+    </div>
+    
+    <!-- Mobile sort popup trigger -->
+    <div class="analytics-sort-mobile" style="display: none; margin-bottom: 16px;">
+        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').style.display='flex'">
+            <i class="ri-sort-desc"></i> Сортувати імена
+        </button>
+    </div>
+</div>
+
+<!-- Mobile Sort Popup Modal -->
+<div id="mobile-sort-popup" class="popup-overlay" style="display: none; z-index: 9999;" onclick="if(event.target===this) this.style.display='none'">
+    <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
+        <button class="btn btn-outline btn-sort-app" onclick="document.getElementById('mobile-sort-popup').style.display='none'">За згадкою</button>
+        <button class="btn btn-outline btn-sort-alpha" onclick="document.getElementById('mobile-sort-popup').style.display='none'">За алфавітом</button>
+        <button class="btn btn-outline btn-sort-freq" onclick="document.getElementById('mobile-sort-popup').style.display='none'">За популярністю</button>
+        <button class="btn btn-primary mt-2" onclick="document.getElementById('mobile-sort-popup').style.display='none'">Закрити</button>
+    </div>
+</div>
+
+<div id="analytics-names" class="analytics-names-grid">
+    <div>
+        <h5>Чоловічі</h5>
+        <ul id="analytics-names-m" class="analytics-list-none"></ul>
+    </div>
+    <div>
+        <h5>Жіночі</h5>
+        <ul id="analytics-names-f" class="analytics-list-none"></ul>
+    </div>
+</div>
+
 						</div>
 						<!-- Popular Places -->
 						<div class="analytics-section">
