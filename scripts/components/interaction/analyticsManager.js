@@ -63,7 +63,13 @@ export class AnalyticsManager {
 	}
 
 	render() {
-		this.calculateStats();
+        try {
+		    this.calculateStats();
+        } catch (e) {
+            if (this.containerSummary) {
+                this.containerSummary.innerHTML = '<div style="color:red; font-size:20px;">ERROR: ' + e.message + '<br>' + e.stack + '</div>';
+            }
+        }
 	}
 
 	initAccordions() {
@@ -375,7 +381,7 @@ export class AnalyticsManager {
                 if (!avgLineInserted && s.age < avg) {
                     rowsHtml += `<div style="display: flex; align-items: center; margin: 12px 0; color: var(--color-text-muted); font-size: 13px; width: 100%;">
                         Середній вік: ${avg}
-                        <div style="flex-grow: 1; height: 1px; background: var(--color-primary); margin-left: 12px; opacity: 0.3;"></div>
+                        <div style="flex-grow: 1; height: 1px; background: var(--color-border); margin-left: 12px; opacity: 0.3;"></div>
                     </div>`;
                     avgLineInserted = true;
                 }
@@ -385,7 +391,7 @@ export class AnalyticsManager {
             if (!avgLineInserted) {
                  rowsHtml += `<div style="display: flex; align-items: center; margin: 12px 0; color: var(--color-text-muted); font-size: 13px; width: 100%;">
                         Середній вік: ${avg}
-                        <div style="flex-grow: 1; height: 1px; background: var(--color-primary); margin-left: 12px; opacity: 0.3;"></div>
+                        <div style="flex-grow: 1; height: 1px; background: var(--color-border); margin-left: 12px; opacity: 0.3;"></div>
                     </div>`;
             }
 
