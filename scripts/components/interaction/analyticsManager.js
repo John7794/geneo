@@ -159,6 +159,15 @@ export class AnalyticsManager {
         
         // Count places
         
+        
+        const getBOMSafeValue = (obj, colName) => {
+            if (!obj) return undefined;
+            if (obj[colName] !== undefined) return obj[colName];
+            const key = Object.keys(obj).find(k => k.trim().replace(/^\uFEFF/, '') === colName);
+            if (key) return obj[key];
+            return undefined;
+        };
+
         const countPlace = (placeId, eventType, pid) => {
             const cleanId = placeId ? String(placeId).trim() : "";
             if (cleanId !== "") {
@@ -177,36 +186,38 @@ export class AnalyticsManager {
             this.engine.db.birth.forEach(b => {
                 const pid = b[COLUMNS.birth?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", pid);
+                countPlace(getBOMSafeValue(b, COLUMNS.birth?.placeId || "place_id"), "народження", pid);
             });
         }
         if (this.engine.db.death) {
             this.engine.db.death.forEach(d => {
                 const pid = d[COLUMNS.death?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", pid);
+                countPlace(getBOMSafeValue(d, COLUMNS.death?.placeId || "place_id"), "смерть", pid);
             });
         }
-        if (this.engine.db.marriage) {
+                if (this.engine.db.marriage) {
             this.engine.db.marriage.forEach(m => {
                 const hid = m[COLUMNS.marriage?.husbandId || "husband_id"];
                 const wid = m[COLUMNS.marriage?.wifeId || "wife_id"];
                 if (visibleIds && !visibleIds.has(String(hid)) && !visibleIds.has(String(wid))) return;
-                countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб");
+                const placeId = getBOMSafeValue(m, COLUMNS.marriage?.placeId || "place_id");
+                if (hid && (!visibleIds || visibleIds.has(String(hid)))) countPlace(placeId, "шлюб", hid);
+                if (wid && (!visibleIds || visibleIds.has(String(wid)))) countPlace(placeId, "шлюб", wid);
             });
         }
         if (this.engine.db.baptism) {
             this.engine.db.baptism.forEach(m => {
                 const pid = m[COLUMNS.baptism?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення");
+                countPlace(getBOMSafeValue(m, COLUMNS.baptism?.placeId || "place_id"), "хрещення", pid);
             });
         }
         if (this.engine.db.funeral) {
             this.engine.db.funeral.forEach(m => {
                 const pid = m[COLUMNS.funeral?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання");
+                countPlace(getBOMSafeValue(m, COLUMNS.funeral?.placeId || "place_id"), "поховання", pid);
             });
         }
 
@@ -748,22 +759,56 @@ export class AnalyticsManager {
         this.containerPlaces.style.display = "flex";
         this.containerPlaces.style.flexWrap = "wrap";
         this.containerPlaces.style.gap = "8px";
-        this.containerPlaces.style.flexDirection = "row";
-        
+        this.containerPlaces.style.flexDirection = "column";
+
         this.containerPlaces.innerHTML = topPlaces.map(p => {
             const placeId = p[0];
             const placeName = placeNameMap[placeId] || "Невідоме місце (" + placeId + ")";
             const total = p[1].total;
             const eventsObj = p[1].events;
+            const peopleObj = p[1].people;
+            
+            const renderPeopleList = (eventType) => {
+                if (!peopleObj[eventType] || peopleObj[eventType].size === 0) return "";
+                const pids = Array.from(peopleObj[eventType]);
+                const peopleNames = pids.map(pid => {
+                    const person = this.engine.getPerson(pid);
+                    if (!person) return "Невідомо (" + pid + ")";
+                    
+                    let s = "";
+                    let n = "";
+                    if (person.basic) {
+                        s = person.basic[COLUMNS.basic?.surname || "surname"] || person.surname || "";
+                        n = person.basic[COLUMNS.basic?.name || "name"] || person.name || "";
+                    } else {
+                        s = person.surname || "";
+                        n = person.name || "";
+                    }
+                    s = String(s).trim();
+                    n = String(n).trim();
+                    const name = [s, n].filter(Boolean).join(" ");
+                    return name || person.fullName || "Невідомо";
+                }).filter(Boolean);
+                
+                if (peopleNames.length === 0) return "";
+                return `<div style="font-size: 12px; color: var(--color-text-main); margin-top: 4px; padding-left: 8px; border-left: 2px solid var(--color-border-light);">
+                    ${peopleNames.join(', ')}
+                </div>`;
+            };
             
             return `
-            <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span>${placeName}</span>
+            <li style="list-style: none; display: flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 12px; font-size: 14px; color: var(--color-text-main);">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                    <span style="font-weight: 600; font-size: 15px;">${placeName}</span>
                     <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${total} ${getEventWord(total)}</span>
                 </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--color-border-light);">
-                    ${Object.entries(eventsObj).map(e => `<span style="font-size: 12px; color: var(--color-text-muted);">${e[0]} (${e[1]})</span>`).join("")}
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    ${Object.entries(eventsObj).map(e => `
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 13px; font-weight: 500; color: var(--color-primary);">${e[0]} (${e[1]})</span>
+                            ${renderPeopleList(e[0])}
+                        </div>
+                    `).join("")}
                 </div>
             </li>
         `}).join("");
