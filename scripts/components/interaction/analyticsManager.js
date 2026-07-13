@@ -158,25 +158,33 @@ export class AnalyticsManager {
 		}
         
         // Count places
-        const countPlace = (placeId, eventType) => {
-            if (placeId && String(placeId).trim() !== "") {
-                if (!placesCount[placeId]) placesCount[placeId] = { total: 0, events: {} };
-                placesCount[placeId].total++;
-                placesCount[placeId].events[eventType] = (placesCount[placeId].events[eventType] || 0) + 1;
+        
+        const countPlace = (placeId, eventType, pid) => {
+            const cleanId = placeId ? String(placeId).trim() : "";
+            if (cleanId !== "") {
+                if (!placesCount[cleanId]) placesCount[cleanId] = { total: 0, events: {}, people: {} };
+                placesCount[cleanId].total++;
+                placesCount[cleanId].events[eventType] = (placesCount[cleanId].events[eventType] || 0) + 1;
+                
+                if (pid) {
+                    if (!placesCount[cleanId].people[eventType]) placesCount[cleanId].people[eventType] = new Set();
+                    placesCount[cleanId].people[eventType].add(pid);
+                }
             }
         };
+
         if (this.engine.db.birth) {
             this.engine.db.birth.forEach(b => {
                 const pid = b[COLUMNS.birth?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження");
+                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", pid);
             });
         }
         if (this.engine.db.death) {
             this.engine.db.death.forEach(d => {
                 const pid = d[COLUMNS.death?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть");
+                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", pid);
             });
         }
         if (this.engine.db.marriage) {
@@ -670,6 +678,7 @@ export class AnalyticsManager {
                              const parentSec = targetEl.closest('.analytics-section');
                              if (parentSec) {
                                  parentSec.style.display = 'block';
+                                 parentSec.classList.add('accordion-open');
                                  const h4 = parentSec.querySelector('h4');
                                  if (h4) h4.style.display = 'none'; // hide the h4 because we show it in the header
                              }
@@ -691,19 +700,33 @@ export class AnalyticsManager {
 
 
 		
+        
+        
         const placeNameMap = {};
         if (this.engine && this.engine.db && this.engine.db.places) {
             this.engine.db.places.forEach(p => {
                 const idCol = COLUMNS.places?.id || "place_id";
                 const nameCol = COLUMNS.places?.nameCurrent || "name_current";
                 const histCol = COLUMNS.places?.nameHist || "name_hist";
-                placeNameMap[p[idCol]] = p[nameCol] || p[histCol] || "Невідомо";
+                
+                // BOM safe lookup
+                let actualId = p[idCol];
+                if (actualId === undefined) {
+                    const key = Object.keys(p).find(k => k.trim().replace(/^\uFEFF/, '') === idCol);
+                    if (key) actualId = p[key];
+                }
+                
+                if (actualId) {
+                    placeNameMap[String(actualId).trim()] = p[nameCol] || p[histCol] || "Невідомо";
+                }
             });
         }
+
+
         
         // Render Places
 
-		const topPlaces = Object.entries(placesCount).sort((a, b) => b[1].total - a[1].total);
+		const topPlaces = Object.entries(placesCount).sort((a, b) => b[1].total - a[1].total); console.log("placesCount keys:", Object.keys(placesCount).length); console.log("topPlaces length:", topPlaces.length);
 
 
         
@@ -720,14 +743,23 @@ export class AnalyticsManager {
 		this.containerPlaces.style.display = "flex";
 		this.containerPlaces.style.flexWrap = "wrap";
 		this.containerPlaces.style.gap = "8px";
-		this.containerPlaces.innerHTML = topPlaces.map(p => {
+		
+        
+        this.containerPlaces.style.display = "flex";
+        this.containerPlaces.style.flexWrap = "wrap";
+        this.containerPlaces.style.gap = "8px";
+        this.containerPlaces.style.flexDirection = "row";
+        
+        this.containerPlaces.innerHTML = topPlaces.map(p => {
+            const placeId = p[0];
+            const placeName = placeNameMap[placeId] || "Невідоме місце (" + placeId + ")";
             const total = p[1].total;
             const eventsObj = p[1].events;
             
             return `
             <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">
                 <div style="display: flex; align-items: center; gap: 6px;">
-                    <span>${placeNameMap[p[0]] || "Невідоме місце (" + p[0] + ")"}</span>
+                    <span>${placeName}</span>
                     <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${total} ${getEventWord(total)}</span>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--color-border-light);">
@@ -735,6 +767,8 @@ export class AnalyticsManager {
                 </div>
             </li>
         `}).join("");
+
+
 
 
         // Causes of death

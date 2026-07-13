@@ -100,6 +100,7 @@ export async function fetchCsv(url) {
 
 			Papa.parse(csvText, {
 				header: true,
+				transformHeader: (h) => h.trim().replace(/^\uFEFF/, ""),
 				skipEmptyLines: true,
 				worker: true,
 				complete: (results) => {

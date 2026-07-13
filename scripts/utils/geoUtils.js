@@ -265,7 +265,7 @@ export function resolvePlaceDetails(placeId, year, month, day, ctx) {
 			const p = DB.places[i];
 			if (
 				p.id === cleanPlaceId ||
-				p[COLUMNS.places?.id || "place_id"] === cleanPlaceId ||
+				String(p[COLUMNS.places?.id || "place_id"] || "").trim() === cleanPlaceId ||
 				p.code === cleanPlaceId
 			) {
 				placeObj = p;
