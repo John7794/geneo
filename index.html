@@ -449,7 +449,15 @@
                         
 
                         <!-- Detailed Stats -->
-                        <div id="analytics-detailed-view" style="display: flex; flex-direction: column; gap: 24px;">
+                        <div id="analytics-detailed-view" style="display: none; flex-direction: column; gap: 24px;">
+                        
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+                            <button id="btn-back-to-summary" class="btn btn-outline" style="border-radius: 20px; padding: 6px 16px;">
+                                <i class="ri-arrow-left-line" style="margin-right: 8px;"></i> Назад
+                            </button>
+                            <h3 id="detailed-view-title" style="margin: 0; font-size: 18px; color: var(--color-text-main);">Деталі</h3>
+                        </div>
+
 						<!-- General Stats -->
 						<div class="analytics-section">
 <h4>Загальна статистика</h4>
