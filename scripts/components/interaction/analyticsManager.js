@@ -160,9 +160,10 @@ export class AnalyticsManager {
         // Count places
         const countPlace = (placeId, eventType) => {
             if (placeId && String(placeId).trim() !== "") {
-                if (!placesCount[placeId]) placesCount[placeId] = { total: 0, events: {} };
-                placesCount[placeId].total++;
-                placesCount[placeId].events[eventType] = (placesCount[placeId].events[eventType] || 0) + 1;
+                const pName = String(placeId).trim();
+                if (!placesCount[pName]) placesCount[pName] = { total: 0, events: {} };
+                placesCount[pName].total++;
+                placesCount[pName].events[eventType] = (placesCount[pName].events[eventType] || 0) + 1;
             }
         };
         if (this.engine.db.birth) {
@@ -199,6 +200,24 @@ export class AnalyticsManager {
                 const pid = m[COLUMNS.funeral?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
                 countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання");
+            });
+        }
+        if (this.engine.db.familyList) {
+            this.engine.db.familyList.forEach(f => {
+                const pid = f[COLUMNS.familyList?.id || "fam_id"];
+                if (visibleIds && !visibleIds.has(String(pid))) return;
+                countPlace(f[COLUMNS.familyList?.birthPlace || "fam_birth_place"], "народження");
+                countPlace(f[COLUMNS.familyList?.deathPlace || "fam_death_place"], "смерть");
+                countPlace(f[COLUMNS.familyList?.origin || "fam_origin_place"], "походження");
+            });
+        }
+        if (this.engine.db.participants) {
+            this.engine.db.participants.forEach(p => {
+                const pid = p[COLUMNS.participants?.id || "p_id"];
+                if (visibleIds && !visibleIds.has(String(pid))) return;
+                countPlace(p[COLUMNS.participants?.birthPlace || "p_birth_place"], "народження");
+                countPlace(p[COLUMNS.participants?.deathPlace || "p_death_place"], "смерть");
+                countPlace(p[COLUMNS.participants?.origin || "p_origin_place"], "походження");
             });
         }
 
@@ -727,7 +746,7 @@ export class AnalyticsManager {
             return `
             <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">
                 <div style="display: flex; align-items: center; gap: 6px;">
-                    <span>${placeNameMap[p[0]] || "Невідоме місце (" + p[0] + ")"}</span>
+                    <span>${placeNameMap[p[0]] || p[0]}</span>
                     <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${total} ${getEventWord(total)}</span>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--color-border-light);">
