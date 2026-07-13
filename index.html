@@ -443,6 +443,15 @@
 				</div>
 				<div class="profile-body analytics-body">
 					<div id="analytics-content" class="analytics-content">
+                        <!-- Summary Dashboard -->
+                        <div id="analytics-summary" style="display: flex; flex-direction: column; gap: 24px;"></div>
+                        
+                        <div style="display: flex; justify-content: center; margin: 20px 0;">
+                            <button id="btn-toggle-analytics-details" class="btn btn-outline" style="border-radius: 20px; padding: 8px 24px;">Детальна статистика <i class="ri-arrow-down-s-line" style="margin-left: 8px;"></i></button>
+                        </div>
+
+                        <!-- Detailed Stats -->
+                        <div id="analytics-detailed-view" style="display: none; flex-direction: column; gap: 24px;">
 						<!-- General Stats -->
 						<div class="analytics-section">
 <h4>Загальна статистика</h4>
@@ -507,6 +516,7 @@
 <ul id="analytics-coats" class="analytics-coats-grid"></ul>
 </div>
 </div>
+                        </div>
 					</div>
 				</div>
 			</div>
