@@ -13,8 +13,9 @@ export class AnalyticsManager {
 		this.containerNamesM = document.getElementById("analytics-names-m");
 		this.containerNamesF = document.getElementById("analytics-names-f");
 
-		this.containerPlaces = document.getElementById("analytics-places");
 		
+		
+		this.containerPlaces = document.getElementById("analytics-places");
 		// New summary logic
 		this.containerSummary = document.getElementById("analytics-summary");
 		this.btnToggleDetails = document.getElementById("btn-toggle-analytics-details");
@@ -572,6 +573,13 @@ export class AnalyticsManager {
         const renderSurnamesList = renderSortableList(containerSurnames, surnamesMap, surnamesOrder, true);
         if (renderSurnamesList) renderSurnamesList('appearance');
 
+                // Resolve place names
+        const placesDb = this.engine.db.places || [];
+        const placeNameMap = {};
+        placesDb.forEach(p => {
+            placeNameMap[p[COLUMNS.places?.id || "place_id"]] = p[COLUMNS.places?.nameCurrent || "name_current"] || p[COLUMNS.places?.nameHist || "name_hist"] || "Невідомо";
+        });
+
         // Generate Summary Dashboard
         if (this.containerSummary) {
             let maxAge = 0;
@@ -605,6 +613,47 @@ export class AnalyticsManager {
             let topPlaceStr = "Немає даних";
             if (topP) {
                 topPlaceStr = placeNameMap[topP[0]] || topP[0];
+            }
+            
+            // Resolve death
+            let topDeathStr = "Немає даних";
+            let topDeathCount = 0;
+            if (this.engine.db.death) {
+                const deathsMap = {};
+                this.engine.db.death.forEach(d => {
+                    let cause = d[COLUMNS.death?.cause || "d_cause"];
+                    if (cause && String(cause).trim() !== "") {
+                        cause = String(cause).trim();
+                        deathsMap[cause] = (deathsMap[cause] || 0) + 1;
+                    }
+                });
+                const topD = Object.entries(deathsMap).sort((a,b) => b[1] - a[1])[0];
+                if (topD) {
+                    topDeathStr = topD[0];
+                    topDeathCount = topD[1];
+                }
+            }
+            
+            // Resolve coat
+            let topCoatStr = "Немає даних";
+            let topCoatCount = 0;
+            if (this.engine.db.coats && this.engine.db.names) {
+                const coatsMap = {};
+                this.engine.db.names.forEach(n => {
+                    const bCoat = n[COLUMNS.names?.bCoat || "b_coat_of_arms"];
+                    const mCoat = n[COLUMNS.names?.mCoat || "m_coat_of_arms"];
+                    if (bCoat && String(bCoat).trim() !== "") {
+                        coatsMap[String(bCoat).trim()] = (coatsMap[String(bCoat).trim()] || 0) + 1;
+                    }
+                    if (mCoat && String(mCoat).trim() !== "") {
+                        coatsMap[String(mCoat).trim()] = (coatsMap[String(mCoat).trim()] || 0) + 1;
+                    }
+                });
+                const topC = Object.entries(coatsMap).sort((a,b) => b[1] - a[1])[0];
+                if (topC) {
+                    topCoatStr = topC[0];
+                    topCoatCount = topC[1];
+                }
             }
             
             let html = `
@@ -646,6 +695,18 @@ export class AnalyticsManager {
                         <div style="font-size: 16px; font-weight: 500; color: var(--color-text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${topPlaceStr}</div>
                         <div style="color: var(--color-text-meta); font-size: 12px; margin-top: 4px;">Пов'язано ${topP ? topP[1].total : 0} подій</div>
                     </div>
+                    
+                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; border-top: 4px solid var(--color-border);">
+                        <div style="color: var(--color-text-muted); font-size: 13px; margin-bottom: 8px;">Найчастіша причина смерті</div>
+                        <div style="font-size: 16px; font-weight: 500; color: var(--color-text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${topDeathStr}</div>
+                        <div style="color: var(--color-text-meta); font-size: 12px; margin-top: 4px;">Зустрічається ${topDeathCount} разів</div>
+                    </div>
+                    
+                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; border-top: 4px solid var(--color-border);">
+                        <div style="color: var(--color-text-muted); font-size: 13px; margin-bottom: 8px;">Найпоширеніший герб</div>
+                        <div style="font-size: 16px; font-weight: 500; color: var(--color-text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${topCoatStr}</div>
+                        <div style="color: var(--color-text-meta); font-size: 12px; margin-top: 4px;">${topCoatCount > 0 ? "Зустрічається " + topCoatCount + " разів" : "-"}</div>
+                    </div>
                 </div>
             `;
             
@@ -656,12 +717,7 @@ export class AnalyticsManager {
 		// Render Places
 		const topPlaces = Object.entries(placesCount).sort((a, b) => b[1].total - a[1].total);
 
-        // Resolve place names
-        const placesDb = this.engine.db.places || [];
-        const placeNameMap = {};
-        placesDb.forEach(p => {
-            placeNameMap[p[COLUMNS.places?.id || "place_id"]] = p[COLUMNS.places?.nameCurrent || "name_current"] || p[COLUMNS.places?.nameHist || "name_hist"] || "Невідомо";
-        });
+
         
         const getEventWord = (count) => {
             const lastDigit = count % 10;
