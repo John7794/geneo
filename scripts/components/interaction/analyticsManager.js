@@ -607,103 +607,155 @@ export class AnalyticsManager {
                 ageCount++;
             }
             
-            let avgAge = ageCount > 0 ? Math.round(sumAge / ageCount) : 0;
+                        const makeAgeSummary = (spans) => {
+                if (!spans || spans.length === 0) return { max: '-', min: '-', avg: '-', maxObj: null, minObj: null };
+                let sum = 0;
+                let max = -1, min = 999;
+                let maxObj = null, minObj = null;
+                spans.forEach(s => {
+                    sum += s.age;
+                    if (s.age > max) { max = s.age; maxObj = s; }
+                    if (s.age < min) { min = s.age; minObj = s; }
+                });
+                return {
+                    max, min, avg: Math.round(sum / spans.length), maxObj, minObj
+                };
+            };
+            const confStats = makeAgeSummary(lifespansConfirmed);
+            const approxStats = makeAgeSummary(lifespansApprox);
+
+                        const formatAgeRow = (label, val, obj) => {
+                const shortName = obj && obj.name ? obj.name.replace(/[\\?0-9]/g, '').trim() : "";
+                let avatarHtml = '';
+                if (obj && obj.id && window.app && window.app.engine && window.app.engine.db) {
+                    const person = window.app.engine.db.names.find(n => n.id === obj.id);
+                    if (person) {
+                        const avatarPath = window.app.engine.getPersonPhoto(person);
+                        if (avatarPath) {
+                            avatarHtml = `<img src="${avatarPath}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
+                        } else {
+                            avatarHtml = `<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-body); display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); font-size: 10px;"><i class="ri-user-3-line"></i></div>`;
+                        }
+                    }
+                } else if (obj) {
+                     avatarHtml = `<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-body); display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); font-size: 10px;"><i class="ri-user-3-line"></i></div>`;
+                }
+
+                if (!obj) {
+                    return `
+                        <div style="font-weight: 500; font-size: 13px;">${label}</div>
+                        <div style="font-weight: bold; font-size: 16px; color: var(--color-primary);">${val}</div>
+                        <div></div>
+                    `;
+                }
+
+                return `
+                    <div style="font-weight: 500; font-size: 13px;">${label}</div>
+                    <div style="font-weight: bold; font-size: 16px; color: var(--color-primary);">${val}</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${avatarHtml}
+                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text-main); font-size: 13px;">${shortName}</div>
+                    </div>
+                `;
+            };
+
+            const uniqueNamesMCount = Object.keys(namesM).length;
+            const uniqueNamesFCount = Object.keys(namesF).length;
+            const uniqueSurnamesCount = Object.keys(surnamesMap).length;
+            const uniquePlacesCount = Object.keys(placesCount).length;
             
-            // Top names and surnames
-            const topM = Object.entries(namesM).sort((a,b) => b[1] - a[1])[0];
-            const topF = Object.entries(namesF).sort((a,b) => b[1] - a[1])[0];
-            const topS = Object.entries(surnamesMap).sort((a,b) => b[1] - a[1])[0];
-            const topP = Object.entries(placesCount).sort((a,b) => b[1].total - a[1].total)[0];
-            
-            // Resolve place
-            let topPlaceStr = "Немає даних";
-            if (topP) {
-                topPlaceStr = placeNameMap[topP[0]] || topP[0];
-            }
-            
-            // Resolve death
-            let topDeathStr = "Немає даних";
-            let topDeathCount = 0;
+            let uniqueDeathsCount = 0;
             if (this.engine.db.death) {
                 const deathsMap = {};
                 this.engine.db.death.forEach(d => {
                     let cause = d[COLUMNS.death?.cause || "d_cause"];
                     if (cause && String(cause).trim() !== "") {
-                        cause = String(cause).trim();
-                        deathsMap[cause] = (deathsMap[cause] || 0) + 1;
+                        deathsMap[String(cause).trim()] = true;
                     }
                 });
-                const topD = Object.entries(deathsMap).sort((a,b) => b[1] - a[1])[0];
-                if (topD) {
-                    topDeathStr = topD[0];
-                    topDeathCount = topD[1];
-                }
+                uniqueDeathsCount = Object.keys(deathsMap).length;
             }
-            
-            // Resolve coat
-            let topCoatStr = "Немає даних";
-            let topCoatCount = 0;
+
+            let uniqueCoatsCount = 0;
             if (this.engine.db.coats && this.engine.db.names) {
                 const coatsMap = {};
                 this.engine.db.names.forEach(n => {
                     const bCoat = n[COLUMNS.names?.bCoat || "b_coat_of_arms"];
                     const mCoat = n[COLUMNS.names?.mCoat || "m_coat_of_arms"];
-                    if (bCoat && String(bCoat).trim() !== "") {
-                        coatsMap[String(bCoat).trim()] = (coatsMap[String(bCoat).trim()] || 0) + 1;
-                    }
-                    if (mCoat && String(mCoat).trim() !== "") {
-                        coatsMap[String(mCoat).trim()] = (coatsMap[String(mCoat).trim()] || 0) + 1;
-                    }
+                    if (bCoat && String(bCoat).trim() !== "") coatsMap[String(bCoat).trim()] = true;
+                    if (mCoat && String(mCoat).trim() !== "") coatsMap[String(mCoat).trim()] = true;
                 });
-                const topC = Object.entries(coatsMap).sort((a,b) => b[1] - a[1])[0];
-                if (topC) {
-                    topCoatStr = topC[0];
-                    topCoatCount = topC[1];
-                }
+                uniqueCoatsCount = Object.keys(coatsMap).length;
             }
-            
+
             let html = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px;">
-                        <div style="color: var(--color-text-muted); font-size: 13px; margin-bottom: 8px;">Загальна кількість</div>
-                        <div style="font-size: 24px; font-weight: bold; color: var(--color-primary);">${totalPeople}</div>
-                        <div style="color: var(--color-text-meta); font-size: 12px; margin-top: 4px;">Чоловіків: ${maleCount} / Жінок: ${femaleCount}</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <!-- Загальна кількість -->
+                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column;">
+                        <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 12px;">Загальна кількість</div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--color-primary); margin-bottom: 8px;">${totalPeople}</div>
+                        <div style="color: var(--color-text-meta); font-size: 14px; margin-top: auto;">Чоловіків: ${maleCount} / Жінок: ${femaleCount}</div>
                     </div>
-                    
-                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px;">
-                        <div style="color: var(--color-text-muted); font-size: 13px; margin-bottom: 8px;">Тривалість життя</div>
-                        <div style="font-size: 24px; font-weight: bold; color: var(--color-primary);">${avgAge} ` + (avgAge > 0 ? `<span style="font-size: 14px; font-weight: normal; color: var(--color-text-meta);">р. в середньому</span>` : ``) + `</div>
-                        <div style="color: var(--color-text-meta); font-size: 12px; margin-top: 4px;">Найдовша: ${maxAge > 0 ? maxAge : '-'} / Найкоротша: ${minAge !== null ? minAge : '-'}</div>
+
+                    <!-- Тривалість життя -->
+                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px;">
+                        <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 16px;">Тривалість життя</div>
+                        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                            <!-- Підтверджена -->
+                            <div style="flex: 1; min-width: 140px;">
+                                <div style="color: var(--color-text-meta); font-size: 12px; margin-bottom: 12px;">Підтверджена</div>
+                                <div style="display: grid; grid-template-columns: auto auto 1fr; gap: 8px 12px; align-items: center;">
+                                    ${formatAgeRow("Максимальна", confStats.max, confStats.maxObj)}
+                                    ${formatAgeRow("Середня", confStats.avg, null)}
+                                    ${formatAgeRow("Мінімальна", confStats.min, confStats.minObj)}
+                                </div>
+                            </div>
+                            <!-- Непідтверджена -->
+                            <div style="flex: 1; min-width: 140px;">
+                                <div style="color: var(--color-text-meta); font-size: 12px; margin-bottom: 12px;">Непідтверджена</div>
+                                <div style="display: grid; grid-template-columns: auto auto 1fr; gap: 8px 12px; align-items: center;">
+                                    ${formatAgeRow("Максимальна", approxStats.max, approxStats.maxObj)}
+                                    ${formatAgeRow("Середня", approxStats.avg, null)}
+                                    ${formatAgeRow("Мінімальна", approxStats.min, approxStats.minObj)}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-names-m" data-title="Чоловічі імена" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px 16px; color: var(--color-text-main); text-decoration: none; font-size: 16px; font-weight: 500; transition: all 0.2s; border-top: 4px solid var(--color-male);">
-                        <i class="ri-men-line" style="font-size: 20px; color: var(--color-male);"></i> Чоловічі імена
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+                    <a href="#" class="analytics-nav-btn" data-target="analytics-names-m" data-title="Імена" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
+                        <div style="font-size: 18px; font-weight: 600;">Імена</div>
+                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueNamesMCount + uniqueNamesFCount}</div>
                     </a>
                     
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-names-f" data-title="Жіночі імена" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px 16px; color: var(--color-text-main); text-decoration: none; font-size: 16px; font-weight: 500; transition: all 0.2s; border-top: 4px solid var(--color-female);">
-                        <i class="ri-women-line" style="font-size: 20px; color: var(--color-female);"></i> Жіночі імена
+                    <a href="#" class="analytics-nav-btn" data-target="analytics-surnames" data-title="Прізвища" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
+                        <div style="font-size: 18px; font-weight: 600;">Прізвища</div>
+                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueSurnamesCount}</div>
                     </a>
                     
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-surnames" data-title="Прізвища" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px 16px; color: var(--color-text-main); text-decoration: none; font-size: 16px; font-weight: 500; transition: all 0.2s; border-top: 4px solid var(--color-primary-light);">
-                        <i class="ri-group-line" style="font-size: 20px; color: var(--color-primary-light);"></i> Прізвища
+                    <a href="#" class="analytics-nav-btn" data-target="analytics-places" data-title="Населені пункти" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
+                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Населені пункти</div>
+                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniquePlacesCount}</div>
                     </a>
                     
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-places" data-title="Населені пункти" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px 16px; color: var(--color-text-main); text-decoration: none; font-size: 16px; font-weight: 500; transition: all 0.2s; border-top: 4px solid var(--color-border);">
-                        <i class="ri-map-pin-2-line" style="font-size: 20px; color: var(--color-text-muted);"></i> Населені пункти
+                    <a href="#" class="analytics-nav-btn" data-target="analytics-deaths" data-title="Причини смерті" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
+                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Причини смерті</div>
+                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueDeathsCount}</div>
+                    </a>
+
+                    <a href="#" class="analytics-nav-btn" data-target="analytics-events" data-title="Календар подій" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
+                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Календар подій</div>
+                        <div style="font-size: 13px; color: var(--color-text-meta);">події</div>
                     </a>
                     
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-deaths" data-title="Причини смерті" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px 16px; color: var(--color-text-main); text-decoration: none; font-size: 16px; font-weight: 500; transition: all 0.2s; border-top: 4px solid var(--color-border);">
-                        <i class="ri-skull-2-line" style="font-size: 20px; color: var(--color-text-muted);"></i> Причини смерті
-                    </a>
-                    
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-coats" data-title="Герби" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px 16px; color: var(--color-text-main); text-decoration: none; font-size: 16px; font-weight: 500; transition: all 0.2s; border-top: 4px solid var(--color-border);">
-                        <i class="ri-shield-line" style="font-size: 20px; color: var(--color-text-muted);"></i> Герби
+                    <a href="#" class="analytics-nav-btn" data-target="analytics-coats" data-title="Герби" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
+                        <div style="font-size: 18px; font-weight: 600;">Герби</div>
+                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueCoatsCount}</div>
                     </a>
                 </div>
             `;
-            
+
             this.containerSummary.innerHTML = html;
             
              const navBtns = this.containerSummary.querySelectorAll('.analytics-nav-btn');
