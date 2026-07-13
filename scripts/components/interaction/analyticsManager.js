@@ -532,13 +532,17 @@ export class AnalyticsManager {
                 }
             });
             const topDeaths = Object.entries(deathsMap).sort((a, b) => b[1] - a[1]);
+            containerDeaths.style.display = "flex";
+            containerDeaths.style.flexWrap = "wrap";
+            containerDeaths.style.gap = "8px";
             containerDeaths.innerHTML = topDeaths.map(d => `
-                <li class="analytics-list-item">
+                <li style="list-style: none; display: inline-flex; align-items: center; gap: 6px; background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">
                     <span>${d[0]}</span>
-                    <span class="analytics-list-count">(${d[1]})</span>
+                    <span style="background: var(--color-bg); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${d[1]}</span>
                 </li>
             `).join("");
         }
+
 // Coats of arms
         const containerCoats = document.getElementById("analytics-coats");
         if (containerCoats && this.engine.db.coats) {
