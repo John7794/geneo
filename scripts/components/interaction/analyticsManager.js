@@ -679,7 +679,19 @@ export class AnalyticsManager {
 
 
 
-		// Render Places
+		
+        const placeNameMap = {};
+        if (this.engine && this.engine.db && this.engine.db.places) {
+            this.engine.db.places.forEach(p => {
+                const idCol = COLUMNS.places?.id || "place_id";
+                const nameCol = COLUMNS.places?.nameCurrent || "name_current";
+                const histCol = COLUMNS.places?.nameHist || "name_hist";
+                placeNameMap[p[idCol]] = p[nameCol] || p[histCol] || "Невідомо";
+            });
+        }
+        
+        // Render Places
+
 		const topPlaces = Object.entries(placesCount).sort((a, b) => b[1].total - a[1].total);
 
 
