@@ -148,6 +148,20 @@ export class EventsManager {
 			COLUMNS.marriage,
 			(rec) => [rec[COLUMNS.marriage.personId], rec[COLUMNS.marriage.spouseId]],
 		);
+		this._processEventsList(
+			DB.baptism,
+			allowedIdsSet,
+			"baptism",
+			COLUMNS.baptism,
+			(rec) => rec[COLUMNS.baptism.personId],
+		);
+		this._processEventsList(
+			DB.funeral,
+			allowedIdsSet,
+			"funeral",
+			COLUMNS.funeral,
+			(rec) => rec[COLUMNS.funeral.personId],
+		);
 
 		this.foundEvents.sort((a, b) => (a.year || 9999) - (b.year || 9999));
 	}
@@ -255,6 +269,12 @@ export class EventsManager {
 				icon: "ri-cake-2-line",
 				color: "var(--color-primary)",
 			},
+			baptism: {
+				items: [],
+				title: i18n.t("events.baptizedGroup") || "Охрещені",
+				icon: "ri-drop-line",
+				color: "#3b82f6",
+			},
 			marriage: {
 				items: [],
 				title: i18n.t("events.marriedGroup") || "Одружилися",
@@ -265,6 +285,12 @@ export class EventsManager {
 				items: [],
 				title: i18n.t("events.diedGroup") || "Померли",
 				icon: "ri-candle-line",
+				color: "var(--color-text-muted)",
+			},
+			funeral: {
+				items: [],
+				title: i18n.t("events.buriedGroup") || "Поховані",
+				icon: "ri-archive-line",
 				color: "var(--color-text-muted)",
 			},
 		};
@@ -302,6 +328,8 @@ export class EventsManager {
 				switch (evt.type) {
 					case "birth":
 					case "death":
+					case "baptism":
+					case "funeral":
 						content = renderPersonTile(evt.person, this.context, "", false);
 						break;
 					case "marriage":

@@ -1,7 +1,9 @@
 import { COLUMNS } from "../../core/dbSchema.js";
-import { calculateAgeAtDeath } from "../../utils/dateUtils.js";
+import { i18n } from "../../core/i18n.js";
+import { calculateAgeAtDeath, convertJulianToGregorian } from "../../utils/dateUtils.js";
 import { resolveCoatUrl } from "../../utils/coatUtils.js";
 import { renderPersonTile } from "../ui/shared/personTile.js";
+import { escapeHtml } from "../../utils/helpers.js";
 
 export class AnalyticsManager {
 	constructor(engine) {
@@ -63,6 +65,7 @@ export class AnalyticsManager {
 	}
 
 	render() {
+        console.log("AnalyticsManager render() called with mode:", window.app?.managers?.lineage?.logic?.mode);
         try {
 		    this.calculateStats();
         } catch (e) {
@@ -94,11 +97,8 @@ export class AnalyticsManager {
 		this.initAccordions();
 
         let visibleIds = null;
-        if (window.app && window.app.lineageManager && window.app.lineageManager.logic) {
-            const mode = window.app.lineageManager.logic.mode;
-            if (mode && mode !== "all") {
-                visibleIds = new Set(window.app.lineageManager.logic.queue);
-            }
+        if (window.app && window.app.managers && window.app.managers.lineage && window.app.managers.lineage.logic) {
+            visibleIds = new Set(window.app.managers.lineage.logic.queue.map(String));
         }
 
 		// 1. General Stats
@@ -124,6 +124,7 @@ export class AnalyticsManager {
 		const namesM = {};
 		const namesF = {};
 		const placesCount = {};
+		const placesOrder = [];
 
 		const lifespansConfirmed = [];
         const lifespansApprox = [];
@@ -158,66 +159,90 @@ export class AnalyticsManager {
 		}
         
         // Count places
-        const countPlace = (placeId, eventType) => {
+        const getPersonName = (pid) => {
+            if (!pid) return "Невідомо";
+            const p = this.engine?.getPerson(pid);
+            if (!p) return "Невідомо";
+            let fullName = p.name || "";
+            if (p.source === "basic" && p.raw) {
+                const s = String(p.raw[COLUMNS.basic?.surname || "surname"] || "").trim();
+                const n = String(p.raw[COLUMNS.basic?.name || "name"] || "").trim();
+                const pat = String(p.raw[COLUMNS.basic?.patronymic || "patronymic"] || "").trim();
+                fullName = [s, n, pat].filter(Boolean).join(" ");
+            } else if (p.source === "family_list" && p.raw) {
+                const s = String(p.raw[COLUMNS.familyList?.surname || "surname"] || "").trim();
+                const n = String(p.raw[COLUMNS.familyList?.firstName || "first_name"] || "").trim();
+                const pat = String(p.raw[COLUMNS.familyList?.patronymic || "patronymic"] || "").trim();
+                fullName = [s, n, pat].filter(Boolean).join(" ");
+            }
+            return `<a href="?id=${encodeURIComponent(pid)}&view=profile" class="js-stop-prop analytics-person-link" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(fullName)}</a>`;
+        };
+
+        const countPlace = (placeId, eventType, peopleList = []) => {
             if (placeId && String(placeId).trim() !== "") {
                 const pName = String(placeId).trim();
-                if (!placesCount[pName]) placesCount[pName] = { total: 0, events: {} };
+                if (!placesCount[pName]) { placesCount[pName] = { total: 0, events: {}, peopleLists: {} }; placesOrder.push(pName); }
                 placesCount[pName].total++;
                 placesCount[pName].events[eventType] = (placesCount[pName].events[eventType] || 0) + 1;
+                if (!placesCount[pName].peopleLists[eventType]) placesCount[pName].peopleLists[eventType] = [];
+                placesCount[pName].peopleLists[eventType].push(...peopleList);
             }
         };
         if (this.engine.db.birth) {
             this.engine.db.birth.forEach(b => {
                 const pid = b[COLUMNS.birth?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження");
+                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", [getPersonName(pid)]);
             });
         }
         if (this.engine.db.death) {
             this.engine.db.death.forEach(d => {
                 const pid = d[COLUMNS.death?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть");
+                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", [getPersonName(pid)]);
             });
         }
         if (this.engine.db.marriage) {
             this.engine.db.marriage.forEach(m => {
-                const hid = m[COLUMNS.marriage?.husbandId || "husband_id"];
-                const wid = m[COLUMNS.marriage?.wifeId || "wife_id"];
+                const hid = m[COLUMNS.marriage?.personId || "person_id"];
+                const wid = m[COLUMNS.marriage?.spouseId || "spouse_id"];
                 if (visibleIds && !visibleIds.has(String(hid)) && !visibleIds.has(String(wid))) return;
-                countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб");
+                const hName = getPersonName(hid);
+                const wName = getPersonName(wid);
+                const couple = (hid || wid) ? `${hName} та ${wName}` : "Невідомо";
+                countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб", [couple]);
             });
         }
         if (this.engine.db.baptism) {
             this.engine.db.baptism.forEach(m => {
                 const pid = m[COLUMNS.baptism?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення");
+                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення", [getPersonName(pid)]);
             });
         }
         if (this.engine.db.funeral) {
             this.engine.db.funeral.forEach(m => {
                 const pid = m[COLUMNS.funeral?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання");
+                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання", [getPersonName(pid)]);
             });
         }
         if (this.engine.db.familyList) {
             this.engine.db.familyList.forEach(f => {
                 const pid = f[COLUMNS.familyList?.id || "fam_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(f[COLUMNS.familyList?.birthPlace || "fam_birth_place"], "народження");
-                countPlace(f[COLUMNS.familyList?.deathPlace || "fam_death_place"], "смерть");
-                countPlace(f[COLUMNS.familyList?.origin || "fam_origin_place"], "походження");
+                countPlace(f[COLUMNS.familyList?.birthPlace || "fam_birth_place"], "народження", [getPersonName(pid)]);
+                countPlace(f[COLUMNS.familyList?.deathPlace || "fam_death_place"], "смерть", [getPersonName(pid)]);
+                countPlace(f[COLUMNS.familyList?.origin || "fam_origin_place"], "походження", [getPersonName(pid)]);
             });
         }
         if (this.engine.db.participants) {
             this.engine.db.participants.forEach(p => {
                 const pid = p[COLUMNS.participants?.id || "p_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(p[COLUMNS.participants?.birthPlace || "p_birth_place"], "народження");
-                countPlace(p[COLUMNS.participants?.deathPlace || "p_death_place"], "смерть");
-                countPlace(p[COLUMNS.participants?.origin || "p_origin_place"], "походження");
+                countPlace(p[COLUMNS.participants?.birthPlace || "p_birth_place"], "народження", [getPersonName(pid)]);
+                countPlace(p[COLUMNS.participants?.deathPlace || "p_death_place"], "смерть", [getPersonName(pid)]);
+                countPlace(p[COLUMNS.participants?.origin || "p_origin_place"], "походження", [getPersonName(pid)]);
             });
         }
 
@@ -548,19 +573,59 @@ export class AnalyticsManager {
         const renderSurnames = createSortRenderer(document.getElementById("analytics-surnames"), surnamesMap, surnamesOrder, true);
 
         // Initial render: sort by appearance (за згадкою)
-        renderNamesM('appearance');
-        renderNamesF('appearance');
-        renderSurnames('frequency');
+        let activeNamesSort = 'appearance';
+        document.querySelectorAll('.btn-sort-app, .btn-sort-alpha, .btn-sort-freq').forEach(btn => {
+            if (btn.style.background === 'var(--color-primary)') {
+                if (btn.classList.contains('btn-sort-app')) activeNamesSort = 'appearance';
+                else if (btn.classList.contains('btn-sort-alpha')) activeNamesSort = 'alphabet';
+                else if (btn.classList.contains('btn-sort-freq')) activeNamesSort = 'frequency';
+            }
+        });
+        
+        let activeSurnamesSort = 'frequency'; // Assuming this was intended, although later it says appearance
+        document.querySelectorAll('.btn-sort-app-s, .btn-sort-alpha-s, .btn-sort-freq-s').forEach(btn => {
+            if (btn.style.background === 'var(--color-primary)') {
+                if (btn.classList.contains('btn-sort-app-s')) activeSurnamesSort = 'appearance';
+                else if (btn.classList.contains('btn-sort-alpha-s')) activeSurnamesSort = 'alphabet';
+                else if (btn.classList.contains('btn-sort-freq-s')) activeSurnamesSort = 'frequency';
+            }
+        });
+
+        renderNamesM(activeNamesSort);
+        renderNamesF(activeNamesSort);
+        renderSurnames(activeSurnamesSort);
 
         // Bind global names sort buttons
         if (this.containerNamesM) {
             const namesSection = this.containerNamesM.closest('.analytics-section-content');
             if (namesSection) {
+                const updateNamesActiveBtn = (mode) => {
+                    document.querySelectorAll('.btn-sort-app, .btn-sort-alpha, .btn-sort-freq').forEach(btn => {
+                        let btnMode = '';
+                        if (btn.classList.contains('btn-sort-app')) btnMode = 'appearance';
+                        else if (btn.classList.contains('btn-sort-alpha')) btnMode = 'alphabet';
+                        else if (btn.classList.contains('btn-sort-freq')) btnMode = 'frequency';
+                        
+                        if (btnMode === mode) {
+                            btn.style.background = 'var(--color-primary)';
+                            btn.style.color = 'white';
+                            btn.style.borderColor = 'var(--color-primary)';
+                        } else {
+                            btn.style.background = 'transparent';
+                            btn.style.color = 'var(--color-text-main)';
+                            btn.style.borderColor = 'var(--color-border)';
+                        }
+                    });
+                };
+
                 const updateSort = (mode) => {
                     renderNamesM(mode);
                     renderNamesF(mode);
+                    updateNamesActiveBtn(mode);
                 };
                 
+                updateNamesActiveBtn(activeNamesSort);
+
                 // Bind all buttons with these classes globally or within document
                 document.querySelectorAll('.btn-sort-freq').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
                 document.querySelectorAll('.btn-sort-alpha').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
@@ -568,11 +633,36 @@ export class AnalyticsManager {
             }
         }
         
+        const updateSurnamesActiveBtn = (mode) => {
+            document.querySelectorAll('.btn-sort-app-s, .btn-sort-alpha-s, .btn-sort-freq-s').forEach(btn => {
+                let btnMode = '';
+                if (btn.classList.contains('btn-sort-app-s')) btnMode = 'appearance';
+                else if (btn.classList.contains('btn-sort-alpha-s')) btnMode = 'alphabet';
+                else if (btn.classList.contains('btn-sort-freq-s')) btnMode = 'frequency';
+                
+                if (btnMode === mode) {
+                    btn.style.background = 'var(--color-primary)';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = 'var(--color-primary)';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'var(--color-text-main)';
+                    btn.style.borderColor = 'var(--color-border)';
+                }
+            });
+        };
+
+        const updateSurnamesSort = (mode) => {
+            renderSurnames(mode);
+            updateSurnamesActiveBtn(mode);
+        };
         
-                // Surnames sorting bindings
-                document.querySelectorAll('.btn-sort-freq-s').forEach(b => b.onclick = (e) => { e.preventDefault(); renderSurnames('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
-                document.querySelectorAll('.btn-sort-alpha-s').forEach(b => b.onclick = (e) => { e.preventDefault(); renderSurnames('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
-                document.querySelectorAll('.btn-sort-app-s').forEach(b => b.onclick = (e) => { e.preventDefault(); renderSurnames('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+        updateSurnamesActiveBtn(activeSurnamesSort);
+
+        // Surnames sorting bindings
+        document.querySelectorAll('.btn-sort-freq-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+        document.querySelectorAll('.btn-sort-alpha-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+        document.querySelectorAll('.btn-sort-app-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
 
 
 
@@ -601,7 +691,10 @@ export class AnalyticsManager {
             const deathsSet = new Set();
             if (this.engine && this.engine.db && this.engine.db.death) {
                 this.engine.db.death.forEach(d => {
-                    const cause = d[COLUMNS.death?.cause || "cause"];
+                    const pid = d[COLUMNS.death?.personId || "person_id"];
+                    if (visibleIds && !visibleIds.has(String(pid))) return;
+
+                    const cause = d[COLUMNS.death?.cause || "d_cause"];
                     if (cause && String(cause).trim() !== "") {
                         deathsSet.add(String(cause).trim().toLowerCase());
                     }
@@ -620,47 +713,47 @@ export class AnalyticsManager {
         let html = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <!-- Загальна кількість -->
-                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column;">
+                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
                         <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 12px;">Загальна кількість</div>
                         <div style="font-size: 32px; font-weight: bold; color: var(--color-primary); margin-bottom: 8px;">${totalPeople}</div>
-                        <div style="color: var(--color-text-meta); font-size: 14px; margin-top: auto;">Чоловіків: ${maleCount} / Жінок: ${femaleCount}</div>
+                        <div style="color: var(--color-text-meta); font-size: 14px; margin-top: 12px;">Чоловіків: ${maleCount} / Жінок: ${femaleCount}</div>
                     </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
                     <a href="#" class="analytics-nav-btn" data-target="analytics-lifespan" data-title="Тривалість життя" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
                         <div style="font-size: 18px; font-weight: 600; text-align: center;">Тривалість життя</div>
-                        <div style="font-size: 13px; color: var(--color-text-meta);">макс: ${confMax > 0 ? confMax : approxMax} р.</div>
+                        
                     </a>
 
                     <a href="#" class="analytics-nav-btn" data-target="analytics-names" data-title="Імена" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
                         <div style="font-size: 18px; font-weight: 600;">Імена</div>
-                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueNamesMCount + uniqueNamesFCount}</div>
+                        
                     </a>
                     
                     <a href="#" class="analytics-nav-btn" data-target="analytics-surnames" data-title="Прізвища" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
                         <div style="font-size: 18px; font-weight: 600;">Прізвища</div>
-                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueSurnamesCount}</div>
+                        
                     </a>
                     
                     <a href="#" class="analytics-nav-btn" data-target="analytics-places" data-title="Населені пункти" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
                         <div style="font-size: 18px; font-weight: 600; text-align: center;">Населені пункти</div>
-                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniquePlacesCount}</div>
+                        
                     </a>
                     
                     <a href="#" class="analytics-nav-btn" data-target="analytics-deaths" data-title="Причини смерті" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
                         <div style="font-size: 18px; font-weight: 600; text-align: center;">Причини смерті</div>
-                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueDeathsCount}</div>
+                        
                     </a>
 
                     <a href="#" class="analytics-nav-btn" data-target="analytics-events" data-title="Календар подій" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
                         <div style="font-size: 18px; font-weight: 600; text-align: center;">Календар подій</div>
-                        <div style="font-size: 13px; color: var(--color-text-meta);">події</div>
+                        
                     </a>
                     
                     <a href="#" class="analytics-nav-btn" data-target="analytics-coats" data-title="Герби" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
                         <div style="font-size: 18px; font-weight: 600;">Герби</div>
-                        <div style="font-size: 13px; color: var(--color-text-meta);">унікальних: ${uniqueCoatsCount}</div>
+                        
                     </a>
                 </div>
             `;
@@ -689,6 +782,7 @@ export class AnalyticsManager {
                              const parentSec = targetEl.closest('.analytics-section');
                              if (parentSec) {
                                  parentSec.style.display = 'block';
+                                 parentSec.classList.add('accordion-open');
                                  const h4 = parentSec.querySelector('h4');
                                  if (h4) h4.style.display = 'none'; // hide the h4 because we show it in the header
                              }
@@ -721,11 +815,6 @@ export class AnalyticsManager {
         }
         
         // Render Places
-
-		const topPlaces = Object.entries(placesCount).sort((a, b) => b[1].total - a[1].total);
-
-
-        
         const getEventWord = (count) => {
             const lastDigit = count % 10;
             const lastTwo = count % 100;
@@ -735,25 +824,160 @@ export class AnalyticsManager {
             return "подій";
         };
 
-		
-		this.containerPlaces.style.display = "flex";
-		this.containerPlaces.style.flexWrap = "wrap";
-		this.containerPlaces.style.gap = "8px";
-		this.containerPlaces.innerHTML = topPlaces.map(p => {
-            const total = p[1].total;
-            const eventsObj = p[1].events;
+        const renderPlaces = (sortMode) => {
+            let sortedEntries = [];
+            if (sortMode === 'appearance') {
+                sortedEntries = placesOrder.map(k => [k, placesCount[k]]);
+            } else if (sortMode === 'alphabet_az') {
+                sortedEntries = Object.entries(placesCount).sort((a, b) => {
+                    const nameA = placeNameMap[a[0]] || a[0];
+                    const nameB = placeNameMap[b[0]] || b[0];
+                    return nameA.localeCompare(nameB, 'uk');
+                });
+            } else if (sortMode === 'alphabet_za') {
+                sortedEntries = Object.entries(placesCount).sort((a, b) => {
+                    const nameA = placeNameMap[a[0]] || a[0];
+                    const nameB = placeNameMap[b[0]] || b[0];
+                    return nameB.localeCompare(nameA, 'uk');
+                });
+            } else {
+                sortedEntries = Object.entries(placesCount).sort((a, b) => b[1].total - a[1].total);
+            }
+
+            this.containerPlaces.style.display = "flex";
+            this.containerPlaces.style.flexDirection = "column";
+            this.containerPlaces.style.gap = "8px";
+
+            if (sortedEntries.length === 0) {
+                this.containerPlaces.innerHTML = `<li style="list-style: none; color: var(--color-text-muted); padding: 12px; text-align: center; background: var(--color-bg-card); border-radius: 8px;">Немає даних про населені пункти</li>`;
+                return;
+            }
+
+            this.containerPlaces.innerHTML = sortedEntries.map(p => {
+                const total = p[1].total;
+                const eventsObj = p[1].events;
+                
+                return `
+                <li class="analytics-place-item" style="list-style: none; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; overflow: hidden;">
+                    <div class="analytics-place-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; user-select: none;">
+                        <span style="font-size: 15px; font-weight: 500; color: var(--color-text-main);">${placeNameMap[p[0]] || p[0]}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: var(--color-bg-body); padding: 4px 10px; border-radius: 12px; font-size: 13px; color: var(--color-text-muted);">${total} ${getEventWord(total)}</span>
+                            <i class="ri-arrow-down-s-line analytics-place-icon" style="transition: transform 0.3s; color: var(--color-text-muted);"></i>
+                        </div>
+                    </div>
+                    <div class="analytics-place-body" style="display: none; padding: 0 16px 16px 16px; border-top: 1px dashed var(--color-border-light); margin-top: 4px; padding-top: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            ${Object.entries(eventsObj).map(e => {
+                                const evtName = e[0];
+                                const evtCount = e[1];
+                                const peopleList = p[1].peopleLists?.[evtName] || [];
+                                const peopleHtml = peopleList.length > 0 
+                                    ? `<ul style="margin: 4px 0 0 12px; padding: 0; list-style: disc; font-size: 13px; color: var(--color-text-muted);">
+                                        ${peopleList.map(personName => `<li>${personName}</li>`).join("")}
+                                      </ul>` 
+                                    : "";
+                                
+                                return `
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--color-text-meta);">
+                                        <span style="text-transform: capitalize; font-weight: 500;">${evtName}</span>
+                                        <span>${evtCount}</span>
+                                    </div>
+                                    ${peopleHtml}
+                                </div>
+                                `;
+                            }).join("")}
+                        </div>
+                    </div>
+                </li>
+            `}).join("");
             
-            return `
-            <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span>${placeNameMap[p[0]] || p[0]}</span>
-                    <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${total} ${getEventWord(total)}</span>
+            const placeItems = this.containerPlaces.querySelectorAll('.analytics-place-item');
+            placeItems.forEach(item => {
+                const header = item.querySelector('.analytics-place-header');
+                const body = item.querySelector('.analytics-place-body');
+                const icon = item.querySelector('.analytics-place-icon');
+                header.addEventListener('click', () => {
+                    const isOpen = body.style.display === 'block';
+                    body.style.display = isOpen ? 'none' : 'block';
+                    icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                });
+            });
+        };
+
+        const placesSectionContent = this.containerPlaces.closest('.analytics-section-content');
+        let controls = placesSectionContent ? placesSectionContent.querySelector('.places-sort-controls') : null;
+        if (placesSectionContent && !controls) {
+            const controlsHtml = `
+                <div class="places-sort-controls analytics-sort-controls">
+                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="frequency">За популярністю</button>
+                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="appearance">За згадкою</button>
+                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_az">А - Я</button>
+                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_za">Я - А</button>
+                    </div>
+                    <div class="analytics-sort-mobile" style="display: none; margin-bottom: 16px;">
+                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-places" onclick="document.getElementById('mobile-sort-popup-places').style.display='flex'">
+                            <i class="ri-sort-desc"></i> Сортувати населені пункти
+                        </button>
+                    </div>
+                    <div id="mobile-sort-popup-places" class="popup-overlay" style="display: none; z-index: 9999;" onclick="if(event.target===this) this.style.display='none'">
+                        <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
+                            <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
+                            <button class="btn btn-outline btn-sort-places" data-sort="frequency" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">За популярністю</button>
+                            <button class="btn btn-outline btn-sort-places" data-sort="appearance" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">За згадкою</button>
+                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_az" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">А - Я</button>
+                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_za" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">Я - А</button>
+                            <button class="btn btn-primary mt-2" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">Закрити</button>
+                        </div>
+                    </div>
                 </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--color-border-light);">
-                    ${Object.entries(eventsObj).map(e => `<span style="font-size: 12px; color: var(--color-text-muted);">${e[0]} (${e[1]})</span>`).join("")}
-                </div>
-            </li>
-        `}).join("");
+            `;
+            placesSectionContent.insertAdjacentHTML('afterbegin', controlsHtml);
+            controls = placesSectionContent.querySelector('.places-sort-controls');
+        }
+
+        let activeSortMode = 'frequency';
+        if (controls) {
+            controls.querySelectorAll('.btn-sort-places').forEach(btn => {
+                if (btn.style.background === 'var(--color-primary)') {
+                    activeSortMode = btn.dataset.sort;
+                }
+            });
+        }
+
+        renderPlaces(activeSortMode);
+
+        if (placesSectionContent) {
+            const updatePlacesActiveBtn = (mode) => {
+                placesSectionContent.querySelectorAll('.btn-sort-places').forEach(btn => {
+                    if (btn.dataset.sort === mode) {
+                        btn.style.background = 'var(--color-primary)';
+                        btn.style.color = 'var(--color-on-primary)';
+                        btn.style.borderColor = 'var(--color-primary)';
+                    } else {
+                        btn.style.background = 'transparent';
+                        btn.style.color = 'var(--color-text-main)';
+                        btn.style.borderColor = 'var(--color-border)';
+                    }
+                });
+            };
+
+            updatePlacesActiveBtn(activeSortMode);
+
+            placesSectionContent.querySelectorAll('.btn-sort-places').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const mode = btn.dataset.sort;
+                    renderPlaces(mode);
+                    updatePlacesActiveBtn(mode);
+                    if (btn.closest('.popup-overlay')) {
+                        btn.closest('.popup-overlay').style.display = 'none';
+                    }
+                });
+            });
+        }
 
 
         // Causes of death
@@ -761,22 +985,285 @@ export class AnalyticsManager {
         if (containerDeaths && this.engine.db.death) {
             const deathsMap = {};
             this.engine.db.death.forEach(d => {
+                const pid = d[COLUMNS.death?.personId || "person_id"];
+                if (visibleIds && !visibleIds.has(String(pid))) return;
+
                 let cause = d[COLUMNS.death?.cause || "d_cause"];
                 if (cause && String(cause).trim() !== "") {
                     cause = String(cause).trim();
-                    deathsMap[cause] = (deathsMap[cause] || 0) + 1;
+                    if (!deathsMap[cause]) {
+                        deathsMap[cause] = { count: 0, people: [] };
+                    }
+                    deathsMap[cause].count++;
+                    
+                    let personName = "Невідомо";
+                    const p = this.engine?.getPerson(pid);
+                    if (p) {
+                        personName = p.name || "";
+                        if (p.source === "basic" && p.raw) {
+                            const s = String(p.raw[COLUMNS.basic?.surname || "surname"] || "").trim();
+                            const n = String(p.raw[COLUMNS.basic?.name || "name"] || "").trim();
+                            const pat = String(p.raw[COLUMNS.basic?.patronymic || "patronymic"] || "").trim();
+                            personName = [s, n, pat].filter(Boolean).join(" ");
+                        }
+                    }
+                    if (!personName.trim()) personName = "Невідомо";
+                    deathsMap[cause].people.push({ pid, name: personName });
                 }
             });
-            const topDeaths = Object.entries(deathsMap).sort((a, b) => b[1] - a[1]);
+            console.log("deathsMap:", deathsMap);
+            const topDeaths = Object.entries(deathsMap).sort((a, b) => b[1].count - a[1].count);
             containerDeaths.style.display = "flex";
-            containerDeaths.style.flexWrap = "wrap";
+            containerDeaths.style.flexDirection = "column";
             containerDeaths.style.gap = "8px";
-            containerDeaths.innerHTML = topDeaths.map(d => `
-                <li style="list-style: none; display: inline-flex; align-items: center; gap: 6px; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">
-                    <span>${d[0]}</span>
-                    <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${d[1]}</span>
-                </li>
-            `).join("");
+            if (topDeaths.length === 0) {
+                containerDeaths.innerHTML = `<li style="list-style: none; color: var(--color-text-muted); padding: 12px; text-align: center; background: var(--color-bg-card); border-radius: 8px;">Немає даних про причини смерті</li>`;
+            } else {
+                containerDeaths.innerHTML = topDeaths.map(d => {
+                    const cause = d[0];
+                    const count = d[1].count;
+                    const peopleList = d[1].people;
+                    const peopleHtml = peopleList.length > 0 
+                        ? `<ul style="margin: 8px 0 0 12px; padding: 0; list-style: disc; font-size: 13px; color: var(--color-text-muted);">
+                            ${peopleList.map(person => `<li style="margin-bottom: 4px;"><a href="?id=${encodeURIComponent(person.pid)}&view=profile" class="js-stop-prop analytics-person-link" data-pid="${person.pid}" style="color: var(--color-primary); text-decoration: none;">${person.name}</a></li>`).join("")}
+                          </ul>` 
+                        : "";
+
+                    return `
+                    <li class="analytics-death-item" style="list-style: none; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; overflow: hidden;">
+                        <div class="analytics-death-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; user-select: none;">
+                            <span style="font-size: 15px; font-weight: 500; color: var(--color-text-main);">${cause}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="background: var(--color-bg-body); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; color: var(--color-text-muted);">${count}</span>
+                                <i class="ri-arrow-down-s-line analytics-death-icon" style="transition: transform 0.3s; color: var(--color-text-muted);"></i>
+                            </div>
+                        </div>
+                        <div class="analytics-death-body" style="display: none; padding: 0 16px 16px 16px; border-top: 1px dashed var(--color-border-light); margin-top: 4px; padding-top: 12px;">
+                            ${peopleHtml}
+                        </div>
+                    </li>
+                `}).join("");
+                
+                // Add accordion behavior
+                const deathItems = containerDeaths.querySelectorAll('.analytics-death-item');
+                deathItems.forEach(item => {
+                    const header = item.querySelector('.analytics-death-header');
+                    const body = item.querySelector('.analytics-death-body');
+                    const icon = item.querySelector('.analytics-death-icon');
+                    header.addEventListener('click', () => {
+                        const isOpen = body.style.display === 'block';
+                        body.style.display = isOpen ? 'none' : 'block';
+                        icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                    });
+                });
+                
+
+            }
+        }
+
+        // Events Calendar
+        const containerEvents = document.getElementById("analytics-events-list");
+        if (containerEvents) {
+            const allEvents = [];
+            
+            const processEvents = (sourceList, type, cols, idGetter) => {
+                if (!sourceList || !Array.isArray(sourceList)) return;
+                sourceList.forEach((record) => {
+                    if (!record) return;
+                    const idsRaw = idGetter(record);
+                    if (!idsRaw) return;
+                    const ids = Array.isArray(idsRaw) ? idsRaw.map((v) => (v ? String(v) : null)) : [String(idsRaw)];
+                    
+                    if (visibleIds && !ids.some((id) => id && visibleIds.has(id))) {
+                        return;
+                    }
+                    
+                    const d = parseInt(record[cols.day], 10);
+                    const m = parseInt(record[cols.month], 10);
+                    const yearVal = parseInt(record[cols.year], 10);
+                    const isOldStyle = ["1", "true", "+"].includes(String(record[cols.calendar] || "").trim());
+                    
+                    if (isNaN(d) || isNaN(m)) return;
+                    
+                    let gregorian = { day: d, month: m, year: yearVal };
+                    if (isOldStyle && !isNaN(yearVal)) {
+                        const converted = convertJulianToGregorian(d, m, yearVal);
+                        if (converted) gregorian = converted;
+                    }
+                    
+                    const personId = ids[0];
+                    const spouseId = ids[1];
+                    const person = personId ? this.engine.getPerson(personId) : null;
+                    const spouse = spouseId ? this.engine.getPerson(spouseId) : null;
+                    
+                    if (person) {
+                        allEvents.push({
+                            type,
+                            year: yearVal,
+                            gregorian,
+                            original: { day: d, month: m, year: yearVal, isOldStyle },
+                            person,
+                            spouse,
+                            recordType: String(record[cols.type] || "").trim()
+                        });
+                    }
+                });
+            };
+
+            const DB = this.engine.db;
+            if (DB) {
+                processEvents(DB.birth, "birth", COLUMNS.birth, (rec) => rec[COLUMNS.birth.personId]);
+                processEvents(DB.death, "death", COLUMNS.death, (rec) => rec[COLUMNS.death.personId]);
+                processEvents(DB.marriage, "marriage", COLUMNS.marriage, (rec) => [rec[COLUMNS.marriage.personId], rec[COLUMNS.marriage.spouseId]]);
+                processEvents(DB.baptism, "baptism", COLUMNS.baptism, (rec) => rec[COLUMNS.baptism.personId]);
+                processEvents(DB.funeral, "funeral", COLUMNS.funeral, (rec) => rec[COLUMNS.funeral.personId]);
+            }
+            
+            // Deduplicate events (e.g. prioritize "Фактично" over "Юридично")
+            const groupedByTypeAndPerson = {};
+            const uniqueEvents = [];
+            allEvents.forEach(evt => {
+                if (!evt.person) return;
+                const key = evt.person.id + "_" + evt.type + (evt.spouse ? "_" + evt.spouse.id : "");
+                if (!groupedByTypeAndPerson[key]) groupedByTypeAndPerson[key] = [];
+                groupedByTypeAndPerson[key].push(evt);
+            });
+            
+            Object.values(groupedByTypeAndPerson).forEach(group => {
+                if (group.length === 1) {
+                    uniqueEvents.push(group[0]);
+                } else {
+                    const actual = group.find(e => e.recordType.toLowerCase() === "фактично");
+                    uniqueEvents.push(actual || group[0]);
+                }
+            });
+            
+            allEvents.length = 0;
+            allEvents.push(...uniqueEvents);
+            
+            allEvents.sort((a, b) => {
+                if (a.gregorian.month !== b.gregorian.month) return a.gregorian.month - b.gregorian.month;
+                if (a.gregorian.day !== b.gregorian.day) return a.gregorian.day - b.gregorian.day;
+                return (a.year || 9999) - (b.year || 9999);
+            });
+            
+            if (allEvents.length === 0) {
+                containerEvents.innerHTML = `<li style="list-style: none; color: var(--color-text-muted); padding: 12px; text-align: center; background: var(--color-bg-card); border-radius: 8px;">Немає даних про події</li>`;
+            } else {
+                let html = "";
+                
+                const getMonthName = (monthNum) => {
+                    const months = i18n.t("time.monthsGenitive");
+                    return Array.isArray(months) ? months[monthNum] || "" : "";
+                };
+                
+                const typeLabels = {
+                    birth: i18n.t("events.bornGroup") || "Народилися",
+                    baptism: i18n.t("events.baptizedGroup") || "Охрещені",
+                    marriage: i18n.t("events.marriedGroup") || "Одружилися",
+                    death: i18n.t("events.diedGroup") || "Померли",
+                    funeral: i18n.t("events.buriedGroup") || "Поховані"
+                };
+                
+                // Group by Month -> Day -> Type -> List of events
+                const grouped = {};
+                allEvents.forEach(evt => {
+                    const m = evt.gregorian.month;
+                    const d = evt.gregorian.day;
+                    const t = evt.type;
+                    if (!grouped[m]) grouped[m] = {};
+                    if (!grouped[m][d]) grouped[m][d] = {};
+                    if (!grouped[m][d][t]) grouped[m][d][t] = [];
+                    grouped[m][d][t].push(evt);
+                });
+                
+                // Render
+                const sortedMonths = Object.keys(grouped).map(Number).sort((a, b) => a - b);
+                
+                sortedMonths.forEach(m => {
+                    const monthsNom = ["", "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+                    const mName = monthsNom[m] || i18n.t("time.monthsGenitive")[m];
+                    html += `
+                        <li style="list-style: none; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px;">
+                            <h3 style="margin: 0; font-size: 20px; text-transform: capitalize; color: var(--color-primary); border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">${mName}</h3>
+                        </li>
+                    `;
+                    
+                    const sortedDays = Object.keys(grouped[m]).map(Number).sort((a, b) => a - b);
+                    sortedDays.forEach(d => {
+                        html += `
+                            <li style="list-style: none; margin-top: 16px; margin-bottom: 8px;">
+                                <div style="margin: 0; font-size: 16px; font-weight: 600; color: var(--color-text-main); background: var(--color-bg-sub); padding: 4px 12px; border-radius: 4px; display: inline-block;">${d} ${getMonthName(m)}</div>
+                            </li>
+                        `;
+                        
+                        const types = Object.keys(grouped[m][d]);
+                        // Define fixed order for types if needed, or just use what exists
+                        const typeOrder = ['birth', 'baptism', 'marriage', 'death', 'funeral'];
+                        types.sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b));
+                        
+                        types.forEach(t => {
+                            html += `
+                                <li style="list-style: none; margin-top: 8px; margin-bottom: 4px; margin-left: 12px;">
+                                    <div style="font-size: 14px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 4px;">${typeLabels[t]}</div>
+                                    <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                            `;
+                            
+                            grouped[m][d][t].forEach(evt => {
+                                                                const getPersonPIB = (p) => {
+                                    if (!p) return "Невідомо";
+                                    let fullName = p.name || "";
+                                    if (p.source === "basic" && p.raw) {
+                                        const s = String(p.raw[COLUMNS.basic?.surname || "surname"] || "").trim();
+                                        const n = String(p.raw[COLUMNS.basic?.name || "name"] || "").trim();
+                                        const pat = String(p.raw[COLUMNS.basic?.patronymic || "patronymic"] || "").trim();
+                                        fullName = [s, n, pat].filter(Boolean).join(" ");
+                                    } else if (p.source === "family_list" && p.raw) {
+                                        const s = String(p.raw[COLUMNS.familyList?.surname || "surname"] || "").trim();
+                                        const n = String(p.raw[COLUMNS.familyList?.firstName || "first_name"] || "").trim();
+                                        const pat = String(p.raw[COLUMNS.familyList?.patronymic || "patronymic"] || "").trim();
+                                        fullName = [s, n, pat].filter(Boolean).join(" ");
+                                    }
+                                    return fullName;
+                                };
+                                
+                                let p1Html = `<a href="?id=${encodeURIComponent(evt.person.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.person.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.person))}</a>`;
+                                let p2Html = "";
+                                if (evt.type === "marriage" && evt.spouse) {
+                                    p2Html = ` та <a href="?id=${encodeURIComponent(evt.spouse.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.spouse.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.spouse))}</a>`;
+                                }
+                                
+                                let yearInfo = evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${evt.year} р.)</span>` : '';
+                                
+                                html += `
+                                        <li style="display: flex; align-items: center; padding: 6px 12px; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 6px;">
+                                            <div style="font-size: 15px; color: var(--color-text-main);">${p1Html}${p2Html}${yearInfo}</div>
+                                        </li>
+                                `;
+                            });
+                            
+                            html += `
+                                    </ul>
+                                </li>
+                            `;
+                        });
+                    });
+                });
+                
+                containerEvents.innerHTML = html;
+                
+                // Add link behavior
+                const links = containerEvents.querySelectorAll('.analytics-person-link');
+                links.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
+                        if (pid && window.app && window.app.navigateToId) {
+                            window.app.navigateToId(pid, false, 'profile');
+                        }
+                    });
+                });
+            }
         }
 
 // Coats of arms
@@ -791,6 +1278,7 @@ export class AnalyticsManager {
                     if (s && String(s).trim() !== "") {
                         let g = "u";
                         const pid = n[COLUMNS.names?.personId || "person_id"];
+                        if (visibleIds && !visibleIds.has(String(pid))) return;
                         if (pid) {
                             const person = this.engine.getPerson(pid);
                             if (person) g = person.gender;
