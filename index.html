@@ -407,7 +407,7 @@
 					<div class="popup-body">
 						<div class="search-form" style="margin-bottom: 24px;">
 							<label style="display:block; margin-bottom: 8px; font-weight: 500;">Вкажіть email або телефон отримувача:</label>
-							<div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg); width: 100%; box-sizing: border-box;">
+							<div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg-body); width: 100%; box-sizing: border-box;">
 								<i class="ri-user-add-line text-muted"></i>
 								<input type="text" id="share-email-input" placeholder="email@example.com або +380123456789" style="flex: 1; min-width: 0; width: 100%; border: none; background: transparent; outline: none; font-family: inherit; font-size: 16px; color: var(--color-text-main); padding: 0;" />
 							</div>
@@ -444,14 +444,14 @@
 				<div class="profile-body analytics-body">
 					<div id="analytics-content" class="analytics-content">
                         <!-- Summary Dashboard -->
-                        <div id="analytics-summary" style="display: flex; flex-direction: column; gap: 24px;"></div>
+                        <div id="analytics-summary" style="display: flex; flex-direction: column; gap: 16px;"></div>
                         
                         
 
                         <!-- Detailed Stats -->
-                        <div id="analytics-detailed-view" style="display: none; flex-direction: column; gap: 24px;">
+                        <div id="analytics-detailed-view" style="display: none; flex-direction: column;">
                         
-                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+                        <div id="detailed-view-header" class="detailed-view-header">
                             <button id="btn-back-to-summary" class="btn btn-outline" style="border-radius: 20px; padding: 6px 16px;">
                                 <i class="ri-arrow-left-line" style="margin-right: 8px;"></i> Назад
                             </button>
@@ -470,7 +470,7 @@
 						<div class="analytics-section">
 <h4>Тривалість життя</h4>
 <div class="analytics-section-content">
-<div id="analytics-lifespan" style="display: flex; flex-direction: column; gap: 24px;">
+<div id="analytics-lifespan" style="display: flex; flex-direction: column; gap: 16px;">
 </div>
 </div>
 						</div>
@@ -479,25 +479,25 @@
 <h4>Прізвища родоводів</h4>
 <div class="analytics-section-content">
 <div class="analytics-sort-controls">
-    <div class="analytics-sort-desktop" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
         <button class="btn btn-sm btn-outline btn-sort-app-s">За згадкою</button>
         <button class="btn btn-sm btn-outline btn-sort-alpha-s">За алфавітом</button>
         <button class="btn btn-sm btn-outline btn-sort-freq-s">За популярністю</button>
     </div>
-    <div class="analytics-sort-mobile" style="display: none; margin-bottom: 16px;">
-        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-s" onclick="document.getElementById('mobile-sort-popup-s').style.display='flex'">
+    <div class="analytics-sort-mobile" style="display: none; ">
+        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-s" onclick="document.getElementById('mobile-sort-popup-s').classList.add('show')">
             <i class="ri-sort-desc"></i> Сортувати прізвища
         </button>
     </div>
 </div>
 
-<div id="mobile-sort-popup-s" class="popup-overlay" style="display: none; z-index: 9999;" onclick="if(event.target===this) this.style.display='none'">
+<div id="mobile-sort-popup-s" class="popup-overlay" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
     <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
         <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-        <button class="btn btn-outline btn-sort-app-s" onclick="document.getElementById('mobile-sort-popup-s').style.display='none'">За згадкою</button>
-        <button class="btn btn-outline btn-sort-alpha-s" onclick="document.getElementById('mobile-sort-popup-s').style.display='none'">За алфавітом</button>
-        <button class="btn btn-outline btn-sort-freq-s" onclick="document.getElementById('mobile-sort-popup-s').style.display='none'">За популярністю</button>
-        <button class="btn btn-primary mt-2" onclick="document.getElementById('mobile-sort-popup-s').style.display='none'">Закрити</button>
+        <button class="btn btn-outline btn-sort-app-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За згадкою</button>
+        <button class="btn btn-outline btn-sort-alpha-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За алфавітом</button>
+        <button class="btn btn-outline btn-sort-freq-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За популярністю</button>
+        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">Закрити</button>
     </div>
 </div>
 
@@ -511,28 +511,28 @@
 
 <div class="analytics-sort-controls">
     <!-- Desktop sort buttons -->
-    <div class="analytics-sort-desktop" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
         <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
         <button class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
         <button class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
     </div>
     
     <!-- Mobile sort popup trigger -->
-    <div class="analytics-sort-mobile" style="display: none; margin-bottom: 16px;">
-        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').style.display='flex'">
+    <div class="analytics-sort-mobile" style="display: none; ">
+        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').classList.add('show')">
             <i class="ri-sort-desc"></i> Сортувати імена
         </button>
     </div>
 </div>
 
 <!-- Mobile Sort Popup Modal -->
-<div id="mobile-sort-popup" class="popup-overlay" style="display: none; z-index: 9999;" onclick="if(event.target===this) this.style.display='none'">
+<div id="mobile-sort-popup" class="popup-overlay" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
     <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
         <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-        <button class="btn btn-outline btn-sort-app" onclick="document.getElementById('mobile-sort-popup').style.display='none'">За згадкою</button>
-        <button class="btn btn-outline btn-sort-alpha" onclick="document.getElementById('mobile-sort-popup').style.display='none'">За алфавітом</button>
-        <button class="btn btn-outline btn-sort-freq" onclick="document.getElementById('mobile-sort-popup').style.display='none'">За популярністю</button>
-        <button class="btn btn-primary mt-2" onclick="document.getElementById('mobile-sort-popup').style.display='none'">Закрити</button>
+        <button class="btn btn-outline btn-sort-app" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За згадкою</button>
+        <button class="btn btn-outline btn-sort-alpha" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За алфавітом</button>
+        <button class="btn btn-outline btn-sort-freq" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За популярністю</button>
+        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">Закрити</button>
     </div>
 </div>
 

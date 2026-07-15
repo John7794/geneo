@@ -83,6 +83,11 @@ export class AnalyticsManager {
             const h4 = sec.querySelector("h4");
             if (h4 && !h4.dataset.accordionInit) {
                 h4.dataset.accordionInit = "true";
+                
+                const icon = document.createElement("i");
+                icon.className = "ri-arrow-down-s-line analytics-mobile-accordion-icon";
+                h4.appendChild(icon);
+
                 h4.addEventListener("click", () => {
                     if (window.innerWidth <= 768) {
                         sec.classList.toggle("accordion-open");
@@ -178,28 +183,84 @@ export class AnalyticsManager {
             return `<a href="?id=${encodeURIComponent(pid)}&view=profile" class="js-stop-prop analytics-person-link" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(fullName)}</a>`;
         };
 
-        const countPlace = (placeId, eventType, peopleList = []) => {
+        const EVENT_ORDER = ["народження", "хрещення", "шлюб", "смерть", "поховання", "згадки в індексах пращурів", "походження"];
+        const getEventSortIndex = (eventName) => {
+            const idx = EVENT_ORDER.indexOf(eventName);
+            return idx !== -1 ? idx : 999;
+        };
+
+        const personRank = {};
+        if (this.engine.db.basic) {
+            this.engine.db.basic.forEach((p, idx) => {
+                const pid = p[COLUMNS.basic?.id || "person_id"];
+                if (pid) personRank[String(pid)] = idx;
+            });
+        }
+        if (this.engine.db.familyList) {
+            this.engine.db.familyList.forEach((f, idx) => {
+                const pid = f[COLUMNS.familyList?.id || "fam_id"];
+                if (pid && personRank[String(pid)] === undefined) personRank[String(pid)] = 1000000 + idx;
+            });
+        }
+        if (this.engine.db.participants) {
+            this.engine.db.participants.forEach((p, idx) => {
+                const pid = p[COLUMNS.participants?.id || "p_id"];
+                if (pid && personRank[String(pid)] === undefined) personRank[String(pid)] = 2000000 + idx;
+            });
+        }
+
+        const placeFirstAppearance = {};
+
+        const countPlace = (placeId, eventType, peopleList = [], personIds = []) => {
             if (placeId && String(placeId).trim() !== "") {
                 const pName = String(placeId).trim();
-                if (!placesCount[pName]) { placesCount[pName] = { total: 0, events: {}, peopleLists: {} }; placesOrder.push(pName); }
-                placesCount[pName].total++;
-                placesCount[pName].events[eventType] = (placesCount[pName].events[eventType] || 0) + 1;
-                if (!placesCount[pName].peopleLists[eventType]) placesCount[pName].peopleLists[eventType] = [];
-                placesCount[pName].peopleLists[eventType].push(...peopleList);
+                if (!placesCount[pName]) { 
+                    placesCount[pName] = { total: 0, events: {}, peopleLists: {} }; 
+                    placesOrder.push(pName); 
+                    placeFirstAppearance[pName] = { pRank: Infinity, eRank: Infinity };
+                }
+                
+                const eRank = getEventSortIndex(eventType);
+                personIds.forEach(pid => {
+                    const strPid = String(pid);
+                    let pRank = personRank[strPid];
+                    if (pRank === undefined) {
+                        const num = parseInt(strPid, 10);
+                        pRank = isNaN(num) ? 3000000 : 3000000 + num;
+                    }
+                    if (pRank < placeFirstAppearance[pName].pRank) {
+                        placeFirstAppearance[pName].pRank = pRank;
+                        placeFirstAppearance[pName].eRank = eRank;
+                    } else if (pRank === placeFirstAppearance[pName].pRank) {
+                        if (eRank < placeFirstAppearance[pName].eRank) {
+                            placeFirstAppearance[pName].eRank = eRank;
+                        }
+                    }
+                });
+
+                if (!placesCount[pName].peopleLists[eventType]) {
+                    placesCount[pName].peopleLists[eventType] = new Set();
+                }
+                const oldSize = placesCount[pName].peopleLists[eventType].size;
+                peopleList.forEach(p => placesCount[pName].peopleLists[eventType].add(p));
+                const newSize = placesCount[pName].peopleLists[eventType].size;
+                placesCount[pName].total += (newSize - oldSize);
+                placesCount[pName].events[eventType] = newSize;
             }
         };
+
         if (this.engine.db.birth) {
             this.engine.db.birth.forEach(b => {
                 const pid = b[COLUMNS.birth?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", [getPersonName(pid)]);
+                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", [getPersonName(pid)], [pid]);
             });
         }
         if (this.engine.db.death) {
             this.engine.db.death.forEach(d => {
                 const pid = d[COLUMNS.death?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", [getPersonName(pid)]);
+                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", [getPersonName(pid)], [pid]);
             });
         }
         if (this.engine.db.marriage) {
@@ -210,39 +271,61 @@ export class AnalyticsManager {
                 const hName = getPersonName(hid);
                 const wName = getPersonName(wid);
                 const couple = (hid || wid) ? `${hName} та ${wName}` : "Невідомо";
-                countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб", [couple]);
+                countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб", [couple], [hid, wid]);
             });
         }
         if (this.engine.db.baptism) {
             this.engine.db.baptism.forEach(m => {
                 const pid = m[COLUMNS.baptism?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення", [getPersonName(pid)]);
+                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення", [getPersonName(pid)], [pid]);
             });
         }
         if (this.engine.db.funeral) {
             this.engine.db.funeral.forEach(m => {
                 const pid = m[COLUMNS.funeral?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання", [getPersonName(pid)]);
+                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання", [getPersonName(pid)], [pid]);
             });
         }
         if (this.engine.db.familyList) {
             this.engine.db.familyList.forEach(f => {
                 const pid = f[COLUMNS.familyList?.id || "fam_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(f[COLUMNS.familyList?.birthPlace || "fam_birth_place"], "народження", [getPersonName(pid)]);
-                countPlace(f[COLUMNS.familyList?.deathPlace || "fam_death_place"], "смерть", [getPersonName(pid)]);
-                countPlace(f[COLUMNS.familyList?.origin || "fam_origin_place"], "походження", [getPersonName(pid)]);
+                const placeId = f[COLUMNS.familyList?.birthPlace || "fam_birth_place"];
+                if (placeId && String(placeId).trim() !== "") {
+                    const pName = String(placeId).trim();
+                    const personName = getPersonName(pid);
+                    let alreadyExists = false;
+                    if (placesCount[pName]) {
+                        for (const eventName of Object.keys(placesCount[pName].peopleLists)) {
+                            if (eventName !== "згадки в індексах пращурів" && placesCount[pName].peopleLists[eventName].has(personName)) {
+                                alreadyExists = true; break;
+                            }
+                        }
+                    }
+                    if (!alreadyExists) countPlace(placeId, "згадки в індексах пращурів", [personName], [pid]);
+                }
             });
         }
         if (this.engine.db.participants) {
             this.engine.db.participants.forEach(p => {
                 const pid = p[COLUMNS.participants?.id || "p_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(p[COLUMNS.participants?.birthPlace || "p_birth_place"], "народження", [getPersonName(pid)]);
-                countPlace(p[COLUMNS.participants?.deathPlace || "p_death_place"], "смерть", [getPersonName(pid)]);
-                countPlace(p[COLUMNS.participants?.origin || "p_origin_place"], "походження", [getPersonName(pid)]);
+                const placeId = p[COLUMNS.participants?.birthPlace || "p_birth_place"];
+                if (placeId && String(placeId).trim() !== "") {
+                    const pName = String(placeId).trim();
+                    const personName = getPersonName(pid);
+                    let alreadyExists = false;
+                    if (placesCount[pName]) {
+                        for (const eventName of Object.keys(placesCount[pName].peopleLists)) {
+                            if (eventName !== "згадки в індексах пращурів" && placesCount[pName].peopleLists[eventName].has(personName)) {
+                                alreadyExists = true; break;
+                            }
+                        }
+                    }
+                    if (!alreadyExists) countPlace(placeId, "згадки в індексах пращурів", [personName], [pid]);
+                }
             });
         }
 
@@ -518,7 +601,7 @@ export class AnalyticsManager {
             
             return `
                 <div style="width: 100%;">
-                    <div class="analytics-stat-title" style="margin-bottom: 16px; font-weight: 600; font-size: 16px; color: var(--color-text-main);">${title}</div>
+                    <div class="analytics-stat-title" style=" font-weight: 600; font-size: 16px; color: var(--color-text-main);">${title}</div>
                     <div style="display: flex; flex-direction: column; width: 100%; margin-bottom: 32px;">
                         ${rowsHtml}
                     </div>
@@ -582,7 +665,7 @@ export class AnalyticsManager {
             }
         });
         
-        let activeSurnamesSort = 'frequency'; // Assuming this was intended, although later it says appearance
+        let activeSurnamesSort = 'appearance'; // Assuming this was intended, although later it says appearance
         document.querySelectorAll('.btn-sort-app-s, .btn-sort-alpha-s, .btn-sort-freq-s').forEach(btn => {
             if (btn.style.background === 'var(--color-primary)') {
                 if (btn.classList.contains('btn-sort-app-s')) activeSurnamesSort = 'appearance';
@@ -627,9 +710,9 @@ export class AnalyticsManager {
                 updateNamesActiveBtn(activeNamesSort);
 
                 // Bind all buttons with these classes globally or within document
-                document.querySelectorAll('.btn-sort-freq').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
-                document.querySelectorAll('.btn-sort-alpha').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
-                document.querySelectorAll('.btn-sort-app').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+                document.querySelectorAll('.btn-sort-freq').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
+                document.querySelectorAll('.btn-sort-alpha').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
+                document.querySelectorAll('.btn-sort-app').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
             }
         }
         
@@ -660,9 +743,9 @@ export class AnalyticsManager {
         updateSurnamesActiveBtn(activeSurnamesSort);
 
         // Surnames sorting bindings
-        document.querySelectorAll('.btn-sort-freq-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
-        document.querySelectorAll('.btn-sort-alpha-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
-        document.querySelectorAll('.btn-sort-app-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').style.display='none'; });
+        document.querySelectorAll('.btn-sort-freq-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
+        document.querySelectorAll('.btn-sort-alpha-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
+        document.querySelectorAll('.btn-sort-app-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
 
 
 
@@ -827,17 +910,24 @@ export class AnalyticsManager {
         const renderPlaces = (sortMode) => {
             let sortedEntries = [];
             if (sortMode === 'appearance') {
-                sortedEntries = placesOrder.map(k => [k, placesCount[k]]);
+                sortedEntries = [...placesOrder].sort((a, b) => {
+                    const aApp = placeFirstAppearance[a];
+                    const bApp = placeFirstAppearance[b];
+                    if (aApp.pRank !== bApp.pRank) return aApp.pRank - bApp.pRank;
+                    return aApp.eRank - bApp.eRank;
+                }).map(k => [k, placesCount[k]]);
             } else if (sortMode === 'alphabet_az') {
+                const stripPrefix = (name) => name.replace(/^(м\.|с\.|сел\.)\s*/i, '').trim();
                 sortedEntries = Object.entries(placesCount).sort((a, b) => {
-                    const nameA = placeNameMap[a[0]] || a[0];
-                    const nameB = placeNameMap[b[0]] || b[0];
+                    const nameA = stripPrefix(placeNameMap[a[0]] || a[0]);
+                    const nameB = stripPrefix(placeNameMap[b[0]] || b[0]);
                     return nameA.localeCompare(nameB, 'uk');
                 });
             } else if (sortMode === 'alphabet_za') {
+                const stripPrefix = (name) => name.replace(/^(м\.|с\.|сел\.)\s*/i, '').trim();
                 sortedEntries = Object.entries(placesCount).sort((a, b) => {
-                    const nameA = placeNameMap[a[0]] || a[0];
-                    const nameB = placeNameMap[b[0]] || b[0];
+                    const nameA = stripPrefix(placeNameMap[a[0]] || a[0]);
+                    const nameB = stripPrefix(placeNameMap[b[0]] || b[0]);
                     return nameB.localeCompare(nameA, 'uk');
                 });
             } else {
@@ -868,15 +958,22 @@ export class AnalyticsManager {
                     </div>
                     <div class="analytics-place-body" style="display: none; padding: 0 16px 16px 16px; border-top: 1px dashed var(--color-border-light); margin-top: 4px; padding-top: 12px;">
                         <div style="display: flex; flex-direction: column; gap: 12px;">
-                            ${Object.entries(eventsObj).map(e => {
-                                const evtName = e[0];
-                                const evtCount = e[1];
-                                const peopleList = p[1].peopleLists?.[evtName] || [];
-                                const peopleHtml = peopleList.length > 0 
-                                    ? `<ul style="margin: 4px 0 0 12px; padding: 0; list-style: disc; font-size: 13px; color: var(--color-text-muted);">
-                                        ${peopleList.map(personName => `<li>${personName}</li>`).join("")}
-                                      </ul>` 
-                                    : "";
+                            ${(() => {
+                                const EVENT_ORDER = ["народження", "хрещення", "шлюб", "смерть", "поховання", "згадки в індексах пращурів", "походження"];
+                                const getEventSortIndex = (eventName) => {
+                                    const idx = EVENT_ORDER.indexOf(eventName);
+                                    return idx !== -1 ? idx : 999;
+                                };
+                                const sortedEvents = Object.entries(eventsObj).sort((a, b) => getEventSortIndex(a[0]) - getEventSortIndex(b[0]));
+                                return sortedEvents.map(e => {
+                                    const evtName = e[0];
+                                    const evtCount = e[1];
+                                    const peopleList = Array.from(p[1].peopleLists?.[evtName] || []);
+                                    const peopleHtml = peopleList.length > 0 
+                                        ? `<ul style="margin: 4px 0 0 12px; padding: 0; list-style: disc; font-size: 13px; color: var(--color-text-muted);">
+                                            ${peopleList.map(personName => `<li>${personName}</li>`).join("")}
+                                          </ul>` 
+                                        : "";
                                 
                                 return `
                                 <div>
@@ -887,7 +984,8 @@ export class AnalyticsManager {
                                     ${peopleHtml}
                                 </div>
                                 `;
-                            }).join("")}
+                                }).join("");
+                            })()}
                         </div>
                     </div>
                 </li>
@@ -899,7 +997,9 @@ export class AnalyticsManager {
                 const body = item.querySelector('.analytics-place-body');
                 const icon = item.querySelector('.analytics-place-icon');
                 header.addEventListener('click', () => {
-                    const isOpen = body.style.display === 'block';
+                            
+                    if (window.innerWidth >= 1200) return;
+                            const isOpen = body.style.display === 'block';
                     body.style.display = isOpen ? 'none' : 'block';
                     icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
                 });
@@ -911,25 +1011,25 @@ export class AnalyticsManager {
         if (placesSectionContent && !controls) {
             const controlsHtml = `
                 <div class="places-sort-controls analytics-sort-controls">
-                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="frequency">За популярністю</button>
+                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
                         <button class="btn btn-sm btn-outline btn-sort-places" data-sort="appearance">За згадкою</button>
+                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="frequency">За популярністю</button>
                         <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_az">А - Я</button>
                         <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_za">Я - А</button>
                     </div>
-                    <div class="analytics-sort-mobile" style="display: none; margin-bottom: 16px;">
-                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-places" onclick="document.getElementById('mobile-sort-popup-places').style.display='flex'">
+                    <div class="analytics-sort-mobile" style="display: none; ">
+                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-places" onclick="document.getElementById('mobile-sort-popup-places').classList.add('show')">
                             <i class="ri-sort-desc"></i> Сортувати населені пункти
                         </button>
                     </div>
-                    <div id="mobile-sort-popup-places" class="popup-overlay" style="display: none; z-index: 9999;" onclick="if(event.target===this) this.style.display='none'">
+                    <div id="mobile-sort-popup-places" class="popup-overlay" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
                         <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
                             <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-                            <button class="btn btn-outline btn-sort-places" data-sort="frequency" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">За популярністю</button>
-                            <button class="btn btn-outline btn-sort-places" data-sort="appearance" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">За згадкою</button>
-                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_az" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">А - Я</button>
-                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_za" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">Я - А</button>
-                            <button class="btn btn-primary mt-2" onclick="document.getElementById('mobile-sort-popup-places').style.display='none'">Закрити</button>
+                            <button class="btn btn-outline btn-sort-places" data-sort="appearance" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">За згадкою</button>
+                            <button class="btn btn-outline btn-sort-places" data-sort="frequency" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">За популярністю</button>
+                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_az" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">А - Я</button>
+                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_za" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">Я - А</button>
+                            <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">Закрити</button>
                         </div>
                     </div>
                 </div>
@@ -938,13 +1038,16 @@ export class AnalyticsManager {
             controls = placesSectionContent.querySelector('.places-sort-controls');
         }
 
-        let activeSortMode = 'frequency';
+        let activeSortMode = 'appearance';
         if (controls) {
+            let hasActive = false;
             controls.querySelectorAll('.btn-sort-places').forEach(btn => {
                 if (btn.style.background === 'var(--color-primary)') {
                     activeSortMode = btn.dataset.sort;
+                    hasActive = true;
                 }
             });
+            if (!hasActive) activeSortMode = 'appearance';
         }
 
         renderPlaces(activeSortMode);
@@ -973,7 +1076,7 @@ export class AnalyticsManager {
                     renderPlaces(mode);
                     updatePlacesActiveBtn(mode);
                     if (btn.closest('.popup-overlay')) {
-                        btn.closest('.popup-overlay').style.display = 'none';
+                        btn.closest('.popup-overlay').classList.remove('show');
                     }
                 });
             });
@@ -1051,7 +1154,9 @@ export class AnalyticsManager {
                     const body = item.querySelector('.analytics-death-body');
                     const icon = item.querySelector('.analytics-death-icon');
                     header.addEventListener('click', () => {
-                        const isOpen = body.style.display === 'block';
+                            
+                        if (window.innerWidth >= 1200) return;
+                            const isOpen = body.style.display === 'block';
                         body.style.display = isOpen ? 'none' : 'block';
                         icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
                     });
@@ -1179,14 +1284,21 @@ export class AnalyticsManager {
                 
                 // Render
                 const sortedMonths = Object.keys(grouped).map(Number).sort((a, b) => a - b);
+                let tocLinksHtml = "";
                 
                 sortedMonths.forEach(m => {
                     const monthsNom = ["", "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
                     const mName = monthsNom[m] || i18n.t("time.monthsGenitive")[m];
+                    
+                    tocLinksHtml += `<li><a href="#event-month-${m}" class="profile-toc-link js-event-month-link" data-month="${m}">${mName}</a></li>`;
+                    
                     html += `
-                        <li style="list-style: none; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px;">
-                            <h3 style="margin: 0; font-size: 20px; text-transform: capitalize; color: var(--color-primary); border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">${mName}</h3>
-                        </li>
+                        <li id="event-month-${m}" class="analytics-event-month-item" style="list-style: none; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px;">
+                            <div class="analytics-event-month-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">
+                                <h3 style="margin: 0; font-size: 20px; text-transform: capitalize; color: var(--color-primary);">${mName}</h3>
+                                <i class="ri-arrow-down-s-line analytics-event-month-icon" style="transition: transform 0.3s; color: var(--color-primary); font-size: 24px; transform: rotate(180deg);"></i>
+                            </div>
+                            <div class="analytics-event-month-body" style="display: block; padding-top: 8px;">
                     `;
                     
                     const sortedDays = Object.keys(grouped[m]).map(Number).sort((a, b) => a - b);
@@ -1250,21 +1362,87 @@ export class AnalyticsManager {
                     });
                 });
                 
-                containerEvents.innerHTML = html;
+                // Close the month blocks
+                html = html.replace(/<\/li>\s*$/g, ""); // Remove the last closing li if any issues
                 
-                // Add link behavior
-                const links = containerEvents.querySelectorAll('.analytics-person-link');
-                links.forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
-                        if (pid && window.app && window.app.navigateToId) {
-                            window.app.navigateToId(pid, false, 'profile');
+                const eventsSectionContent = containerEvents.closest('.analytics-section-content');
+                if (eventsSectionContent) {
+                    eventsSectionContent.innerHTML = `
+                        <div class="events-layout-with-sidebar" style="position: relative; width: 100%;">
+                            <aside class="events-sidebar-desktop" style="display: none;">
+                                <div>
+                                    <div class="profile-toc-container">
+                                        <h3 class="profile-toc-title">Місяці</h3>
+                                        <ul class="profile-toc-list">
+                                            ${tocLinksHtml}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </aside>
+                            <div class="events-body-blocks">
+                                <ul id="analytics-events-list" class="analytics-list-none" style="padding: 0; margin: 0;">
+                                    ${html}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const newContainerEvents = document.getElementById("analytics-events-list");
+                    
+                    // Attach accordion events
+                    newContainerEvents.querySelectorAll('.analytics-event-month-item').forEach(item => {
+                        const header = item.querySelector('.analytics-event-month-header');
+                        const body = item.querySelector('.analytics-event-month-body');
+                        const icon = item.querySelector('.analytics-event-month-icon');
+                        
+                        const isDesktop = window.innerWidth >= 1200;
+                        if (!isDesktop) {
+                            body.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
                         }
+                        
+                        header.addEventListener('click', () => {
+                            
+                            if (window.innerWidth >= 1200) return;
+                            const isOpen = body.style.display === 'block';
+                            body.style.display = isOpen ? 'none' : 'block';
+                            if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                        });
                     });
-                });
-            }
-        }
+                    
+                    // Attach smooth scroll for toc links
+                    eventsSectionContent.querySelectorAll('.js-event-month-link').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const targetId = link.getAttribute('href').substring(1);
+                            const targetEl = document.getElementById(targetId);
+                            if (targetEl) {
+                                const body = targetEl.querySelector('.analytics-event-month-body');
+                                const icon = targetEl.querySelector('.analytics-event-month-icon');
+                                if (body && body.style.display === 'none') {
+                                    body.style.display = 'block';
+                                    if (icon) icon.style.transform = 'rotate(180deg)';
+                                }
+                                targetEl.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        });
+                    });
+
+                    // Add link behavior
+                    const links = newContainerEvents.querySelectorAll('.analytics-person-link');
+                    links.forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
+                            if (pid && window.app && window.app.navigateToId) {
+                                window.app.navigateToId(pid, false, 'profile');
+                            }
+                        });
+                    });
+                } // End if (eventsSectionContent)
+            } // End else
+        } // End if (containerEvents)
+
 
 // Coats of arms
         const containerCoats = document.getElementById("analytics-coats");
