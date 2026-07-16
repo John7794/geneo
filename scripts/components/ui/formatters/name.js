@@ -12,10 +12,9 @@ import { escapeHtml } from "../../../utils/helpers.js";
  * @param {Object} options - Налаштування відображення
  * @returns {string} HTML рядок
  */
-export function formatPersonNameHtml(person) {
+export function formatPersonNameHtml(person, options = {}) {
 	const unknownLabelRaw = i18n.t("common.unknown") || "Невідомо";
 	const unknownLabel = escapeHtml(unknownLabelRaw);
-
 	if (!person || (!person.name && !person.surname)) return unknownLabel;
 
 	const nameRaw = String(person.name || "").trim();
@@ -23,16 +22,34 @@ export function formatPersonNameHtml(person) {
 		.trim()
 		.toUpperCase();
 
-	// 🔥 ВИМОГА 2: Дівоче прізвище виводимо ТІЛЬКИ для жінок
 	const isFem = normalizeGender(person.gender) === "f";
-	if (isFem && person.maidenName) {
-		const cleanMaiden = String(person.maidenName).trim().toUpperCase();
-		if (cleanMaiden) surnameRaw = cleanMaiden;
+    
+	// 🔥 ВИМОГА: Дівоче прізвище для народження, хрещення, шлюбу.
+	// Прізвище за чоловіком для смерті, поховання.
+	const eventType = options.eventType || options; 
+	if (["birth", "baptism", "marriage"].includes(eventType)) {
+		if (isFem) {
+			surnameRaw = person.maidenName ? String(person.maidenName).trim().toUpperCase() : "";
+		}
+	} else if (["death", "funeral"].includes(eventType)) {
+		if (isFem) {
+			if (person.marriedName) {
+				const mSurnames = person.marriedName.split(/[,;]/).map(x => x.trim()).filter(Boolean);
+				if (mSurnames.length > 0) {
+					surnameRaw = mSurnames[mSurnames.length - 1].toUpperCase();
+				}
+			} else {
+				surnameRaw = person.maidenName ? String(person.maidenName).trim().toUpperCase() : "";
+			}
+		}
+	} else {
+		if (isFem) {
+			surnameRaw = person.maidenName ? String(person.maidenName).trim().toUpperCase() : "";
+		}
 	}
 
 	const name = escapeHtml(nameRaw);
 	const surname = escapeHtml(surnameRaw);
-
 	const htmlBuffer = [];
 
 	// Ім'я
@@ -41,7 +58,6 @@ export function formatPersonNameHtml(person) {
 			UI_CLASSES.kinshipCardNameFirst || "kinship-card-name-first";
 		htmlBuffer.push(`<span class="${firstClass}">${name}</span>`);
 	}
-
 	// Прізвище
 	if (surname) {
 		const surnameClass =

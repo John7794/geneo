@@ -3,6 +3,7 @@ import { i18n } from "../../core/i18n.js";
 import { calculateAgeAtDeath, convertJulianToGregorian } from "../../utils/dateUtils.js";
 import { resolveCoatUrl } from "../../utils/coatUtils.js";
 import { renderPersonTile } from "../ui/shared/personTile.js";
+import { findPersonDetails } from "../../utils/personUtils.js";
 import { escapeHtml } from "../../utils/helpers.js";
 
 export class AnalyticsManager {
@@ -164,22 +165,40 @@ export class AnalyticsManager {
 		}
         
         // Count places
-        const getPersonName = (pid) => {
+        const getPersonName = (pid, eventType) => {
             if (!pid) return "Невідомо";
-            const p = this.engine?.getPerson(pid);
-            if (!p) return "Невідомо";
-            let fullName = p.name || "";
-            if (p.source === "basic" && p.raw) {
-                const s = String(p.raw[COLUMNS.basic?.surname || "surname"] || "").trim();
-                const n = String(p.raw[COLUMNS.basic?.name || "name"] || "").trim();
-                const pat = String(p.raw[COLUMNS.basic?.patronymic || "patronymic"] || "").trim();
-                fullName = [s, n, pat].filter(Boolean).join(" ");
-            } else if (p.source === "family_list" && p.raw) {
-                const s = String(p.raw[COLUMNS.familyList?.surname || "surname"] || "").trim();
-                const n = String(p.raw[COLUMNS.familyList?.firstName || "first_name"] || "").trim();
-                const pat = String(p.raw[COLUMNS.familyList?.patronymic || "patronymic"] || "").trim();
-                fullName = [s, n, pat].filter(Boolean).join(" ");
+            const details = findPersonDetails(pid, this.engine);
+            if (!details || (!details.name && !details.surname)) return "Невідомо";
+            
+            let s = details.surname || "";
+            let n = details.name || "";
+            let pat = details.patronymic || "";
+            
+            const isFem = details.gender === "f" || details.gender === "ж";
+            if (["birth", "baptism", "marriage", "народження", "хрещення", "шлюб"].includes(eventType)) {
+                if (isFem) {
+                    s = details.maidenName ? details.maidenName : "";
+                }
+            } else if (["death", "funeral", "смерть", "поховання"].includes(eventType)) {
+                if (isFem) {
+                    if (details.marriedName) {
+                        const mSurnames = String(details.marriedName).split(/[,;]/).map(x => x.trim()).filter(Boolean);
+                        if (mSurnames.length > 0) {
+                            s = mSurnames[mSurnames.length - 1];
+                        } else {
+                            s = details.maidenName ? details.maidenName : "";
+                        }
+                    } else {
+                        s = details.maidenName ? details.maidenName : "";
+                    }
+                }
+            } else {
+                if (isFem) {
+                    s = details.maidenName ? details.maidenName : "";
+                }
             }
+            
+            const fullName = [s, n, pat].filter(Boolean).join(" ");
             return `<a href="?id=${encodeURIComponent(pid)}&view=profile" class="js-stop-prop analytics-person-link" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(fullName)}</a>`;
         };
 
@@ -253,14 +272,14 @@ export class AnalyticsManager {
             this.engine.db.birth.forEach(b => {
                 const pid = b[COLUMNS.birth?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", [getPersonName(pid)], [pid]);
+                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", [getPersonName(pid, "народження")], [pid]);
             });
         }
         if (this.engine.db.death) {
             this.engine.db.death.forEach(d => {
                 const pid = d[COLUMNS.death?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", [getPersonName(pid)], [pid]);
+                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", [getPersonName(pid, "смерть")], [pid]);
             });
         }
         if (this.engine.db.marriage) {
@@ -268,8 +287,8 @@ export class AnalyticsManager {
                 const hid = m[COLUMNS.marriage?.personId || "person_id"];
                 const wid = m[COLUMNS.marriage?.spouseId || "spouse_id"];
                 if (visibleIds && !visibleIds.has(String(hid)) && !visibleIds.has(String(wid))) return;
-                const hName = getPersonName(hid);
-                const wName = getPersonName(wid);
+                const hName = getPersonName(hid, "шлюб");
+                const wName = getPersonName(wid, "шлюб");
                 const couple = (hid || wid) ? `${hName} та ${wName}` : "Невідомо";
                 countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб", [couple], [hid, wid]);
             });
@@ -278,14 +297,14 @@ export class AnalyticsManager {
             this.engine.db.baptism.forEach(m => {
                 const pid = m[COLUMNS.baptism?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення", [getPersonName(pid)], [pid]);
+                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення", [getPersonName(pid, "хрещення")], [pid]);
             });
         }
         if (this.engine.db.funeral) {
             this.engine.db.funeral.forEach(m => {
                 const pid = m[COLUMNS.funeral?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання", [getPersonName(pid)], [pid]);
+                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання", [getPersonName(pid, "поховання")], [pid]);
             });
         }
         if (this.engine.db.familyList) {
@@ -794,7 +813,7 @@ export class AnalyticsManager {
         const confMax = lifespansConfirmed.length > 0 ? Math.max(...lifespansConfirmed.map(s => s.age)) : 0;
         const approxMax = lifespansApprox.length > 0 ? Math.max(...lifespansApprox.map(s => s.age)) : 0;
         let html = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; ">
                     <!-- Загальна кількість -->
                     <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
                         <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 12px;">Загальна кількість</div>
@@ -1299,6 +1318,7 @@ export class AnalyticsManager {
                                 <i class="ri-arrow-down-s-line analytics-event-month-icon" style="transition: transform 0.3s; color: var(--color-primary); font-size: 24px; transform: rotate(180deg);"></i>
                             </div>
                             <div class="analytics-event-month-body" style="display: block; padding-top: 8px;">
+                                <ul style="list-style: none; padding: 0; margin: 0;">
                     `;
                     
                     const sortedDays = Object.keys(grouped[m]).map(Number).sort((a, b) => a - b);
@@ -1322,29 +1342,47 @@ export class AnalyticsManager {
                             `;
                             
                             grouped[m][d][t].forEach(evt => {
-                                                                const getPersonPIB = (p) => {
+                                                                const getPersonPIB = (p, eventType) => {
                                     if (!p) return "Невідомо";
-                                    let fullName = p.name || "";
-                                    if (p.source === "basic" && p.raw) {
-                                        const s = String(p.raw[COLUMNS.basic?.surname || "surname"] || "").trim();
-                                        const n = String(p.raw[COLUMNS.basic?.name || "name"] || "").trim();
-                                        const pat = String(p.raw[COLUMNS.basic?.patronymic || "patronymic"] || "").trim();
-                                        fullName = [s, n, pat].filter(Boolean).join(" ");
-                                    } else if (p.source === "family_list" && p.raw) {
-                                        const s = String(p.raw[COLUMNS.familyList?.surname || "surname"] || "").trim();
-                                        const n = String(p.raw[COLUMNS.familyList?.firstName || "first_name"] || "").trim();
-                                        const pat = String(p.raw[COLUMNS.familyList?.patronymic || "patronymic"] || "").trim();
-                                        fullName = [s, n, pat].filter(Boolean).join(" ");
+                                    const details = findPersonDetails(p.id, window.app?.engine);
+                                    let s = details.surname || "";
+                                    let n = details.name || "";
+                                    let pat = details.patronymic || "";
+                                    
+                                    const isFem = details.gender === "f" || details.gender === "ж";
+                                    if (["birth", "baptism", "marriage"].includes(eventType)) {
+                                        if (isFem) {
+                                            s = details.maidenName ? details.maidenName : "";
+                                        }
+                                    } else if (["death", "funeral"].includes(eventType)) {
+                                        if (isFem) {
+                                            if (details.marriedName) {
+                                                const mSurnames = String(details.marriedName).split(/[,;]/).map(x => x.trim()).filter(Boolean);
+                                                if (mSurnames.length > 0) {
+                                                    s = mSurnames[mSurnames.length - 1];
+                                                } else {
+                                                    s = details.maidenName ? details.maidenName : "";
+                                                }
+                                            } else {
+                                                s = details.maidenName ? details.maidenName : "";
+                                            }
+                                        }
+                                    } else {
+                                        if (isFem) {
+                                            s = details.maidenName ? details.maidenName : "";
+                                        }
                                     }
-                                    return fullName;
+                                    
+                                    const fullName = [s, n, pat].filter(Boolean).join(" ");
+                                    return fullName || p.name || "Невідомо";
                                 };
-                                
-                                let p1Html = `<a href="?id=${encodeURIComponent(evt.person.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.person.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.person))}</a>`;
+
+                                let p1Html = `<a href="?id=${encodeURIComponent(evt.person.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.person.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.person, evt.type))}</a>`;
                                 let p2Html = "";
                                 if (evt.type === "marriage" && evt.spouse) {
-                                    p2Html = ` та <a href="?id=${encodeURIComponent(evt.spouse.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.spouse.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.spouse))}</a>`;
+                                    p2Html = ` та <a href="?id=${encodeURIComponent(evt.spouse.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.spouse.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.spouse, evt.type))}</a>`;
                                 }
-                                
+
                                 let yearInfo = evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${evt.year} р.)</span>` : '';
                                 
                                 html += `
@@ -1360,10 +1398,15 @@ export class AnalyticsManager {
                             `;
                         });
                     });
+                    html += `
+                                </ul>
+                            </div>
+                        </li>
+                    `;
                 });
                 
                 // Close the month blocks
-                html = html.replace(/<\/li>\s*$/g, ""); // Remove the last closing li if any issues
+                // html = html.replace(/<\/li>\s*$/g, ""); // Remove the last closing li if any issues
                 
                 const eventsSectionContent = containerEvents.closest('.analytics-section-content');
                 if (eventsSectionContent) {

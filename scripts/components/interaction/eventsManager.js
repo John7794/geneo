@@ -330,12 +330,12 @@ export class EventsManager {
 					case "death":
 					case "baptism":
 					case "funeral":
-						content = renderPersonTile(evt.person, this.context, "", false);
+						content = renderPersonTile(evt.person, this.context, "", false, { eventType: evt.type });
 						break;
 					case "marriage":
-						const p1 = renderPersonTile(evt.person, this.context, "", false);
+						const p1 = renderPersonTile(evt.person, this.context, "", false, { eventType: evt.type });
 						const p2 = evt.spouse
-							? renderPersonTile(evt.spouse, this.context, "", false)
+							? renderPersonTile(evt.spouse, this.context, "", false, { eventType: evt.type })
 							: renderPersonTile(null, this.context, "", true);
 
 						content = `<div class="event-marriage-container">${p1}${p2}</div>`;

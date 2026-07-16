@@ -1,456 +1,340 @@
 <!doctype html>
 <html lang="uk">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="robots" content="noindex, nofollow" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-		/>
-		<title>Родове Дерево</title>
-		
-		<meta property="og:title" content="Родове Дерево" />
-		<meta property="og:description" content="Архів Генеалогії" />
-		<meta property="og:image" content="/assets/og-image.svg" />
-		<meta property="og:type" content="website" />
 
-		<script>
-			(function () {
-				const savedTheme = localStorage.getItem("appTheme") || "light";
-				if (savedTheme === "dark")
-					document.documentElement.classList.add("theme-dark");
-			})();
-		</script>
-		<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
-			rel="stylesheet"
-		/>
-		<link 
-			href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" 
-			rel="stylesheet" 
-		/>
-		<link
-			href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
-			rel="stylesheet"
-		/>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Родове Дерево</title>
 
-		<link rel="stylesheet" href="css/base/variables.css" />
-		<link rel="stylesheet" href="css/base/reset.css" />
-		<link rel="stylesheet" href="css/base/base.css" />
-		<link rel="stylesheet" href="css/layout.css" />
+    <meta property="og:title" content="Родове Дерево" />
+    <meta property="og:description" content="Архів Генеалогії" />
+    <meta property="og:image" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MzAiIHZpZXdCb3g9IjAgMCAxMjAwIDYzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MzAiIGZpbGw9IiMwRjE3MkEiLz4KICAKICA8ZGVmcz4KICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMUUyOTNCIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDwvcGF0dGVybj4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjMwIiBmaWxsPSJ1cmwoI2dyaWQpIi8+CgogIDxwYXRoIGQ9Ik02MDAgMjQwIFYzNDAgSDMwMCBWNDQwIE02MDAgMzQwIEg5MDAgVjQ0MCBNMzAwIDQ0MCBWNTQwIEgxNTAgVjYzMCBNMzAwIDU0MCBINDUwIFY2MzAgTTkwMCA0NDAgVjU0MCBINzUwIFY2MzAgTTkwMCA1NDAgSDEwNTAgVjYzMCIgc3Ryb2tlPSIjMzM0MTU1IiBzdHJva2Utd2lkdGg9IjE2IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgCiAgPGNpcmNsZSBjeD0iNjAwIiBjeT0iMjQwIiByPSI2NCIgZmlsbD0iI0Y4RkFGQyIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE2Ii8+CiAgPGNpcmNsZSBjeD0iMzAwIiBjeT0iNDQwIiByPSI1NiIgZmlsbD0iI0Y4RkFGQyIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE2Ii8+CiAgPGNpcmNsZSBjeD0iOTAwIiBjeT0iNDQwIiByPSI1NiIgZmlsbD0iI0Y4RkFGQyIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE2Ii8+CiAgCiAgPGNpcmNsZSBjeD0iMTUwIiBjeT0iNjMwIiByPSI0OCIgZmlsbD0iI0UyRThGMCIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE2Ii8+CiAgPGNpcmNsZSBjeD0iNDUwIiBjeT0iNjMwIiByPSI0OCIgZmlsbD0iI0UyRThGMCIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE2Ii8+CiAgPGNpcmNsZSBjeD0iNzUwIiBjeT0iNjMwIiByPSI0OCIgZmlsbD0iI0UyRThGMCIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE2Ii8+CiAgPGNpcmNsZSBjeD0iMTA1MCIgY3k9IjYzMCIgcj0iNDgiIGZpbGw9IiNFMkU4RjAiIHN0cm9rZT0iIzBGMTcyQSIgc3Ryb2tlLXdpZHRoPSIxNiIvPgoKICA8dGV4dCB4PSI2MDAiIHk9IjEyMCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgLWFwcGxlLXN5c3RlbSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2NCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI0Y4RkFGQyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjIiPtCg0L7QtNC+0LLQtSDQlNC10YDQtdCy0L48L3RleHQ+CiAgPHRleHQgeD0iNjAwIiB5PSIxNzAiIGZvbnQtZmFtaWx5PSJzeXN0ZW0tdWksIC1hcHBsZS1zeXN0ZW0sIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiM5NEEzQjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxIj7QkNGA0YXRltCyINCT0LXQvdC10LDQu9C+0LPRltGXPC90ZXh0Pgo8L3N2Zz4K" />
+    <meta property="og:type" content="website" />
 
-		<link rel="stylesheet" href="css/components/shared/button.css" />
-		<link rel="stylesheet" href="css/components/shared/date.css" />
-		<link rel="stylesheet" href="css/components/shared/location.css" />
-		<link rel="stylesheet" href="css/components/shared/coat.css" />
-		<link rel="stylesheet" href="css/components/shared/participants.css" />
-		<link rel="stylesheet" href="css/components/shared/kinship-card.css" />
-
-		<link rel="stylesheet" href="css/components/profile/profile-header.css" />
-		<link rel="stylesheet" href="css/components/profile/profile-blocks.css" />
-		<link rel="stylesheet" href="css/components/profile/descendants.css" />
-		<link rel="stylesheet" href="css/components/profile/ancestors.css" />
-		<link rel="stylesheet" href="css/components/profile/marriage.css" />
-		<link rel="stylesheet" href="css/components/profile/relatives.css" />
-		<link rel="stylesheet" href="css/components/profile/records.css" />
-		<link rel="stylesheet" href="css/components/profile/education.css" />
-		<link rel="stylesheet" href="css/components/profile/job.css" />
-		<link rel="stylesheet" href="css/components/profile/awards.css" />
-		<link rel="stylesheet" href="css/components/profile/military.css" />
-		<link rel="stylesheet" href="css/components/profile/gallery.css" />
-		<link rel="stylesheet" href="css/components/profile/domicile.css" />
-		<link rel="stylesheet" href="css/components/profile/identity.css" />
-		<link rel="stylesheet" href="css/components/profile/personal.css" />
-		<link rel="stylesheet" href="css/components/profile/error-state.css" />
-
-		<link rel="stylesheet" href="css/components/interaction/relationship.css" />
-		<link rel="stylesheet" href="css/components/interaction/breadcrumbs.css" />
-		<link rel="stylesheet" href="css/components/interaction/zoom.css" />
-		<link rel="stylesheet" href="css/components/interaction/search.css" />
-		<link rel="stylesheet" href="css/components/interaction/gallery.css" />
-		<link rel="stylesheet" href="css/components/interaction/events.css" />
-		<link rel="stylesheet" href="css/components/interaction/popup.css" />
-		<link rel="stylesheet" href="css/components/interaction/lang-menu.css" />
-		<link rel="stylesheet" href="css/components/interaction/onboarding.css" />
-		<link rel="stylesheet" href="css/components/interaction/lineage.css" />
-		<link rel="stylesheet" href="css/components/interaction/navigation.css" />
-		<link rel="stylesheet" href="css/components/interaction/analytics.css" />
-
-		<link rel="stylesheet" href="css/utilities.css" />
-		<link rel="stylesheet" href="css/states.css" />
-		<link rel="stylesheet" href="css/components/shared/loader.css" />
-
-		<link rel="stylesheet" href="css/components/tree/tree.css" />
-		<link rel="stylesheet" href="css/components/tree/tree-mobile.css" />
-	</head>
-
-	<body>
-		<script>
-			fetch('/api/config', { cache: "no-store" }).then(res => {
-				if (!res.ok) {
-					window.location.href = "/login";
-				}
-			}).catch(e => {
-				console.error("Failed to check auth, redirecting to login");
-				window.location.href = "/login";
-			});
-		</script>
-		<div id="app-loader" class="loader">
-			<div class="loader__spinner"></div>
-			<div class="loader__text" data-i18n="system.loading">
-				Завантаження архіву...
-			</div>
-		</div>
-
-		<main class="app-wrapper">
-
-
-			<div id="breadcrumbs-container" class="breadcrumbs-wrapper hidden">
-				<nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
-			</div>
-
-			<button id="mobile-menu-btn" class="mobile-menu-toggle" aria-label="Меню">
-				<i class="ri-menu-line"></i>
-			</button>
-
-			<div class="top-bar-controls">
-				<div class="control-group unified-panel">
-
-					<button
-						id="btn-home"
-						class="btn btn-icon"
-						title="На головну"
-						data-i18n-title="ui.home"
-					>
-						<i class="ri-home-4-line"></i>
-					</button>
-
-					<button
-						id="btn-share"
-						class="btn btn-icon js-open-share"
-						style="display: none;"
-						title="Поділитися"
-						data-i18n-title="ui.share"
-					>
-						<i class="ri-share-line"></i>
-					</button>
-
-					<button
-						id="btn-search"
-						class="btn btn-icon js-open-search"
-						title="Пошук"
-						data-i18n-title="ui.searchTitle"
-					>
-						<i class="ri-search-line"></i>
-					</button>
-
-					<button
-						id="btn-lineage"
-						class="btn btn-icon js-open-lineage"
-						title="Гілки роду"
-						data-i18n-title="kinship.toggleTitle"
-					>
-						<i class="ri-git-branch-line"></i>
-					</button>
-
-					<hr class="panel-divider" />
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem("appTheme") || "light";
+            if (savedTheme === "dark")
+                document.documentElement.classList.add("theme-dark");
+        })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon-BVee770N.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
 
 
 
-					<button
-						id="btn-analytics"
-						class="btn btn-icon js-open-analytics"
-						title="Аналітика"
-					>
-						<i class="ri-bar-chart-2-line"></i>
-					</button>
-					<button
-						id="btn-events"
-						class="btn btn-icon hidden"
-						title="Цей день в історії"
-						data-i18n-title="events.historyTitle"
-					>
-						<i class="ri-calendar-event-line"></i>
-						<span
-							id="events-badge"
-							class="badge-dot badge-dot--tr hidden"
-						></span>
-					</button>
 
 
-					<button
-						id="theme-toggle"
-						class="btn btn-icon"
-						title="Перемкнути тему"
-						data-i18n-title="ui.themeTitle"
-					>
-						<i class="ri-moon-line"></i>
-					</button>
 
-					<div class="lang-menu-wrapper">
-						<button
-						id="btn-lang-toggle"
-							class="btn btn-icon"
-							title="Змінити мову"
-							data-i18n-title="ui.langTitle"
-						>
-							<i class="ri-translate-2"></i>
-						</button>
+    <script type="module" src="/scripts/main.js"></script>
+    <link rel="stylesheet" href="/css/base/base.css" />
+<link rel="stylesheet" href="/css/base/reset.css" />
+<link rel="stylesheet" href="/css/base/variables.css" />
+<link rel="stylesheet" href="/css/components/interaction/analytics.css" />
+<link rel="stylesheet" href="/css/components/interaction/breadcrumbs.css" />
+<link rel="stylesheet" href="/css/components/interaction/events.css" />
+<link rel="stylesheet" href="/css/components/interaction/gallery.css" />
+<link rel="stylesheet" href="/css/components/interaction/lang-menu.css" />
+<link rel="stylesheet" href="/css/components/interaction/lineage.css" />
+<link rel="stylesheet" href="/css/components/interaction/navigation.css" />
+<link rel="stylesheet" href="/css/components/interaction/onboarding.css" />
+<link rel="stylesheet" href="/css/components/interaction/popup.css" />
+<link rel="stylesheet" href="/css/components/interaction/relationship.css" />
+<link rel="stylesheet" href="/css/components/interaction/search.css" />
+<link rel="stylesheet" href="/css/components/interaction/zoom.css" />
+<link rel="stylesheet" href="/css/components/profile/ancestors.css" />
+<link rel="stylesheet" href="/css/components/profile/awards.css" />
+<link rel="stylesheet" href="/css/components/profile/descendants.css" />
+<link rel="stylesheet" href="/css/components/profile/domicile.css" />
+<link rel="stylesheet" href="/css/components/profile/education.css" />
+<link rel="stylesheet" href="/css/components/profile/error-state.css" />
+<link rel="stylesheet" href="/css/components/profile/gallery.css" />
+<link rel="stylesheet" href="/css/components/profile/identity.css" />
+<link rel="stylesheet" href="/css/components/profile/job.css" />
+<link rel="stylesheet" href="/css/components/profile/marriage.css" />
+<link rel="stylesheet" href="/css/components/profile/military.css" />
+<link rel="stylesheet" href="/css/components/profile/personal.css" />
+<link rel="stylesheet" href="/css/components/profile/profile-blocks.css" />
+<link rel="stylesheet" href="/css/components/profile/profile-header.css" />
+<link rel="stylesheet" href="/css/components/profile/records.css" />
+<link rel="stylesheet" href="/css/components/profile/relatives.css" />
+<link rel="stylesheet" href="/css/components/shared/button.css" />
+<link rel="stylesheet" href="/css/components/shared/coat.css" />
+<link rel="stylesheet" href="/css/components/shared/date.css" />
+<link rel="stylesheet" href="/css/components/shared/kinship-card.css" />
+<link rel="stylesheet" href="/css/components/shared/loader.css" />
+<link rel="stylesheet" href="/css/components/shared/location.css" />
+<link rel="stylesheet" href="/css/components/shared/participants.css" />
+<link rel="stylesheet" href="/css/components/tree/tree.css" />
+<link rel="stylesheet" href="/css/components/tree/tree-mobile.css" />
+<link rel="stylesheet" href="/css/layout.css" />
+<link rel="stylesheet" href="/css/states.css" />
+<link rel="stylesheet" href="/css/utilities.css" />
+</head>
 
-						<div
-							id="lang-menu"
-							class="breadcrumbs__dropdown-menu lang-menu-dropdown hidden"
-						>
-							<button class="breadcrumbs__dropdown-item" data-lang="uk">
-								Українська
-							</button>
-						</div>
-					</div>
+<body>
+    <script>
+        fetch('/api/config', {
+            cache: "no-store"
+        }).then(res => {
+            if (!res.ok) {
+                window.location.href = "/login";
+            }
+        }).catch(e => {
+            console.error("Failed to check auth, redirecting to login");
+            window.location.href = "/login";
+        });
+    </script>
+    <div id="app-loader" class="loader">
+        <div class="loader__spinner"></div>
+        <div class="loader__text" data-i18n="system.loading">
+            Завантаження архіву...
+        </div>
+    </div>
+
+    <main class="app-wrapper">
 
 
-					<button
-						id="btn-help"
-						class="btn btn-icon js-open-help"
-						title="Довідка"
-						data-i18n-title="ui.help"
-					>
-						<i class="ri-question-mark"></i>
-					</button>
+        <div id="breadcrumbs-container" class="breadcrumbs-wrapper hidden">
+            <nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
+        </div>
+
+        <button id="mobile-menu-btn" class="mobile-menu-toggle" aria-label="Меню">
+            <i class="ri-menu-line"></i>
+        </button>
+
+        <div class="top-bar-controls">
+            <div class="control-group unified-panel">
+
+                <button id="btn-home" class="btn btn-icon" title="На головну" data-i18n-title="ui.home">
+                    <i class="ri-home-4-line"></i>
+                </button>
+
+                <button id="btn-share" class="btn btn-icon js-open-share" style="display: none;" title="Поділитися" data-i18n-title="ui.share">
+                    <i class="ri-share-line"></i>
+                </button>
+
+                <button id="btn-search" class="btn btn-icon js-open-search" title="Пошук" data-i18n-title="ui.searchTitle">
+                    <i class="ri-search-line"></i>
+                </button>
+
+                <button id="btn-lineage" class="btn btn-icon js-open-lineage" title="Гілки роду" data-i18n-title="kinship.toggleTitle">
+                    <i class="ri-git-branch-line"></i>
+                </button>
+
+                <hr class="panel-divider" />
 
 
-				</div>
-			</div>
 
-			<div id="tree-view" class="tree-container">
-				<div class="zoom-controls">
+                <button id="btn-analytics" class="btn btn-icon js-open-analytics" title="Аналітика">
+                    <i class="ri-bar-chart-2-line"></i>
+                </button>
+                <button id="btn-events" class="btn btn-icon hidden" title="Цей день в історії" data-i18n-title="events.historyTitle">
+                    <i class="ri-calendar-event-line"></i>
+                    <span id="events-badge" class="badge-dot badge-dot--tr hidden"></span>
+                </button>
 
-					<button
-						id="btn-zoom-in"
-						class="btn btn-icon"
-						title="Збільшити"
-						data-i18n-title="ui.zoomIn"
-					>
-						<i class="ri-add-line"></i>
-					</button>
 
-					<button
-						id="btn-zoom-reset"
-						class="btn btn-icon"
-						title="Скинути"
-						data-i18n-title="ui.zoomReset"
-					>
-						<i class="ri-fullscreen-line"></i>
-					</button>
+                <button id="theme-toggle" class="btn btn-icon" title="Перемкнути тему" data-i18n-title="ui.themeTitle">
+                    <i class="ri-moon-line"></i>
+                </button>
 
-					<button
-						id="btn-zoom-out"
-						class="btn btn-icon"
-						title="Зменшити"
-						data-i18n-title="ui.zoomOut"
-					>
-						<i class="ri-subtract-line"></i>
-					</button>
-					<span id="zoom-level-display" class="text-meta zoom-display"
-						>100%</span
-					>
-				</div>
+                <div class="lang-menu-wrapper">
+                    <button id="btn-lang-toggle" class="btn btn-icon" title="Змінити мову" data-i18n-title="ui.langTitle">
+                        <i class="ri-translate-2"></i>
+                    </button>
 
-				<div class="tree-scroll-wrapper">
-					<div id="tree-root" class="tree-chart"></div>
-				</div>
-			</div>
+                    <div id="lang-menu" class="breadcrumbs__dropdown-menu lang-menu-dropdown hidden">
+                        <button class="breadcrumbs__dropdown-item" data-lang="uk">
+                            Українська
+                        </button>
+                    </div>
+                </div>
 
-			<div id="profile-content" class="hidden"></div>
 
-			<div id="lineage-modal" class="popup-overlay hidden" aria-hidden="true">
-				<div class="popup-container">
-					<div class="popup-header">
-						<h3 class="popup-name" data-i18n="kinship.toggleTitle">
-							Обрати лінію роду
-						</h3>
-						<button
-						id="btn-close-lineage"
-							class="modal-close"
-							data-i18n-title="ui.close"
-						>
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-					<div class="popup-body">
-						<div class="lineage-grid">
-							<button
-								class="lineage-option lineage-option--all active"
-								data-mode="all"
-							>
-								<span data-i18n="kinship.all">Усі родичі</span>
-							</button>
-							<button class="lineage-option" data-mode="father">
-								<span data-i18n="kinship.paternalSide">Тільки по Татові</span>
-							</button>
-							<button class="lineage-option" data-mode="mother">
-								<span data-i18n="kinship.maternalSide">Тільки по Мамі</span>
-							</button>
-							<button class="lineage-option" data-mode="fatherFather">
-								<span data-i18n="kinship.fatherFather">Дід (по татові)</span>
-							</button>
-							<button class="lineage-option" data-mode="motherFather">
-								<span data-i18n="kinship.motherFather">Дід (по мамі)</span>
-							</button>
-							<button class="lineage-option" data-mode="fatherMother">
-								<span data-i18n="kinship.fatherMother">Баба (по татові)</span>
-							</button>
-							<button class="lineage-option" data-mode="motherMother">
-								<span data-i18n="kinship.motherMother">Баба (по мамі)</span>
-							</button>
-						</div>
-					</div>
-					<div class="popup-footer">
-						<span
-							id="lineage-stats"
-							class="text-meta"
-							data-i18n="kinship.modeSelect"
-							>Оберіть режим</span
-						>
-					</div>
-				</div>
-			</div>
+                
 
-			<div id="search-overlay" class="popup-overlay hidden">
-				<div class="popup-container">
-					<div class="popup-header popup-header--search">
-						<i class="ri-search-line text-muted"></i>
-						<input
-							type="text"
-							id="search-input"
-							class="search-input w-100"
-							placeholder="Пошук (ім'я, прізвище, ID)..."
-							data-i18n-placeholder="ui.searchPlaceholder"
-							autocomplete="off"
-						/>
-						<button
-						id="btn-close-search"
-							class="modal-close"
-							data-i18n-title="ui.close"
-						>
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-					<div class="popup-body popup-body--no-padding popup-body--scrollable">
-						<div
-							id="search-status"
-							class="text-meta search-status hidden"
-						></div>
-						<div id="search-results-list" class="search-results-list"></div>
-						<div
-							id="search-empty"
-							class="text-muted search-empty hidden"
-							data-i18n="ui.noResults"
-						>
-							Нічого не знайдено
-						</div>
-					</div>
-					<div class="popup-footer popup-footer--small search-footer">
-						<div class="search-hotkeys text-meta">
-							<span><kbd>↓</kbd> <kbd>↑</kbd> навігація</span>
-							<span><kbd>Enter</kbd> вибір</span>
-							<span><kbd>Esc</kbd> закрити</span>
-						</div>
-					</div>
-				</div>
-			</div>
 
-			<div id="events-overlay" class="popup-overlay hidden">
-				<div class="popup-container">
-					<div class="popup-header">
-						<h3 class="popup-name popup-name--flex">
-							<i class="ri-calendar-check-line text-primary"></i>
-							<div class="popup-name-title-group">
-								<span data-i18n="events.historyTitle">Цей день в історії</span>
-								<span id="current-date-display"></span>
-							</div>
-						</h3>
-						<button
-						id="btn-close-events"
-							class="modal-close"
-							data-i18n-title="ui.close"
-						>
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-					<div class="popup-body">
-						<ul id="events-list" class="events-list-container"></ul>
-						<div
-							id="events-empty"
-							class="text-muted events-empty hidden"
-							data-i18n="events.historyEmpty"
-						>
-							На сьогодні подій не знайдено
-						</div>
-					</div>
-				</div>
-			</div>
+            </div>
+        </div>
 
-			<div id="share-overlay" class="popup-overlay hidden">
-				<div class="popup-container">
-					<div class="popup-header">
-						<h3 class="popup-name popup-name--flex">
-							<i class="ri-share-line text-primary"></i>
-							<span>Поділитися деревом</span>
-						</h3>
-						<button id="btn-close-share" class="modal-close" title="Закрити">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-					<div class="popup-body">
-						<div class="search-form" style="margin-bottom: 24px;">
-							<label style="display:block; margin-bottom: 8px; font-weight: 500;">Вкажіть email або телефон отримувача:</label>
-							<div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg-body); width: 100%; box-sizing: border-box;">
-								<i class="ri-user-add-line text-muted"></i>
-								<input type="text" id="share-email-input" placeholder="email@example.com або +380123456789" style="flex: 1; min-width: 0; width: 100%; border: none; background: transparent; outline: none; font-family: inherit; font-size: 16px; color: var(--color-text-main); padding: 0;" />
-							</div>
-						</div>
-						<div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-							<button class="btn btn-outline" id="btn-cancel-share">Скасувати</button>
-							<button class="btn btn-primary" id="btn-submit-share" disabled>Надіслати запрошення</button>
-						</div>
-						<hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border-light);" />
-						<div style="margin-top: 24px;">
-							<h4 style="margin-bottom: 12px; font-weight: 500;">Надані доступи</h4>
-							<ul id="active-shares-list" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
-								<!-- List of active shares will be loaded here -->
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
+        <div id="tree-view" class="tree-container">
+            <div class="zoom-controls">
 
-			<!-- Analytics Modal -->
-						<div id="analytics-view" class="hidden analytics-view">
-				<div class="analytics-header">
-					<div class="analytics-header-left">
-						<button id="btn-back-analytics" class="btn-icon" title="Назад">
-							<i class="ri-arrow-left-line"></i>
-						</button>
-						<i class="ri-bar-chart-2-line text-primary"></i>
-						<h1>Аналітика родоводу</h1>
-					</div>
-					<button id="btn-close-analytics" class="btn-icon" title="Закрити">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-				<div class="profile-body analytics-body">
-					<div id="analytics-content" class="analytics-content">
-                        <!-- Summary Dashboard -->
-                        <div id="analytics-summary" style="display: flex; flex-direction: column; gap: 16px;"></div>
-                        
-                        
+                <button id="btn-zoom-in" class="btn btn-icon" title="Збільшити" data-i18n-title="ui.zoomIn">
+                    <i class="ri-add-line"></i>
+                </button>
 
-                        <!-- Detailed Stats -->
-                        <div id="analytics-detailed-view" style="display: none; flex-direction: column;">
-                        
+                <button id="btn-zoom-reset" class="btn btn-icon" title="Скинути" data-i18n-title="ui.zoomReset">
+                    <i class="ri-fullscreen-line"></i>
+                </button>
+
+                <button id="btn-zoom-out" class="btn btn-icon" title="Зменшити" data-i18n-title="ui.zoomOut">
+                    <i class="ri-subtract-line"></i>
+                </button>
+                <span id="zoom-level-display" class="text-meta zoom-display">100%</span>
+            </div>
+
+            <div class="tree-scroll-wrapper">
+                <div id="tree-root" class="tree-chart"></div>
+            </div>
+        </div>
+
+        <div id="profile-content" class="hidden"></div>
+
+        <div id="lineage-modal" class="popup-overlay hidden" aria-hidden="true">
+            <div class="popup-container">
+                <div class="popup-header">
+                    <h3 class="popup-name" data-i18n="kinship.toggleTitle">
+                        Обрати лінію роду
+                    </h3>
+                    <button id="btn-close-lineage" class="modal-close" data-i18n-title="ui.close">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="popup-body">
+                    <div class="lineage-grid">
+                        <button class="lineage-option lineage-option--all active" data-mode="all">
+                            <span data-i18n="kinship.all">Усі родичі</span>
+                        </button>
+                        <button class="lineage-option" data-mode="father">
+                            <span data-i18n="kinship.paternalSide">Тільки по Татові</span>
+                        </button>
+                        <button class="lineage-option" data-mode="mother">
+                            <span data-i18n="kinship.maternalSide">Тільки по Мамі</span>
+                        </button>
+                        <button class="lineage-option" data-mode="fatherFather">
+                            <span data-i18n="kinship.fatherFather">Дід (по татові)</span>
+                        </button>
+                        <button class="lineage-option" data-mode="motherFather">
+                            <span data-i18n="kinship.motherFather">Дід (по мамі)</span>
+                        </button>
+                        <button class="lineage-option" data-mode="fatherMother">
+                            <span data-i18n="kinship.fatherMother">Баба (по татові)</span>
+                        </button>
+                        <button class="lineage-option" data-mode="motherMother">
+                            <span data-i18n="kinship.motherMother">Баба (по мамі)</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="popup-footer">
+                    <span id="lineage-stats" class="text-meta" data-i18n="kinship.modeSelect">Оберіть режим</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="search-overlay" class="popup-overlay hidden">
+            <div class="popup-container">
+                <div class="popup-header popup-header--search">
+                    <i class="ri-search-line text-muted"></i>
+                    <input type="text" id="search-input" class="search-input w-100" placeholder="Пошук (ім'я, прізвище, ID)..." data-i18n-placeholder="ui.searchPlaceholder" autocomplete="off" />
+                    <button id="btn-close-search" class="modal-close" data-i18n-title="ui.close">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="popup-body popup-body--no-padding popup-body--scrollable">
+                    <div id="search-status" class="text-meta search-status hidden"></div>
+                    <div id="search-results-list" class="search-results-list"></div>
+                    <div id="search-empty" class="text-muted search-empty hidden" data-i18n="ui.noResults">
+                        Нічого не знайдено
+                    </div>
+                </div>
+                <div class="popup-footer popup-footer--small search-footer">
+                    <div class="search-hotkeys text-meta">
+                        <span><kbd>↓</kbd> <kbd>↑</kbd> навігація</span>
+                        <span><kbd>Enter</kbd> вибір</span>
+                        <span><kbd>Esc</kbd> закрити</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="events-overlay" class="popup-overlay hidden">
+            <div class="popup-container">
+                <div class="popup-header">
+                    <h3 class="popup-name popup-name--flex">
+                        <i class="ri-calendar-check-line text-primary"></i>
+                        <div class="popup-name-title-group">
+                            <span data-i18n="events.historyTitle">Цей день в історії</span>
+                            <span id="current-date-display"></span>
+                        </div>
+                    </h3>
+                    <button id="btn-close-events" class="modal-close" data-i18n-title="ui.close">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="popup-body">
+                    <ul id="events-list" class="events-list-container"></ul>
+                    <div id="events-empty" class="text-muted events-empty hidden" data-i18n="events.historyEmpty">
+                        На сьогодні подій не знайдено
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="share-overlay" class="popup-overlay hidden">
+            <div class="popup-container">
+                <div class="popup-header">
+                    <h3 class="popup-name popup-name--flex">
+                        <i class="ri-share-line text-primary"></i>
+                        <span>Поділитися деревом</span>
+                    </h3>
+                    <button id="btn-close-share" class="modal-close" title="Закрити">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="popup-body">
+                    <div class="search-form" style="margin-bottom: 24px;">
+                        <label style="display:block; margin-bottom: 8px; font-weight: 500;">Вкажіть email або телефон отримувача:</label>
+                        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg-body); width: 100%; box-sizing: border-box;">
+                            <i class="ri-user-add-line text-muted"></i>
+                            <input type="text" id="share-email-input" placeholder="email@example.com або +380123456789" style="flex: 1; min-width: 0; width: 100%; border: none; background: transparent; outline: none; font-family: inherit; font-size: 16px; color: var(--color-text-main); padding: 0;" />
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                        <button class="btn btn-outline" id="btn-cancel-share">Скасувати</button>
+                        <button class="btn btn-primary" id="btn-submit-share" disabled>Надіслати запрошення</button>
+                    </div>
+                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border-light);" />
+                    <div style="margin-top: 24px;">
+                        <h4 style="margin-bottom: 12px; font-weight: 500;">Надані доступи</h4>
+                        <ul id="active-shares-list" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
+                            <!-- List of active shares will be loaded here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Modal -->
+        <div id="analytics-view" class="hidden analytics-view">
+            <div class="analytics-header">
+                <div class="analytics-header-left">
+                    <button id="btn-back-analytics" class="btn-icon" title="Назад">
+                        <i class="ri-arrow-left-line"></i>
+                    </button>
+                    <i class="ri-bar-chart-2-line text-primary"></i>
+                    <h1>Аналітика родоводу</h1>
+                </div>
+                <button id="btn-close-analytics" class="btn-icon" title="Закрити">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="profile-body analytics-body">
+                <div id="analytics-content" class="analytics-content">
+                    <!-- Summary Dashboard -->
+                    <div id="analytics-summary" style="display: flex; flex-direction: column; gap: 16px;"></div>
+
+
+
+                    <!-- Detailed Stats -->
+                    <div id="analytics-detailed-view" style="display: none; flex-direction: column;">
+
                         <div id="detailed-view-header" class="detailed-view-header">
                             <button id="btn-back-to-summary" class="btn btn-outline" style="border-radius: 20px; padding: 6px 16px;">
                                 <i class="ri-arrow-left-line" style="margin-right: 8px;"></i> Назад
@@ -458,453 +342,138 @@
                             <h3 id="detailed-view-title" style="margin: 0; font-size: 18px; color: var(--color-text-main);">Деталі</h3>
                         </div>
 
-						<!-- General Stats -->
-						<div class="analytics-section">
-<h4>Загальна статистика</h4>
-<div class="analytics-section-content">
-<div id="analytics-general" class="analytics-grid-2">
-</div>
-</div>
-						</div>
-						<!-- Lifespan Stats -->
-						<div class="analytics-section">
-<h4>Тривалість життя</h4>
-<div class="analytics-section-content">
-<div id="analytics-lifespan" style="display: flex; flex-direction: column; gap: 16px;">
-</div>
-</div>
-						</div>
-						<!-- Surnames -->
-						<div class="analytics-section">
-<h4>Прізвища родоводів</h4>
-<div class="analytics-section-content">
-<div class="analytics-sort-controls">
-    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
-        <button class="btn btn-sm btn-outline btn-sort-app-s">За згадкою</button>
-        <button class="btn btn-sm btn-outline btn-sort-alpha-s">За алфавітом</button>
-        <button class="btn btn-sm btn-outline btn-sort-freq-s">За популярністю</button>
-    </div>
-    <div class="analytics-sort-mobile" style="display: none; ">
-        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-s" onclick="document.getElementById('mobile-sort-popup-s').classList.add('show')">
-            <i class="ri-sort-desc"></i> Сортувати прізвища
-        </button>
-    </div>
-</div>
-
-<div id="mobile-sort-popup-s" class="popup-overlay" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
-    <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
-        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-        <button class="btn btn-outline btn-sort-app-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За згадкою</button>
-        <button class="btn btn-outline btn-sort-alpha-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За алфавітом</button>
-        <button class="btn btn-outline btn-sort-freq-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За популярністю</button>
-        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">Закрити</button>
-    </div>
-</div>
-
-<ul id="analytics-surnames" class="analytics-list-none"></ul>
-</div>
-</div>
-                        <!-- Popular Names -->
-						<div class="analytics-section">
-<h4>Імена</h4>
-<div class="analytics-section-content">
-
-<div class="analytics-sort-controls">
-    <!-- Desktop sort buttons -->
-    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
-        <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
-        <button class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
-        <button class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
-    </div>
-    
-    <!-- Mobile sort popup trigger -->
-    <div class="analytics-sort-mobile" style="display: none; ">
-        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').classList.add('show')">
-            <i class="ri-sort-desc"></i> Сортувати імена
-        </button>
-    </div>
-</div>
-
-<!-- Mobile Sort Popup Modal -->
-<div id="mobile-sort-popup" class="popup-overlay" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
-    <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
-        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-        <button class="btn btn-outline btn-sort-app" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За згадкою</button>
-        <button class="btn btn-outline btn-sort-alpha" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За алфавітом</button>
-        <button class="btn btn-outline btn-sort-freq" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За популярністю</button>
-        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">Закрити</button>
-    </div>
-</div>
-
-<div id="analytics-names" class="analytics-names-grid">
-    <div>
-        <h5>Чоловічі</h5>
-        <ul id="analytics-names-m" class="analytics-list-none"></ul>
-    </div>
-    <div>
-        <h5>Жіночі</h5>
-        <ul id="analytics-names-f" class="analytics-list-none"></ul>
-    </div>
-</div>
-
-</div>
-						</div>
-						<!-- Popular Places -->
-						<div class="analytics-section">
-<h4>Населені пункти</h4>
-<div class="analytics-section-content">
-<ul id="analytics-places" class="analytics-list-none"></ul>
-</div>
-</div>
-						
-					<!-- Evens -->
-						<div class="analytics-section" id="analytics-events">
-							<h4>Календар подій</h4>
-							<div class="analytics-section-content">
-								<ul id="analytics-events-list" class="analytics-list-none"></ul>
-							</div>
-						</div>
-
-						<!-- Causes of Death -->
-						<div class="analytics-section">
-<h4>Причини смерті</h4>
-<div class="analytics-section-content">
-<ul id="analytics-deaths" class="analytics-list-none"></ul>
-</div>
-</div>
-
-						<!-- Religions -->
-						
-
-						<!-- Coats of arms -->
-						<div class="analytics-section">
-<h4>Герби</h4>
-<div class="analytics-section-content">
-<ul id="analytics-coats" class="analytics-coats-grid"></ul>
-</div>
-</div>
+                        <!-- General Stats -->
+                        <div class="analytics-section">
+                            <h4>Загальна статистика</h4>
+                            <div class="analytics-section-content">
+                                <div id="analytics-general" class="analytics-grid-2">
+                                </div>
+                            </div>
                         </div>
-					</div>
-				</div>
-			</div>
-			</div>
-			<div id="help-overlay" class="popup-overlay hidden">
-				<div class="popup-container popup-container--help">
-					<div class="popup-header">
-						<h3 class="popup-name popup-name--flex">
-							<i class="ri-book-open-line text-primary"></i>
-							<span class="help-title-text" data-i18n="help.title"
-								>Довідкова інформація</span
-							>
-						</h3>
-						<button
-						id="btn-close-help"
-							class="modal-close"
-							title="Закрити"
-							data-i18n-title="common.close"
-						>
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
+                        <!-- Lifespan Stats -->
+                        <div class="analytics-section">
+                            <h4>Тривалість життя</h4>
+                            <div class="analytics-section-content">
+                                <div id="analytics-lifespan" style="display: flex; flex-direction: column; gap: 16px;">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Surnames -->
+                        <div class="analytics-section">
+                            <h4>Прізвища родоводів</h4>
+                            <div class="analytics-section-content">
+                                <div class="analytics-sort-controls">
+                                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
+                                        <button class="btn btn-sm btn-outline btn-sort-app-s">За згадкою</button>
+                                        <button class="btn btn-sm btn-outline btn-sort-alpha-s">За алфавітом</button>
+                                        <button class="btn btn-sm btn-outline btn-sort-freq-s">За популярністю</button>
+                                    </div>
+                                    <div class="analytics-sort-mobile" style="display: none; ">
+                                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-s" onclick="document.getElementById('mobile-sort-popup-s').classList.add('show')">
+                                            <i class="ri-sort-desc"></i> Сортувати прізвища
+                                        </button>
+                                    </div>
+                                </div>
 
-					<div class="popup-body popup-body--no-padding help-body--scrollable">
-						<div class="help-center-layout">
-							<aside class="help-sidebar">
-								<nav>
-									<ul class="help-nav-list">
-										<li>
-											<button
-												class="help-tab-btn active"
-												data-target="help-navigation"
-											>
-												<i class="ri-route-line"></i>
-												<span data-i18n="help.tabs.navigation">Навігація</span>
-											</button>
-										</li>
-										<li>
-											<button class="help-tab-btn" data-target="help-controls">
-												<i class="ri-dashboard-3-line"></i>
-												<span data-i18n="help.tabs.controls"
-													>Панель керування</span
-												>
-											</button>
-										</li>
-										<li>
-											<button class="help-tab-btn" data-target="help-zoom">
-												<i class="ri-zoom-in-line"></i>
-												<span data-i18n="help.tabs.zoom">Масштабування</span>
-											</button>
-										</li>
-										<li>
-											<button class="help-tab-btn" data-target="help-objects">
-												<i class="ri-profile-line"></i>
-												<span data-i18n="help.tabs.objects"
-													>Картки та Попапи</span
-												>
-											</button>
-										</li>
-										<li>
-											<button class="help-tab-btn" data-target="help-modes">
-												<i class="ri-layout-masonry-line"></i>
-												<span data-i18n="help.tabs.modes"
-													>Режими перегляду</span
-												>
-											</button>
-										</li>
-									</ul>
-								</nav>
-							</aside>
+                                <div id="mobile-sort-popup-s" class="popup-overlay" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
+                                    <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
+                                        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
+                                        <button class="btn btn-outline btn-sort-app-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За згадкою</button>
+                                        <button class="btn btn-outline btn-sort-alpha-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За алфавітом</button>
+                                        <button class="btn btn-outline btn-sort-freq-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За популярністю</button>
+                                        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">Закрити</button>
+                                    </div>
+                                </div>
 
-							<main class="help-content-area">
-								<section id="help-navigation" class="help-pane active">
-									<div class="help-section-header">
-										<h3
-											class="help-section-title"
-											data-i18n="help.sections.navigation.title"
-										>
-											Система навігації
-										</h3>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-node-tree"></i>
-											<span
-												data-i18n="help.sections.navigation.breadcrumbs.title"
-												>Хлібні крихти</span
-											></strong
-										>
-										<p data-i18n="help.sections.navigation.breadcrumbs.desc">
-											Ланцюжок переглянутих профілів. Навігація здійснюється
-											горизонтальним скролінгом. Лінійний транзит завжди
-											зберігає кореневий вузол.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-arrow-left-s-line"></i> /
-											<i class="ri-arrow-right-s-line"></i>
-											<span data-i18n="help.sections.navigation.arrows.title"
-												>Стрілки навігації</span
-											></strong
-										>
-										<p data-i18n="help.sections.navigation.arrows.desc">
-											Транзит «Вперед» та «Назад» історією переглядів.
-											Підтримується керування стрілками клавіатури. Навігаційний
-											цикл замкнутий.
-										</p>
-									</div>
-								</section>
+                                <ul id="analytics-surnames" class="analytics-list-none"></ul>
+                            </div>
+                        </div>
+                        <!-- Popular Names -->
+                        <div class="analytics-section">
+                            <h4>Імена</h4>
+                            <div class="analytics-section-content">
 
-								<section id="help-controls" class="help-pane hidden">
-									<div class="help-section-header">
-										<h3
-											class="help-section-title"
-											data-i18n="help.sections.controls.title"
-										>
-											Панель керування
-										</h3>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-home-4-line"></i>
-											<span data-i18n="help.sections.controls.home.title"
-												>Кореневий профіль</span
-											></strong
-										>
-										<p data-i18n="help.sections.controls.home.desc">
-											Миттєве центрування графа на головній особі системи.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-git-branch-line"></i>
-											<span data-i18n="help.sections.controls.branches.title"
-												>Перемикання гілок</span
-											></strong
-										>
-										<p data-i18n="help.sections.controls.branches.desc">
-											Просторова ізоляція родичів за визначеною лінією
-											(батьківська, материнська тощо).
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-search-line"></i>
-											<span data-i18n="help.sections.controls.search.title"
-												>Пошук</span
-											></strong
-										>
-										<p data-i18n="help.sections.controls.search.desc">
-											Повнотекстова індексація за іменами та ID. Фільтрується
-											обраною гілкою.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-calendar-event-line"></i>
-											<span data-i18n="help.sections.controls.events.title"
-												>Події сьогодні</span
-											></strong
-										>
-										<p data-i18n="help.sections.controls.events.desc">
-											Агрегація історичних річниць (народження, одруження,
-											смерті) для поточної дати.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-moon-line"></i> /
-											<i class="ri-translate-2"></i>
-											<span data-i18n="help.sections.controls.system.title"
-												>Система та Довідка</span
-											></strong
-										>
-										<p data-i18n="help.sections.controls.system.desc">
-											Перемикання візуальної теми, зміна мовної локалізації та
-											виклик поточної специфікації.
-										</p>
-									</div>
-								</section>
+                                <div class="analytics-sort-controls">
+                                    <!-- Desktop sort buttons -->
+                                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
+                                        <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
+                                        <button class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
+                                        <button class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
+                                    </div>
 
-								<section id="help-zoom" class="help-pane hidden">
-									<div class="help-section-header">
-										<h3
-											class="help-section-title"
-											data-i18n="help.sections.zoom.title"
-										>
-											Масштабування простору
-										</h3>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-add-line"></i>
-											<span data-i18n="help.sections.zoom.in.title"
-												>Збільшити</span
-											></strong
-										>
-										<p data-i18n="help.sections.zoom.in.desc">
-											Наближення оптичної дистанції графа.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-fullscreen-line"></i>
-											<span data-i18n="help.sections.zoom.reset.title"
-												>Центрувати</span
-											></strong
-										>
-										<p data-i18n="help.sections.zoom.reset.desc">
-											Скидання масштабу до базового показника 100%.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-subtract-line"></i>
-											<span data-i18n="help.sections.zoom.out.title"
-												>Зменшити</span
-											></strong
-										>
-										<p data-i18n="help.sections.zoom.out.desc">
-											Віддалення оптичної дистанції графа.
-										</p>
-									</div>
-								</section>
+                                    <!-- Mobile sort popup trigger -->
+                                    <div class="analytics-sort-mobile" style="display: none; ">
+                                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').classList.add('show')">
+                                            <i class="ri-sort-desc"></i> Сортувати імена
+                                        </button>
+                                    </div>
+                                </div>
 
-								<section id="help-objects" class="help-pane hidden">
-									<div class="help-section-header">
-										<h3
-											class="help-section-title"
-											data-i18n="help.sections.objects.title"
-										>
-											Інформаційні об'єкти
-										</h3>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-external-link-line"></i>
-											<span data-i18n="help.sections.objects.popup.title"
-												>Попап персони</span
-											></strong
-										>
-										<p data-i18n="help.sections.objects.popup.desc">
-											Динамічне вікно швидкого огляду. Містить: шапку (фото,
-											ПРІЗВИЩЕ, ім'я, роки життя), основну інформацію, статус
-											родинного зв'язку та кнопку переходу до розгорнутого
-											профілю (для прямих родичів).
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-user-line"></i>
-											<span data-i18n="help.sections.objects.card.title"
-												>Плитка персони</span
-											></strong
-										>
-										<p data-i18n="help.sections.objects.card.desc">
-											Компактний блок візуалізації в списках (події, пошук).
-											Включає фотографію, соціальну роль, ім'я, ПРІЗВИЩЕ та
-											кнопку доступу до профілю.
-										</p>
-									</div>
-								</section>
+                                <!-- Mobile Sort Popup Modal -->
+                                <div id="mobile-sort-popup" class="popup-overlay" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
+                                    <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
+                                        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
+                                        <button class="btn btn-outline btn-sort-app" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За згадкою</button>
+                                        <button class="btn btn-outline btn-sort-alpha" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За алфавітом</button>
+                                        <button class="btn btn-outline btn-sort-freq" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За популярністю</button>
+                                        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">Закрити</button>
+                                    </div>
+                                </div>
 
-								<section id="help-modes" class="help-pane hidden">
-									<div class="help-section-header">
-										<h3
-											class="help-section-title"
-											data-i18n="help.sections.modes.title"
-										>
-											Режими перегляду
-										</h3>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-organization-chart"></i>
-											<span data-i18n="help.sections.modes.tree.title"
-												>Дерево роду</span
-											></strong
-										>
-										<p data-i18n="help.sections.modes.tree.desc">
-											Матриця карток персон. Кожна картка містить фото, ім'я,
-											роки життя та тригер переходу в профіль.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-file-user-line"></i>
-											<span data-i18n="help.sections.modes.profile.title"
-												>Профіль</span
-											></strong
-										>
-										<p data-i18n="help.sections.modes.profile.desc">
-											Розгорнуте досьє. Складається з шапки (із тригером
-											повернення до дерева) та масиву клікабельних і
-											неклікабельних інформаційних компонентів.
-										</p>
-									</div>
-									<div class="faq-item">
-										<strong
-											><i class="ri-scales-3-line"></i>
-											<span data-i18n="help.sections.modes.compare.title"
-												>Порівняння</span
-											></strong
-										>
-										<p data-i18n="help.sections.modes.compare.desc">
-											Компаративний аналіз. Відображає картки двох осіб. Містить
-											інтегрований футер розрахунку ступеня родинного зв'язку
-											між поточним та обраним вузлами.
-										</p>
-									</div>
-								</section>
-							</main>
-						</div>
-					</div>
-				</div>
-			</div>
-		</main>
+                                <div id="analytics-names" class="analytics-names-grid">
+                                    <div>
+                                        <h5>Чоловічі</h5>
+                                        <ul id="analytics-names-m" class="analytics-list-none"></ul>
+                                    </div>
+                                    <div>
+                                        <h5>Жіночі</h5>
+                                        <ul id="analytics-names-f" class="analytics-list-none"></ul>
+                                    </div>
+                                </div>
 
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
-		<script type="module" src="scripts/main.js"></script>
-	</body>
+                            </div>
+                        </div>
+                        <!-- Popular Places -->
+                        <div class="analytics-section">
+                            <h4>Населені пункти</h4>
+                            <div class="analytics-section-content">
+                                <ul id="analytics-places" class="analytics-list-none"></ul>
+                            </div>
+                        </div>
+
+                        <!-- Evens -->
+                        <div class="analytics-section" id="analytics-events">
+                            <h4>Календар подій</h4>
+                            <div class="analytics-section-content">
+                                <ul id="analytics-events-list" class="analytics-list-none"></ul>
+                            </div>
+                        </div>
+
+                        <!-- Causes of Death -->
+                        <div class="analytics-section">
+                            <h4>Причини смерті</h4>
+                            <div class="analytics-section-content">
+                                <ul id="analytics-deaths" class="analytics-list-none"></ul>
+                            </div>
+                        </div>
+
+                        <!-- Religions -->
+
+
+                        <!-- Coats of arms -->
+                        <div class="analytics-section">
+                            <h4>Герби</h4>
+                            <div class="analytics-section-content">
+                                <ul id="analytics-coats" class="analytics-coats-grid"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+</body>
+
 </html>

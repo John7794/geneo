@@ -1,0 +1,178 @@
+                                                                const getPersonPIB = (p) => {
+                                    if (!p) return "Невідомо";
+                                    let fullName = p.name || "";
+                                    if (p.source === "basic" && p.raw) {
+                                        const s = String(p.raw[COLUMNS.basic?.surname || "surname"] || "").trim();
+                                        const n = String(p.raw[COLUMNS.basic?.name || "name"] || "").trim();
+                                        const pat = String(p.raw[COLUMNS.basic?.patronymic || "patronymic"] || "").trim();
+                                        fullName = [s, n, pat].filter(Boolean).join(" ");
+                                    } else if (p.source === "family_list" && p.raw) {
+                                        const s = String(p.raw[COLUMNS.familyList?.surname || "surname"] || "").trim();
+                                        const n = String(p.raw[COLUMNS.familyList?.firstName || "first_name"] || "").trim();
+                                        const pat = String(p.raw[COLUMNS.familyList?.patronymic || "patronymic"] || "").trim();
+                                        fullName = [s, n, pat].filter(Boolean).join(" ");
+                                    }
+                                    return fullName;
+                                };
+                                
+                                let p1Html = `<a href="?id=${encodeURIComponent(evt.person.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.person.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.person))}</a>`;
+                                let p2Html = "";
+                                if (evt.type === "marriage" && evt.spouse) {
+                                    p2Html = ` та <a href="?id=${encodeURIComponent(evt.spouse.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.spouse.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.spouse))}</a>`;
+                                }
+                                
+                                let yearInfo = evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${evt.year} р.)</span>` : '';
+                                
+                                html += `
+                                        <li style="display: flex; align-items: center; padding: 6px 12px; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 6px;">
+                                            <div style="font-size: 15px; color: var(--color-text-main);">${p1Html}${p2Html}${yearInfo}</div>
+                                        </li>
+                                `;
+                            });
+                            
+                            html += `
+                                    </ul>
+                                </li>
+                            `;
+                        });
+                    });
+                    html += `
+                                </ul>
+                            </div>
+                        </li>
+                    `;
+                });
+                
+                // Close the month blocks
+                // html = html.replace(/<\/li>\s*$/g, ""); // Remove the last closing li if any issues
+                
+                const eventsSectionContent = containerEvents.closest('.analytics-section-content');
+                if (eventsSectionContent) {
+                    eventsSectionContent.innerHTML = `
+                        <div class="events-layout-with-sidebar" style="position: relative; width: 100%;">
+                            <aside class="events-sidebar-desktop" style="display: none;">
+                                <div>
+                                    <div class="profile-toc-container">
+                                        <h3 class="profile-toc-title">Місяці</h3>
+                                        <ul class="profile-toc-list">
+                                            ${tocLinksHtml}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </aside>
+                            <div class="events-body-blocks">
+                                <ul id="analytics-events-list" class="analytics-list-none" style="padding: 0; margin: 0;">
+                                    ${html}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const newContainerEvents = document.getElementById("analytics-events-list");
+                    
+                    // Attach accordion events
+                    newContainerEvents.querySelectorAll('.analytics-event-month-item').forEach(item => {
+                        const header = item.querySelector('.analytics-event-month-header');
+                        const body = item.querySelector('.analytics-event-month-body');
+                        const icon = item.querySelector('.analytics-event-month-icon');
+                        
+                        const isDesktop = window.innerWidth >= 1200;
+                        if (!isDesktop) {
+                            body.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                        }
+                        
+                        header.addEventListener('click', () => {
+                            
+                            if (window.innerWidth >= 1200) return;
+                            const isOpen = body.style.display === 'block';
+                            body.style.display = isOpen ? 'none' : 'block';
+                            if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                        });
+                    });
+                    
+                    // Attach smooth scroll for toc links
+                    eventsSectionContent.querySelectorAll('.js-event-month-link').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const targetId = link.getAttribute('href').substring(1);
+                            const targetEl = document.getElementById(targetId);
+                            if (targetEl) {
+                                const body = targetEl.querySelector('.analytics-event-month-body');
+                                const icon = targetEl.querySelector('.analytics-event-month-icon');
+                                if (body && body.style.display === 'none') {
+                                    body.style.display = 'block';
+                                    if (icon) icon.style.transform = 'rotate(180deg)';
+                                }
+                                targetEl.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        });
+                    });
+
+                    // Add link behavior
+                    const links = newContainerEvents.querySelectorAll('.analytics-person-link');
+                    links.forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
+                            if (pid && window.app && window.app.navigateToId) {
+                                window.app.navigateToId(pid, false, 'profile');
+                            }
+                        });
+                    });
+                } // End if (eventsSectionContent)
+            } // End else
+        } // End if (containerEvents)
+
+
+// Coats of arms
+        const containerCoats = document.getElementById("analytics-coats");
+        if (containerCoats && this.engine.db.coats) {
+            const coatsMap = {};
+            if (this.engine.db.names) {
+                this.engine.db.names.forEach(n => {
+                    const bCoat = n[COLUMNS.names?.bCoat || "b_coat_of_arms"];
+                    const mCoat = n[COLUMNS.names?.mCoat || "m_coat_of_arms"];
+                    const s = n[COLUMNS.names?.bSurname || "b_surname"] || "";
+                    if (s && String(s).trim() !== "") {
+                        let g = "u";
+                        const pid = n[COLUMNS.names?.personId || "person_id"];
+                        if (visibleIds && !visibleIds.has(String(pid))) return;
+                        if (pid) {
+                            const person = this.engine.getPerson(pid);
+                            if (person) g = person.gender;
+                        }
+                        const cleanS = normalizeSurname(String(s));
+                        if (bCoat && String(bCoat).trim() !== "") {
+                            if (!coatsMap[String(bCoat).trim()]) coatsMap[String(bCoat).trim()] = new Set();
+                            coatsMap[String(bCoat).trim()].add(cleanS);
+                        }
+                        if (mCoat && String(mCoat).trim() !== "") {
+                            if (!coatsMap[String(mCoat).trim()]) coatsMap[String(mCoat).trim()] = new Set();
+                            coatsMap[String(mCoat).trim()].add(cleanS);
+                        }
+                    }
+                });
+            }
+            const coatsData = [];
+            this.engine.db.coats.forEach(c => {
+                const name = c[COLUMNS.coats?.name || "coat_of_arms"];
+                const url = c[COLUMNS.coats?.url || "coat_of_arms_url"];
+                if (name && url) {
+                    coatsData.push({name, url});
+                }
+            });
+            containerCoats.innerHTML = coatsData.map(c => {
+                const surnamesList = coatsMap[c.name] ? Array.from(coatsMap[c.name]) : [];
+                const surnamesHtml = surnamesList.length > 0 ? `<span class="analytics-coat-surnames">${surnamesList.join(", ")}</span>` : "";
+                return `
+                <li class="analytics-coat-item">
+                    <img class="analytics-coat-img" src="${resolveCoatUrl(c.name, {coats: this.engine.db.coats})}" alt="${c.name}">
+                    <span class="analytics-coat-name">${c.name}</span>
+                    ${surnamesHtml}
+                </li>
+            `}).join("");
+        }
+
+	}
+}
