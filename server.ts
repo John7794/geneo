@@ -26,6 +26,39 @@ const fdb = getFirestore(admin.app(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae57
 
 export const app = express();
 const PORT = process.env.PORT || 3000;
+
+let cachedDbContext = "";
+function getDbContext() {
+  if (cachedDbContext) return cachedDbContext;
+  try {
+    const basic = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/basic.csv'), 'utf8');
+    const roles = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/familyRoles.csv'), 'utf8');
+    const birth = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/birth.csv'), 'utf8');
+    const death = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/death.csv'), 'utf8');
+    
+    cachedDbContext = `
+Ось дані бази родоводу (у форматі CSV). Використовуй їх для відповідей на питання.
+Не вигадуй дані, спирайся тільки на цю інформацію.
+
+[basic.csv - основні дані (id, прізвище, ім'я, по батькові)]
+${basic}
+
+[familyRoles.csv - родинні зв'язки (id, біологічні батьки, подружжя)]
+${roles}
+
+[birth.csv - дані про народження]
+${birth}
+
+[death.csv - дані про смерть]
+${death}
+`;
+    return cachedDbContext;
+  } catch(e) {
+    console.error("Error reading db files:", e);
+    return "";
+  }
+}
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -243,6 +276,7 @@ app.post('/api/gemini/chat', async (req, res) => {
     });
     const prompt = req.body.prompt;
     const history = req.body.history || [];
+    const currentProfileId = req.body.currentProfileId;
     
     // Instead of using chat sessions which might require specific message history format,
     // we'll format the history into the prompt or contents for a simple implementation
@@ -254,14 +288,21 @@ app.post('/api/gemini/chat', async (req, res) => {
     contents.push({ role: 'user', parts: [{ text: prompt }] });
     
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: contents,
       config: {
-        systemInstruction: "You are a helpful AI assistant specialized in genealogy research. Help the user discover their family history, explain historical contexts, analyze surnames, and suggest where to find archival records. Answer concisely and politely in Ukrainian.",
+        systemInstruction: "You are a helpful AI assistant specialized in genealogy research. Help the user discover their family history, explain historical contexts, analyze surnames, and suggest where to find archival records. Answer concisely and politely in Ukrainian." +
+          (currentProfileId ? "\n\nКористувач зараз переглядає профіль персони з ID=" + currentProfileId + ". Враховуй це, якщо питання стосується 'цієї людини' або поточного контексту." : "") +
+          "\n\nОсь база даних проекту: " + getDbContext(),
       }
     });
     
-    res.json({ text: response.text });
+    res.json({ 
+      text: response.text, 
+      usage: response.usageMetadata ? {
+        totalTokenCount: response.usageMetadata.totalTokenCount
+      } : null
+    });
   } catch (error) {
     console.error("Gemini API Error:", error);
     res.status(500).json({ error: error.message || 'Error generating response' });

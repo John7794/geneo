@@ -6,6 +6,8 @@ export class AIManager {
         this.input = document.getElementById("ai-chat-input");
         this.btnSend = document.getElementById("ai-chat-send");
         this.messagesContainer = document.getElementById("ai-chat-messages");
+        this.btnClear = document.getElementById("ai-chat-clear");
+        this.tokenUsageEl = document.getElementById("ai-token-usage");
         this.history = [];
         
         this.init();
@@ -30,6 +32,9 @@ export class AIManager {
                 if (e.key === "Enter") this.sendMessage();
             });
         }
+        if (this.btnClear) {
+            this.btnClear.addEventListener("click", () => this.clearChat());
+        }
     }
 
     open() {
@@ -43,6 +48,18 @@ export class AIManager {
         this.overlay.setAttribute("aria-hidden", "true");
     }
 
+    clearChat() {
+        this.history = [];
+        if (this.messagesContainer) {
+            this.messagesContainer.innerHTML = `<div style="background: var(--color-bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); align-self: flex-start; max-width: 85%; word-break: break-word; overflow-wrap: break-word;">
+                Привіт! Я ваш персональний асистент з генеалогії. Чим можу допомогти у ваших дослідженнях?
+            </div>`;
+        }
+        if (this.tokenUsageEl) {
+            this.tokenUsageEl.innerText = "0";
+        }
+    }
+
     appendMessage(text, isUser = false) {
         if (!this.messagesContainer) return;
         const msgDiv = document.createElement("div");
@@ -53,7 +70,18 @@ export class AIManager {
         msgDiv.style.maxWidth = "85%";
         msgDiv.style.background = isUser ? "var(--color-primary)" : "var(--color-bg-card)";
         msgDiv.style.color = isUser ? "#fff" : "inherit";
-        msgDiv.innerHTML = text.replace(/\n/g, "<br>");
+        msgDiv.style.wordBreak = "break-word";
+        msgDiv.style.overflowWrap = "break-word";
+        
+        let formattedText = text;
+        if (!isUser) {
+            formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="text-decoration: underline; color: var(--color-primary);">$1</a>');
+            formattedText = formattedText.replace(/^([\*\-])\s+(.*)$/gm, '&bull; $2');
+            formattedText = formattedText.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+        }
+
+        msgDiv.innerHTML = formattedText.replace(/\n/g, "<br>");
         this.messagesContainer.appendChild(msgDiv);
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
@@ -79,10 +107,17 @@ export class AIManager {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
         try {
+            const currentUrl = new URL(window.location);
+            const currentId = currentUrl.searchParams.get("id");
+            
             const res = await fetch("/api/gemini/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: text, history: this.history.slice(0, -1) })
+                body: JSON.stringify({ 
+                    prompt: text, 
+                    history: this.history.slice(0, -1),
+                    currentProfileId: currentId
+                })
             });
             const data = await res.json();
             
@@ -92,6 +127,9 @@ export class AIManager {
             if (res.ok && data.text) {
                 this.appendMessage(data.text, false);
                 this.history.push({ role: "model", text: data.text });
+                if (data.usage && data.usage.totalTokenCount && this.tokenUsageEl) {
+                    this.tokenUsageEl.innerText = data.usage.totalTokenCount.toLocaleString();
+                }
             } else {
                 this.appendMessage("Вибачте, сталася помилка: " + (data.error || "Невідома помилка"), false);
             }
