@@ -1,3 +1,4 @@
+import { GoogleGenAI } from "@google/genai";
 import express from "express";
 import path from "path";
 import fs from "fs";
@@ -229,6 +230,40 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 app.get('/sw.js', (req, res) => res.sendFile(path.join(process.cwd(), 'sw.js')));
+
+
+app.post('/api/gemini/chat', async (req, res) => {
+  try {
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+    });
+    const prompt = req.body.prompt;
+    const history = req.body.history || [];
+    
+    // Instead of using chat sessions which might require specific message history format,
+    // we'll format the history into the prompt or contents for a simple implementation
+    
+    let contents = [];
+    for (const msg of history) {
+       contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] });
+    }
+    contents.push({ role: 'user', parts: [{ text: prompt }] });
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: contents,
+      config: {
+        systemInstruction: "You are a helpful AI assistant specialized in genealogy research. Help the user discover their family history, explain historical contexts, analyze surnames, and suggest where to find archival records. Answer concisely and politely in Ukrainian.",
+      }
+    });
+    
+    res.json({ text: response.text });
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    res.status(500).json({ error: error.message || 'Error generating response' });
+  }
+});
 
 if (process.env.NODE_ENV !== "production") {
   (async () => {

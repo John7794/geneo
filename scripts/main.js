@@ -23,6 +23,7 @@ import { ThemeManager } from "./components/interaction/themeManager.js";
 import { MobileMenuManager } from "./components/interaction/mobileMenuManager.js";
 import { ShareManager } from "./components/interaction/shareManager.js";
 import { GlobalModalInterceptor } from "./core/globalModalInterceptor.js";
+import { AIManager } from "./components/interaction/aiManager.js";
 
 class App {
 	constructor() {
@@ -186,6 +187,7 @@ class App {
 		this.managers.lang = new LangManager();
 		this.managers.theme = new ThemeManager();
 		this.managers.share = new ShareManager(this);
+		this.managers.ai = new AIManager();
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();

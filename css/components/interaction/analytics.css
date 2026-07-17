@@ -409,3 +409,9 @@
         transform: rotate(180deg);
     }
 }
+
+@media (min-width: 1200px) {
+    .analytics-mobile-only {
+        display: none !important;
+    }
+}

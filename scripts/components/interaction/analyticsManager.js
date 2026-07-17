@@ -1016,8 +1016,6 @@ export class AnalyticsManager {
                 const body = item.querySelector('.analytics-place-body');
                 const icon = item.querySelector('.analytics-place-icon');
                 header.addEventListener('click', () => {
-                            
-                    if (window.innerWidth >= 1200) return;
                             const isOpen = body.style.display === 'block';
                     body.style.display = isOpen ? 'none' : 'block';
                     icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
@@ -1174,7 +1172,7 @@ export class AnalyticsManager {
                     const icon = item.querySelector('.analytics-death-icon');
                     header.addEventListener('click', () => {
                             
-                        if (window.innerWidth >= 1200) return;
+                        
                             const isOpen = body.style.display === 'block';
                         body.style.display = isOpen ? 'none' : 'block';
                         icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
@@ -1314,8 +1312,8 @@ export class AnalyticsManager {
                     html += `
                         <li id="event-month-${m}" class="analytics-event-month-item" style="list-style: none; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px;">
                             <div class="analytics-event-month-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">
-                                <h3 style="margin: 0; font-size: 20px; text-transform: capitalize; color: var(--color-primary);">${mName}</h3>
-                                <i class="ri-arrow-down-s-line analytics-event-month-icon" style="transition: transform 0.3s; color: var(--color-primary); font-size: 24px; transform: rotate(180deg);"></i>
+                                <h3 style="margin: 0; font-size: 20px; text-transform: capitalize; color: var(--color-text-main);">${mName}</h3>
+                                <i class="ri-arrow-down-s-line analytics-event-month-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 24px; transform: rotate(180deg);"></i>
                             </div>
                             <div class="analytics-event-month-body" style="display: block; padding-top: 8px;">
                                 <ul style="list-style: none; padding: 0; margin: 0;">
@@ -1446,7 +1444,7 @@ export class AnalyticsManager {
                         
                         header.addEventListener('click', () => {
                             
-                            if (window.innerWidth >= 1200) return;
+                            
                             const isOpen = body.style.display === 'block';
                             body.style.display = isOpen ? 'none' : 'block';
                             if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
