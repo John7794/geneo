@@ -234,6 +234,9 @@ app.get('/sw.js', (req, res) => res.sendFile(path.join(process.cwd(), 'sw.js')))
 
 app.post('/api/gemini/chat', async (req, res) => {
   try {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured. Please add your Gemini API Key in the Settings -> Secrets menu.");
+    }
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
       httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
@@ -251,7 +254,7 @@ app.post('/api/gemini/chat', async (req, res) => {
     contents.push({ role: 'user', parts: [{ text: prompt }] });
     
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: contents,
       config: {
         systemInstruction: "You are a helpful AI assistant specialized in genealogy research. Help the user discover their family history, explain historical contexts, analyze surnames, and suggest where to find archival records. Answer concisely and politely in Ukrainian.",
