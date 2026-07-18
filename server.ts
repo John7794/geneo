@@ -220,12 +220,11 @@ app.get('/api/shares', async (req, res) => {
 });
 
 app.get('/api/config', async (req, res) => {
-  const cookie = (req.headers.cookie || '').split(';').find(c => c.trim().startsWith('auth_email='));
-  if (cookie) {
-    const emailOrPhone = decodeURIComponent(cookie.split('=')[1]);
+  const emailOrPhone = req.cookies && req.cookies.auth_email;
+  if (emailOrPhone) {
     const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
     
-    if (val === 'www.johnsel771994@gmail.com') {
+    if (val === 'www.johnsel771994@gmail.com' || val === 'johnsel771994@gmail.com') {
       res.json({ canShare: true, canSync: true, isMainAdmin: true });
       return;
     }
