@@ -415,3 +415,7 @@
         display: none !important;
     }
 }
+
+.analytics-place-item {
+    scroll-margin-top: 130px;
+}

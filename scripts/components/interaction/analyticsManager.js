@@ -953,30 +953,33 @@ export class AnalyticsManager {
                 sortedEntries = Object.entries(placesCount).sort((a, b) => b[1].total - a[1].total);
             }
 
-            this.containerPlaces.style.display = "flex";
-            this.containerPlaces.style.flexDirection = "column";
-            this.containerPlaces.style.gap = "8px";
-
+            
+            this.containerPlaces.style.display = "block";
+            
             if (sortedEntries.length === 0) {
                 this.containerPlaces.innerHTML = `<li style="list-style: none; color: var(--color-text-muted); padding: 12px; text-align: center; background: var(--color-bg-card); border-radius: 8px;">Немає даних про населені пункти</li>`;
                 return;
             }
 
-            this.containerPlaces.innerHTML = sortedEntries.map(p => {
+            let tocLinksHtml = "";
+            let html = "";
+            
+            sortedEntries.forEach((p, idx) => {
                 const total = p[1].total;
                 const eventsObj = p[1].events;
+                const placeName = placeNameMap[p[0]] || p[0];
+                const blockId = `event-place-${idx}`;
                 
-                return `
-                <li class="analytics-place-item" style="list-style: none; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; overflow: hidden;">
-                    <div class="analytics-place-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; user-select: none;">
-                        <span style="font-size: 15px; font-weight: 500; color: var(--color-text-main);">${placeNameMap[p[0]] || p[0]}</span>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="background: var(--color-bg-body); padding: 4px 10px; border-radius: 12px; font-size: 13px; color: var(--color-text-muted);">${total} ${getEventWord(total)}</span>
-                            <i class="ri-arrow-down-s-line analytics-place-icon" style="transition: transform 0.3s; color: var(--color-text-muted);"></i>
-                        </div>
+                tocLinksHtml += `<li><a href="#${blockId}" class="profile-toc-link js-scroll-to">${placeName}</a></li>`;
+                
+                html += `
+                <li id="${blockId}" class="analytics-place-item" style="list-style: none; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px;">
+                    <div class="analytics-place-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">
+                        <h3 style="margin: 0; font-size: 20px; color: var(--color-text-main);">${placeName} <span style="font-size: 14px; font-weight: normal; color: var(--color-text-muted); margin-left: 8px;">(${total} ${getEventWord(total)})</span></h3>
+                        <i class="ri-arrow-down-s-line analytics-place-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 24px; transform: rotate(180deg);"></i>
                     </div>
-                    <div class="analytics-place-body" style="display: none; padding: 0 16px 16px 16px; border-top: 1px dashed var(--color-border-light); margin-top: 4px; padding-top: 12px;">
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="analytics-place-body" style="display: block; padding-top: 8px;">
+                        <ul style="list-style: none; padding: 0; margin: 0;">
                             ${(() => {
                                 const EVENT_ORDER = ["народження", "хрещення", "шлюб", "смерть", "поховання", "згадки в індексах пращурів", "походження"];
                                 const getEventSortIndex = (eventName) => {
@@ -989,38 +992,80 @@ export class AnalyticsManager {
                                     const evtCount = e[1];
                                     const peopleList = Array.from(p[1].peopleLists?.[evtName] || []);
                                     const peopleHtml = peopleList.length > 0 
-                                        ? `<ul style="margin: 4px 0 0 12px; padding: 0; list-style: disc; font-size: 13px; color: var(--color-text-muted);">
-                                            ${peopleList.map(personName => `<li>${personName}</li>`).join("")}
+                                        ? `<ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                                            ${peopleList.map(personName => `<li style="display: flex; align-items: center; padding: 6px 12px; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 6px;"><div style="font-size: 15px; color: var(--color-text-main);">${personName}</div></li>`).join("")}
                                           </ul>` 
                                         : "";
                                 
                                 return `
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--color-text-meta);">
-                                        <span style="text-transform: capitalize; font-weight: 500;">${evtName}</span>
-                                        <span>${evtCount}</span>
-                                    </div>
+                                <li style="list-style: none; margin-top: 8px; margin-bottom: 4px; margin-left: 12px;">
+                                    <div style="font-size: 14px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 4px; text-transform: capitalize;">${evtName}</div>
                                     ${peopleHtml}
-                                </div>
+                                </li>
                                 `;
                                 }).join("");
                             })()}
-                        </div>
+                        </ul>
                     </div>
                 </li>
-            `}).join("");
+                `;
+            });
+
+            this.containerPlaces.innerHTML = `
+                <div class="events-layout-with-sidebar" style="position: relative; width: 100%;">
+                    <aside class="events-sidebar-desktop" style="display: none;">
+                        <div>
+                            <div class="profile-toc-container">
+                                <h3 class="profile-toc-title">Населені пункти</h3>
+                                <ul class="profile-toc-list">
+                                    ${tocLinksHtml}
+                                </ul>
+                            </div>
+                        </div>
+                    </aside>
+                    <div class="events-body-blocks">
+                        <ul class="analytics-list-none" style="padding: 0; margin: 0;">
+                            ${html}
+                        </ul>
+                    </div>
+                </div>
+            `;
             
             const placeItems = this.containerPlaces.querySelectorAll('.analytics-place-item');
             placeItems.forEach(item => {
                 const header = item.querySelector('.analytics-place-header');
                 const body = item.querySelector('.analytics-place-body');
                 const icon = item.querySelector('.analytics-place-icon');
+                
+                const isDesktop = window.innerWidth >= 1200;
+                if (!isDesktop) {
+                    body.style.display = 'none';
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
+                
                 header.addEventListener('click', () => {
-                            const isOpen = body.style.display === 'block';
+                    const isOpen = body.style.display === 'block';
                     body.style.display = isOpen ? 'none' : 'block';
-                    icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                    if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
                 });
             });
+            this.containerPlaces.querySelectorAll('.js-scroll-to').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        const body = targetEl.querySelector('.analytics-place-body');
+                        const icon = targetEl.querySelector('.analytics-place-icon');
+                        if (body && body.style.display === 'none') {
+                            body.style.display = 'block';
+                            if (icon) icon.style.transform = 'rotate(180deg)';
+                        }
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+
         };
 
         const placesSectionContent = this.containerPlaces.closest('.analytics-section-content');
