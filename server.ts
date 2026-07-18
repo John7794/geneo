@@ -137,6 +137,8 @@ app.get('/login', (req, res) => {
             });
             
             if (res.ok) {
+              const data = await res.json();
+              if (data.token) localStorage.setItem('auth_token', data.token);
               window.location.href = '/';
             } else {
               document.getElementById('error').innerText = 'Доступ заборонено або вас немає в списку запрошених.';
@@ -161,6 +163,8 @@ app.get('/login', (req, res) => {
             body: JSON.stringify({ emailOrPhone: val })
           });
           if (res.ok) {
+            const data = await res.json();
+            if (data.token) localStorage.setItem('auth_token', data.token);
             window.location.href = '/';
           } else {
             document.getElementById('error').innerText = 'Доступ заборонено або вас немає в списку запрошених.';
@@ -175,8 +179,9 @@ app.get('/login', (req, res) => {
 app.post('/api/auth-login', (req, res) => {
   const emailOrPhone = req.body.emailOrPhone || '';
   if (emailOrPhone) {
-    res.cookie('auth_email', emailOrPhone.toLowerCase().trim(), { httpOnly: true, path: '/', sameSite: 'none', secure: true });
-    res.json({ success: true });
+    res.cookie('auth_email', emailOrPhone.toLowerCase().trim(), { httpOnly: true, path: '/', sameSite: 'none', secure: true, partitioned: true });
+    res.cookie('auth_email_client', emailOrPhone.toLowerCase().trim(), { httpOnly: false, path: '/', sameSite: 'none', secure: true, partitioned: true });
+    res.json({ success: true, token: emailOrPhone.toLowerCase().trim() });
   } else {
     res.status(401).json({ error: 'Unauthorized' });
   }
@@ -220,7 +225,11 @@ app.get('/api/shares', async (req, res) => {
 });
 
 app.get('/api/config', async (req, res) => {
-  const emailOrPhone = req.cookies && req.cookies.auth_email;
+  let emailOrPhone = req.cookies && req.cookies.auth_email;
+  if (!emailOrPhone && req.headers.authorization) {
+    const parts = req.headers.authorization.split(' ');
+    if (parts.length === 2 && parts[0] === 'Bearer') emailOrPhone = parts[1];
+  }
   if (emailOrPhone) {
     const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
     
