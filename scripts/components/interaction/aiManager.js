@@ -75,6 +75,7 @@ export class AIManager {
         
         let formattedText = text;
         if (!isUser) {
+            formattedText = formattedText.replace(/#/g, '');
             formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             formattedText = formattedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="text-decoration: underline; color: var(--color-primary);">$1</a>');
             formattedText = formattedText.replace(/^([\*\-])\s+(.*)$/gm, '&bull; $2');

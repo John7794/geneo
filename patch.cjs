@@ -1,41 +1,11 @@
 const fs = require('fs');
-const file = 'scripts/components/interaction/analyticsManager.js';
-let content = fs.readFileSync(file, 'utf8');
+let code = fs.readFileSync('server.ts', 'utf8');
 
-const targetStr = `                        <div class="profile-layout-with-sidebar">
-                            <aside class="profile-sidebar">
-                                <div class="profile-toc-container">
-                                    <h3 class="profile-toc-title">Місяці</h3>
-                                    <ul class="profile-toc-list">
-                                        \${tocLinksHtml}
-                                    </ul>
-                                </div>
-                            </aside>
-                            <div class="profile-body-blocks">
-                                <ul id="analytics-events-list" class="analytics-list-none" style="padding: 0; margin: 0;">
-                                    \${html}
-                                </ul>
-                            </div>
-                        </div>`;
+const oldBtn = `<hr style="margin: 20px 0; border: 0; border-top: 1px dashed #eee;" />
+        <button id="testLoginBtn" type="button" style="background: #28a745; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%;">
+          Тестовий вхід
+        </button>`;
 
-const replacementStr = `                        <div class="events-layout-with-sidebar" style="position: relative; width: 100%;">
-                            <aside class="events-sidebar-desktop" style="display: none;">
-                                <div style="position: sticky; top: 90px;">
-                                    <div class="profile-toc-container">
-                                        <h3 class="profile-toc-title">Місяці</h3>
-                                        <ul class="profile-toc-list">
-                                            \${tocLinksHtml}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </aside>
-                            <div class="events-body-blocks">
-                                <ul id="analytics-events-list" class="analytics-list-none" style="padding: 0; margin: 0;">
-                                    \${html}
-                                </ul>
-                            </div>
-                        </div>`;
-
-content = content.replace(targetStr, replacementStr);
-fs.writeFileSync(file, content);
-console.log('Patched');
+code = code.replace(oldBtn, '');
+fs.writeFileSync('server.ts', code);
+console.log('Removed test login button');

@@ -107,10 +107,7 @@ app.get('/login', (req, res) => {
           Увійти через Google
         </button>
 
-        <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #eee;" />
-        <button id="testLoginBtn" type="button" style="background: #28a745; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%;">
-          Тестовий вхід
-        </button>
+        
 
         <div id="error" style="color: red; margin-top: 15px; font-weight: bold;"></div>
       </div>
@@ -153,16 +150,7 @@ app.get('/login', (req, res) => {
           }
         };
 
-        document.getElementById('testLoginBtn').onclick = async () => {
-          const res = await fetch('/api/auth-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emailOrPhone: 'test' })
-          });
-          if (res.ok) {
-            window.location.href = '/';
-          }
-        };
+
 
         document.getElementById('loginForm').onsubmit = async (e) => {
           e.preventDefault();
@@ -237,7 +225,7 @@ app.get('/api/config', async (req, res) => {
     const emailOrPhone = decodeURIComponent(cookie.split('=')[1]);
     const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
     
-    if (val === 'www.johnsel771994@gmail.com' || val === 'test') {
+    if (val === 'www.johnsel771994@gmail.com') {
       res.json({ canShare: true, canSync: true, isMainAdmin: true });
       return;
     }
