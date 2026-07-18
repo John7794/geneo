@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 
-let adminConfig = { projectId: "geneo-b8e63" };
+let adminConfig: any = { projectId: "geneo-b8e63" };
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   try {
     let raw = process.env.FIREBASE_SERVICE_ACCOUNT;
