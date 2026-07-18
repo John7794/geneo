@@ -194,7 +194,7 @@ app.post('/api/invite', async (req, res) => {
   const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
   try {
     await fdb.collection('shares').add({
-      value: val,
+      email: val,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
     res.json({ success: true });
@@ -239,12 +239,12 @@ app.get('/api/config', async (req, res) => {
     }
     
     try {
-      const snap = await fdb.collection('shares').where('value', '==', val).get();
+      const snap = await fdb.collection('shares').where('email', '==', val).get();
       if (!snap.empty) {
         res.json({ canShare: false, canSync: false, isMainAdmin: false });
         return;
       }
-    } catch(e) {}
+    } catch(e) { console.error('Firebase shares query error:', e); }
   }
   res.status(401).json({ error: 'Unauthorized' });
 });

@@ -422,18 +422,14 @@
 
 /* Custom scrollbar for sidebar */
 .events-sidebar-desktop::-webkit-scrollbar {
-    width: 6px;
+    display: none;
+    width: 0;
 }
 
-.events-sidebar-desktop::-webkit-scrollbar-track {
-    background: transparent;
+.events-sidebar-desktop {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-.events-sidebar-desktop::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 4px;
-}
 
-.events-sidebar-desktop::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-muted);
-}
+
