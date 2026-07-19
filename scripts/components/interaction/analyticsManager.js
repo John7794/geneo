@@ -1250,7 +1250,8 @@ export class AnalyticsManager {
                     
                     const d = parseInt(record[cols.day], 10);
                     const m = parseInt(record[cols.month], 10);
-                    const yearVal = parseInt(record[cols.year], 10);
+                    const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
+                    const yearVal = parseInt(yearStr, 10);
                     const isOldStyle = ["1", "true", "+"].includes(String(record[cols.calendar] || "").trim());
                     
                     if (isNaN(d) || isNaN(m)) return;
@@ -1552,8 +1553,9 @@ export class AnalyticsManager {
                     }
                     
                     const d = parseInt(record[cols.day], 10);
-                    const m = parseInt(record[cols.month], 10);
-                    const yearVal = parseInt(record[cols.year], 10);
+const m = parseInt(record[cols.month], 10);
+const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
+const yearVal = parseInt(yearStr, 10);
                     const isOldStyle = ["1", "true", "+"].includes(String(record[cols.calendar] || "").trim());
                     
                     if (isNaN(yearVal)) return; // Requires year for sorting
@@ -1574,7 +1576,7 @@ export class AnalyticsManager {
                             type,
                             year: yearVal,
                             gregorian,
-                            original: { day: isNaN(d) ? null : d, month: isNaN(m) ? null : m, year: yearVal, isOldStyle },
+                            original: { day: isNaN(d) ? null : d, month: isNaN(m) ? null : m, year: yearVal, isOldStyle, yearStr },
                             person,
                             spouse,
                             recordType: String(record[cols.type] || "").trim()
@@ -1617,6 +1619,14 @@ export class AnalyticsManager {
             let currentFilter = "all";
             
             const renderTimeline = () => {
+                const typeLabels = {
+                    birth: i18n.t("events.birth") || "Народження",
+                    baptism: i18n.t("events.baptism") || "Хрещення",
+                    marriage: i18n.t("events.marriage") || "Шлюб",
+                    death: i18n.t("events.death") || "Смерть",
+                    funeral: i18n.t("events.funeral") || "Поховання"
+                };
+
                 allTimelineEvents.sort((a, b) => {
                     const yA = a.gregorian.year || 0;
                     const yB = b.gregorian.year || 0;
@@ -1627,7 +1637,19 @@ export class AnalyticsManager {
                     
                     if (yA !== yB) return sortDesc ? yB - yA : yA - yB;
                     if (mA !== mB) return sortDesc ? mB - mA : mA - mB;
-                    return sortDesc ? dB - dA : dA - dB;
+                    if (dA !== dB) return sortDesc ? dB - dA : dA - dB;
+
+                    // If same date (or just same year with no month/day)
+                    const labelA = typeLabels[a.type] || a.type;
+                    const labelB = typeLabels[b.type] || b.type;
+                    
+                    if (labelA !== labelB) {
+                        return labelA.localeCompare(labelB);
+                    }
+                    
+                    const nameA = a.person ? a.person.name || "" : "";
+                    const nameB = b.person ? b.person.name || "" : "";
+                    return nameA.localeCompare(nameB);
                 });
                 
                 let html = "";
@@ -1636,13 +1658,7 @@ export class AnalyticsManager {
                 if (filteredEvents.length === 0) {
                     html = "<li style='padding: 16px; text-align: center; color: var(--color-text-muted);'>Немає подій для відображення</li>";
                 } else {
-                    const typeLabels = {
-                        birth: i18n.t("events.birth") || "Народження",
-                        baptism: "Хрещення",
-                        marriage: i18n.t("events.marriage") || "Шлюб",
-                        death: i18n.t("events.death") || "Смерть",
-                        funeral: "Поховання"
-                    };
+
                     const icons = {
                         birth: "ri-star-line",
                         baptism: "ri-drop-line",
@@ -1651,8 +1667,9 @@ export class AnalyticsManager {
                         funeral: "ri-archive-line"
                     };
                     
-                    const getMonthNameSafe = (monthNum) => {
-                        const months = i18n.t("time.monthsGenitive");
+                    const getMonthNameSafe = (monthNum, isNominative = false) => {
+                        const key = isNominative ? "time.monthsNominative" : "time.monthsGenitive";
+                        const months = i18n.t(key);
                         return Array.isArray(months) ? months[monthNum] || "" : "";
                     };
                     
@@ -1662,16 +1679,20 @@ export class AnalyticsManager {
                         const m = evt.gregorian.month;
                         const y = evt.gregorian.year;
                         
-                        if (d) dateStr += escapeHtml(d) + " ";
-                        if (m) dateStr += escapeHtml(getMonthNameSafe(m)) + " ";
-                        if (y) dateStr += escapeHtml(y);
+                        if (evt.original.yearStr && (!d && !m)) {
+                            dateStr = escapeHtml(evt.original.yearStr);
+                        } else {
+                            if (d) dateStr += escapeHtml(d) + " ";
+                            if (m) dateStr += escapeHtml(getMonthNameSafe(m, !d)) + " ";
+                            if (y) dateStr += escapeHtml(y);
+                        }
                         
                         if (evt.original.isOldStyle) {
                             let oldStr = "";
                             if (evt.original.day) oldStr += escapeHtml(evt.original.day) + " ";
-                            if (evt.original.month) oldStr += escapeHtml(getMonthNameSafe(evt.original.month)) + " ";
+                            if (evt.original.month) oldStr += escapeHtml(getMonthNameSafe(evt.original.month, !evt.original.day)) + " ";
                             oldStr += i18n.t("time.oldStyle") || "за ст. ст.";
-                            dateStr += " <span class='event-date--old-style' style='color: var(--color-text-muted); font-size: 0.9em;'>(" + oldStr + ")</span>";
+                            dateStr += "<br><span class='event-date--old-style' style='color: var(--color-text-muted); font-size: 0.9em; display: inline-block; margin-top: 2px;'>(" + oldStr + ")</span>";
                         }
                         
                         const getPersonPIB = (p, eventType) => {
@@ -1709,12 +1730,10 @@ export class AnalyticsManager {
                         }
                         
                         html += `
-                            <li style="display: flex; padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px;">
-                                
-                                <div style="flex: 1; min-width: 0;">
-                                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 2px; color: var(--color-text-main);">${dateStr}</div>
-                                    <div style="font-weight: 500; font-size: 14px; color: var(--color-text-muted); margin-bottom: 4px;">${typeLabels[evt.type] || evt.type}</div>
-                                    <div style="font-size: 14px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${namesStr}</div>
+                            <li style="padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; list-style: none;">
+                                <div style="font-weight: 600; font-size: 15px; margin-bottom: 6px; color: var(--color-text-main); line-height: 1.3;">${dateStr}</div>
+                                <div style="font-size: 14px; color: var(--color-text-main); line-height: 1.4;">
+                                    <span style="color: var(--color-text-muted); font-weight: 500;">${typeLabels[evt.type] || evt.type}:</span> ${namesStr}
                                 </div>
                             </li>
                         `;
