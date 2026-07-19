@@ -1251,7 +1251,11 @@ export class AnalyticsManager {
                     const d = parseInt(record[cols.day], 10);
                     const m = parseInt(record[cols.month], 10);
                     const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
-                    const yearVal = parseInt(yearStr, 10);
+                    let yearVal = parseInt(yearStr, 10);
+                    const yearMatch = yearStr.match(/\b(1[0-9]{3}|20[0-9]{2})\b/);
+                    if (yearMatch) {
+                        yearVal = parseInt(yearMatch[1], 10);
+                    }
                     const isOldStyle = ["1", "true", "+"].includes(String(record[cols.calendar] || "").trim());
                     
                     if (isNaN(d) || isNaN(m)) return;
@@ -1555,7 +1559,11 @@ export class AnalyticsManager {
                     const d = parseInt(record[cols.day], 10);
 const m = parseInt(record[cols.month], 10);
 const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
-const yearVal = parseInt(yearStr, 10);
+                    let yearVal = parseInt(yearStr, 10);
+                    const yearMatch = yearStr.match(/\b(1[0-9]{3}|20[0-9]{2})\b/);
+                    if (yearMatch) {
+                        yearVal = parseInt(yearMatch[1], 10);
+                    }
                     const isOldStyle = ["1", "true", "+"].includes(String(record[cols.calendar] || "").trim());
                     
                     if (isNaN(yearVal)) return; // Requires year for sorting
@@ -1700,13 +1708,14 @@ const yearVal = parseInt(yearStr, 10);
                         const m = evt.gregorian.month;
                         const y = evt.gregorian.year;
                         
-                        if (evt.original.yearStr && (!d && !m)) {
-                            dateStr = escapeHtml(evt.original.yearStr);
+                        let cleanedYearStr = evt.original.yearStr ? evt.original.yearStr.replace(/\b\d{2}\.(\d{4})\b/g, '$1') : "";
+                        if (cleanedYearStr && (!d && !m)) {
+                            dateStr = escapeHtml(cleanedYearStr);
                         } else {
                             if (d) dateStr += escapeHtml(d) + " ";
                             if (m) dateStr += escapeHtml(getMonthNameSafe(m, !d)) + " ";
-                            if (evt.original.yearStr) {
-                                dateStr += escapeHtml(evt.original.yearStr);
+                            if (cleanedYearStr) {
+                                dateStr += escapeHtml(cleanedYearStr);
                             } else if (y) {
                                 dateStr += escapeHtml(y);
                             }
