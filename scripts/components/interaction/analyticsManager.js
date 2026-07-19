@@ -995,8 +995,8 @@ export class AnalyticsManager {
                                     const evtCount = e[1];
                                     const peopleList = Array.from(p[1].peopleLists?.[evtName] || []);
                                     const peopleHtml = peopleList.length > 0 
-                                        ? `<ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 4px;">
-                                            ${peopleList.map(personName => `<li style="display: flex; align-items: center; padding: 6px 12px; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 6px;"><div style="font-size: 15px; color: var(--color-text-main);">${personName}</div></li>`).join("")}
+                                        ? `<ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                            ${peopleList.map(personName => `<li style="padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; list-style: none;"><div style="font-size: 15px; color: var(--color-text-main); line-height: 1.4;">${personName}</div></li>`).join("")}
                                           </ul>` 
                                         : "";
                                 
@@ -1272,7 +1272,7 @@ export class AnalyticsManager {
                             type,
                             year: yearVal,
                             gregorian,
-                            original: { day: d, month: m, year: yearVal, isOldStyle },
+                            original: { day: d, month: m, year: yearVal, isOldStyle, yearStr },
                             person,
                             spouse,
                             recordType: String(record[cols.type] || "").trim()
@@ -1385,7 +1385,7 @@ export class AnalyticsManager {
                             html += `
                                 <li style="list-style: none; margin-top: 8px; margin-bottom: 4px; margin-left: 12px;">
                                     <div style="font-size: 14px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 4px;">${typeLabels[t]}</div>
-                                    <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                                    <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
                             `;
                             
                             grouped[m][d][t].forEach(evt => {
@@ -1430,11 +1430,11 @@ export class AnalyticsManager {
                                     p2Html = ` та <a href="?id=${encodeURIComponent(evt.spouse.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.spouse.id}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(getPersonPIB(evt.spouse, evt.type))}</a>`;
                                 }
 
-                                let yearInfo = evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${evt.year} р.)</span>` : '';
+                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${escapeHtml(evt.original.yearStr)} р.)</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${evt.year} р.)</span>` : "");
                                 
                                 html += `
-                                        <li style="display: flex; align-items: center; padding: 6px 12px; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 6px;">
-                                            <div style="font-size: 15px; color: var(--color-text-main);">${p1Html}${p2Html}${yearInfo}</div>
+                                        <li style="padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; list-style: none;">
+                                            <div style="font-size: 15px; color: var(--color-text-main); line-height: 1.4;">${p1Html}${p2Html}${yearInfo}</div>
                                         </li>
                                 `;
                             });
@@ -1684,7 +1684,11 @@ const yearVal = parseInt(yearStr, 10);
                         } else {
                             if (d) dateStr += escapeHtml(d) + " ";
                             if (m) dateStr += escapeHtml(getMonthNameSafe(m, !d)) + " ";
-                            if (y) dateStr += escapeHtml(y);
+                            if (evt.original.yearStr) {
+                                dateStr += escapeHtml(evt.original.yearStr);
+                            } else if (y) {
+                                dateStr += escapeHtml(y);
+                            }
                         }
                         
                         if (evt.original.isOldStyle) {
