@@ -658,7 +658,7 @@ export class AnalyticsManager {
                 container.innerHTML = sortedEntries.map(s => {
                     let hasNicknames = includeNicknames && nicknamesMap[s[0]];
                     return `
-                        <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 4px 12px; font-size: 14px; color: var(--color-text-main);">
+                        <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px; font-size: 15px; line-height: 1.4; color: var(--color-text-main);">
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <span>${s[0]}</span>
                                 <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${s[1]}</span>
@@ -1198,7 +1198,7 @@ export class AnalyticsManager {
                         : "";
 
                     return `
-                    <li class="analytics-death-item" style="list-style: none; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 8px; overflow: hidden;">
+                    <li class="analytics-death-item" style="list-style: none; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden;">
                         <div class="analytics-death-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; user-select: none;">
                             <span style="font-size: 15px; font-weight: 500; color: var(--color-text-main);">${cause}</span>
                             <div style="display: flex; align-items: center; gap: 8px;">
@@ -1667,13 +1667,34 @@ const yearVal = parseInt(yearStr, 10);
                         funeral: "ri-archive-line"
                     };
                     
-                    const getMonthNameSafe = (monthNum, isNominative = false) => {
+                                        const getMonthNameSafe = (monthNum, isNominative = false) => {
                         const key = isNominative ? "time.monthsNominative" : "time.monthsGenitive";
                         const months = i18n.t(key);
                         return Array.isArray(months) ? months[monthNum] || "" : "";
                     };
+
+                    const getCenturyRoman = (c) => {
+                        const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"];
+                        return romanNumerals[c] || c;
+                    };
+                    
+                    let currentCentury = null;
                     
                     filteredEvents.forEach(evt => {
+                        if (evt.gregorian.year && !isNaN(evt.gregorian.year)) {
+                            const cent = Math.ceil(evt.gregorian.year / 100);
+                            if (cent !== currentCentury) {
+                                currentCentury = cent;
+                                html += `
+                                    <li style="list-style: none; margin-top: 24px; margin-bottom: 16px; display: flex; align-items: center; width: 100%;">
+                                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                        <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">${getCenturyRoman(currentCentury)} ${i18n.t("time.century") || "століття"}</div>
+                                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                    </li>
+                                `;
+                            }
+                        }
+
                         let dateStr = "";
                         const d = evt.gregorian.day;
                         const m = evt.gregorian.month;
