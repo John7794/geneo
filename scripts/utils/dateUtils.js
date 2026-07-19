@@ -31,9 +31,15 @@ export function extractYear(val) {
 	return match ? match[0] : "";
 }
 
-export function getMonthName(mIndex) {
-	const rawMonths = i18n.t("time.monthsGenitive");
-	const months = Array.isArray(rawMonths) ? rawMonths : [];
+export function getMonthName(mIndex, nominative = false) {
+	const key = nominative ? "time.monthsNominative" : "time.monthsGenitive";
+	const rawMonths = i18n.t(key);
+	let months = Array.isArray(rawMonths) ? rawMonths : [];
+	// Fallback to genitive if nominative doesn't exist yet
+	if (months.length === 0 && nominative) {
+		const genitive = i18n.t("time.monthsGenitive");
+		months = Array.isArray(genitive) ? genitive : [];
+	}
 	const index = parseInt(mIndex, 10);
 	return !Number.isNaN(index) && months[index] ? months[index] : "";
 }
@@ -161,7 +167,8 @@ export function getPluralYears(age) {
 export function getEventDateDetails(d, m, y, isOldStyle = false) {
 	const day = d || "";
 	const year = y || "";
-	const monthName = getMonthName(m) || m || "";
+	const isNominative = !day;
+	const monthName = getMonthName(m, isNominative) || m || "";
 
 	const originalDateString = [day, monthName, year].filter(Boolean).join(" ");
 

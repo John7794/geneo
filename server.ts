@@ -139,7 +139,7 @@ app.get('/login', (req, res) => {
             if (res.ok) {
               const data = await res.json();
               if (data.token) localStorage.setItem('auth_token', data.token);
-              window.location.href = '/';
+              window.location.href = '/?t=' + Date.now();
             } else {
               document.getElementById('error').innerText = 'Доступ заборонено або вас немає в списку запрошених.';
               auth.signOut();
@@ -165,7 +165,7 @@ app.get('/login', (req, res) => {
           if (res.ok) {
             const data = await res.json();
             if (data.token) localStorage.setItem('auth_token', data.token);
-            window.location.href = '/';
+            window.location.href = '/?t=' + Date.now();
           } else {
             document.getElementById('error').innerText = 'Доступ заборонено або вас немає в списку запрошених.';
           }
@@ -240,6 +240,7 @@ app.get('/api/config', async (req, res) => {
     
     try {
       const snap = await fdb.collection('shares').where('email', '==', val).get();
+      console.log('Query result for', val, 'empty:', snap.empty);
       if (!snap.empty) {
         res.json({ canShare: false, canSync: false, isMainAdmin: false });
         return;
@@ -323,6 +324,10 @@ if (process.env.NODE_ENV !== "production") {
     if (p.startsWith("/api") || p.startsWith("/login")) {
        return res.status(404).end();
     }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
     res.sendFile(path.join(distPath, "index.html"));
   });
 }

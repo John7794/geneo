@@ -51,7 +51,7 @@ class App {
 			
 			let userConfig = { rootPerson: APP_CONFIG.rootId || "1", hiddenProfiles: [], canShare: false, canSync: false, isMainAdmin: false };
 			try {
-				const configRes = await fetch('/api/config');
+				const configRes = await fetch('/api/config', { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') } });
 				if (configRes.ok) {
 					const configData = await configRes.json();
 					if (configData.rootPerson) {

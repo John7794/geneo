@@ -445,6 +445,26 @@
                             </div>
                         </div>
 
+                        <div class="analytics-section" id="analytics-timeline">
+                            <h4 style="display: none;">Хронологія подій</h4>
+                            <div class="analytics-section-content">
+                                <div class="analytics-sort-controls" style="gap: 8px; justify-content: flex-start;">
+                                    <select id="timeline-filter-type" class="btn btn-outline btn-sm" style="background: var(--color-bg-card); color: var(--color-text-main); border-color: var(--color-border);">
+                                        <option value="all">Всі події</option>
+                                        <option value="birth">Народження</option>
+                                        <option value="baptism">Хрещення</option>
+                                        <option value="marriage">Шлюби</option>
+                                        <option value="death">Смерті</option>
+                                        <option value="funeral">Поховання</option>
+                                    </select>
+                                    <button id="timeline-sort-btn" class="btn btn-outline btn-sm" style="background: var(--color-bg-card); color: var(--color-text-main); border-color: var(--color-border); padding: 0 12px;">
+                                        <i class="ri-sort-desc"></i>
+                                    </button>
+                                </div>
+                                <ul id="analytics-timeline-list" class="analytics-list-none" style="display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0;"></ul>
+                            </div>
+                        </div>
+
                         <!-- Evens -->
                         <div class="analytics-section" id="analytics-events">
                             <h4>Календар подій</h4>
