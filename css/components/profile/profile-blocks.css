@@ -178,9 +178,14 @@ html[data-theme="dark"] .data-row {
 	font-size: 14px;
 	font-weight: 600;
 	color: var(--color-text-main);
-	margin-bottom: 16px;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
+	position: sticky;
+	top: 0;
+	background-color: var(--color-bg-body);
+	z-index: 10;
+	padding: 16px 0;
+	margin: -16px 0 16px 0;
 }
 
 .profile-toc-list {
@@ -201,7 +206,7 @@ html[data-theme="dark"] .data-row {
 }
 
 .profile-toc-link:hover {
-	color: var(--color-primary-light, #fff);
+	color: var(--color-primary);
 }
 
 .profile-section-anchor {

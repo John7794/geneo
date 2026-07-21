@@ -1647,49 +1647,27 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             let sortDesc = true;
             let currentFilter = "all";
 
-            if (!this.timelineViewMode) {
-                this.timelineViewMode = "list";
-            }
-            let timelineViewMode = this.timelineViewMode;
+            let timelineViewMode = "list";
             
             const btnViewList = document.getElementById("timeline-view-list-btn");
             const btnViewChart = document.getElementById("timeline-view-chart-btn");
             const chartContainer = document.getElementById("analytics-timeline-chart");
             
-            const filterTypeSelect = document.getElementById("timeline-filter-wrapper") || document.getElementById("timeline-filter-type");
-            const sortBtn = document.getElementById("timeline-sort-btn");
-            
             if (btnViewList && btnViewChart) {
-                const updateButtonStyles = () => {
-                    if (timelineViewMode === "list") {
-                        btnViewList.style.background = 'var(--color-primary)';
-                        btnViewList.style.color = 'white';
-                        btnViewChart.style.background = 'transparent';
-                        btnViewChart.style.color = 'var(--color-text-main)';
-                        if (filterTypeSelect) filterTypeSelect.style.display = 'inline-flex';
-                        if (sortBtn) sortBtn.style.display = 'inline-flex';
-                    } else {
-                        btnViewChart.style.background = 'var(--color-primary)';
-                        btnViewChart.style.color = 'white';
-                        btnViewList.style.background = 'transparent';
-                        btnViewList.style.color = 'var(--color-text-main)';
-                        if (filterTypeSelect) filterTypeSelect.style.display = 'none';
-                        if (sortBtn) sortBtn.style.display = 'none';
-                    }
-                };
-                
-                updateButtonStyles();
-                
                 btnViewList.addEventListener("click", () => {
-                    this.timelineViewMode = "list";
                     timelineViewMode = "list";
-                    updateButtonStyles();
+                    btnViewList.style.background = 'var(--color-primary)';
+                    btnViewList.style.color = 'white';
+                    btnViewChart.style.background = 'transparent';
+                    btnViewChart.style.color = 'var(--color-text-main)';
                     renderTimeline();
                 });
                 btnViewChart.addEventListener("click", () => {
-                    this.timelineViewMode = "chart";
                     timelineViewMode = "chart";
-                    updateButtonStyles();
+                    btnViewChart.style.background = 'var(--color-primary)';
+                    btnViewChart.style.color = 'white';
+                    btnViewList.style.background = 'transparent';
+                    btnViewList.style.color = 'var(--color-text-main)';
                     renderTimeline();
                 });
             }
@@ -1699,6 +1677,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 if (!chartContainer) return;
                 
                 const timelineList = document.getElementById("analytics-timeline-list");
+                
                 const personEvents = {};
                 
                 allTimelineEvents.forEach(evt => {
@@ -1741,115 +1720,83 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 minYear -= 10;
                 const maxYear = 2026; // Strictly cut by current year
                 
-                const ypx = 12; // pixels per year
-                const totalYears = maxYear - minYear;
-                const totalWidth = totalYears * ypx;
+                const ypx = 12;
+                const totalWidth = (maxYear - minYear) * ypx;
                 
-                const yearToPx = (y) => sortDesc ? (maxYear - y) * ypx : (y - minYear) * ypx;
-                const pxToYear = (px) => sortDesc ? maxYear - (px / ypx) : minYear + (px / ypx);
+                let axisHtml = '<div style="display: flex; position: sticky; top: 0; z-index: 10; background: var(--color-bg-card); padding-bottom: 8px; border-bottom: 1px solid var(--color-border);">';
                 
-                let axisHtml = '<div id="analytics-timeline-axis" style="position: sticky; top: 0; height: 30px; border-bottom: 1px solid var(--color-border); z-index: 100; background-color: var(--color-bg-card); cursor: pointer;">';
-                
-                let d = Math.floor(minYear / 10) * 10;
+                let currentDecade = Math.floor(minYear / 10) * 10;
+                let d = currentDecade;
                 let tocCenturies = new Set();
                 
                 while (d <= maxYear) {
+                    const w = 10 * ypx;
                     const isCentury = d % 100 === 0;
                     if (isCentury) {
                         const cent = Math.ceil((d+1) / 100);
                         tocCenturies.add(cent);
                     }
-                    const px = yearToPx(d);
+                    const text = isCentury ? `<b>${d}</b>` : `${d}`;
                     const markerHeight = isCentury ? 8 : 4;
                     const borderLeft = isCentury ? '2px solid var(--color-text-main)' : '1px solid var(--color-border)';
-                    const text = isCentury ? `<b>${d}</b>` : `${d}`;
                     
                     axisHtml += `
-                        <div id="chart-decade-${d}" style="position: absolute; left: ${px}px; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
-                            <div style="font-size: 10px; color: var(--color-text-muted); line-height: 1;">${text}</div>
-                            <div style="margin-top: 2px; width: 1px; height: ${markerHeight}px; border-left: ${borderLeft};"></div>
+                        <div id="chart-decade-${d}" style="width: ${w}px; flex-shrink: 0; position: relative;">
+                            <div style="font-size: 10px; color: var(--color-text-muted); padding-left: 4px; padding-bottom: 12px;">${text}</div>
+                            <div style="position: absolute; bottom: 0; left: 0; width: 1px; height: ${markerHeight}px; border-left: ${borderLeft};"></div>
                         </div>
                     `;
                     d += 10;
                 }
-                
-    
-    const scrubberHandleHtml = `
-        <div id="timeline-scrubber-handle" style="position: absolute; top: 0; left: ${yearToPx(maxYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize;">
-            ${maxYear}
-        </div>
-    `;
-    const scrubberLineHtml = `
-        <div id="timeline-scrubber" style="position: absolute; top: 0; bottom: 0; left: ${yearToPx(maxYear)}px; width: 2px; background: var(--color-primary); z-index: 50; cursor: ew-resize; pointer-events: none;">
-        </div>
-    `;
-    
-    axisHtml += scrubberHandleHtml + "</div>";
-    
+                axisHtml += '</div>';
                 
                 let rowsHtml = '<div style="position: relative; margin-top: 12px; padding-bottom: 16px;">';
                 
+                // Modern years first (descending by birth year)
                 validPeople.sort((a, b) => {
                     const aY = a.birth !== null ? a.birth : (a.death - 70);
                     const bY = b.birth !== null ? b.birth : (b.death - 70);
-                    return sortDesc ? (bY - aY) : (aY - bY); 
+                    return bY - aY; 
                 });
                 
                 validPeople.forEach((p, idx) => {
                     let by = p.birth;
                     let dy = p.death;
                     
-                    let isAlive = false;
-                    if (dy === null && by !== null && (maxYear - by) <= 120) {
-                        isAlive = true;
-                    }
-                    
                     let startY = by !== null ? by : (dy - 70);
                     let endY = dy !== null ? dy : (by + 70);
                     
-                    if (isAlive) {
-                        endY = maxYear;
-                    }
-                    
+                    // Clamp to min/max
                     if (startY < minYear) startY = minYear;
                     if (endY > maxYear) endY = maxYear;
                     if (startY > maxYear || endY < minYear) return;
                     
-                    let px1 = yearToPx(startY);
-                    let px2 = yearToPx(endY);
-                    
-                    let leftPx = Math.min(px1, px2);
-                    let widthPx = Math.abs(px2 - px1);
+                    let leftPx = (startY - minYear) * ypx;
+                    let widthPx = (endY - startY) * ypx;
                     
                     let bgStyle = 'background: rgba(30, 136, 229, 0.2); border: 1px solid rgba(30, 136, 229, 0.5);';
                     let borderRadius = 'border-radius: 4px;';
                     
-                    if (isAlive) {
-                        bgStyle = 'background: rgba(30, 136, 229, 0.6); border: 1px solid rgba(30, 136, 229, 0.9);';
-                    } else if (by === null) {
-                        bgStyle = sortDesc 
-                            ? 'background: linear-gradient(to left, transparent, rgba(30, 136, 229, 0.4)); border: none; border-left: 2px solid rgba(30, 136, 229, 0.8);'
-                            : 'background: linear-gradient(to right, transparent, rgba(30, 136, 229, 0.4)); border: none; border-right: 2px solid rgba(30, 136, 229, 0.8);';
-                        borderRadius = sortDesc ? 'border-radius: 4px 0 0 4px;' : 'border-radius: 0 4px 4px 0;';
+                    if (by === null) {
+                        bgStyle = 'background: linear-gradient(to right, transparent, rgba(30, 136, 229, 0.4)); border: none; border-right: 2px solid rgba(30, 136, 229, 0.8);';
+                        borderRadius = 'border-radius: 0 4px 4px 0;';
                     } else if (dy === null) {
-                        bgStyle = sortDesc
-                            ? 'background: linear-gradient(to right, transparent, rgba(30, 136, 229, 0.4)); border: none; border-right: 2px solid rgba(30, 136, 229, 0.8);'
-                            : 'background: linear-gradient(to left, transparent, rgba(30, 136, 229, 0.4)); border: none; border-left: 2px solid rgba(30, 136, 229, 0.8);';
-                        borderRadius = sortDesc ? 'border-radius: 0 4px 4px 0;' : 'border-radius: 4px 0 0 4px;';
+                        bgStyle = 'background: linear-gradient(to left, transparent, rgba(30, 136, 229, 0.4)); border: none; border-left: 2px solid rgba(30, 136, 229, 0.8);';
+                        borderRadius = 'border-radius: 4px 0 0 4px;';
                     }
                     
                     let markersHtml = '';
                     if (by !== null && by >= minYear && by <= maxYear) {
-                        const mLeft = yearToPx(by) - leftPx;
+                        const mLeft = (by - startY) * ypx;
                         markersHtml += `<div style="position: absolute; left: ${mLeft}px; top: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); border: 1px solid white;" title="Народження (${by})"></div>`;
                     }
-                    if (dy !== null && dy >= minYear && dy <= maxYear && !isAlive) {
-                        const mLeft = yearToPx(dy) - leftPx;
+                    if (dy !== null && dy >= minYear && dy <= maxYear) {
+                        const mLeft = (dy - startY) * ypx;
                         markersHtml += `<div style="position: absolute; left: ${mLeft}px; top: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: var(--color-danger); border: 1px solid white;" title="Смерть (${dy})"></div>`;
                     }
                     p.marriages.forEach(my => {
                         if (my >= minYear && my <= maxYear) {
-                            const mLeft = yearToPx(my) - leftPx;
+                            const mLeft = (my - startY) * ypx;
                             markersHtml += `<div style="position: absolute; left: ${mLeft}px; top: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: var(--color-warning); border: 1px solid white;" title="Шлюб (${my})"></div>`;
                         }
                     });
@@ -1871,28 +1818,24 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 
                 rowsHtml += '</div>';
                 
-                let gridHtml = '<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;">';
-                d = Math.floor(minYear / 10) * 10;
+                let gridHtml = '<div style="position: absolute; top: 0; left: 0; bottom: 0; pointer-events: none;">';
+                d = currentDecade;
                 while (d <= maxYear) {
                     const isCentury = d % 100 === 0;
                     const borderLeft = isCentury ? '2px dashed var(--color-border-light)' : '1px dashed var(--color-border-light)';
                     const opacity = isCentury ? 1 : 0.5;
-                    const px = yearToPx(d);
-                    gridHtml += `<div style="position: absolute; left: ${px}px; top: 0; bottom: 0; border-left: ${borderLeft}; opacity: ${opacity};"></div>`;
+                    const lpx = (d - minYear) * ypx;
+                    gridHtml += `<div style="position: absolute; left: ${lpx}px; top: 0; bottom: 0; width: 1px; border-left: ${borderLeft}; opacity: ${opacity};"></div>`;
                     d += 10;
                 }
                 gridHtml += '</div>';
                 
-                
-                
                 chartContainer.innerHTML = `
-                    <div style="min-width: max(${totalWidth + 300}px, 100%); position: relative;" id="analytics-timeline-chart-inner">
+                    <div style="min-width: ${totalWidth + 300}px; position: relative;" id="analytics-timeline-chart-inner">
                         ${axisHtml}
-                        <div style="position: relative;" id="analytics-timeline-rows-container">
+                        <div style="position: relative;">
                             ${gridHtml}
                             ${rowsHtml}
-                            ${typeof scrubberLineHtml !== "undefined" ? scrubberLineHtml : ""}
-                            
                         </div>
                     </div>
                 `;
@@ -1934,18 +1877,27 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     const isDesktop = window.innerWidth >= 1200;
                     sidebar.style.display = isDesktop ? 'block' : 'none';
                     
+                    const sliderId = "timeline-year-slider";
                     const valueId = "timeline-year-value";
                     const resultsId = "timeline-alive-results";
                     
                     sidebar.innerHTML = `
                         <div>
+                            <div class="profile-toc-container" style="margin-bottom: 24px;">
+                                <h3 class="profile-toc-title">СТОЛІТТЯ</h3>
+                                <ul class="profile-toc-list">
+                                    ${tocLinksHtml}
+                                </ul>
+                            </div>
+                            
                             <div class="profile-toc-container">
                                 <h3 class="profile-toc-title">ХТО ЖИВ В РОЦІ...</h3>
                                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span id="${valueId}" style="font-weight: 600; font-size: 20px; color: var(--color-primary);">${maxYear}</span>
+                                        <span id="${valueId}" style="font-weight: 600; font-size: 14px; color: var(--color-primary);">${maxYear}</span>
                                     </div>
-                                    <div id="${resultsId}" style="max-height: 400px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+                                    <input type="range" id="${sliderId}" min="${minYear}" max="${maxYear}" value="${maxYear}" style="width: 100%;">
+                                    <div id="${resultsId}" style="max-height: 300px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
                                     </div>
                                 </div>
                             </div>
@@ -1968,25 +1920,21 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         });
                     });
                     
+                    const slider = document.getElementById(sliderId);
                     const valDisplay = document.getElementById(valueId);
                     const resultsBox = document.getElementById(resultsId);
                     
-                    const updateAliveList = (y) => {
-                        if (!valDisplay || !resultsBox) return;
-                        valDisplay.textContent = Math.round(y);
+                    const updateAliveList = () => {
+                        if (!slider || !valDisplay || !resultsBox) return;
+                        const y = parseInt(slider.value, 10);
+                        valDisplay.textContent = y;
                         
                         const alive = validPeople.filter(p => {
-                            let by = p.birth;
-                            let dy = p.death;
-                            
-                            let isAlive = false;
-                            if (dy === null && by !== null && (maxYear - by) <= 120) {
-                                isAlive = true;
-                            }
+                            const by = p.birth;
+                            const dy = p.death;
                             
                             let startY = by !== null ? by : (dy - 70);
                             let endY = dy !== null ? dy : (by + 70);
-                            if (isAlive) endY = maxYear;
                             
                             return y >= startY && y <= endY;
                         });
@@ -1994,9 +1942,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (alive.length === 0) {
                             resultsBox.innerHTML = '<div style="font-size: 11px; color: var(--color-text-muted);">Немає даних</div>';
                         } else {
+                            // Sort alphabetical
                             alive.sort((a,b) => a.person.name.localeCompare(b.person.name));
                             resultsBox.innerHTML = alive.map(p => `
-                                <div style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 0; flex-shrink: 0;">
+                                <div style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                     <a href="#" class="analytics-person-link" data-pid="${p.person.id}" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(p.person.name)}</a>
                                 </div>
                             `).join('');
@@ -2013,102 +1962,9 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         }
                     };
                     
-                    updateAliveList(maxYear); // Initial call
-                    
-                    // Scrubber Drag Logic
-                    const scrubber = document.getElementById('timeline-scrubber');
-                    const scrubberHandle = document.getElementById('timeline-scrubber-handle');
-                    const innerChart = document.getElementById('analytics-timeline-chart-inner');
-                    
-                    let isDraggingScrubber = false;
-                    let isDraggingCanvas = false;
-                    let startX = 0;
-                    let scrollLeftStart = 0;
-                    
-                    
-                    const axis = document.getElementById('analytics-timeline-axis');
-                    if (axis) {
-                        axis.addEventListener('click', (e) => {
-                            const rect = innerChart.getBoundingClientRect();
-                            let x = e.clientX - rect.left;
-                            if (x < 0) x = 0;
-                            if (x > totalWidth) x = totalWidth;
-                            
-                            if (scrubber) scrubber.style.left = `${x}px`;
-                            if (scrubberHandle) {
-                                scrubberHandle.style.left = `${x}px`;
-                                const currentYear = pxToYear(x);
-                                scrubberHandle.textContent = Math.round(currentYear);
-                                updateAliveList(currentYear);
-                            }
-                        });
-                    }
-                    
-                    if (scrubber) {
-                        scrubberHandle.addEventListener('mousedown', (e) => {
-                            isDraggingScrubber = true;
-                            document.body.style.userSelect = 'none';
-                            e.stopPropagation();
-                        });
-                        
-                        document.addEventListener('mousemove', (e) => {
-                            if (!isDraggingScrubber) return;
-                            const rect = innerChart.getBoundingClientRect();
-                            let x = e.clientX - rect.left;
-                            if (x < 0) x = 0;
-                            if (x > totalWidth) x = totalWidth;
-                            
-                            scrubber.style.left = `${x}px`;
-                            if (scrubberHandle) scrubberHandle.style.left = `${x}px`;
-                            
-                            const currentYear = pxToYear(x);
-                            scrubberHandle.textContent = Math.round(currentYear);
-                            updateAliveList(currentYear);
-                            
-                            // Auto scroll if dragging near edges
-                            const containerRect = chartContainer.getBoundingClientRect();
-                            if (e.clientX < containerRect.left + 50) {
-                                chartContainer.scrollLeft -= 10;
-                            } else if (e.clientX > containerRect.right - 50) {
-                                chartContainer.scrollLeft += 10;
-                            }
-                        });
-                        
-                        document.addEventListener('mouseup', () => {
-                            if (isDraggingScrubber) {
-                                isDraggingScrubber = false;
-                                document.body.style.userSelect = '';
-                            }
-                        });
-                    }
-                    
-                    // Canvas Pan Logic
-                    if (chartContainer) {
-                        chartContainer.addEventListener('mousedown', (e) => {
-                            if (e.target.closest('#timeline-scrubber-handle') || e.target.closest('a')) return;
-                            isDraggingCanvas = true;
-                            startX = e.pageX - chartContainer.offsetLeft;
-                            scrollLeftStart = chartContainer.scrollLeft;
-                            chartContainer.style.cursor = 'grabbing';
-                        });
-                        
-                        chartContainer.addEventListener('mousemove', (e) => {
-                            if (!isDraggingCanvas) return;
-                            e.preventDefault();
-                            const x = e.pageX - chartContainer.offsetLeft;
-                            const walk = (x - startX) * 1.5; // scroll-fast
-                            chartContainer.scrollLeft = scrollLeftStart - walk;
-                        });
-                        
-                        chartContainer.addEventListener('mouseup', () => {
-                            isDraggingCanvas = false;
-                            chartContainer.style.cursor = '';
-                        });
-                        
-                        chartContainer.addEventListener('mouseleave', () => {
-                            isDraggingCanvas = false;
-                            chartContainer.style.cursor = '';
-                        });
+                    if (slider) {
+                        slider.addEventListener('input', updateAliveList);
+                        updateAliveList(); // Initial call
                     }
                 }
             };
