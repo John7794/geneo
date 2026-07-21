@@ -588,7 +588,7 @@ export class AnalyticsManager {
 
 				return `
                 <div style="width: 100%; display: flex; align-items: center; margin-bottom: 8px;">
-                    <a href="#" onclick="event.preventDefault(); if(window.app && window.app.navigateToId) { window.app.navigateToId('${obj.id}', false, 'profile'); }" style="position: relative; display: flex; align-items: center; background: var(--color-bg-body); border-radius: 8px; text-decoration: none; color: var(--color-text-main); font-size: 14px; transition: opacity 0.2s; width: 100%; overflow: hidden; border: 1px solid var(--color-border);" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                    <a href="?id=${encodeURIComponent(obj.id)}&view=profile" style="position: relative; display: flex; align-items: center; background: var(--color-bg-body); border-radius: 8px; text-decoration: none; color: var(--color-text-main); font-size: 14px; transition: opacity 0.2s; width: 100%; overflow: hidden; border: 1px solid var(--color-border);" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
                         <div style="position: absolute; top: 0; left: 0; height: 100%; width: ${Math.max(2, widthPercent)}%; background: var(--color-bg-card); z-index: 0; border-right: 2px solid var(--color-primary); opacity: 0.8; transition: width 0.5s ease-in-out;"></div>
                         <div style="position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; padding: 6px 16px 6px 6px; width: 100%;">
                             ${avatarHtml}
@@ -1544,16 +1544,7 @@ export class AnalyticsManager {
                     });
 
                     // Add link behavior
-                    const links = newContainerEvents.querySelectorAll('.analytics-person-link');
-                    links.forEach(link => {
-                        link.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
-                            if (pid && window.app && window.app.navigateToId) {
-                                window.app.navigateToId(pid, false, 'profile');
-                            }
-                        });
-                    });
+// delegated to router
                 } // End if (eventsSectionContent)
             } // End else
         } // End if (containerEvents)
@@ -1863,7 +1854,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             </div>
                             
                             <div style="position: absolute; left: ${leftPx + widthPx + 8}px; white-space: nowrap; font-size: 11px; z-index: 3; color: var(--color-text-main);">
-                                <a href="#" class="analytics-person-link" data-pid="${p.person.id}" style="color: inherit; text-decoration: none;">${escapeHtml(p.person.name)}</a>
+                                <a href="?id=${encodeURIComponent(p.person.id)}&view=profile" class="analytics-person-link" data-pid="${p.person.id}" style="color: inherit; text-decoration: none;">${escapeHtml(p.person.name)}</a>
                             </div>
                         </div>
                     `;
@@ -1897,15 +1888,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     </div>
                 `;
                 
-                chartContainer.querySelectorAll('.analytics-person-link').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
-                        if (pid && window.app && window.app.navigateToId) {
-                            window.app.navigateToId(pid, false, 'profile');
-                        }
-                    });
-                });
+// delegated to router
                 
                 const getCenturyRoman = (c) => {
                     const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"];
@@ -1997,19 +1980,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             alive.sort((a,b) => a.person.name.localeCompare(b.person.name));
                             resultsBox.innerHTML = alive.map(p => `
                                 <div style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 0; flex-shrink: 0;">
-                                    <a href="#" class="analytics-person-link" data-pid="${p.person.id}" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(p.person.name)}</a>
+                                    <a href="?id=${encodeURIComponent(p.person.id)}&view=profile" class="analytics-person-link" data-pid="${p.person.id}" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(p.person.name)}</a>
                                 </div>
                             `).join('');
                             
-                            resultsBox.querySelectorAll('.analytics-person-link').forEach(link => {
-                                link.addEventListener('click', (e) => {
-                                    e.preventDefault();
-                                    const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
-                                    if (pid && window.app && window.app.navigateToId) {
-                                        window.app.navigateToId(pid, false, 'profile');
-                                    }
-                                });
-                            });
+// delegated to router
                         }
                     };
                     
@@ -2330,15 +2305,7 @@ const renderTimeline = () => {
                 }
                 
                 // Attach events to newly generated links
-                if (timelineList) timelineList.querySelectorAll('.analytics-person-link').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const pid = e.target.getAttribute('data-pid') || e.currentTarget.getAttribute('data-pid');
-                        if (pid && window.app && window.app.navigateToId) {
-                            window.app.navigateToId(pid, false, 'profile');
-                        }
-                    });
-                });
+// delegated to router
             };
             
             renderTimeline();
@@ -2353,9 +2320,24 @@ const renderTimeline = () => {
             }
             
             const selectFilter = document.getElementById("timeline-filter-type");
+            const filterIcon = document.querySelector(".timeline-filter-icon");
             if (selectFilter) {
+                let isOpen = false;
+                
+                const closeSelect = () => {
+                    isOpen = false;
+                    if (filterIcon) filterIcon.style.transform = "rotate(0deg)";
+                };
+                
+                selectFilter.addEventListener("mousedown", () => {
+                    isOpen = !isOpen;
+                    if (filterIcon) filterIcon.style.transform = isOpen ? "rotate(180deg)" : "rotate(0deg)";
+                });
+                selectFilter.addEventListener("blur", closeSelect);
+                
                 selectFilter.addEventListener("change", (e) => {
                     currentFilter = e.target.value;
+                    closeSelect();
                     renderTimeline();
                 });
             }

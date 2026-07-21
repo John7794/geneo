@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#sel:focus + .icon {
+    transform: rotate(180deg);
+}
+.icon {
+    transition: transform 0.2s;
+    display: inline-block;
+}
+</style>
+</head>
+<body>
+<select id="sel">
+    <option>1</option>
+    <option>2</option>
+</select>
+<span class="icon">V</span>
+</body>
+</html>
