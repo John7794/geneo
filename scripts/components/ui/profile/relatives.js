@@ -26,7 +26,7 @@ function renderRelativesGrid(list, ctx) {
 			const rawRoleLabel = resolveRoleLabel(person, roleKey);
 			const roleLabel = escapeHtml(rawRoleLabel);
 
-			return renderPersonTile(person, ctx, roleLabel, false);
+			return renderPersonTile(person, ctx, roleLabel, false, { showId: true });
 		})
 		.join("");
 

@@ -30,7 +30,7 @@ function renderBranch(peopleList, defaultTitle, ctx) {
 
 			const roleLabel = escapeHtml(i18n.t(roleKey) || "ДІДУСЬ / БАБУСЯ");
 
-			return renderPersonTile(person, ctx, roleLabel, false);
+			return renderPersonTile(person, ctx, roleLabel, false, { showId: true });
 		})
 		.join("");
 

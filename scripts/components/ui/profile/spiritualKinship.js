@@ -20,7 +20,7 @@ function renderSpiritualList(list, defaultRoleKey, ctx) {
 			const roleLabelRaw = resolveSpiritualRole(person, defaultRoleKey);
 			const safeRoleLabel = escapeHtml(roleLabelRaw || "");
 
-			return renderPersonTile(person, ctx, safeRoleLabel, false);
+			return renderPersonTile(person, ctx, safeRoleLabel, false, { showId: true });
 		})
 		.join("");
 }

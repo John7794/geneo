@@ -241,7 +241,7 @@ export function renderMarriageBlock(person) {
 				const tileRoleLabel = escapeHtml(
 					i18n.t(roleKey) || (isFemalePartner ? "Наречена" : "Наречений"),
 				);
-				partnerHTML = renderPersonTile(m._partner, ctx, tileRoleLabel, false);
+				partnerHTML = renderPersonTile(m._partner, ctx, tileRoleLabel, false, { showId: true });
 			}
 
 			const isMainChurch = isChurchRow(m);

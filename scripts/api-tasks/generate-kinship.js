@@ -30,13 +30,16 @@ export async function main() {
 	const rootDir = process.env.DATA_DIR ? path.dirname(process.env.DATA_DIR) : process.cwd();
 	const basicPath = path.join(rootDir, "data", "db", "uk", "basic.csv");
 	const rolesPath = path.join(rootDir, "data", "db", "uk", "familyRoles.csv");
+	const familyListPath = path.join(rootDir, "data", "db", "uk", "familyList.csv");
 	const outputPath = path.join(rootDir, "data", "kinshipIndex.json");
 
 	try {
 		const basicRows = parseCSV(basicPath);
 		const rolesRows = parseCSV(rolesPath);
+		let familyListRows = [];
+		try { familyListRows = parseCSV(familyListPath); } catch (e) {}
 
-		console.log(`[Parser] Loaded ${basicRows.length} basic profiles and ${rolesRows.length} roles rows.`);
+		console.log(`[Parser] Loaded ${basicRows.length} basic profiles, ${rolesRows.length} roles rows, and ${familyListRows.length} familyList rows.`);
 
 		// 1. Побудова карти користувачів
 		const peopleMap = new Map();
@@ -50,6 +53,15 @@ export async function main() {
 			}
 		}
 
+		for (const row of familyListRows) {
+			const id = String(row.fam_id || "").trim();
+			if (id) {
+				peopleMap.set(id, {
+					id,
+					gender: String(row.fam_gender || "").trim().toLowerCase(),
+				});
+			}
+		}
 		// 2. Побудова карти ролей у сім'ї
 		const rolesMap = new Map();
 		for (const row of rolesRows) {
@@ -64,6 +76,23 @@ export async function main() {
 			}
 		}
 
+		for (const row of familyListRows) {
+			const id = String(row.fam_id || "").trim();
+			if (id) {
+				if (!rolesMap.has(id)) {
+					rolesMap.set(id, {
+						parents_bio: parseCSVList(row.fam_parents),
+						parents_step: [],
+						parents_adopted: [],
+						spouses: []
+					});
+				} else {
+					const role = rolesMap.get(id);
+					const newBio = parseCSVList(row.fam_parents);
+					role.parents_bio = [...new Set([...role.parents_bio, ...newBio])];
+				}
+			}
+		}
 		// Помічник для розпізнавання батьків за біологічним зв'язком та статтю
 		function getBioParents(personId) {
 			const role = rolesMap.get(personId);

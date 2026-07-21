@@ -7,8 +7,11 @@ import { extractYear } from "./dateUtils.js";
 // --- BASIC HELPERS ---
 
 const SPACE_REGEX = /\s+/;
-export const parseKinshipIds = (val) =>
-	val ? String(val).trim().split(SPACE_REGEX) : [];
+export const parseKinshipIds = (val) => {
+	if (!val) return [];
+	if (Array.isArray(val)) return val;
+	return String(val).trim().split(SPACE_REGEX);
+};
 
 const getYear = (dateStr) => {
 	const yStr = extractYear(dateStr);

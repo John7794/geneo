@@ -20,7 +20,7 @@ function renderChildList(list, category, ctx) {
 			);
 			const roleLabel = escapeHtml(rawRoleLabel);
 
-			return renderPersonTile(person, ctx, roleLabel, false);
+			return renderPersonTile(person, ctx, roleLabel, false, { showId: true });
 		})
 		.join("");
 }

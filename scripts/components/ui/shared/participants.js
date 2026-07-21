@@ -113,7 +113,7 @@ export function renderParticipantTiles(participants, roleCodes, ctx = null) {
 			const roleLabelRaw = resolveParticipantRole(p.role);
 			const roleLabel = escapeHtml(roleLabelRaw);
 
-			return renderPersonTile(normalizedPerson, ctx, roleLabel, false);
+			return renderPersonTile(normalizedPerson, ctx, roleLabel, false, { showId: true });
 		})
 		.join("");
 

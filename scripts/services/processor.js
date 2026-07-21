@@ -62,7 +62,7 @@ export function buildPersonObject(queryId, allData) {
 	const namesRow = findInMap("names", targetId);
 	const safeKinship = allData.kinship?.[String(targetId)] || {};
 
-	const liteContext = { ...DB, engine: allData };
+	const liteContext = { db: DB, _indexes: allData._indexes, engine: allData };
 
 	const engineParents =
 		typeof allData.getParents === "function"

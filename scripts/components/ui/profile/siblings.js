@@ -29,7 +29,7 @@ function renderSiblingsGrid(list, ctx, currentId) {
 			const rawRoleLabel = resolveSiblingRole(person, person.role);
 			const roleLabel = escapeHtml(rawRoleLabel);
 
-			return renderPersonTile(person, ctx, roleLabel, false);
+			return renderPersonTile(person, ctx, roleLabel, false, { showId: true });
 		})
 		.join("");
 

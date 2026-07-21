@@ -32,7 +32,7 @@ function renderParentGroup(titleKey, defaultTitle, peopleList, ctx, type) {
 	// Логіка позиціонування для 2-колонкової сітки
 	if (male) {
 		const safeRole = escapeHtml(resolveParentRole(type, male.gender));
-		tilesHTML += `<div class="${UI_CLASSES.parentTileWrapper}">${renderPersonTile(male, ctx, safeRole, false)}</div>`;
+		tilesHTML += `<div class="${UI_CLASSES.parentTileWrapper}">${renderPersonTile(male, ctx, safeRole, false, { showId: true })}</div>`;
 	} else if (female) {
 		// Якщо тата/вітчима немає, додаємо пустий блок, щоб жінка пішла в праву колонку
 		tilesHTML += `<div class="${UI_CLASSES.parentTileEmpty}"></div>`;
@@ -40,13 +40,13 @@ function renderParentGroup(titleKey, defaultTitle, peopleList, ctx, type) {
 
 	if (female) {
 		const safeRole = escapeHtml(resolveParentRole(type, female.gender));
-		tilesHTML += `<div class="${UI_CLASSES.parentTileWrapper}">${renderPersonTile(female, ctx, safeRole, false)}</div>`;
+		tilesHTML += `<div class="${UI_CLASSES.parentTileWrapper}">${renderPersonTile(female, ctx, safeRole, false, { showId: true })}</div>`;
 	}
 
 	// Рендеримо інших (якщо раптом більше 2-х осіб в групі)
 	others.forEach((p) => {
 		const safeRole = escapeHtml(resolveParentRole(type, p.gender));
-		tilesHTML += `<div class="${UI_CLASSES.parentTileWrapper}">${renderPersonTile(p, ctx, safeRole, false)}</div>`;
+		tilesHTML += `<div class="${UI_CLASSES.parentTileWrapper}">${renderPersonTile(p, ctx, safeRole, false, { showId: true })}</div>`;
 	});
 
 	const title = escapeHtml(i18n.t(titleKey) || defaultTitle);

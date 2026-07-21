@@ -22,7 +22,7 @@ function renderGrandChildCards(list, ctx) {
 			const rawRoleLabel = resolveGrandChildRole(person, safeRole);
 			const roleLabel = escapeHtml(rawRoleLabel);
 
-			return renderPersonTile(person, ctx, roleLabel, false);
+			return renderPersonTile(person, ctx, roleLabel, false, { showId: true });
 		})
 		.join("");
 }

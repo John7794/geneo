@@ -252,9 +252,13 @@ app.get('/api/config', async (req, res) => {
 
 if (process.env.NODE_ENV !== "production") {
   const rootScriptsPath = path.join(process.cwd(), 'scripts');
-  app.use('/scripts', express.static(rootScriptsPath));
+  app.use('/scripts', express.static(rootScriptsPath, {
+      setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store'); }
+    }));
   const rootCssPath = path.join(process.cwd(), 'css');
-  app.use('/css', express.static(rootCssPath));
+  app.use('/css', express.static(rootCssPath, {
+      setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store'); }
+    }));
   const rootAssetsPath = path.join(process.cwd(), 'assets');
   app.use('/assets', express.static(rootAssetsPath));
 }
@@ -318,7 +322,11 @@ if (process.env.NODE_ENV !== "production") {
   })();
 } else {
   const distPath = path.join(process.cwd(), "dist");
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    setHeaders: (res, path) => {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    }
+  }));
   app.get("*", (req, res) => {
     const p = req.path;
     if (p.startsWith("/api") || p.startsWith("/login")) {

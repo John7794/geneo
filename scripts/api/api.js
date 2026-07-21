@@ -58,7 +58,7 @@ export async function fetchAllData(userConfig = {}) {
 		// Filter familyList (relationships) - remove rows where PID is either the person or the relative
 		if (db.familyList) {
 			db.familyList = db.familyList.filter(row => 
-				!hideSet.has(String(row.pid)) && !hideSet.has(String(row.relative_id))
+				!hideSet.has(String(row.fam_id)) && !hideSet.has(String(row.id))
 			);
 		}
 	}
