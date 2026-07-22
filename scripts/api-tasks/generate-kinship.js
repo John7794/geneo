@@ -300,7 +300,7 @@ export async function main() {
 					if (otherAncestors.has(ancId)) {
 						const otherSteps = otherAncestors.get(ancId);
 						if (mySteps + 1 === otherSteps) {
-							const level = mySteps + 2;
+							const level = mySteps + 1;
 							if (level < bestPatLevel) bestPatLevel = level;
 						}
 					}
@@ -311,20 +311,20 @@ export async function main() {
 					if (otherAncestors.has(ancId)) {
 						const otherSteps = otherAncestors.get(ancId);
 						if (mySteps + 1 === otherSteps) {
-							const level = mySteps + 2;
+							const level = mySteps + 1;
 							if (level < bestMatLevel) bestMatLevel = level;
 						}
 					}
 				}
 
 				// Якщо знайшли спорідненость у межах 3-7 колін
-				if (bestPatLevel >= 3 && bestPatLevel <= 7) {
+				if (bestPatLevel >= 2 && bestPatLevel <= 7) {
 					if (!cousinLevels[bestPatLevel]) {
 						cousinLevels[bestPatLevel] = { pat: new Set(), mat: new Set() };
 					}
 					cousinLevels[bestPatLevel].pat.add(otherId);
 				}
-				if (bestMatLevel >= 3 && bestMatLevel <= 7) {
+				if (bestMatLevel >= 2 && bestMatLevel <= 7) {
 					if (!cousinLevels[bestMatLevel]) {
 						cousinLevels[bestMatLevel] = { pat: new Set(), mat: new Set() };
 					}
@@ -334,7 +334,7 @@ export async function main() {
 
 			// Форматуємо масив знайдених кузенів за уровнями
 			const relList = [];
-			for (let lvl = 3; lvl <= 7; lvl++) {
+			for (let lvl = 2; lvl <= 7; lvl++) {
 				if (cousinLevels[lvl]) {
 					const patArr = Array.from(cousinLevels[lvl].pat);
 					const matArr = Array.from(cousinLevels[lvl].mat);

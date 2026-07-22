@@ -1,3 +1,4 @@
+import { isMale } from "./genderUtils.js";
 // ./scripts/utils/profileUtils.js
 
 import { COLUMNS } from "../core/dbSchema.js";
@@ -45,7 +46,13 @@ export const enrich = (ids, context, roleGetter) => {
 		});
 	}
 
-	return enriched.sort((a, b) => a._sortYear - b._sortYear);
+	return enriched.sort((a, b) => {
+		// Special handling for grandparents/parents: Male first (grandfather/father), Female second (grandmother/mother)
+		if (a.gender && b.gender && a.gender !== b.gender && (a.role === 'grandfather' || a.role === 'grandmother' || a.role === 'father' || a.role === 'mother' || a.role === 'roles.grandfather' || a.role === 'roles.grandmother' || a.role === 'roles.father' || a.role === 'roles.mother' || a.role === 'stepFather' || a.role === 'stepMother' || a.role === 'adoptedFather' || a.role === 'adoptedMother')) {
+			if (isMale(a.gender)) return -1; if (isMale(b.gender)) return 1;
+		}
+		return a._sortYear - b._sortYear;
+	});
 };
 
 // --- EVENT HELPERS ---

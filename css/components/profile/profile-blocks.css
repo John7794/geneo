@@ -180,11 +180,11 @@ html[data-theme="dark"] .data-row {
 	color: var(--color-text-main);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
+	padding: 0 0 16px 0;
 	position: sticky;
 	top: 0;
 	background-color: var(--color-bg-body);
 	z-index: 10;
-	padding: 16px 0;
 	margin: -16px 0 16px 0;
 }
 
