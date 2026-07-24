@@ -39,8 +39,8 @@ export function mergeMultipageRecords(rawRecords) {
 			recId = String(recId).trim();
 			
 			// Автоматичне групування (суміщення) багатосторінкових записів або їх дублікатів в одну плитку.
-			// Зводимо ID виду rec_1336_d-1 або rec_12_m-1 до базового ID (rec_1336_d, rec_12_m)
-			const baseMatch = recId.match(/^(rec_\d+_[a-z]+)(-\d+)?$/i);
+			// Зводимо ID виду rec_1336_d-1, rec_12_m-1, або rec_192_r_4-1 до базового ID (rec_1336_d, rec_12_m, rec_192_r_4)
+			const baseMatch = recId.match(/^(rec_[a-z0-9_]+?)(-\d+)?$/i);
 			if (baseMatch) {
 				recId = baseMatch[1];
 			}
