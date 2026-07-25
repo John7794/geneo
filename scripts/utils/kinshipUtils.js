@@ -623,9 +623,11 @@ function buildColumnData(generationIndex, allPaths, targetGender, targetId) {
 						person: person,
 						distances: new Set(),
 						order: orderCounter++,
+						pathsCount: 0,
 					});
 				}
 				descendantsMap.get(pId).distances.add(distanceToTarget);
+				descendantsMap.get(pId).pathsCount++;
 			}
 		}
 	}
@@ -646,6 +648,7 @@ function buildColumnData(generationIndex, allPaths, targetGender, targetId) {
 			personPatronymic: value.person[COLUMNS.basic?.patronymic || "patronymic"],
 			isRoot: generationIndex === 0,
 			order: value.order,
+			pathsCount: value.pathsCount,
 		});
 	}
 

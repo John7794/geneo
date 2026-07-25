@@ -22,6 +22,8 @@ function renderKinshipCard(item, ctx) {
 	const roleHtml = `<div class="${UI_CLASSES.kinshipCardRole}" title="${safeRole}">${safeRole}</div>`;
 	const nameHtml = `<div class="${UI_CLASSES.kinshipCardName}">${formattedName}</div>`;
 
+	const flexStyle = item.pathsCount ? `style="grid-row: span ${item.pathsCount}"` : "";
+
 	if (item.personId) {
 		// ПРИМУСОВО вказуємо, що нам потрібен саме профіль (view=profile)
 		let url = getProfileUrl(item.personId, { ...ctx, view: "profile" });
@@ -37,7 +39,7 @@ function renderKinshipCard(item, ctx) {
 		);
 
 		return `
-            <a href="${safeUrl}" data-id="${safeId}" class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardAffinity} ${UI_CLASSES.internalLink}" title="${titleText}">
+            <a href="${safeUrl}" data-id="${safeId}" class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardAffinity} ${UI_CLASSES.internalLink}" title="${titleText}" ${flexStyle}>
                 ${roleHtml}
                 ${nameHtml}
             </a>
@@ -45,7 +47,7 @@ function renderKinshipCard(item, ctx) {
 	}
 
 	return `
-        <div class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardAffinity}">
+        <div class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardAffinity}" ${flexStyle}>
             ${roleHtml}
             ${nameHtml}
         </div>
@@ -73,12 +75,15 @@ export function renderKinshipBlock(person) {
 				return `<div class="${UI_CLASSES.kinshipCol}"></div>`;
 			}
 
+			const totalPaths = colItems.reduce((sum, item) => sum + (item.pathsCount || 1), 0);
+			const colStyle = `style="grid-template-rows: repeat(${totalPaths}, 1fr)"`;
+
 			const cardsHtml = colItems
 				.map((item) => renderKinshipCard(item, ctx))
 				.join("");
 
 			return `
-                <div class="${UI_CLASSES.kinshipCol}">
+                <div class="${UI_CLASSES.kinshipCol}" ${colStyle}>
                     ${cardsHtml}
                 </div>
             `;

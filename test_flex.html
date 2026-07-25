@@ -2,25 +2,37 @@
 <html>
 <head>
 <style>
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.col { display: flex; flex-direction: column; gap: 10px; background: #eee; }
-.card { border: 1px solid #ccc; flex: 1; padding: 10px; }
+  .kinship-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    height: 400px;
+  }
+  .kinship-col {
+    display: grid;
+    gap: 16px;
+    border: 1px solid red;
+  }
+  .kinship-card {
+    border: 1px solid blue;
+    padding: 16px;
+  }
 </style>
 </head>
 <body>
-<div class="grid">
-  <div class="col">
-    <div class="card">1 card</div>
+  <div class="kinship-grid">
+    <div class="kinship-col" style="grid-template-rows: repeat(1, 1fr);">
+      <div class="kinship-card" style="grid-row: span 1">1</div>
+    </div>
+    <div class="kinship-col" style="grid-template-rows: repeat(3, 1fr);">
+      <div class="kinship-card" style="grid-row: span 2">2.1</div>
+      <div class="kinship-card" style="grid-row: span 1">2.2</div>
+    </div>
+    <div class="kinship-col" style="grid-template-rows: repeat(3, 1fr);">
+      <div class="kinship-card" style="grid-row: span 1">3.1</div>
+      <div class="kinship-card" style="grid-row: span 1">3.2</div>
+      <div class="kinship-card" style="grid-row: span 1">3.3</div>
+    </div>
   </div>
-  <div class="col">
-    <div class="card">2 cards</div>
-    <div class="card">2 cards</div>
-  </div>
-  <div class="col">
-    <div class="card">3 cards</div>
-    <div class="card">3 cards</div>
-    <div class="card">3 cards</div>
-  </div>
-</div>
 </body>
 </html>

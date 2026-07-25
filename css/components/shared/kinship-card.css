@@ -25,13 +25,12 @@
 }
 
 .kinship-col {
-	display: flex;
-	flex-direction: column;
+	display: grid;
 	gap: var(--spacing-md);
 }
 
 .kinship-col > .kinship-card {
-	flex: 1;
+	/* Grid rows will be assigned via inline style grid-row: span X */
 }
 
 /* ==========================================
