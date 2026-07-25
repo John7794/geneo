@@ -518,3 +518,8 @@
 #timeline-filter-type:focus + .timeline-filter-icon {
     transform: rotate(180deg);
 }
+
+#timeline-filter-type option {
+    background: var(--color-bg-card);
+    color: var(--color-text-main);
+}
