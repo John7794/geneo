@@ -89,5 +89,10 @@
 .btn-open-tree:hover {
 	background-color: var(--color-primary-light);
 	border-color: var(--color-primary);
+	color: var(--color-primary);
 	text-decoration: none;
+}
+
+.theme-dark .btn-open-tree:hover {
+	color: #fff;
 }
