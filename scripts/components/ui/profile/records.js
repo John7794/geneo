@@ -1,3 +1,4 @@
+import { resolvePlaceDetails } from "../../../utils/geoUtils.js";
 // ./scripts/components/ui/profile/records.js
 
 import { COLUMNS } from "../../../core/dbSchema.js";
@@ -25,7 +26,7 @@ function renderRecordCard(record, ctx) {
 
 	const untitledLabel = escapeHtml(i18n.t("common.untitled") || "Без назви");
 	const titleRaw = record[COLUMNS.records?.title || "title"] || untitledLabel;
-	const yearRaw = record[COLUMNS.records?.year || "year"] || record.year || "";
+	const dateRaw = record[COLUMNS.records?.date || "date"] || record.date || "";
 	const type = String(record[COLUMNS.records?.type || "type"] || "doc")
 		.toLowerCase()
 		.trim();
@@ -85,13 +86,51 @@ function renderRecordCard(record, ctx) {
 	const archiveRef = escapeHtml(rawArchiveRef);
 	const archiveAddress = escapeHtml(rawArchiveAddress);
 
+	let y = "", m = "", d = "";
+	if (dateRaw) {
+		const parts = dateRaw.split(".");
+		if (parts.length === 3) {
+			d = parts[0]; m = parts[1]; y = parts[2];
+		} else if (parts.length === 1) {
+			y = parts[0];
+		}
+	}
+
+	const placeRaw = record[COLUMNS.records?.place || "place"] || "";
+	const geo = placeRaw ? resolvePlaceDetails(placeRaw, y, m, d, ctx) : null;
+	const placeName = geo ? (geo.nameHist || geo.nameCurrent || placeRaw) : placeRaw;
+	const placeMapUrl = geo?.mapUrl || "";
+
+	const regionRaw = record[COLUMNS.records?.region || "region"] || "";
+
 	const participantsRaw =
 		record[COLUMNS.records?.participants || "participants"] || "";
 	const tagsHtml = resolveTagsHtml(participantsRaw, ctx);
 	const archiveHtml = resolveArchiveInfoHtml(record);
 
+	let combinedTagsHtml = "";
+	let placeTagHtml = "";
+	if (placeName) {
+		const iconPin = escapeHtml(UI_CLASSES.icons?.mapPinLine || "ri-map-pin-line");
+		const inner = `<i class="${iconPin}" aria-hidden="true"></i> ${escapeHtml(placeName)}`;
+		if (placeMapUrl) {
+			placeTagHtml = `<a href="${encodeURI(placeMapUrl)}" target="_blank" rel="noopener noreferrer" class="record-tag" style="text-decoration:none; cursor:pointer;" title="${escapeHtml(placeName)}">${inner}</a>`;
+		} else {
+			placeTagHtml = `<span class="record-tag" title="${escapeHtml(placeName)}">${inner}</span>`;
+		}
+	}
+
+	const innerParticipantsHtml = tagsHtml ? tagsHtml.replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '') : "";
+
+	if (placeTagHtml || innerParticipantsHtml) {
+		combinedTagsHtml = `<div class="${UI_CLASSES.recordCardTags || "record-card-tags"}" style="margin-top: 6px;">
+			${placeTagHtml}
+			${innerParticipantsHtml}
+		</div>`;
+	}
+
 	const title = escapeHtml(titleRaw);
-	const year = escapeHtml(yearRaw);
+	const date = escapeHtml(dateRaw);
 	const role = escapeHtml(roleRaw);
 
 	const roleHtml = role
@@ -109,8 +148,8 @@ function renderRecordCard(record, ctx) {
 		: `<div class="${placeholderClass}"><i class="${docIcon}"></i></div>`;
 
 	const badgeClass = UI_CLASSES.recordCardBadge || "record-card-badge";
-	const badgeHtml = year
-		? `<div class="${badgeClass}"><i class="${icon}"></i> ${year}</div>`
+	const badgeHtml = date
+		? `<div class="${badgeClass}"><i class="${icon}"></i> ${date}</div>`
 		: "";
 
 	const pagesIcon = UI_CLASSES.icons?.pages || "ri-pages-line";
@@ -141,12 +180,16 @@ function renderRecordCard(record, ctx) {
 	return `
         <div class="${cardClass} js-gallery-item" 
              data-full="${fullUrls}" 
-             data-caption="${title} ${year ? `(${year})` : ""}"
+             data-caption="${title} ${date ? `(${date})` : ""}"
              data-group="archival-records"
              data-archive-name="${archiveName}"
              data-archive-ref="${archiveRef}"
              data-archive-address="${archiveAddress}"
              data-participants="${escapeHtml(participantsRaw)}"
+             data-date="${escapeHtml(dateRaw)}"
+             data-place="${escapeHtml(placeName)}"
+             data-place-url="${escapeHtml(placeMapUrl)}"
+             data-region="${escapeHtml(regionRaw)}"
              role="button" 
              tabindex="0">
             
@@ -184,9 +227,9 @@ function renderCategory(categoryName, items, ctx) {
 
 	const itemsHtml = [...items]
 		.sort((a, b) => {
-			const yearKey = COLUMNS.records?.year || "year";
-			const valA = String(a[yearKey] || a.year || "").trim();
-			const valB = String(b[yearKey] || b.year || "").trim();
+			const dateKey = COLUMNS.records?.date || "date";
+			const valA = String(a[dateKey] || a.date || "").split(".").pop().trim();
+			const valB = String(b[dateKey] || b.date || "").split(".").pop().trim();
 			let numA = parseInt(valA, 10);
 			let numB = parseInt(valB, 10);
 			if (isNaN(numA)) numA = 9999;

@@ -610,6 +610,11 @@ export class GalleryManager {
 					archiveName: el.getAttribute("data-archive-name") || "",
 					archiveRef: el.getAttribute("data-archive-ref") || "",
 					archiveAddress: el.getAttribute("data-archive-address") || "",
+						participants: el.getAttribute("data-participants") || "",
+						date: el.getAttribute("data-date") || "",
+						place: el.getAttribute("data-place") || "",
+							placeUrl: el.getAttribute("data-place-url") || "",
+						region: el.getAttribute("data-region") || "",
 					transcription:
 						el.querySelector(
 							`.${UI_CLASSES.metaTranscription || "meta-transcription"}`,
@@ -749,6 +754,40 @@ export class GalleryManager {
 
 	renderDetailsBlock(item) {
 		let html = "";
+		let tagsHtml = "";
+
+		const tags = [];
+		if (item.date && item.date.trim()) {
+			tags.push({ text: item.date.trim(), icon: UI_CLASSES.icons?.calendarLine || "ri-calendar-line" });
+		}
+		if (item.place && item.place.trim()) {
+			tags.push({ text: item.place.trim(), icon: UI_CLASSES.icons?.mapPinLine || "ri-map-pin-line", url: item.placeUrl });
+		}
+		if (item.region && item.region.trim()) {
+			tags.push({ text: item.region.trim(), icon: UI_CLASSES.icons?.map2Line || "ri-map-2-line" });
+		}
+		
+		if (item.participants && item.participants.trim()) {
+			const parts = item.participants.split(/[,;]/).map(p => p.trim()).filter(Boolean);
+			parts.forEach(p => {
+				tags.push({ text: p, icon: UI_CLASSES.icons?.userLine || "ri-user-line" });
+			});
+		}
+
+		if (tags.length > 0) {
+			const tagsContent = tags.map(t => {
+				const inner = `<i class="${escapeHtml(t.icon)}" aria-hidden="true"></i> ${escapeHtml(t.text)}`;
+				if (t.url && t.url.trim()) {
+					return `<a href="${encodeURI(t.url.trim())}" target="_blank" rel="noopener noreferrer" class="record-tag" style="text-decoration:none; cursor:pointer;">${inner}</a>`;
+				}
+				return `<span class="record-tag">${inner}</span>`;
+			}).join("");
+			tagsHtml = `<div class="record-card-tags" style="margin-bottom: 12px;">${tagsContent}</div>`;
+		}
+		
+		if (tagsHtml) {
+			html += tagsHtml;
+		}
 
 		if (item.transcription && item.transcription.trim()) {
 			html += `<div class="${UI_CLASSES.galTranscription || "gal-transcription"}">${item.transcription}</div>`;
