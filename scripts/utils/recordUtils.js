@@ -22,6 +22,9 @@ const EXCLUDED_FIELDS = new Set([
  * @returns {Array} - Масив унікальних записів зі склеєними сторінками.
  */
 export function mergeMultipageRecords(rawRecords) {
+	// Bypass merging completely as requested by user (one row = one tile)
+	return rawRecords;
+
 	if (!Array.isArray(rawRecords) || rawRecords.length === 0) return [];
 
 	const idKey = COLUMNS.records?.id || "record_id";
