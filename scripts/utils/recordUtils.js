@@ -10,6 +10,7 @@ const EXCLUDED_FIELDS = new Set([
 	COLUMNS.records?.images || "images",
 	COLUMNS.records?.transcription || "transcription",
 	COLUMNS.records?.archiveRef || "archive_ref",
+	COLUMNS.records?.externalLink || "external_link",
 	"_images",
 	"_groupId",
 ]);
@@ -38,12 +39,7 @@ export function mergeMultipageRecords(rawRecords) {
 		} else {
 			recId = String(recId).trim();
 			
-			// Автоматичне групування (суміщення) багатосторінкових записів або їх дублікатів в одну плитку.
-			// Зводимо ID виду rec_1336_d-1, rec_12_m-1, або rec_192_r_4-1 до базового ID (rec_1336_d, rec_12_m, rec_192_r_4)
-			const baseMatch = recId.match(/^(rec_[a-z0-9_]+?)(-\d+)?$/i);
-			if (baseMatch) {
-				recId = baseMatch[1];
-			}
+
 		}
 
 		if (!latestStateById.has(recId)) {
@@ -90,6 +86,18 @@ export function mergeMultipageRecords(rawRecords) {
 				existing[transKey] = currentTrans
 					? `${currentTrans}\n\n---\n\n${newTrans}`
 					: newTrans;
+			}
+
+			// Злиття зовнішніх посилань (без дублювання)
+			const linkKey = COLUMNS.records?.externalLink || "external_link";
+			const newLink = String(record[linkKey] || "").trim();
+			if (newLink) {
+				const currentLink = String(existing[linkKey] || "").trim();
+				if (!currentLink) {
+					existing[linkKey] = newLink;
+				} else if (!currentLink.includes(newLink)) {
+					existing[linkKey] = `${currentLink};${newLink}`;
+				}
 			}
 
 			// Злиття шифрів справ (без дублювання однакових)

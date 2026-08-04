@@ -603,7 +603,12 @@ export class GalleryManager {
 
 			if (el === trigger) clickedItemIndex = this.galleryItems.length;
 
-			urls.forEach((url) => {
+			const allLinksText = el.querySelector(`.${UI_CLASSES.metaLink || "meta-link"}`)?.textContent || "";
+			const linksArray = allLinksText.split(";").map(l => l.trim()).filter(Boolean);
+
+			urls.forEach((url, idx) => {
+				const specificLink = linksArray[idx] || linksArray[0] || "";
+
 				this.galleryItems.push({
 					src: url,
 					caption: el.getAttribute("data-caption") || el.alt || "",
@@ -619,9 +624,7 @@ export class GalleryManager {
 						el.querySelector(
 							`.${UI_CLASSES.metaTranscription || "meta-transcription"}`,
 						)?.innerHTML || "",
-					link:
-						el.querySelector(`.${UI_CLASSES.metaLink || "meta-link"}`)
-							?.textContent || "",
+					link: specificLink,
 				});
 			});
 		});
@@ -800,8 +803,12 @@ export class GalleryManager {
 			const iconExternal = escapeHtml(
 				UI_CLASSES.icons?.externalLinkLine || "ri-external-link-line",
 			);
-			// Атрибут href вимагає особливої обережності. encodeURI гарантує валідність URL.
-			html += `<a href="${encodeURI(item.link)}" target="_blank" rel="noopener noreferrer" class="${UI_CLASSES.link || "meta-link"}"><i class="${iconExternal}" aria-hidden="true"></i> ${openOriginalLabel}</a>`;
+			
+			const linksList = Array.from(new Set(item.link.split(";").map(l => l.trim()).filter(Boolean)));
+			linksList.forEach((l, idx) => {
+				const label = linksList.length > 1 ? `${openOriginalLabel} ${idx + 1}` : openOriginalLabel;
+				html += `<a href="${l}" target="_blank" rel="noopener noreferrer" class="${UI_CLASSES.link || "meta-link"}" style="margin-right: 8px;"><i class="${iconExternal}" aria-hidden="true"></i> ${label}</a>`;
+			});
 		}
 
 		if (html) {
