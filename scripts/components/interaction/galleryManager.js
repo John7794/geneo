@@ -748,6 +748,7 @@ export class GalleryManager {
 			this.archiveBlock.classList.remove(UI_CLASSES.hidden || "hidden");
 			this.archiveBlock.classList.add(UI_CLASSES.galArchiveActive || "active");
 		} else {
+            this.archiveBlock.innerHTML = "";
 			this.archiveBlock.classList.add(UI_CLASSES.hidden || "hidden");
 			this.archiveBlock.classList.remove(
 				UI_CLASSES.galArchiveActive || "active",
@@ -815,6 +816,7 @@ export class GalleryManager {
 			this.details.innerHTML = html;
 			this.details.classList.remove(UI_CLASSES.hidden || "hidden");
 		} else {
+            this.details.innerHTML = "";
 			this.details.classList.add(UI_CLASSES.hidden || "hidden");
 		}
 	}
