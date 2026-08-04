@@ -10,7 +10,6 @@ const SPLIT_IDS_REGEX = /[;,]+/;
 const EXCLUDED_HYDRATION_FIELDS = new Set([
 	COLUMNS.records?.images || "images",
 	COLUMNS.records?.transcription || "transcription",
-	COLUMNS.records?.externalLink || "external_link",
 ]);
 
 /**
