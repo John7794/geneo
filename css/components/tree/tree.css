@@ -165,14 +165,11 @@
 	z-index: 10;
 	display: inline-block;
 	cursor: pointer;
-	transition:
-		transform var(--transition-base),
-		box-shadow var(--transition-base);
+	transition: box-shadow var(--transition-base);
 }
 
 .tree-node:hover {
-	transform: translateY(-5px);
-	box-shadow: var(--shadow-lg);
+	box-shadow: var(--shadow-md);
 	z-index: 20;
 }
 
