@@ -447,115 +447,120 @@ export function generateRelationshipLabel(distS, distT, genderTarget) {
 	const fem = isFemale(genderTarget);
 	const mal = isMale(genderTarget);
 
-	if (distT === 0) {
-		if (distS === 0) return "Я";
-		if (distS === 1)
-			return fem
-				? i18n.t("roles.mother") || "Мати"
-				: mal
-					? i18n.t("roles.father") || "Батько"
-					: i18n.t("roles.parent") || "Один із батьків";
-		if (distS === 2)
-			return fem
-				? i18n.t("roles.grandmother") || "Бабуся"
-				: mal
-					? i18n.t("roles.grandfather") || "Дід"
-					: i18n.t("roles.grandparent") || "Баба / Дід";
-		if (distS === 3)
-			return fem
-				? i18n.t("roles.greatGrandmother") || "Прабабуся"
-				: mal
-					? i18n.t("roles.greatGrandfather") || "Прадід"
-					: i18n.t("roles.greatGrandparent") || "Прабаба / Прадід";
-
-		const count = Math.max(0, distS - 2);
-		const basePra = i18n.t("kinship.praPrefix") || "Пра";
-		let pra = "";
-		if (count === 1) pra = basePra;
-		else if (count > 1) pra = `${basePra}(${count})`;
-		const base = fem
-			? i18n.t("roles.grandmother") || "бабуся"
-			: mal
-				? i18n.t("roles.grandfather") || "дід"
-				: i18n.t("roles.grandparent") || "баба / дід";
-		return pra + base.toLowerCase();
+	// Базові кейси: Я, Прямі предки/нащадки, Рідні брати/сестри
+	if (distS === 0 && distT === 0) return "Я";
+	
+	// Прямі предки / нащадки (M = 0)
+	if (distS === 0 || distT === 0) {
+		const K = Math.max(distS, distT);
+		const isAscending = distS > distT;
+		
+		let base = "";
+		if (K === 1) {
+			if (isAscending) base = fem ? (i18n.t("roles.mother") || "мати") : mal ? (i18n.t("roles.father") || "батько") : "один із батьків";
+			else base = fem ? (i18n.t("roles.daughter") || "донька") : mal ? (i18n.t("roles.son") || "син") : "дитина";
+		} else if (K === 2) {
+			if (isAscending) base = fem ? (i18n.t("roles.grandmother") || "бабуся") : mal ? (i18n.t("roles.grandfather") || "дід") : "баба / дід";
+			else base = fem ? (i18n.t("roles.granddaughter") || "онука") : mal ? (i18n.t("roles.grandson") || "онук") : "онук / онука";
+		} else {
+			const N = K - 2;
+			const basePra = i18n.t("kinship.praPrefix") || "пра";
+			const pra = N === 1 ? basePra : `${basePra}(${N})`;
+			if (isAscending) {
+				const rootBase = fem ? (i18n.t("roles.grandmother") || "бабуся") : mal ? (i18n.t("roles.grandfather") || "дід") : "баба / дід";
+				base = pra.toLowerCase() + rootBase.toLowerCase();
+			} else {
+				const rootBase = fem ? (i18n.t("roles.granddaughter") || "онука") : mal ? (i18n.t("roles.grandson") || "онук") : "онук / онука";
+				base = pra.toLowerCase() + rootBase.toLowerCase();
+			}
+		}
+		const result = base;
+		return result.charAt(0).toUpperCase() + result.slice(1);
 	}
 
-	if (distS === 0) {
-		if (distT === 1)
-			return fem
-				? i18n.t("roles.daughter") || "Донька"
-				: mal
-					? i18n.t("roles.son") || "Син"
-					: i18n.t("roles.child") || "Дитина";
-		if (distT === 2)
-			return fem
-				? i18n.t("roles.granddaughter") || "Онука"
-				: mal
-					? i18n.t("roles.grandson") || "Онук"
-					: i18n.t("roles.grandchild") || "Онук / Онука";
-		if (distT === 3)
-			return fem
-				? i18n.t("roles.greatGranddaughter") || "Правнучка"
-				: mal
-					? i18n.t("roles.greatGrandson") || "Правнук"
-					: i18n.t("roles.greatGrandchild") || "Правнук / Правнучка";
+	// Бічні гілки (M >= 1)
+	const M = Math.min(distS, distT);
+	const K = Math.abs(distS - distT);
+	const isAscending = distS > distT;
 
-		const count = Math.max(0, distT - 2);
-		const basePra = i18n.t("kinship.praPrefix") || "Пра";
-		let pra = "";
-		if (count === 1) pra = basePra;
-		else if (count > 1) pra = `${basePra}(${count})`;
-		const base = fem
-			? i18n.t("roles.granddaughter") || "онука"
-			: mal
-				? i18n.t("roles.grandson") || "онук"
-				: i18n.t("roles.grandchild") || "онук / онука";
-		return pra + base.toLowerCase();
+	// Рідні брати та сестри
+	if (M === 1 && K === 0) {
+		const base = fem ? (i18n.t("roles.sister") || "сестра") : mal ? (i18n.t("roles.brother") || "брат") : "брат / сестра";
+		return base.charAt(0).toUpperCase() + base.slice(1);
 	}
 
-	const min = Math.min(distS, distT);
-	const diff = Math.abs(distS - distT);
+	// Рідні дядьки/тітки та племінники
+	if (M === 1 && K === 1) {
+		let base = "";
+		if (isAscending) {
+			base = fem ? (i18n.t("roles.aunt") || "тітка") : mal ? (i18n.t("roles.uncle") || "дядько") : "тітка / дядько";
+		} else {
+			base = fem ? (i18n.t("roles.niece") || "племінниця") : mal ? (i18n.t("roles.nephew") || "племінник") : "племінник / племінниця";
+		}
+		return base.charAt(0).toUpperCase() + base.slice(1);
+	}
 
+	// УНІВЕРСАЛЬНА МАТЕМАТИЧНА МОДЕЛЬ ДЛЯ M >= 1, K >= 0 (виключаючи рідних)
+	
+	// Розрахунок математичного індексу P
+	// Якщо це двоюрідні, троюрідні тощо:
+	// Для двоюрідних братів: D1=2, D2=2 -> M=2, K=0. P=2.
+	// Для двоюрідних дядьків: D1=3, D2=2 -> M=2, K=1. P=2.
+	// Для двоюрідних дідів: D1=3, D2=1 -> M=1, K=2. P=2.
+	// Отже, якщо K >= 2, то ми знаходимось у зміщеній генерації, і P = M + 1.
+	// Якщо K <= 1, то P = M.
+	// Розрахунок математичного індексу P за побажанням користувача
+	let P = M;
+	// Для гілки M=1 (рідні дядьки/тітки), якщо йдемо глибше (дід, прадід),
+	// вони стають "двоюрідними" (P=2).
+	if (M === 1 && K >= 2) {
+		P = 2;
+	}
+
+	// Генерація бічного префікса
 	let prefix = "";
-	if (min === 1) prefix = "";
-	else if (min === 2)
-		prefix = fem ? "Двоюрідна " : mal ? "Двоюрідний " : "Двоюрідні ";
-	else if (min === 3)
-		prefix = fem ? "Троюрідна " : mal ? "Троюрідний " : "Троюрідні ";
-	else prefix = `${min}-юрідн${fem ? "а" : mal ? "ий" : "і"} `;
-
-	if (diff === 0) {
-		if (min === 1)
-			return fem
-				? i18n.t("roles.sister") || "Сестра"
-				: mal
-					? i18n.t("roles.brother") || "Брат"
-					: i18n.t("roles.sibling") || "Брат / Сестра";
-		return `${prefix}${fem ? "сестра" : mal ? "брат" : "брат/сестра"}`;
-	}
-
-	const targetIsOlderGeneration = distT < distS;
-
-	if (targetIsOlderGeneration) {
-		const base = fem
-			? i18n.t("roles.aunt") || "Тітка"
-			: mal
-				? i18n.t("roles.uncle") || "Дядько"
-				: i18n.t("roles.parentSibling") || "Тітка / Дядько";
-		if (min === 1 && diff === 1) return base;
-		return `${prefix}${min === 1 ? base : base.toLowerCase()}`;
+	if (P === 2) {
+		prefix = fem ? "двоюрідна " : mal ? "двоюрідний " : "двоюрідні ";
+	} else if (P === 3) {
+		prefix = fem ? "троюрідна " : mal ? "троюрідний " : "троюрідні ";
 	} else {
-		const base = fem
-			? i18n.t("roles.niece") || "Племінниця"
-			: mal
-				? i18n.t("roles.nephew") || "Племінник"
-				: i18n.t("roles.nibling") || "Племінник / Племінниця";
-		if (min === 1 && diff === 1) return base;
-		return `${prefix}${min === 1 ? base : base.toLowerCase()}`;
+		prefix = `${P}-юрідн${fem ? "а " : mal ? "ий " : "і "}`;
 	}
-}
 
+	// Генерація вертикального ідентифікатора
+	let base = "";
+	
+	if (K === 0) {
+		base = fem ? (i18n.t("roles.sister") || "сестра") : mal ? (i18n.t("roles.brother") || "брат") : "брат / сестра";
+	} else if (isAscending) {
+		if (K === 1) {
+			base = fem ? (i18n.t("roles.aunt") || "тітка") : mal ? (i18n.t("roles.uncle") || "дядько") : "тітка / дядько";
+		} else if (K === 2) {
+			base = fem ? (i18n.t("roles.grandmother") || "бабуся") : mal ? (i18n.t("roles.grandfather") || "дід") : "баба / дід";
+		} else {
+			const N = K - 2;
+			const basePra = i18n.t("kinship.praPrefix") || "пра";
+			const pra = N === 1 ? basePra : `${basePra}(${N})`;
+			const rootBase = fem ? (i18n.t("roles.grandmother") || "бабуся") : mal ? (i18n.t("roles.grandfather") || "дід") : "баба / дід";
+			base = pra.toLowerCase() + rootBase.toLowerCase();
+		}
+	} else {
+		if (K === 1) {
+			base = fem ? (i18n.t("roles.niece") || "племінниця") : mal ? (i18n.t("roles.nephew") || "племінник") : "племінник / племінниця";
+		} else if (K === 2) {
+			base = fem ? (i18n.t("roles.granddaughter") || "онука") : mal ? (i18n.t("roles.grandson") || "онук") : "онук / онука";
+		} else {
+			const N = K - 2;
+			const basePra = i18n.t("kinship.praPrefix") || "пра";
+			const pra = N === 1 ? basePra : `${basePra}(${N})`;
+			const rootBase = fem ? (i18n.t("roles.granddaughter") || "онука") : mal ? (i18n.t("roles.grandson") || "онук") : "онук / онука";
+			base = pra.toLowerCase() + rootBase.toLowerCase();
+		}
+	}
+
+	const result = `${prefix}${base.toLowerCase()}`;
+	return result.charAt(0).toUpperCase() + result.slice(1);
+}
 export function getKinshipColumns(targetId, context) {
 	const rootId = APP_CONFIG.rootId;
 	const cleanTargetId = String(targetId);

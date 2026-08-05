@@ -1,6 +1,10 @@
-import { mergeMultipageRecords } from './scripts/utils/recordUtils.js';
-const data = [
-  { record_id: "rec_128_r_4-1", images: "img1" },
-  { record_id: "rec_128_r_4-2", images: "img2" }
-];
-console.log(mergeMultipageRecords(data));
+global.localStorage = { setItem: () => {}, getItem: () => {} };
+import { generateRelationshipLabel } from './scripts/utils/kinshipUtils.js';
+
+// mock i18n
+global.i18n = {
+	t: (key) => null
+};
+
+console.log("7, 1:", generateRelationshipLabel(7, 1, 'm'));
+console.log("1, 7:", generateRelationshipLabel(1, 7, 'm'));
