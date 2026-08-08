@@ -269,6 +269,7 @@ export const COLUMNS = Object.freeze({
 		transcription: "transcription",
 		externalLink: "external_link",
 		participants: "participants",
+		owner: "owner",
 	}),
 	flagsHistory: Object.freeze({
 		name: "admin_name",

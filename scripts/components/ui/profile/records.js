@@ -10,6 +10,7 @@ import {
 import { i18n } from "../../../core/i18n.js";
 import { UI_CLASSES } from "../../../core/uiClasses.js";
 
+import { formatEventDateHtml } from "../formatters/date.js";
 import {
 	resolveTagsHtml,
 	resolveArchiveInfoHtml,
@@ -130,11 +131,22 @@ function renderRecordCard(record, ctx) {
 	}
 
 	const title = escapeHtml(titleRaw);
-	const date = escapeHtml(dateRaw);
-	const role = escapeHtml(roleRaw);
+	
+	let dateHtml = escapeHtml(dateRaw);
+	if (d && m && y) {
+		const isOldStyle = parseInt(y, 10) < 1918;
+		dateHtml = formatEventDateHtml(d, m, y, isOldStyle);
+	}
 
+	const role = escapeHtml(roleRaw);
 	const roleHtml = role
 		? `<div class="record-card-role"><span class="role-label">${roleLabel}:</span> <span class="role-value">${role}</span></div>`
+		: "";
+
+	const ownerRaw = record[COLUMNS.records?.owner || "owner"] || "";
+	const ownerLabel = escapeHtml(i18n.t("common.owner") || "Власник");
+	const ownerHtml = ownerRaw
+		? `<div class="record-card-role"><span class="role-label">${ownerLabel}:</span> <span class="role-value">${escapeHtml(ownerRaw)}</span></div>`
 		: "";
 
 	const docIcon = escapeHtml(
@@ -148,8 +160,8 @@ function renderRecordCard(record, ctx) {
 		: `<div class="${placeholderClass}"><i class="${docIcon}"></i></div>`;
 
 	const badgeClass = UI_CLASSES.recordCardBadge || "record-card-badge";
-	const badgeHtml = date
-		? `<div class="${badgeClass}"><i class="${icon}"></i> ${date}</div>`
+	const badgeHtml = dateHtml
+		? `<div class="${badgeClass}"><i class="${icon}"></i> ${dateHtml}</div>`
 		: "";
 
 	const pagesIcon = UI_CLASSES.icons?.pages || "ri-pages-line";
@@ -180,7 +192,7 @@ function renderRecordCard(record, ctx) {
 	return `
         <div class="${cardClass} js-gallery-item" 
              data-full="${fullUrls}" 
-             data-caption="${title} ${date ? `(${date})` : ""}"
+             data-caption="${title} ${escapeHtml(dateRaw) ? `(${escapeHtml(dateRaw)})` : ""}"
              data-group="archival-records"
              data-archive-name="${archiveName}"
              data-archive-ref="${archiveRef}"
@@ -203,6 +215,7 @@ function renderRecordCard(record, ctx) {
             <div class="${contentClass}">
                 <div class="${titleClass}">${title}</div>
                 ${roleHtml}
+                ${ownerHtml}
                 <div class="record-card-meta">
                     ${archiveHtml}
                     ${tagsHtml}
