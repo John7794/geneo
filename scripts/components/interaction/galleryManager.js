@@ -616,7 +616,9 @@ export class GalleryManager {
 					archiveRef: el.getAttribute("data-archive-ref") || "",
 					archiveAddress: el.getAttribute("data-archive-address") || "",
 						participants: el.getAttribute("data-participants") || "",
+						owner: el.getAttribute("data-owner") || "",
 						date: el.getAttribute("data-date") || "",
+						dateOld: el.getAttribute("data-date-old") || "",
 						place: el.getAttribute("data-place") || "",
 							placeUrl: el.getAttribute("data-place-url") || "",
 						region: el.getAttribute("data-region") || "",
@@ -764,11 +766,21 @@ export class GalleryManager {
 		if (item.date && item.date.trim()) {
 			tags.push({ text: item.date.trim(), icon: UI_CLASSES.icons?.calendarLine || "ri-calendar-line" });
 		}
+		if (item.dateOld && item.dateOld.trim()) {
+			tags.push({ text: item.dateOld.trim(), icon: UI_CLASSES.icons?.calendarLine || "ri-calendar-line" });
+		}
 		if (item.place && item.place.trim()) {
 			tags.push({ text: item.place.trim(), icon: UI_CLASSES.icons?.mapPinLine || "ri-map-pin-line", url: item.placeUrl });
 		}
 		if (item.region && item.region.trim()) {
 			tags.push({ text: item.region.trim(), icon: UI_CLASSES.icons?.map2Line || "ri-map-2-line" });
+		}
+		
+		if (item.owner && item.owner.trim()) {
+			const parts = item.owner.split(/[,;]/).map(p => p.trim()).filter(Boolean);
+			parts.forEach(p => {
+				tags.push({ text: p, icon: UI_CLASSES.icons?.userStarLine || "ri-user-star-line" }); // Or some other icon, like ri-vip-crown-line, but userStarLine is good
+			});
 		}
 		
 		if (item.participants && item.participants.trim()) {

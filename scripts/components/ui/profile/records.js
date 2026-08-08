@@ -10,7 +10,7 @@ import {
 import { i18n } from "../../../core/i18n.js";
 import { UI_CLASSES } from "../../../core/uiClasses.js";
 
-import { formatEventDateHtml } from "../formatters/date.js";
+import { getEventDateDetails } from "../../../utils/dateUtils.js";
 import {
 	resolveTagsHtml,
 	resolveArchiveInfoHtml,
@@ -92,7 +92,7 @@ function renderRecordCard(record, ctx) {
 		const parts = dateRaw.split(".");
 		if (parts.length === 3) {
 			d = parts[0]; m = parts[1]; y = parts[2];
-		} else if (parts.length === 1) {
+		} else if (parts.length === 2) { m = parts[0]; y = parts[1]; } else if (parts.length === 1) {
 			y = parts[0];
 		}
 	}
@@ -109,34 +109,35 @@ function renderRecordCard(record, ctx) {
 	const tagsHtml = resolveTagsHtml(participantsRaw, ctx);
 	const archiveHtml = resolveArchiveInfoHtml(record);
 
-	let combinedTagsHtml = "";
-	let placeTagHtml = "";
-	if (placeName) {
-		const iconPin = escapeHtml(UI_CLASSES.icons?.mapPinLine || "ri-map-pin-line");
-		const inner = `<i class="${iconPin}" aria-hidden="true"></i> ${escapeHtml(placeName)}`;
-		if (placeMapUrl) {
-			placeTagHtml = `<a href="${encodeURI(placeMapUrl)}" target="_blank" rel="noopener noreferrer" class="record-tag" style="text-decoration:none; cursor:pointer;" title="${escapeHtml(placeName)}">${inner}</a>`;
-		} else {
-			placeTagHtml = `<span class="record-tag" title="${escapeHtml(placeName)}">${inner}</span>`;
-		}
-	}
-
-	const innerParticipantsHtml = tagsHtml ? tagsHtml.replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '') : "";
-
-	if (placeTagHtml || innerParticipantsHtml) {
-		combinedTagsHtml = `<div class="${UI_CLASSES.recordCardTags || "record-card-tags"}" style="margin-top: 6px;">
-			${placeTagHtml}
-			${innerParticipantsHtml}
-		</div>`;
-	}
-
 	const title = escapeHtml(titleRaw);
 	
 	let dateHtml = escapeHtml(dateRaw);
-	if (d && m && y) {
+	let galleryDateNew = escapeHtml(dateRaw);
+	let galleryDateOld = "";
+	
+	if (y) {
 		const isOldStyle = parseInt(y, 10) < 1918;
-		dateHtml = formatEventDateHtml(d, m, y, isOldStyle);
+		const details = getEventDateDetails(d, m, y, isOldStyle);
+		if (details.isDual) {
+			dateHtml = escapeHtml(details.converted);
+			const newStyleLabel = i18n.t("time.newStyle") || "за новим стилем";
+			const oldStyleLabel = i18n.t("time.oldStyle") || "за старим стилем";
+			galleryDateNew = `${details.converted} ${newStyleLabel}`;
+			galleryDateOld = `${details.original} ${oldStyleLabel}`;
+		} else {
+			dateHtml = escapeHtml(details.original);
+			galleryDateNew = escapeHtml(details.original);
+		}
 	}
+
+	const placeLabel = escapeHtml(i18n.t("common.place") || "Місце");
+	let placeValueHtml = escapeHtml(placeName);
+	if (placeMapUrl) {
+		placeValueHtml = `<a href="${encodeURI(placeMapUrl)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;">${placeValueHtml}</a>`;
+	}
+	const placeHtml = placeName
+		? `<div class="record-card-role"><span class="role-label">${placeLabel}:</span> <span class="role-value">${placeValueHtml}</span></div>`
+		: "";
 
 	const role = escapeHtml(roleRaw);
 	const roleHtml = role
@@ -147,6 +148,13 @@ function renderRecordCard(record, ctx) {
 	const ownerLabel = escapeHtml(i18n.t("common.owner") || "Власник");
 	const ownerHtml = ownerRaw
 		? `<div class="record-card-role"><span class="role-label">${ownerLabel}:</span> <span class="role-value">${escapeHtml(ownerRaw)}</span></div>`
+		: "";
+
+	const verticalTagsHtml = (placeHtml || roleHtml) 
+		? `<div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 8px;">
+			${placeHtml}
+			${roleHtml}
+		   </div>`
 		: "";
 
 	const docIcon = escapeHtml(
@@ -192,13 +200,15 @@ function renderRecordCard(record, ctx) {
 	return `
         <div class="${cardClass} js-gallery-item" 
              data-full="${fullUrls}" 
-             data-caption="${title} ${escapeHtml(dateRaw) ? `(${escapeHtml(dateRaw)})` : ""}"
+             data-caption="${title}"
              data-group="archival-records"
              data-archive-name="${archiveName}"
              data-archive-ref="${archiveRef}"
              data-archive-address="${archiveAddress}"
              data-participants="${escapeHtml(participantsRaw)}"
-             data-date="${escapeHtml(dateRaw)}"
+             data-owner="${escapeHtml(ownerRaw)}"
+             data-date="${escapeHtml(galleryDateNew)}"
+             data-date-old="${escapeHtml(galleryDateOld)}"
              data-place="${escapeHtml(placeName)}"
              data-place-url="${escapeHtml(placeMapUrl)}"
              data-region="${escapeHtml(regionRaw)}"
@@ -214,8 +224,7 @@ function renderRecordCard(record, ctx) {
 
             <div class="${contentClass}">
                 <div class="${titleClass}">${title}</div>
-                ${roleHtml}
-                ${ownerHtml}
+                ${verticalTagsHtml}
                 <div class="record-card-meta">
                     ${archiveHtml}
                     ${tagsHtml}
