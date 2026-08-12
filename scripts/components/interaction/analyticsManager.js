@@ -1728,6 +1728,15 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
 
             if (minInput) minInput.addEventListener("input", checkInputs);
             if (maxInput) maxInput.addEventListener("input", checkInputs);
+            
+            const handleEnter = (e) => {
+                if (e.key === 'Enter' && applyPeriodBtn && applyPeriodBtn.style.display !== 'none') {
+                    applyPeriodBtn.click();
+                    e.target.blur(); // Optionally remove focus
+                }
+            };
+            if (minInput) minInput.addEventListener("keydown", handleEnter);
+            if (maxInput) maxInput.addEventListener("keydown", handleEnter);
 
             if (applyPeriodBtn) {
                 applyPeriodBtn.addEventListener("click", () => {
@@ -1742,6 +1751,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         newStart = newEnd;
                         newEnd = temp;
                     }
+                    
+                    const cy = new Date().getFullYear();
+                    if (newStart > cy) newStart = cy;
+                    if (newEnd > cy) newEnd = cy;
                     
                     scrubberStartYear = newStart;
                     scrubberEndYear = newEnd;
@@ -2160,7 +2173,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 let x = e.clientX - rect.left;
                                 if (x < 0) x = 0;
                                 if (x > totalWidth) x = totalWidth;
-                                const clickedYear = pxToYear(x);
+                                let clickedYear = pxToYear(x);
+                                const cy = new Date().getFullYear();
+                                if (clickedYear > cy) clickedYear = cy;
+                                x = yearToPx(clickedYear);
                                 
                                 if (scrubberMode === "year") {
                                     scrubberStartYear = clickedYear;
@@ -2218,8 +2234,12 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (x < 0) x = 0;
                         if (x > totalWidth) x = totalWidth;
                         
+                        const cy = new Date().getFullYear();
                         if (draggedHandle === 'single') {
-                            scrubberStartYear = pxToYear(x);
+                            let ny = pxToYear(x);
+                            if (ny > cy) ny = cy;
+                            scrubberStartYear = ny;
+                            x = yearToPx(ny);
                             updateAliveList(scrubberStartYear);
                             
                             const h = document.getElementById('timeline-scrubber-handle');
@@ -2230,7 +2250,9 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             }
                             if (l) l.style.left = `${x}px`;
                         } else if (draggedHandle === 'start' || draggedHandle === 'end') {
-                            const newYear = pxToYear(x);
+                            let newYear = pxToYear(x);
+                            if (newYear > cy) newYear = cy;
+                            
                             if (draggedHandle === 'start') {
                                 scrubberStartYear = newYear;
                             } else {
@@ -2267,10 +2289,20 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             
                         } else if (draggedHandle === 'area') {
                             const diffX = x - dragStartX;
-                            const diffYear = sortDesc ? -(diffX / ypx) : (diffX / ypx);
+                            let diffYear = sortDesc ? -(diffX / ypx) : (diffX / ypx);
                             
-                            scrubberStartYear = initialStartYear + diffYear;
-                            scrubberEndYear = initialEndYear + diffYear;
+                            let newStart = initialStartYear + diffYear;
+                            let newEnd = initialEndYear + diffYear;
+                            
+                            const maxOfBoth = Math.max(newStart, newEnd);
+                            if (maxOfBoth > cy) {
+                                const adjustment = maxOfBoth - cy;
+                                newStart -= adjustment;
+                                newEnd -= adjustment;
+                            }
+                            
+                            scrubberStartYear = newStart;
+                            scrubberEndYear = newEnd;
                             
                             updateAliveList(scrubberStartYear, scrubberEndYear);
                             
