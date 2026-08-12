@@ -1643,6 +1643,21 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             }
             let timelineViewMode = this.timelineViewMode;
             
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            let scrubberMode = urlParams.get("timeline_mode") || "year";
+            let scrubberStartYear = urlParams.get("timeline_start") ? parseFloat(urlParams.get("timeline_start")) : null;
+            let scrubberEndYear = urlParams.get("timeline_end") ? parseFloat(urlParams.get("timeline_end")) : null;
+            
+            const updateTimelineUrl = () => {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set("timeline_mode", scrubberMode);
+                if (scrubberStartYear !== null) newUrl.searchParams.set("timeline_start", Math.round(scrubberStartYear));
+                if (scrubberEndYear !== null) newUrl.searchParams.set("timeline_end", Math.round(scrubberEndYear));
+                window.history.replaceState({}, '', newUrl);
+            };
+
+            
             const btnViewList = document.getElementById("timeline-view-list-btn");
             const btnViewChart = document.getElementById("timeline-view-chart-btn");
             const chartContainer = document.getElementById("analytics-timeline-chart");
@@ -1651,6 +1666,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             const sortBtn = document.getElementById("timeline-sort-btn");
             
             if (btnViewList && btnViewChart) {
+                const periodFilterEl = document.getElementById("timeline-chart-period-filter");
                 const updateButtonStyles = () => {
                     if (timelineViewMode === "list") {
                         btnViewList.style.background = 'var(--color-primary)';
@@ -1659,6 +1675,9 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         btnViewChart.style.color = 'var(--color-text-main)';
                         if (filterTypeSelect) filterTypeSelect.style.display = 'inline-flex';
                         if (sortBtn) sortBtn.style.display = 'inline-flex';
+                        if (periodFilterEl) periodFilterEl.style.display = 'none';
+                        const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
+                        if (scrubberToggle) scrubberToggle.style.display = 'none';
                     } else {
                         btnViewChart.style.background = 'var(--color-primary)';
                         btnViewChart.style.color = 'white';
@@ -1666,6 +1685,9 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         btnViewList.style.color = 'var(--color-text-main)';
                         if (filterTypeSelect) filterTypeSelect.style.display = 'none';
                         if (sortBtn) sortBtn.style.display = 'none';
+                        if (periodFilterEl) periodFilterEl.style.display = 'inline-flex';
+                        const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
+                        if (scrubberToggle) scrubberToggle.style.display = 'inline-flex';
                     }
                 };
                 
@@ -1685,6 +1707,50 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 });
             }
             
+            
+            const applyPeriodBtn = document.getElementById("timeline-chart-apply-btn");
+            const minInput = document.getElementById("timeline-chart-min-year");
+            const maxInput = document.getElementById("timeline-chart-max-year");
+            const dashInput = document.getElementById("timeline-chart-dash");
+            
+            const checkInputs = () => {
+                if (!applyPeriodBtn) return;
+                let changed = false;
+                if (minInput && minInput.value && parseInt(minInput.value, 10) !== Math.round(scrubberStartYear)) changed = true;
+                if (scrubberMode === "period" && maxInput && maxInput.value && parseInt(maxInput.value, 10) !== Math.round(scrubberEndYear)) changed = true;
+                
+                if (changed) {
+                    applyPeriodBtn.style.display = 'inline-block';
+                } else {
+                    applyPeriodBtn.style.display = 'none';
+                }
+            };
+
+            if (minInput) minInput.addEventListener("input", checkInputs);
+            if (maxInput) maxInput.addEventListener("input", checkInputs);
+
+            if (applyPeriodBtn) {
+                applyPeriodBtn.addEventListener("click", () => {
+                    let newStart = scrubberStartYear;
+                    let newEnd = scrubberEndYear;
+                    
+                    if (minInput && minInput.value) newStart = parseInt(minInput.value, 10);
+                    if (scrubberMode === "period" && maxInput && maxInput.value) newEnd = parseInt(maxInput.value, 10);
+                    
+                    if (scrubberMode === "period" && newStart > newEnd) {
+                        const temp = newStart;
+                        newStart = newEnd;
+                        newEnd = temp;
+                    }
+                    
+                    scrubberStartYear = newStart;
+                    scrubberEndYear = newEnd;
+                    
+                    applyPeriodBtn.style.display = 'none';
+                    updateTimelineUrl();
+                    renderTimelineChart();
+                });
+            }
             
             const renderTimelineChart = () => {
                 if (!chartContainer) return;
@@ -1730,7 +1796,30 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 });
                 
                 minYear -= 10;
-                const maxYear = 2026; // Strictly cut by current year
+                let maxYear = 2026; // Default strictly cut by current year
+                
+                let currentYear = new Date().getFullYear();
+                if (scrubberStartYear === null) { scrubberStartYear = currentYear; updateTimelineUrl(); }
+                if (scrubberEndYear === null) { scrubberEndYear = currentYear; updateTimelineUrl(); }
+                
+                if (scrubberStartYear > maxYear) maxYear = scrubberStartYear + 10;
+                if (scrubberEndYear > maxYear) maxYear = scrubberEndYear + 10;
+                if (scrubberStartYear < minYear) minYear = scrubberStartYear - 10;
+                
+                const localMinInput = document.getElementById("timeline-chart-min-year");
+                const localMaxInput = document.getElementById("timeline-chart-max-year");
+                if (localMinInput) localMinInput.value = Math.round(scrubberStartYear);
+                if (localMaxInput) localMaxInput.value = Math.round(scrubberEndYear);
+                
+                const localDash = document.getElementById("timeline-chart-dash");
+                if (scrubberMode === "year") {
+                    if (localMaxInput) localMaxInput.style.display = 'none';
+                    if (localDash) localDash.style.display = 'none';
+                } else {
+                    if (localMaxInput) localMaxInput.style.display = 'inline-block';
+                    if (localDash) localDash.style.display = 'inline-block';
+                }
+
                 
                 const ypx = 12; // pixels per year
                 const totalYears = maxYear - minYear;
@@ -1765,17 +1854,45 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 }
                 
     
-    const scrubberHandleHtml = `
-        <div id="timeline-scrubber-handle" style="position: absolute; top: 0; left: ${yearToPx(maxYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize;">
-            ${maxYear}
-        </div>
-    `;
-    const scrubberLineHtml = `
-        <div id="timeline-scrubber" style="position: absolute; top: 0; bottom: 0; left: ${yearToPx(maxYear)}px; width: 2px; background: var(--color-primary); z-index: 50; cursor: ew-resize; pointer-events: none;">
-        </div>
-    `;
+    let scrubberUIHtml = "";
+    if (scrubberStartYear === null) scrubberStartYear = currentYear;
+    if (scrubberEndYear === null) scrubberEndYear = currentYear;
+
+    if (scrubberMode === "year") {
+        scrubberUIHtml = `
+            <div id="timeline-scrubber-handle" data-type="single" style="position: absolute; top: 0; left: ${yearToPx(scrubberStartYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
+                ${Math.round(scrubberStartYear)}
+            </div>
+        `;
+    } else {
+        const p1 = Math.min(yearToPx(scrubberStartYear), yearToPx(scrubberEndYear));
+        const p2 = Math.max(yearToPx(scrubberStartYear), yearToPx(scrubberEndYear));
+        const w = p2 - p1;
+        
+        scrubberUIHtml = `
+            <div id="timeline-scrubber-bg" style="position: absolute; top: 30px; bottom: -9999px; left: ${p1}px; width: ${w}px; background: rgba(30, 136, 229, 0.1); z-index: 10; pointer-events: none; border-left: 1px dashed var(--color-primary); border-right: 1px dashed var(--color-primary);"></div>
+            
+            <div id="timeline-scrubber-handle-start" data-type="start" style="position: absolute; top: 0; left: ${yearToPx(scrubberStartYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
+                ${Math.round(scrubberStartYear)}
+            </div>
+            
+            <div id="timeline-scrubber-handle-end" data-type="end" style="position: absolute; top: 0; left: ${yearToPx(scrubberEndYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
+                ${Math.round(scrubberEndYear)}
+            </div>
+            
+            <div id="timeline-scrubber-drag-area" style="position: absolute; top: 0; left: ${p1}px; width: ${w}px; height: 30px; background: rgba(30, 136, 229, 0.2); cursor: move; z-index: 51;"></div>
+        `;
+    }
     
-    axisHtml += scrubberHandleHtml + "</div>";
+    let scrubberLineHtml = "";
+    if (scrubberMode === "year") {
+        scrubberLineHtml = `
+            <div id="timeline-scrubber" style="position: absolute; top: 0; bottom: 0; left: ${yearToPx(scrubberStartYear)}px; width: 2px; background: var(--color-primary); z-index: 50; pointer-events: none;">
+            </div>
+        `;
+    }
+    
+    axisHtml += scrubberUIHtml + "</div>";
     
                 
                 let rowsHtml = '<div style="position: relative; margin-top: 12px; padding-bottom: 16px;">';
@@ -1954,9 +2071,28 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     const valDisplay = document.getElementById(valueId);
                     const resultsBox = document.getElementById(resultsId);
                     
-                    const updateAliveList = (y) => {
+                    const updateAliveList = (y1, y2) => {
                         if (!valDisplay || !resultsBox) return;
-                        valDisplay.textContent = Math.round(y);
+                        
+                        // Update the filter inputs directly when scrubbing!
+                        const minInp = document.getElementById("timeline-chart-min-year");
+                        const maxInp = document.getElementById("timeline-chart-max-year");
+                        const sVal = Math.round(y1);
+                        const eVal = y2 !== undefined ? Math.round(y2) : sVal;
+                        
+                        if (minInp && document.activeElement !== minInp) minInp.value = Math.min(sVal, eVal);
+                        if (maxInp && document.activeElement !== maxInp) maxInp.value = Math.max(sVal, eVal);
+                        
+                        if (typeof checkInputs !== 'undefined') checkInputs();
+
+                        if (y2 === undefined || y1 === y2) {
+                            valDisplay.textContent = Math.round(y1);
+                        } else {
+                            valDisplay.textContent = `${Math.min(Math.round(y1), Math.round(y2))} - ${Math.max(Math.round(y1), Math.round(y2))}`;
+                        }
+                        
+                        const sY = y2 === undefined ? y1 : Math.min(y1, y2);
+                        const eY = y2 === undefined ? y1 : Math.max(y1, y2);
                         
                         const alive = validPeople.filter(p => {
                             let by = p.birth;
@@ -1971,7 +2107,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             let endY = dy !== null ? dy : (by + 70);
                             if (isAlive) endY = maxYear;
                             
-                            return y >= startY && y <= endY;
+                            return !(endY < sY || startY > eY); // overlaps
                         });
                         
                         if (alive.length === 0) {
@@ -1988,74 +2124,217 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         }
                     };
                     
-                    updateAliveList(maxYear); // Initial call
+                    updateAliveList(scrubberStartYear, scrubberMode === "period" ? scrubberEndYear : undefined); // Initial call
                     
                     // Scrubber Drag Logic
-                    const scrubber = document.getElementById('timeline-scrubber');
-                    const scrubberHandle = document.getElementById('timeline-scrubber-handle');
                     const innerChart = document.getElementById('analytics-timeline-chart-inner');
+                    const axis = document.getElementById('analytics-timeline-axis');
                     
-                    let isDraggingScrubber = false;
+                    let draggedHandle = null; // 'single', 'start', 'end', 'area'
+                    let dragStartX = 0;
+                    let initialStartYear = 0;
+                    let initialEndYear = 0;
                     let isDraggingCanvas = false;
                     let startX = 0;
                     let scrollLeftStart = 0;
                     
-                    
-                    const axis = document.getElementById('analytics-timeline-axis');
                     if (axis) {
-                        axis.addEventListener('click', (e) => {
-                            const rect = innerChart.getBoundingClientRect();
-                            let x = e.clientX - rect.left;
-                            if (x < 0) x = 0;
-                            if (x > totalWidth) x = totalWidth;
+                        axis.addEventListener('mousedown', (e) => {
+                            const handle = e.target.closest('[id^="timeline-scrubber-handle"]');
+                            const area = e.target.closest('#timeline-scrubber-drag-area');
                             
-                            if (scrubber) scrubber.style.left = `${x}px`;
-                            if (scrubberHandle) {
-                                scrubberHandle.style.left = `${x}px`;
-                                const currentYear = pxToYear(x);
-                                scrubberHandle.textContent = Math.round(currentYear);
-                                updateAliveList(currentYear);
+                            if (handle) {
+                                draggedHandle = handle.getAttribute('data-type');
+                                document.body.style.userSelect = 'none';
+                                e.stopPropagation();
+                            } else if (area) {
+                                draggedHandle = 'area';
+                                const rect = innerChart.getBoundingClientRect();
+                                dragStartX = e.clientX - rect.left;
+                                initialStartYear = scrubberStartYear;
+                                initialEndYear = scrubberEndYear;
+                                document.body.style.userSelect = 'none';
+                                e.stopPropagation();
+                            } else {
+                                const rect = innerChart.getBoundingClientRect();
+                                let x = e.clientX - rect.left;
+                                if (x < 0) x = 0;
+                                if (x > totalWidth) x = totalWidth;
+                                const clickedYear = pxToYear(x);
+                                
+                                if (scrubberMode === "year") {
+                                    scrubberStartYear = clickedYear;
+                                    updateAliveList(scrubberStartYear);
+                                    
+                                    // Update DOM directly for single mode fast response
+                                    const h = document.getElementById('timeline-scrubber-handle');
+                                    const l = document.getElementById('timeline-scrubber');
+                                    if (h) {
+                                        h.style.left = `${x}px`;
+                                        h.textContent = Math.round(scrubberStartYear);
+                                    }
+                                    if (l) l.style.left = `${x}px`;
+                                    updateTimelineUrl();
+                                } else {
+                                    // Period mode: expand/shrink the closest boundary
+                                    if (Math.abs(clickedYear - scrubberStartYear) < Math.abs(clickedYear - scrubberEndYear)) {
+                                        scrubberStartYear = clickedYear;
+                                    } else {
+                                        scrubberEndYear = clickedYear;
+                                    }
+                                    
+                                    updateAliveList(scrubberStartYear, scrubberEndYear);
+                                    
+                                    // Update DOM directly for period mode fast response
+                                    const hs = document.getElementById('timeline-scrubber-handle-start');
+                                    const he = document.getElementById('timeline-scrubber-handle-end');
+                                    const bg = document.getElementById('timeline-scrubber-bg');
+                                    const area = document.getElementById('timeline-scrubber-drag-area');
+                                    
+                                    const p1 = yearToPx(scrubberStartYear);
+                                    const p2 = yearToPx(scrubberEndYear);
+                                    
+                                    if (hs) { hs.style.left = `${p1}px`; hs.textContent = Math.round(scrubberStartYear); }
+                                    if (he) { he.style.left = `${p2}px`; he.textContent = Math.round(scrubberEndYear); }
+                                    if (bg && area) {
+                                        const minP = Math.min(p1, p2);
+                                        const maxP = Math.max(p1, p2);
+                                        bg.style.left = `${minP}px`;
+                                        bg.style.width = `${maxP - minP}px`;
+                                        area.style.left = `${minP}px`;
+                                        area.style.width = `${maxP - minP}px`;
+                                    }
+                                    updateTimelineUrl();
+                                }
                             }
                         });
                     }
                     
-                    if (scrubber) {
-                        scrubberHandle.addEventListener('mousedown', (e) => {
-                            isDraggingScrubber = true;
-                            document.body.style.userSelect = 'none';
-                            e.stopPropagation();
-                        });
+                    const onScrubberMouseMove = (e) => {
+                        if (!draggedHandle) return;
                         
-                        document.addEventListener('mousemove', (e) => {
-                            if (!isDraggingScrubber) return;
-                            const rect = innerChart.getBoundingClientRect();
-                            let x = e.clientX - rect.left;
-                            if (x < 0) x = 0;
-                            if (x > totalWidth) x = totalWidth;
-                            
-                            scrubber.style.left = `${x}px`;
-                            if (scrubberHandle) scrubberHandle.style.left = `${x}px`;
-                            
-                            const currentYear = pxToYear(x);
-                            scrubberHandle.textContent = Math.round(currentYear);
-                            updateAliveList(currentYear);
-                            
-                            // Auto scroll if dragging near edges
-                            const containerRect = chartContainer.getBoundingClientRect();
-                            if (e.clientX < containerRect.left + 50) {
-                                chartContainer.scrollLeft -= 10;
-                            } else if (e.clientX > containerRect.right - 50) {
-                                chartContainer.scrollLeft += 10;
-                            }
-                        });
+                        const rect = innerChart.getBoundingClientRect();
+                        let x = e.clientX - rect.left;
+                        if (x < 0) x = 0;
+                        if (x > totalWidth) x = totalWidth;
                         
-                        document.addEventListener('mouseup', () => {
-                            if (isDraggingScrubber) {
-                                isDraggingScrubber = false;
-                                document.body.style.userSelect = '';
+                        if (draggedHandle === 'single') {
+                            scrubberStartYear = pxToYear(x);
+                            updateAliveList(scrubberStartYear);
+                            
+                            const h = document.getElementById('timeline-scrubber-handle');
+                            const l = document.getElementById('timeline-scrubber');
+                            if (h) {
+                                h.style.left = `${x}px`;
+                                h.textContent = Math.round(scrubberStartYear);
                             }
-                        });
-                    }
+                            if (l) l.style.left = `${x}px`;
+                        } else if (draggedHandle === 'start' || draggedHandle === 'end') {
+                            const newYear = pxToYear(x);
+                            if (draggedHandle === 'start') {
+                                scrubberStartYear = newYear;
+                            } else {
+                                scrubberEndYear = newYear;
+                            }
+                            
+                            updateAliveList(scrubberStartYear, scrubberEndYear);
+                            
+                            const hs = document.getElementById('timeline-scrubber-handle-start');
+                            const he = document.getElementById('timeline-scrubber-handle-end');
+                            const bg = document.getElementById('timeline-scrubber-bg');
+                            const area = document.getElementById('timeline-scrubber-drag-area');
+                            
+                            const p1 = yearToPx(scrubberStartYear);
+                            const p2 = yearToPx(scrubberEndYear);
+                            
+                            if (draggedHandle === 'start' && hs) {
+                                hs.style.left = `${p1}px`;
+                                hs.textContent = Math.round(scrubberStartYear);
+                            }
+                            if (draggedHandle === 'end' && he) {
+                                he.style.left = `${p2}px`;
+                                he.textContent = Math.round(scrubberEndYear);
+                            }
+                            
+                            if (bg && area) {
+                                const minP = Math.min(p1, p2);
+                                const maxP = Math.max(p1, p2);
+                                bg.style.left = `${minP}px`;
+                                bg.style.width = `${maxP - minP}px`;
+                                area.style.left = `${minP}px`;
+                                area.style.width = `${maxP - minP}px`;
+                            }
+                            
+                        } else if (draggedHandle === 'area') {
+                            const diffX = x - dragStartX;
+                            const diffYear = sortDesc ? -(diffX / ypx) : (diffX / ypx);
+                            
+                            scrubberStartYear = initialStartYear + diffYear;
+                            scrubberEndYear = initialEndYear + diffYear;
+                            
+                            updateAliveList(scrubberStartYear, scrubberEndYear);
+                            
+                            const p1 = yearToPx(scrubberStartYear);
+                            const p2 = yearToPx(scrubberEndYear);
+                            
+                            const hs = document.getElementById('timeline-scrubber-handle-start');
+                            const he = document.getElementById('timeline-scrubber-handle-end');
+                            const bg = document.getElementById('timeline-scrubber-bg');
+                            const area = document.getElementById('timeline-scrubber-drag-area');
+                            
+                            if (hs) { hs.style.left = `${p1}px`; hs.textContent = Math.round(scrubberStartYear); }
+                            if (he) { he.style.left = `${p2}px`; he.textContent = Math.round(scrubberEndYear); }
+                            if (bg && area) {
+                                const minP = Math.min(p1, p2);
+                                const maxP = Math.max(p1, p2);
+                                bg.style.left = `${minP}px`;
+                                bg.style.width = `${maxP - minP}px`;
+                                area.style.left = `${minP}px`;
+                                area.style.width = `${maxP - minP}px`;
+                            }
+                        }
+                        
+                        // Auto scroll if dragging near edges
+                        const containerRect = chartContainer.getBoundingClientRect();
+                        if (e.clientX < containerRect.left + 50) {
+                            chartContainer.scrollLeft -= 10;
+                        } else if (e.clientX > containerRect.right - 50) {
+                            chartContainer.scrollLeft += 10;
+                        }
+                    };
+                    
+                    const onScrubberMouseUp = () => {
+                        if (draggedHandle) {
+                            draggedHandle = null;
+                            document.body.style.userSelect = '';
+                            
+                            if (scrubberMode === "period" && scrubberStartYear > scrubberEndYear) {
+                                const temp = scrubberStartYear;
+                                scrubberStartYear = scrubberEndYear;
+                                scrubberEndYear = temp;
+                            }
+                            
+                            updateTimelineUrl();
+                        }
+                    };
+                    
+                    // We need to attach to document for smooth dragging outside the chart
+                    // Prevent memory leaks by cleaning up on re-render (optional, but safe here due to how we render)
+                    // We will store refs to remove later or just rely on the fact that these are attached once per renderTimelineChart.
+                    // Actually, re-rendering will add multiple listeners if not careful.
+                    // Better to attach them to a parent or use a single global listener, but for now we can namespace them if needed.
+                    
+                    // Let's attach to document but we need to ensure we don't leak.
+                    // A simple way is to name the functions and remove them first.
+                    document.removeEventListener('mousemove', window._timelineMouseMove);
+                    document.removeEventListener('mouseup', window._timelineMouseUp);
+                    
+                    window._timelineMouseMove = onScrubberMouseMove;
+                    window._timelineMouseUp = onScrubberMouseUp;
+                    
+                    document.addEventListener('mousemove', window._timelineMouseMove);
+                    document.addEventListener('mouseup', window._timelineMouseUp);
+
                     
                     // Canvas Pan Logic
                     if (chartContainer) {
@@ -2086,6 +2365,22 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         });
                     }
                 }
+                
+                setTimeout(() => {
+                    if (chartContainer && typeof chartContainer.scrollTo === 'function') {
+                        const hStart = document.getElementById("timeline-scrubber-handle-start") || document.getElementById("timeline-scrubber-handle");
+                        const hEnd = document.getElementById("timeline-scrubber-handle-end") || hStart;
+                        if (hStart && hEnd) {
+                            const left1 = parseFloat(hStart.style.left) || 0;
+                            const left2 = parseFloat(hEnd.style.left) || left1;
+                            const centerPx = (left1 + left2) / 2;
+                            chartContainer.scrollTo({
+                                left: Math.max(0, centerPx - chartContainer.clientWidth / 2),
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                }, 100);
             };
 const renderTimeline = () => {
                 if (timelineViewMode === "chart") {
@@ -2319,6 +2614,51 @@ const renderTimeline = () => {
                 });
             }
             
+            
+            const btnYear = document.getElementById("scrubber-mode-year-btn");
+            const btnPeriod = document.getElementById("scrubber-mode-period-btn");
+            if (btnYear && btnPeriod) {
+                const updateModeStyles = () => {
+                    const periodFilter = document.getElementById("timeline-chart-period-filter");
+                    const maxInput = document.getElementById("timeline-chart-max-year");
+                    const dashInput = document.getElementById("timeline-chart-dash");
+                    
+                    if (scrubberMode === "year") {
+                        btnYear.style.background = 'var(--color-primary)';
+                        btnYear.style.color = 'white';
+                        btnPeriod.style.background = 'transparent';
+                        btnPeriod.style.color = 'var(--color-text-main)';
+                        if (maxInput) maxInput.style.display = 'none';
+                        if (dashInput) dashInput.style.display = 'none';
+                        if (periodFilter) periodFilter.style.display = 'inline-flex';
+                    } else {
+                        btnPeriod.style.background = 'var(--color-primary)';
+                        btnPeriod.style.color = 'white';
+                        btnYear.style.background = 'transparent';
+                        btnYear.style.color = 'var(--color-text-main)';
+                        if (maxInput) maxInput.style.display = 'inline-block';
+                        if (dashInput) dashInput.style.display = 'inline-block';
+                        if (periodFilter) periodFilter.style.display = 'inline-flex';
+                    }
+                    if (typeof checkInputs !== 'undefined') checkInputs();
+                };
+                updateModeStyles();
+                
+                btnYear.addEventListener("click", () => {
+                    scrubberMode = "year";
+                    updateModeStyles();
+                    renderTimelineChart(); updateTimelineUrl();
+                });
+                btnPeriod.addEventListener("click", () => {
+                    scrubberMode = "period";
+                    if (scrubberEndYear === null || scrubberEndYear === undefined) {
+                        scrubberEndYear = scrubberStartYear + 10; // Default period length 10 years
+                    }
+                    updateModeStyles();
+                    renderTimelineChart(); updateTimelineUrl();
+                });
+            }
+
             const selectFilter = document.getElementById("timeline-filter-type");
             const filterIcon = document.querySelector(".timeline-filter-icon");
             if (selectFilter) {

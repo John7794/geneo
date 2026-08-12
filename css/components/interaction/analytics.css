@@ -523,3 +523,13 @@
     background: var(--color-bg-card);
     color: var(--color-text-main);
 }
+
+/* Remove spinners from number inputs in timeline filter */
+#timeline-chart-period-filter input[type="number"]::-webkit-outer-spin-button,
+#timeline-chart-period-filter input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+#timeline-chart-period-filter input[type="number"] {
+    -moz-appearance: textfield;
+}
