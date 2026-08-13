@@ -62,3 +62,4 @@
 	gap: var(--spacing-md);
 	margin-bottom: var(--spacing-lg);
 }
+@media (min-width: 640px) { .ancestor-branch--maternal { grid-column-start: 2; } }

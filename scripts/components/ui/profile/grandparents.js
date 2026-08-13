@@ -9,7 +9,7 @@ import { escapeHtml } from "../../../utils/helpers.js";
  * Рендерить гілку предків (батьківську або материнську).
  * Оптимізовано: усунуто повторний пошук персон.
  */
-function renderBranch(peopleList, defaultTitle, ctx) {
+function renderBranch(peopleList, defaultTitle, ctx, extraClass = "") {
 	if (!Array.isArray(peopleList) || peopleList.length === 0) {
 		return "";
 	}
@@ -39,7 +39,7 @@ function renderBranch(peopleList, defaultTitle, ctx) {
 	const listClass = UI_CLASSES.ancestorBranchList || "ancestor-branch__list";
 
 	return `
-        <div class="${branchClass}">
+        <div class="${branchClass} ${extraClass}">
             <div class="${dividerClass}">
                 <span>${safeTitle}</span>
             </div>
@@ -69,7 +69,7 @@ export function renderGrandparentsSection(person) {
 	const paternalHTML = renderBranch(paternalList, paternalTitle, ctx);
 
 	const maternalTitle = i18n.t("kinship.maternalLine") || "ПО МАМИНІЙ ЛІНІЇ";
-	const maternalHTML = renderBranch(maternalList, maternalTitle, ctx);
+	const maternalHTML = renderBranch(maternalList, maternalTitle, ctx, "ancestor-branch--maternal");
 
 	if (!paternalHTML && !maternalHTML) return "";
 
