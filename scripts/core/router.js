@@ -257,6 +257,12 @@ export class AppRouter {
 		} else if (!url.searchParams.has("view")) {
 			url.searchParams.set("view", "tree");
 		}
+		const currentView = url.searchParams.get("view");
+		if (currentView !== "analytics") {
+			url.searchParams.delete("timeline_mode");
+			url.searchParams.delete("timeline_start");
+			url.searchParams.delete("timeline_end");
+		}
 		// Видаляємо hash повністю, щоб не залишалося "#"
 		const cleanUrl = url.pathname + url.search;
 
@@ -287,7 +293,23 @@ export class AppRouter {
 
 		if (!viewParam) {
 			currentUrl.searchParams.set("view", "tree");
+			viewParam = "tree";
 			needsUpdate = true;
+		}
+
+		if (viewParam !== "analytics") {
+			if (currentUrl.searchParams.has("timeline_mode")) {
+				currentUrl.searchParams.delete("timeline_mode");
+				needsUpdate = true;
+			}
+			if (currentUrl.searchParams.has("timeline_start")) {
+				currentUrl.searchParams.delete("timeline_start");
+				needsUpdate = true;
+			}
+			if (currentUrl.searchParams.has("timeline_end")) {
+				currentUrl.searchParams.delete("timeline_end");
+				needsUpdate = true;
+			}
 		}
 
 		if (needsUpdate) {
@@ -478,4 +500,4 @@ export class AppRouter {
 			managers.breadcrumbs?.renderPath(path);
 		}
 	}
-}
+		}
