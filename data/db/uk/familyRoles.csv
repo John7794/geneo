@@ -499,7 +499,7 @@ person_id,parents_bio,parents_step,parents_adopted,spouses
 570,,,,
 572,1144;,,,573
 573,1146;,,,572
-574,1148;,,,575
+574,1148;1149,,,575
 575,1150;,,,574
 576,,,,577
 577,1154;,,,576
@@ -846,7 +846,8 @@ person_id,parents_bio,parents_step,parents_adopted,spouses
 1134,,,,
 1144,,,,
 1146,,,,
-1148,,,,
+1148,,,,1149
+1149,2298;,,,1148
 1150,,,,
 1154,,,,
 1160,,,,
@@ -1242,6 +1243,7 @@ person_id,parents_bio,parents_step,parents_adopted,spouses
 2088,,,,
 2128,,,,
 2224,,,,
+2298,,,,
 2332,,,,
 2336,4672;,,,2337
 2337,,,,2336
