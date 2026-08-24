@@ -1,13 +1,13 @@
 import { main as syncDataMain } from "./scripts/api-tasks/sync-data.js";
 import { main as generateKinshipMain } from "./scripts/api-tasks/generate-kinship.js";
-import admin from 'firebase-admin';
+import { initializeApp, getApps, cert, getApp } from 'firebase-admin/app';
 import zlib from "zlib";
 import fs from "fs";
 import path from "path";
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import "dotenv/config";
 
-async function saveFileToFirestore(filePath, content, fdb) {
+async function saveFileToFirestore(filePath: string, content: string, fdb: any) {
   try {
     const cleanPath = filePath.replace(/\\/g, '/');
     const docId = cleanPath.replace(/\//g, '___');
@@ -17,7 +17,7 @@ async function saveFileToFirestore(filePath, content, fdb) {
     await fdb.collection('db_files').doc(docId).set({
       content: base64,
       compressed: true,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp()
     });
     console.log(`[Firestore DB] Saved compressed ${docId} to Firestore`);
   } catch (e) {
@@ -36,17 +36,21 @@ async function run() {
       if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
-      adminConfig.credential = admin.credential.cert(serviceAccount);
+      adminConfig.credential = cert(serviceAccount);
     } catch (e: any) {}
   }
-  if (!admin.apps.length) admin.initializeApp(adminConfig);
-  const fdb = getFirestore(admin.app(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
-
+  
+  if (getApps().length === 0) {
+    initializeApp(adminConfig);
+  }
+  
+  const fdb = getFirestore(getApp(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
+  
   await syncDataMain();
   await generateKinshipMain();
-
+  
   const filesToSave = [];
-  const tmpDataPath = process.env.DATA_DIR || process.cwd() + '/data'; // fall back to local data dir if no /tmp/data
+  const tmpDataPath = process.env.DATA_DIR || process.cwd() + '/data'; 
   
   if (fs.existsSync(path.join(tmpDataPath, 'kinshipIndex.json'))) {
     filesToSave.push('kinshipIndex.json');
@@ -60,7 +64,7 @@ async function run() {
       filesToSave.push(`db/uk/${f}`);
     });
   }
-
+  
   console.log(`[Firestore DB] Uploading ${filesToSave.length} files to Firestore...`);
   for (const file of filesToSave) {
     const localPath = path.join(tmpDataPath, file);
@@ -69,6 +73,7 @@ async function run() {
       await saveFileToFirestore(file, content, fdb);
     }
   }
+  
   console.log("Done direct sync!");
   process.exit(0);
 }

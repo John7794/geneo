@@ -3,8 +3,8 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import cookieParser from "cookie-parser";
-import admin from "firebase-admin";
-import { getFirestore } from "firebase-admin/firestore";
+import { initializeApp, getApp, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
 let adminConfig: any = { projectId: "geneo-b8e63" };
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -15,17 +15,17 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     if (serviceAccount.private_key) {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
-    adminConfig.credential = admin.credential.cert(serviceAccount);
+    adminConfig.credential = cert(serviceAccount);
     console.log("Using provided FIREBASE_SERVICE_ACCOUNT for credentials.");
-  } catch (e) {
+  } catch (e: any) {
     console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT.", e.message);
   }
 }
-admin.initializeApp(adminConfig);
-const fdb = getFirestore(admin.app(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
+initializeApp(adminConfig);
+const fdb = getFirestore(getApp(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
 
 export const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 let cachedDbContext = "";
 function getDbContext() {
@@ -195,10 +195,10 @@ app.post('/api/invite', async (req, res) => {
   try {
     await fdb.collection('shares').add({
       email: val,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: FieldValue.serverTimestamp()
     });
     res.json({ success: true });
-  } catch (e) {
+  } catch (e: any) {
     console.error("Invite error:", e);
     res.status(500).json({ error: 'Failed' });
   }
@@ -209,7 +209,7 @@ app.delete('/api/shares/:id', async (req, res) => {
   try {
     await fdb.collection('shares').doc(req.params.id).delete();
     res.json({ success: true });
-  } catch (e) {
+  } catch (e: any) {
     res.status(500).json({ error: 'Failed' });
   }
 });
