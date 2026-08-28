@@ -87,7 +87,7 @@ export function buildPersonObject(queryId, allData) {
 			? allData.getGrandparents(targetId)
 			: { paternal: [], maternal: [] };
 
-	let safeMarriages = safeKinship.m_map || [];
+	let safeMarriages = Array.isArray(safeKinship.m_map) ? [...safeKinship.m_map] : [];
 
 	if (
 		safeMarriages.length === 0 &&
