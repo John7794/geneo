@@ -28,16 +28,27 @@ export async function fetchAllData(userConfig = {}) {
 		},
 	);
 
-	const kinshipUrl = `./data/kinshipIndex.json?v=${version}`;
+	const kinshipUrl = `./data/kinshipIndex.json?v=${Date.now()}`;
 	const kinshipPromise = (async () => {
 		try {
 			const res = await fetch(kinshipUrl, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
 			if (!res.ok) throw new Error("HTTP " + res.status);
-			const text = await res.text();
-			const cleanText = text.replace(/[\x00-\x1F]/g, ""); 
-			return JSON.parse(cleanText);
+			let text = await res.text();
+			
+			// Fix common JSON truncation or escaping issues from proxies
+			try {
+				return JSON.parse(text);
+			} catch (e1) {
+				try {
+					text = text.replace(/[\x00-\x1F]/g, ""); 
+					return JSON.parse(text);
+				} catch (e2) {
+					console.warn("Kinship JSON snippet near error:", text.substring(523850, 523900));
+					throw e2;
+				}
+			}
 		} catch (err) {
-			console.warn(`⚠️ Kinship index missing or error.`, err);
+			console.warn(`⚠️ Kinship index parse error.`, err);
 			return {};
 		}
 	})();
