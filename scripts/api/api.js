@@ -29,10 +29,18 @@ export async function fetchAllData(userConfig = {}) {
 	);
 
 	const kinshipUrl = `./data/kinshipIndex.json?v=${version}`;
-	const kinshipPromise = fetchJson(kinshipUrl).catch((err) => {
-		console.warn(`⚠️ Kinship index missing or error.`, err);
-		return {};
-	});
+	const kinshipPromise = (async () => {
+		try {
+			const res = await fetch(kinshipUrl, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+			if (!res.ok) throw new Error("HTTP " + res.status);
+			const text = await res.text();
+			const cleanText = text.replace(/[\x00-\x1F]/g, ""); 
+			return JSON.parse(cleanText);
+		} catch (err) {
+			console.warn(`⚠️ Kinship index missing or error.`, err);
+			return {};
+		}
+	})();
 
 	const [fileResults, kinshipData] = await Promise.all([
 		Promise.all(filePromises),

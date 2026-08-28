@@ -21,7 +21,6 @@ export class HelpModal {
 
 	init() {
 		if (!this.overlay) {
-			console.warn("Вузол #help-overlay не знайдено в DOM.");
 			return;
 		}
 
