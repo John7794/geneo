@@ -112,6 +112,23 @@ export function buildPersonObject(queryId, allData) {
 		}
 	}
 
+	// ВАЖЛИВО: Знаходимо всіх біологічних дітей, які не були включені до жодного шлюбу (наприклад, йдуть по прямій лінії)
+	const childrenInMarriages = new Set();
+	safeMarriages.forEach((m) => {
+		let bioArray = [];
+		if (Array.isArray(m.children?.bio)) {
+			bioArray = m.children.bio;
+		} else if (m.children?.bio) {
+			bioArray = String(m.children.bio).trim().split(/\s+/);
+		}
+		bioArray.forEach((c) => { if (c) childrenInMarriages.add(String(c)); });
+	});
+
+	const orphanChildren = engineChildren.filter(c => !childrenInMarriages.has(String(c)));
+	if (orphanChildren.length > 0) {
+		safeMarriages.push({ spouseId: null, children: { bio: orphanChildren } });
+	}
+
 	const rawSpiritual = allData._spiritualIndex.getSpiritualData(targetId);
 	const spiritualEnriched = rawSpiritual
 		? {
