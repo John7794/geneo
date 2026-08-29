@@ -67,14 +67,15 @@ app.use('/data', express.static(rootDataPath));
 
 app.get('/api/data/kinship', (req, res) => {
   const kinshipPath = path.join(process.cwd(), 'data/kinshipIndex.json');
-  try {
-    const data = fs.readFileSync(kinshipPath, 'utf8');
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.send(data);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to read kinship index' });
-  }
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(kinshipPath, (err) => {
+    if (err) {
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to send kinship index' });
+      }
+    }
+  });
 });
 
 app.get('/api/sync-data', async (req, res) => {
