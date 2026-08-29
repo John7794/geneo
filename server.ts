@@ -66,7 +66,7 @@ const rootDataPath = path.join(process.cwd(), 'data');
 app.use('/data', express.static(rootDataPath));
 
 app.get('/api/data/kinship', (req, res) => {
-  const kinshipPath = path.join(process.cwd(), 'data/kinshipIndex.json');
+  const kinshipPath = path.join(process.cwd(), 'data/kinship.json');
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(kinshipPath, (err) => {

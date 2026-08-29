@@ -31,7 +31,7 @@ export async function main() {
 	const basicPath = path.join(rootDir, "data", "db", "uk", "basic.csv");
 	const rolesPath = path.join(rootDir, "data", "db", "uk", "familyRoles.csv");
 	const familyListPath = path.join(rootDir, "data", "db", "uk", "familyList.csv");
-	const outputPath = path.join(rootDir, "data", "kinshipIndex.json");
+	const outputPath = path.join(rootDir, "data", "kinship.json");
 
 	try {
 		const basicRows = parseCSV(basicPath);
