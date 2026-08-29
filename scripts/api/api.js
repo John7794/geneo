@@ -28,7 +28,7 @@ export async function fetchAllData(userConfig = {}) {
 		},
 	);
 
-	const kinshipUrl = `./data/kinshipIndex.json?v=${Date.now()}`;
+	const kinshipUrl = `/api/data/kinship?v=${Date.now()}`;
 	const kinshipPromise = (async () => {
 		try {
 			const res = await fetch(kinshipUrl, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
