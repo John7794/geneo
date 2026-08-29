@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import express from "express";
+import compression from "compression";
 import path from "path";
 import fs from "fs";
 import cookieParser from "cookie-parser";
@@ -25,6 +26,7 @@ initializeApp(adminConfig);
 const fdb = getFirestore(getApp(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
 
 export const app = express();
+app.use(compression());
 const PORT = 3000;
 
 let cachedDbContext = "";
