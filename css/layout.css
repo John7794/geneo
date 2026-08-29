@@ -57,7 +57,7 @@
 /* Плаваюча панель інструментів */
 .top-bar-controls {
 	position: fixed;
-	top: 80px; /* Опускаємо панель, щоб хлібні крихти її не перекривали */
+	top: 130px; /* Опускаємо панель, щоб не перекривала інші заголовки */
 	right: var(--spacing-md);
 	z-index: 1010; /* Ставимо вище за крихти (у яких 1000) */
 	display: flex;
@@ -83,7 +83,7 @@
 
 @media (max-width: 768px) {
 	.top-bar-controls {
-		top: 70px;
+		top: 110px;
 		right: var(--spacing-sm);
 		transform: scale(0.9); /* Трохи зменшуємо для мобільних екранів */
 		transform-origin: top right;
