@@ -1,3 +1,6 @@
+import { exec } from "child_process";
+import { promisify } from "util";
+const execAsync = promisify(exec);
 import { GoogleGenAI } from "@google/genai";
 import express from "express";
 import compression from "compression";
@@ -80,8 +83,78 @@ app.get('/api/data/kinship', (req, res) => {
   });
 });
 
-app.get('/api/sync-data', async (req, res) => {
-  res.json({ success: true, message: 'Sync not needed' });
+let isSyncInProgress = false;
+
+function checkCanSync(req: express.Request): boolean {
+  let emailOrPhone = req.cookies && req.cookies.auth_email;
+  if (!emailOrPhone && req.headers.authorization) {
+    const parts = req.headers.authorization.split(' ');
+    if (parts.length === 2 && parts[0] === 'Bearer') emailOrPhone = parts[1];
+  }
+  if (!emailOrPhone) {
+    if (process.env.NODE_ENV !== "production") return true;
+    return false;
+  }
+  const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
+  return val === 'www.johnsel771994@gmail.com' || val === 'johnsel771994@gmail.com';
+}
+
+app.get('/api/sync-data', (req, res) => {
+  res.json({ inProgress: isSyncInProgress });
+});
+
+app.post('/api/sync-data', async (req, res) => {
+  if (!checkCanSync(req)) {
+    return res.status(403).json({ error: "У вас немає прав для оновлення бази даних." });
+  }
+
+  if (isSyncInProgress) {
+    return res.status(409).json({ error: "Синхронізація вже триває. Будь ласка, зачекайте завершення..." });
+  }
+
+  isSyncInProgress = true;
+  console.log("🔄 [API] User triggered database synchronization from Google Sheets...");
+
+  try {
+    const { stdout, stderr } = await execAsync(
+      "node scripts/api-tasks/sync-data.js && node scripts/api-tasks/generate-kinship.js",
+      {
+        cwd: process.cwd(),
+        timeout: 180000,
+        maxBuffer: 10 * 1024 * 1024,
+      }
+    );
+
+    console.log("✅ [API] Sync and kinship generation completed successfully.");
+    if (stdout) console.log(stdout);
+    if (stderr) console.warn(stderr);
+
+    cachedDbContext = "";
+
+    const distDataPath = path.join(process.cwd(), "dist", "data");
+    if (fs.existsSync(distDataPath)) {
+      try {
+        fs.cpSync(rootDataPath, distDataPath, { recursive: true });
+        console.log("📁 [API] Synchronized data into dist/data");
+      } catch (cpErr) {
+        console.warn("⚠️ [API] Failed to copy to dist/data:", cpErr);
+      }
+    }
+
+    isSyncInProgress = false;
+    res.json({
+      success: true,
+      message: "Таблиці та родинні зв\x27язки успішно оновлено!",
+      timestamp: Date.now(),
+    });
+  } catch (error: any) {
+    isSyncInProgress = false;
+    console.error("❌ [API] Error during sync-data:", error);
+    res.status(500).json({
+      error: "Помилка під час синхронізації з Google Sheets",
+      details: error.message || String(error),
+    });
+  }
 });
 
 app.get('/login', (req, res) => {
@@ -261,6 +334,9 @@ app.get('/api/config', async (req, res) => {
         return;
       }
     } catch(e) { console.error('Firebase shares query error:', e); }
+  } else if (process.env.NODE_ENV !== "production") {
+    res.json({ canShare: true, canSync: true, isMainAdmin: true });
+    return;
   }
   res.status(401).json({ error: 'Unauthorized' });
 });

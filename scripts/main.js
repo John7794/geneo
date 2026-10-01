@@ -22,6 +22,7 @@ import { AnalyticsManager } from "./components/interaction/analyticsManager.js";
 import { ThemeManager } from "./components/interaction/themeManager.js";
 import { MobileMenuManager } from "./components/interaction/mobileMenuManager.js";
 import { ShareManager } from "./components/interaction/shareManager.js";
+import { UpdateManager } from "./components/interaction/updateManager.js";
 import { GlobalModalInterceptor } from "./core/globalModalInterceptor.js";
 import { AIManager } from "./components/interaction/aiManager.js";
 
@@ -72,7 +73,7 @@ class App {
 					}
 					const btnUpdate = document.getElementById("btn-update-data");
 					if (btnUpdate) {
-						btnUpdate.style.display = userConfig.canSync ? "" : "none";
+						btnUpdate.style.display = "";
 					}
 				}
 			} catch(e) {
@@ -191,17 +192,14 @@ class App {
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();
+		this.managers.update = new UpdateManager(this);
 
 		const btnHome = document.getElementById("btn-home");
 		if (btnHome) {
 			btnHome.addEventListener("click", this._handleHomeClick);
 		}
 
-		const btnUpdate = document.getElementById("btn-update-data");
-		if (btnUpdate) {
-			this._handleUpdateDataClick = this._handleUpdateDataClick.bind(this);
-			btnUpdate.addEventListener("click", this._handleUpdateDataClick);
-		}
+
 
 		setTimeout(() => {
 			const scrollableContainer =
@@ -231,15 +229,30 @@ class App {
 
 	async _handleUpdateDataClick(e) {
 		e.preventDefault();
+		const confirmed = confirm("Оновити всі дані та родинні зв\x27язки з Google Таблиць?\nЦе займе близько 30-60 секунд.");
+		if (!confirmed) return;
+
+		const btn = document.getElementById("btn-update-data");
 		const loader = document.getElementById("app-loader");
+		const loaderText = loader ? loader.querySelector(".loader__text") : null;
 		if (loader) {
 			loader.classList.remove("hidden");
-			loader.querySelector(".loader__text").textContent = "Оновлення даних (може тривати кілька хвилин)...";
+			if (loaderText) {
+				loaderText.textContent = "Завантаження таблиць з Google Sheets та генерація зв\x27язків (зачекайте близько хвилини)...";
+			}
 		}
+		if (btn) btn.classList.add("animate-spin");
 		
 		try {
-			// Оновлення таблиць і генерація зв'язків через API
-			const response = await fetch('/api/sync-data', { method: 'POST' });
+			const token = localStorage.getItem("auth_token") || "";
+			const response = await fetch("/api/sync-data", { 
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					...(token ? { "Authorization": `Bearer ${token}` } : {})
+				},
+				credentials: "include"
+			});
 			const result = await response.json();
 			
 			if (!response.ok) {
@@ -248,18 +261,20 @@ class App {
 				throw new Error(errMsg + details);
 			}
 
+			if (loaderText) {
+				loaderText.textContent = "✅ Дані успішно оновлено! Очищення кешу та оновлення сторінки...";
+			}
+
 			// Очищення кешу
 			if (typeof localforage !== "undefined") {
 				await localforage.clear();
 			}
-
 			if (typeof caches !== "undefined" && caches.keys) {
 				const cacheNames = await caches.keys();
 				for (const name of cacheNames) {
 					await caches.delete(name);
 				}
 			}
-
 			if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
 				const registrations = await navigator.serviceWorker.getRegistrations();
 				for (const reg of registrations) {
@@ -268,17 +283,20 @@ class App {
 			}
 			
 			const cacheBust = Date.now();
-			const metaResponse = await fetch(`./data/db/metadata.json?t=${cacheBust}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+			const metaResponse = await fetch(`./data/db/metadata.json?t=${cacheBust}`, { cache: "no-store", headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" } });
 			if (metaResponse.ok) {
 				const meta = await metaResponse.json();
 				if (typeof localforage !== "undefined") {
 					await localforage.setItem("DB_VERSION", meta.timestamp || cacheBust);
 				}
 			}
-			window.location.reload();
+			setTimeout(() => {
+				window.location.reload();
+			}, 1000);
 		} catch (error) {
 			console.error("Помилка під час оновлення даних", error);
 			if (loader) loader.classList.add("hidden");
+			if (btn) btn.classList.remove("animate-spin");
 			alert("Помилка оновлення даних: " + error.message);
 		}
 	}
