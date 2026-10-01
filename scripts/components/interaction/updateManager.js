@@ -4,6 +4,23 @@ import { UI_CLASSES } from "../../core/uiClasses.js";
 export class UpdateManager {
 	constructor(app) {
 		this.app = app;
+		this.isOpen = false;
+		this.isSyncing = false;
+		this.timerInterval = null;
+		this.secondsElapsed = 0;
+
+		this.open = this.open.bind(this);
+		this.close = this.close.bind(this);
+		this.startSync = this.startSync.bind(this);
+		this._handleBackdropClick = this._handleBackdropClick.bind(this);
+		this._handleEscape = this._handleEscape.bind(this);
+
+		this._bindDom();
+		this.init();
+		window.updateManager = this;
+	}
+
+	_bindDom() {
 		this.overlay = document.getElementById("update-data-overlay");
 		this.btnOpen = document.getElementById("btn-update-data");
 		this.btnClose = document.getElementById("btn-close-update-data");
@@ -20,36 +37,38 @@ export class UpdateManager {
 		this.resultTitle = document.getElementById("update-data-result-title");
 		this.resultDesc = document.getElementById("update-data-result-desc");
 		this.resultActions = document.getElementById("update-data-result-actions");
-
-		this.isOpen = false;
-		this.isSyncing = false;
-		this.timerInterval = null;
-		this.secondsElapsed = 0;
-
-		this.open = this.open.bind(this);
-		this.close = this.close.bind(this);
-		this.startSync = this.startSync.bind(this);
-		this._handleBackdropClick = this._handleBackdropClick.bind(this);
-		this._handleEscape = this._handleEscape.bind(this);
-
-		this.init();
 	}
 
 	init() {
-		if (this.btnOpen) {
-			this.btnOpen.addEventListener("click", (e) => {
+		// Event delegation to catch clicks on #btn-update-data anytime anywhere
+		document.addEventListener("click", (e) => {
+			const btn = e.target.closest("#btn-update-data");
+			if (btn) {
 				e.preventDefault();
+				e.stopPropagation();
 				this.open();
-			});
-		}
-		if (this.btnClose) this.btnClose.addEventListener("click", this.close);
-		if (this.btnCancel) this.btnCancel.addEventListener("click", this.close);
-		if (this.btnConfirm) this.btnConfirm.addEventListener("click", this.startSync);
-		if (this.btnCloseResult) this.btnCloseResult.addEventListener("click", this.close);
+				return;
+			}
 
-		if (this.overlay) {
-			this.overlay.addEventListener("click", this._handleBackdropClick);
-		}
+			const btnClose = e.target.closest("#btn-close-update-data, #btn-cancel-update-data, #btn-close-update-result");
+			if (btnClose) {
+				e.preventDefault();
+				this.close();
+				return;
+			}
+
+			const btnConfirm = e.target.closest("#btn-confirm-update-data");
+			if (btnConfirm) {
+				e.preventDefault();
+				this.startSync();
+				return;
+			}
+
+			if (this.overlay && e.target === this.overlay && !this.isSyncing) {
+				this.close();
+			}
+		});
+
 		document.addEventListener("keydown", this._handleEscape);
 	}
 
@@ -66,25 +85,36 @@ export class UpdateManager {
 	}
 
 	open() {
-		if (!this.overlay) return;
+		this._bindDom();
+		if (!this.overlay) {
+			console.error("update-data-overlay not found in DOM");
+			return;
+		}
 		this.isOpen = true;
 		this.isSyncing = false;
 		this._showState("prompt");
 		this.overlay.classList.remove("hidden");
+		this.overlay.classList.add("show", "open");
+		this.overlay.setAttribute("aria-hidden", "false");
 		document.body.classList.add(UI_CLASSES.noScroll || "no-scroll");
+		console.log("✅ UpdateManager.open() modal shown with classes:", this.overlay.className);
 	}
 
 	close() {
 		if (this.isSyncing) return;
 		this.isOpen = false;
+		if (!this.overlay) this._bindDom();
 		if (this.overlay) {
+			this.overlay.classList.remove("show", "open");
 			this.overlay.classList.add("hidden");
+			this.overlay.setAttribute("aria-hidden", "true");
 		}
 		document.body.classList.remove(UI_CLASSES.noScroll || "no-scroll");
 		this._stopTimer();
 	}
 
 	_showState(state) {
+		this._bindDom();
 		if (this.promptState) this.promptState.classList.toggle("hidden", state !== "prompt");
 		if (this.progressState) this.progressState.classList.toggle("hidden", state !== "progress");
 		if (this.resultState) this.resultState.classList.toggle("hidden", state !== "result");
@@ -139,7 +169,7 @@ export class UpdateManager {
 			// Успіх
 			this._showState("result");
 			if (this.resultIcon) {
-				this.resultIcon.innerHTML = '<i class="ri-checkbox-circle-fill text-success" style="color: #10b981;"></i>';
+				this.resultIcon.innerHTML = '<i class="ri-checkbox-circle-fill" style="color: #10b981; font-size: 52px;"></i>';
 			}
 			if (this.resultTitle) {
 				this.resultTitle.textContent = "Дані успішно оновлено!";
@@ -192,7 +222,7 @@ export class UpdateManager {
 			this._stopTimer();
 			this._showState("result");
 			if (this.resultIcon) {
-				this.resultIcon.innerHTML = '<i class="ri-error-warning-fill text-danger" style="color: #ef4444;"></i>';
+				this.resultIcon.innerHTML = '<i class="ri-error-warning-fill" style="color: #ef4444; font-size: 52px;"></i>';
 			}
 			if (this.resultTitle) {
 				this.resultTitle.textContent = "Помилка оновлення даних";
