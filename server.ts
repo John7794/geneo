@@ -1,3 +1,4 @@
+import zlib from "zlib";
 import { exec } from "child_process";
 import { promisify } from "util";
 const execAsync = promisify(exec);
@@ -28,6 +29,125 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 initializeApp(adminConfig);
 const fdb = getFirestore(getApp(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
 
+// Check if root filesystem is read-only (Cloud Run / Serverless container)
+const IS_READONLY = (() => {
+  try {
+    const testFile = path.join(process.cwd(), ".write-test-" + Date.now());
+    fs.writeFileSync(testFile, "1");
+    fs.unlinkSync(testFile);
+    return false;
+  } catch {
+    return true;
+  }
+})();
+
+const ACTIVE_DATA_DIR = IS_READONLY
+  ? path.join("/tmp", "genealogy_app_data", "data")
+  : path.join(process.cwd(), "data");
+
+process.env.ACTIVE_DATA_DIR = ACTIVE_DATA_DIR;
+
+// Seed ACTIVE_DATA_DIR on startup if running in read-only environment
+function initActiveDataDir() {
+  if (IS_READONLY) {
+    if (!fs.existsSync(ACTIVE_DATA_DIR)) {
+      fs.mkdirSync(ACTIVE_DATA_DIR, { recursive: true });
+    }
+    const seedCandidates = [
+      path.join(process.cwd(), "data"),
+      path.join(process.cwd(), "dist", "data"),
+    ];
+    for (const src of seedCandidates) {
+      if (fs.existsSync(src)) {
+        try {
+          fs.cpSync(src, ACTIVE_DATA_DIR, { recursive: true });
+          console.log(`📁 Seeded writable data directory ${ACTIVE_DATA_DIR} from ${src}`);
+          break;
+        } catch (e) {
+          console.warn(`Could not seed from ${src}:`, e);
+        }
+      }
+    }
+  }
+}
+initActiveDataDir();
+
+// Restore any previously synced data from Firestore if available
+async function restoreSyncedDataFromFirestore() {
+  try {
+    const snap = await fdb.collection("synced_sheets").get();
+    if (snap.empty) {
+      console.log("ℹ️ No remote synced data in Firestore, using bundled database.");
+      return;
+    }
+    console.log(`📥 Restoring ${snap.size} files from Firestore into ${ACTIVE_DATA_DIR}...`);
+    for (const doc of snap.docs) {
+      const data = doc.data();
+      if (!data.relativePath || !data.content) continue;
+      const targetPath = path.join(ACTIVE_DATA_DIR, data.relativePath);
+      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+      let fileBuf;
+      if (data.isCompressed) {
+        fileBuf = zlib.inflateSync(Buffer.from(data.content, "base64"));
+      } else {
+        fileBuf = Buffer.from(data.content, "utf8");
+      }
+      fs.writeFileSync(targetPath, fileBuf);
+    }
+    console.log("✅ Successfully restored latest database state from Firestore!");
+  } catch (err) {
+    console.warn("⚠️ Could not restore from Firestore:", err);
+  }
+}
+restoreSyncedDataFromFirestore();
+
+// Backup newly synced data to Firestore so other/future container instances have it
+async function persistSyncedDataToFirestore() {
+  try {
+    console.log("📤 Persisting synced database files to Firestore...");
+    const filesToSync = [];
+    
+    // Add all CSV files
+    const ukDir = path.join(ACTIVE_DATA_DIR, "db", "uk");
+    if (fs.existsSync(ukDir)) {
+      const csvFiles = fs.readdirSync(ukDir).filter(f => f.endsWith(".csv"));
+      for (const f of csvFiles) {
+        filesToSync.push(path.join("db", "uk", f));
+      }
+    }
+    // Add metadata.json
+    if (fs.existsSync(path.join(ACTIVE_DATA_DIR, "db", "metadata.json"))) {
+      filesToSync.push(path.join("db", "metadata.json"));
+    }
+    // Add kinship.json
+    if (fs.existsSync(path.join(ACTIVE_DATA_DIR, "kinship.json"))) {
+      filesToSync.push("kinship.json");
+    }
+
+    const batch = fdb.batch();
+    for (const relPath of filesToSync) {
+      const fullPath = path.join(ACTIVE_DATA_DIR, relPath);
+      if (!fs.existsSync(fullPath)) continue;
+      const rawContent = fs.readFileSync(fullPath);
+      const compressedContent = zlib.deflateSync(rawContent).toString("base64");
+      
+      const docId = relPath.replace(/[\/\\]/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
+      const ref = fdb.collection("synced_sheets").doc(docId);
+      batch.set(ref, {
+        relativePath: relPath,
+        content: compressedContent,
+        isCompressed: true,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+    console.log(`✅ Saved ${filesToSync.length} database files to Firestore for persistent cloud storage!`);
+  } catch (err) {
+    console.warn("⚠️ Failed to persist synced data to Firestore:", err);
+  }
+}
+
+
 export const app = express();
 app.use(compression());
 const PORT = 3000;
@@ -36,13 +156,23 @@ let cachedDbContext = "";
 function getDbContext() {
   if (cachedDbContext) return cachedDbContext;
   try {
-    const basic = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/basic.csv'), 'utf8');
-    const roles = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/familyRoles.csv'), 'utf8');
-    const birth = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/birth.csv'), 'utf8');
-    const death = fs.readFileSync(path.join(process.cwd(), 'data/db/uk/death.csv'), 'utf8');
-    
-    cachedDbContext = `
-Ось дані бази родоводу (у форматі CSV). Використовуй їх для відповідей на питання.
+    const resolvePath = (rel) => {
+      const candidates = [
+        path.join(ACTIVE_DATA_DIR, rel),
+        path.join(process.cwd(), "dist", "data", rel),
+        path.join(process.cwd(), "data", rel),
+      ];
+      for (const c of candidates) {
+        if (fs.existsSync(c)) return c;
+      }
+      return path.join(ACTIVE_DATA_DIR, rel);
+    };
+
+    const basic = fs.readFileSync(resolvePath("db/uk/basic.csv"), "utf8");
+    const roles = fs.readFileSync(resolvePath("db/uk/familyRoles.csv"), "utf8");
+    const birth = fs.readFileSync(resolvePath("db/uk/birth.csv"), "utf8");
+    const death = fs.readFileSync(resolvePath("db/uk/death.csv"), "utf8");
+        cachedDbContext = `Ось дані бази родоводу (у форматі CSV). Використовуй їх для відповідей на питання.
 Не вигадуй дані, спирайся тільки на цю інформацію.
 
 [basic.csv - основні дані (id, прізвище, ім'я, по батькові)]
@@ -55,8 +185,7 @@ ${roles}
 ${birth}
 
 [death.csv - дані про смерть]
-${death}
-`;
+${death}`;
     return cachedDbContext;
   } catch(e) {
     console.error("Error reading db files:", e);
@@ -67,20 +196,44 @@ ${death}
 app.use(express.json());
 app.use(cookieParser());
 
-const rootDataPath = path.join(process.cwd(), 'data');
-app.use('/data', express.static(rootDataPath));
+// First priority: files in ACTIVE_DATA_DIR
+app.use("/data", (req, res, next) => {
+  const activeFile = path.join(ACTIVE_DATA_DIR, req.path);
+  if (fs.existsSync(activeFile) && fs.statSync(activeFile).isFile()) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    return res.sendFile(activeFile);
+  }
+  const distFile = path.join(process.cwd(), "dist", "data", req.path);
+  if (fs.existsSync(distFile) && fs.statSync(distFile).isFile()) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    return res.sendFile(distFile);
+  }
+  const cwdFile = path.join(process.cwd(), "data", req.path);
+  if (fs.existsSync(cwdFile) && fs.statSync(cwdFile).isFile()) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    return res.sendFile(cwdFile);
+  }
+  next();
+});
 
-app.get('/api/data/kinship', (req, res) => {
-  const kinshipPath = path.join(process.cwd(), 'data/kinship.json');
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.sendFile(kinshipPath, (err) => {
-    if (err) {
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'Failed to send kinship index' });
-      }
+app.get("/api/data/kinship", (req, res) => {
+  const candidates = [
+    path.join(ACTIVE_DATA_DIR, "kinship.json"),
+    path.join(process.cwd(), "dist", "data", "kinship.json"),
+    path.join(process.cwd(), "data", "kinship.json"),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      return res.sendFile(c, (err) => {
+        if (err && !res.headersSent) {
+          res.status(500).json({ error: "Failed to send kinship index" });
+        }
+      });
     }
-  });
+  }
+  res.status(404).json({ error: "Kinship index not found" });
 });
 
 let isSyncInProgress = false;
@@ -120,6 +273,10 @@ app.post('/api/sync-data', async (req, res) => {
       "node scripts/api-tasks/sync-data.js && node scripts/api-tasks/generate-kinship.js",
       {
         cwd: process.cwd(),
+        env: {
+          ...process.env,
+          ACTIVE_DATA_DIR: ACTIVE_DATA_DIR,
+        },
         timeout: 180000,
         maxBuffer: 10 * 1024 * 1024,
       }
@@ -131,14 +288,21 @@ app.post('/api/sync-data', async (req, res) => {
 
     cachedDbContext = "";
 
-    const distDataPath = path.join(process.cwd(), "dist", "data");
-    if (fs.existsSync(distDataPath)) {
-      try {
-        fs.cpSync(rootDataPath, distDataPath, { recursive: true });
-        console.log("📁 [API] Synchronized data into dist/data");
-      } catch (cpErr) {
-        console.warn("⚠️ [API] Failed to copy to dist/data:", cpErr);
+    if (!IS_READONLY) {
+      const distDataPath = path.join(process.cwd(), "dist", "data");
+      if (fs.existsSync(distDataPath)) {
+        try {
+          fs.cpSync(ACTIVE_DATA_DIR, distDataPath, { recursive: true });
+        } catch (cpErr) {
+          console.warn("⚠️ [API] Failed to copy to dist/data:", cpErr);
+        }
       }
+    }
+    // Persist all synced sheets to Firestore so any Cloud instance has the new data
+    try {
+      await persistSyncedDataToFirestore();
+    } catch (persistErr) {
+      console.warn("⚠️ [API] Firestore persistence warning:", persistErr);
     }
 
     isSyncInProgress = false;

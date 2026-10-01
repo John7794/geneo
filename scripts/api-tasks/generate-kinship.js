@@ -24,14 +24,41 @@ function parseCSVList(str) {
 		.filter(Boolean);
 }
 
+export function getActiveDataDir() {
+  if (process.env.ACTIVE_DATA_DIR) {
+    return process.env.ACTIVE_DATA_DIR;
+  }
+  try {
+    const testFile = path.join(process.cwd(), ".write-test-" + Date.now());
+    fs.writeFileSync(testFile, "1");
+    fs.unlinkSync(testFile);
+    return path.join(process.cwd(), "data");
+  } catch {
+    return path.join("/tmp", "genealogy_app_data", "data");
+  }
+}
+
 export async function main() {
 	console.log("🧬 Starting kinship calculation and tree index precompilation...");
+	const dataDir = getActiveDataDir();
+	console.log("📂 Working data directory: " + dataDir);
 
-	const rootDir = process.env.DATA_DIR ? path.dirname(process.env.DATA_DIR) : process.cwd();
-	const basicPath = path.join(rootDir, "data", "db", "uk", "basic.csv");
-	const rolesPath = path.join(rootDir, "data", "db", "uk", "familyRoles.csv");
-	const familyListPath = path.join(rootDir, "data", "db", "uk", "familyList.csv");
-	const outputPath = path.join(rootDir, "data", "kinship.json");
+	function resolveCsv(relPath) {
+		const candidates = [
+			path.join(dataDir, relPath),
+			path.join(process.cwd(), "data", relPath),
+			path.join(process.cwd(), "dist", "data", relPath),
+		];
+		for (const p of candidates) {
+			if (fs.existsSync(p)) return p;
+		}
+		return path.join(dataDir, relPath);
+	}
+
+	const basicPath = resolveCsv("db/uk/basic.csv");
+	const rolesPath = resolveCsv("db/uk/familyRoles.csv");
+	const familyListPath = resolveCsv("db/uk/familyList.csv");
+	const outputPath = path.join(dataDir, "kinship.json");
 
 	try {
 		const basicRows = parseCSV(basicPath);
@@ -366,6 +393,7 @@ export async function main() {
 		console.log(`[Tree Engine] Precomputed index for ${Object.keys(kinshipIndex).length} profiles.`);
 
 		// Записуємо готовий стислий JSON-індекс на диск
+		fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 		fs.writeFileSync(outputPath, JSON.stringify(kinshipIndex), "utf8");
 		console.log(`✅ Kinship index successfully compiled and written to: ${outputPath}`);
 	} catch (error) {

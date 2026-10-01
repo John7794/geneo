@@ -65,20 +65,32 @@ const DATABASES = {
   },
 };
 
+export function getActiveDataDir() {
+  if (process.env.ACTIVE_DATA_DIR) {
+    return process.env.ACTIVE_DATA_DIR;
+  }
+  try {
+    const testFile = path.join(process.cwd(), ".write-test-" + Date.now());
+    fs.writeFileSync(testFile, "1");
+    fs.unlinkSync(testFile);
+    return path.join(process.cwd(), "data");
+  } catch {
+    return path.join("/tmp", "genealogy_app_data", "data");
+  }
+}
+
 export async function main() {
   console.log("📥 Starting database synchronization from Google Sheets...");
-
-  const rootDir = process.env.DATA_DIR
-    ? path.dirname(process.env.DATA_DIR)
-    : process.cwd();
-  const metadataPath = path.join(rootDir, "data", "db", "metadata.json");
+  const dataDir = getActiveDataDir();
+  console.log("📂 Target data directory: " + dataDir);
+  const metadataPath = path.join(dataDir, "db", "metadata.json");
 
   try {
     let downloadedCount = 0;
 
     // Змінено: завантажуємо файли послідовно з паузою, щоб уникнути блокування API (Error 429 Too Many Requests) від Google
     for (const [lang, tables] of Object.entries(DATABASES)) {
-      const langDir = path.join(rootDir, "data", "db", lang);
+      const langDir = path.join(dataDir, "db", lang);
       if (!fs.existsSync(langDir)) {
         fs.mkdirSync(langDir, { recursive: true });
       }
