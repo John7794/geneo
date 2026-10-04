@@ -33,6 +33,9 @@ export class UpdateManager {
 		this.resultState = document.getElementById("update-data-result-state");
 		this.timerDisplay = document.getElementById("update-data-timer-display");
 
+		this.lastDateEl = document.getElementById("update-data-last-date");
+		this.profileCountEl = document.getElementById("update-data-profile-count");
+
 		this.resultIcon = document.getElementById("update-data-result-icon");
 		this.resultTitle = document.getElementById("update-data-result-title");
 		this.resultDesc = document.getElementById("update-data-result-desc");
@@ -40,7 +43,6 @@ export class UpdateManager {
 	}
 
 	init() {
-		// Event delegation to catch clicks on #btn-update-data anytime anywhere
 		document.addEventListener("click", (e) => {
 			const btn = e.target.closest("#btn-update-data");
 			if (btn) {
@@ -84,6 +86,35 @@ export class UpdateManager {
 		}
 	}
 
+	async loadStatus() {
+		this._bindDom();
+		try {
+			const res = await fetch("/api/db-status?t=" + Date.now(), { cache: "no-store" });
+			if (res.ok) {
+				const data = await res.json();
+				if (this.lastDateEl) {
+					if (data.lastUpdated || data.timestamp) {
+						const date = new Date(data.lastUpdated || data.timestamp);
+						this.lastDateEl.textContent = date.toLocaleString("uk-UA", {
+							day: "2-digit",
+							month: "2-digit",
+							year: "numeric",
+							hour: "2-digit",
+							minute: "2-digit"
+						});
+					} else {
+						this.lastDateEl.textContent = "Базова версія";
+					}
+				}
+				if (this.profileCountEl) {
+					this.profileCountEl.textContent = data.profileCount ? `${data.profileCount} осіб` : "2 404 особи";
+				}
+			}
+		} catch (err) {
+			console.warn("⚠️ Could not load db status:", err);
+		}
+	}
+
 	open() {
 		this._bindDom();
 		if (!this.overlay) {
@@ -97,7 +128,7 @@ export class UpdateManager {
 		this.overlay.classList.add("show", "open");
 		this.overlay.setAttribute("aria-hidden", "false");
 		document.body.classList.add(UI_CLASSES.noScroll || "no-scroll");
-		console.log("✅ UpdateManager.open() modal shown with classes:", this.overlay.className);
+		this.loadStatus();
 	}
 
 	close() {
@@ -175,17 +206,18 @@ export class UpdateManager {
 				this.resultTitle.textContent = "Дані успішно оновлено!";
 			}
 			if (this.resultDesc) {
-				this.resultDesc.textContent = "Очищення кешу та перезавантаження сторінки з найновішими даними...";
+				this.resultDesc.textContent = "Очищення кешу та оновлення сторінки...";
 			}
 			if (this.resultActions) {
 				this.resultActions.classList.add("hidden");
 			}
 
-			// Очищення локального кешу браузера
+			// Повне очищення локального кешу браузера
 			try {
 				if (typeof localforage !== "undefined") {
 					await localforage.clear();
 				}
+				sessionStorage.clear();
 				if (typeof caches !== "undefined" && caches.keys) {
 					const cacheNames = await caches.keys();
 					for (const name of cacheNames) {
@@ -198,24 +230,15 @@ export class UpdateManager {
 						await reg.unregister();
 					}
 				}
-				const cacheBust = Date.now();
-				const metaResponse = await fetch(`./data/db/metadata.json?t=${cacheBust}`, {
-					cache: "no-store",
-					headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
-				});
-				if (metaResponse.ok) {
-					const meta = await metaResponse.json();
-					if (typeof localforage !== "undefined") {
-						await localforage.setItem("DB_VERSION", meta.timestamp || cacheBust);
-					}
-				}
 			} catch (cacheErr) {
 				console.warn("⚠️ Cache clearing warning:", cacheErr);
 			}
 
+			// Примусове перезавантаження з унікальним параметром для обходу будь-якого кешу
 			setTimeout(() => {
-				window.location.reload();
-			}, 1500);
+				const targetUrl = window.location.pathname + "?_t=" + Date.now();
+				window.location.replace(targetUrl);
+			}, 1200);
 
 		} catch (error) {
 			this.isSyncing = false;

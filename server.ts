@@ -72,6 +72,10 @@ function initActiveDataDir() {
 }
 initActiveDataDir();
 
+let localSyncTimestamp = 0;
+let lastFirestoreCheckTime = 0;
+let isRestoring = false;
+
 // Restore any previously synced data from Firestore if available
 async function restoreSyncedDataFromFirestore() {
   try {
@@ -94,12 +98,49 @@ async function restoreSyncedDataFromFirestore() {
       }
       fs.writeFileSync(targetPath, fileBuf);
     }
-    console.log("✅ Successfully restored latest database state from Firestore!");
+
+    try {
+      const statusDoc = await fdb.collection("synced_meta").doc("status").get();
+      if (statusDoc.exists) {
+        localSyncTimestamp = statusDoc.data()?.lastSyncedTimestamp || Date.now();
+      } else {
+        const metaPath = path.join(ACTIVE_DATA_DIR, "db", "metadata.json");
+        if (fs.existsSync(metaPath)) {
+          const m = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+          localSyncTimestamp = m.timestamp || Date.now();
+        }
+      }
+    } catch (e) {}
+
+    console.log(`✅ Successfully restored latest database state from Firestore! Version: ${localSyncTimestamp}`);
   } catch (err) {
     console.warn("⚠️ Could not restore from Firestore:", err);
   }
 }
 restoreSyncedDataFromFirestore();
+
+async function ensureLatestDataFromFirestore(force = false) {
+  const now = Date.now();
+  if (!force && (now - lastFirestoreCheckTime < 3500 || isRestoring)) {
+    return;
+  }
+  lastFirestoreCheckTime = now;
+
+  try {
+    const statusDoc = await fdb.collection("synced_meta").doc("status").get();
+    if (!statusDoc.exists) return;
+    const remoteTimestamp = statusDoc.data()?.lastSyncedTimestamp || 0;
+    if (remoteTimestamp > localSyncTimestamp) {
+      console.log(`🔄 Remote data in Firestore is newer (${remoteTimestamp} > ${localSyncTimestamp}). Updating local instance files...`);
+      isRestoring = true;
+      await restoreSyncedDataFromFirestore();
+      cachedDbContext = "";
+      isRestoring = false;
+    }
+  } catch (err) {
+    console.warn("⚠️ ensureLatestDataFromFirestore error:", err);
+  }
+}
 
 // Backup newly synced data to Firestore so other/future container instances have it
 async function persistSyncedDataToFirestore() {
@@ -141,7 +182,24 @@ async function persistSyncedDataToFirestore() {
       });
     }
     await batch.commit();
-    console.log(`✅ Saved ${filesToSync.length} database files to Firestore for persistent cloud storage!`);
+
+    let newTimestamp = Date.now();
+    const metaPath = path.join(ACTIVE_DATA_DIR, "db", "metadata.json");
+    if (fs.existsSync(metaPath)) {
+      try {
+        const m = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+        if (m.timestamp) newTimestamp = m.timestamp;
+      } catch (e) {}
+    }
+
+    await fdb.collection("synced_meta").doc("status").set({
+      lastSyncedTimestamp: newTimestamp,
+      version: newTimestamp,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    localSyncTimestamp = newTimestamp;
+
+    console.log(`✅ Saved ${filesToSync.length} database files and status to Firestore for persistent cloud storage!`);
   } catch (err) {
     console.warn("⚠️ Failed to persist synced data to Firestore:", err);
   }
@@ -197,7 +255,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 // First priority: files in ACTIVE_DATA_DIR
-app.use("/data", (req, res, next) => {
+app.use("/data", async (req, res, next) => {
+  if (req.path.includes("metadata.json") || req.path.includes("basic.csv")) {
+    await ensureLatestDataFromFirestore();
+  }
   const activeFile = path.join(ACTIVE_DATA_DIR, req.path);
   if (fs.existsSync(activeFile) && fs.statSync(activeFile).isFile()) {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
@@ -216,7 +277,8 @@ app.use("/data", (req, res, next) => {
   next();
 });
 
-app.get("/api/data/kinship", (req, res) => {
+app.get("/api/data/kinship", async (req, res) => {
+  await ensureLatestDataFromFirestore();
   const candidates = [
     path.join(ACTIVE_DATA_DIR, "kinship.json"),
     path.join(process.cwd(), "dist", "data", "kinship.json"),
@@ -251,6 +313,34 @@ function checkCanSync(req: express.Request): boolean {
   const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
   return val === 'www.johnsel771994@gmail.com' || val === 'johnsel771994@gmail.com';
 }
+
+app.get("/api/db-status", async (req, res) => {
+  await ensureLatestDataFromFirestore();
+  const metaPath = path.join(ACTIVE_DATA_DIR, "db", "metadata.json");
+  let meta = { lastUpdated: null, timestamp: 0, sheetsSynced: 0 };
+  if (fs.existsSync(metaPath)) {
+    try {
+      meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+    } catch (e) {}
+  }
+  
+  let profileCount = 0;
+  const basicPath = path.join(ACTIVE_DATA_DIR, "db", "uk", "basic.csv");
+  if (fs.existsSync(basicPath)) {
+    try {
+      const lines = fs.readFileSync(basicPath, "utf8").split("\n").filter(Boolean);
+      profileCount = Math.max(0, lines.length - 1);
+    } catch (e) {}
+  }
+
+  res.json({
+    lastUpdated: meta.lastUpdated,
+    timestamp: meta.timestamp || localSyncTimestamp,
+    sheetsSynced: meta.sheetsSynced || 29,
+    profileCount,
+    serverTime: Date.now()
+  });
+});
 
 app.get('/api/sync-data', (req, res) => {
   res.json({ inProgress: isSyncInProgress });

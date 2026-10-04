@@ -121,9 +121,6 @@
                 <button id="btn-share" class="btn btn-icon js-open-share" style="display: none;" title="Поділитися" data-i18n-title="ui.share">
                     <i class="ri-share-line"></i>
                 </button>
-                <button id="btn-update-data" class="btn btn-icon" onclick="window.updateManager && window.updateManager.open()" title="Оновити дані з Google Таблиць" data-i18n-title="ui.updateData">
-                    <i class="ri-refresh-line"></i>
-                </button>
 
                 <button id="btn-search" class="btn btn-icon js-open-search" title="Пошук" data-i18n-title="ui.searchTitle">
                     <i class="ri-search-line"></i>
@@ -317,66 +314,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Update Data Modal -->
-        <div id="update-data-overlay" class="popup-overlay hidden" aria-hidden="true">
-            <div class="popup-container" style="max-width: 480px;">
-                <div class="popup-header">
-                    <h3 class="popup-name popup-name--flex">
-                        <i class="ri-refresh-line text-primary"></i>
-                        <span>Оновлення бази даних</span>
-                    </h3>
-                    <button id="btn-close-update-data" class="modal-close" title="Закрити">
-                        <i class="ri-close-line"></i>
-                    </button>
-                </div>
-                <div class="popup-body">
-                    <!-- State 1: Confirmation prompt -->
-                    <div id="update-data-prompt-state">
-                        <p style="margin-top: 0; margin-bottom: 16px; line-height: 1.5; color: var(--color-text-main);">
-                            Оновити дані та родинні зв'язки з Google Таблиць?
-                        </p>
-                        <div style="background: rgba(59, 130, 246, 0.08); border-left: 4px solid #3b82f6; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; line-height: 1.4; color: var(--color-text-main);">
-                            <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                                <i class="ri-information-line text-primary"></i>
-                                Що відбудеться:
-                            </div>
-                            Система завантажить усі 29 аркушів Google Sheets, перерахує граф спорідненості для 2440+ профілів та оновить локальний кеш. Процес триває приблизно <strong>30–60 секунд</strong>.
-                        </div>
-                        <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                            <button class="btn btn-outline" id="btn-cancel-update-data">Скасувати</button>
-                            <button class="btn btn-primary" id="btn-confirm-update-data" style="display: flex; align-items: center; gap: 6px;">
-                                <i class="ri-refresh-line"></i>
-                                <span>Оновити зараз</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- State 2: Active syncing progress -->
-                    <div id="update-data-progress-state" class="hidden" style="text-align: center; padding: 24px 12px;">
-                        <div style="display: inline-block; width: 48px; height: 48px; border: 4px solid rgba(59,130,246,0.2); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-                        <h4 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: var(--color-text-main);">
-                            Синхронізація з Google Sheets...
-                        </h4>
-                        <p style="color: var(--color-text-muted, #666); font-size: 14px; margin: 0 0 14px 0; line-height: 1.4;">
-                            Завантажуємо таблиці та перераховуємо родинні зв'язки.<br>Будь ласка, зачекайте.
-                        </p>
-                        <div id="update-data-timer-display" style="display: inline-block; padding: 4px 12px; background: rgba(59,130,246,0.1); border-radius: 20px; font-family: monospace; font-size: 13px; font-weight: 600; color: #3b82f6;">
-                            Час: 0 с
-                        </div>
-                    </div>
-
-                    <!-- State 3: Completion / Result -->
-                    <div id="update-data-result-state" class="hidden" style="text-align: center; padding: 20px 12px;">
-                        <div id="update-data-result-icon" style="font-size: 48px; margin-bottom: 12px;"></div>
-                        <h4 id="update-data-result-title" style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: var(--color-text-main);"></h4>
-                        <p id="update-data-result-desc" style="font-size: 14px; margin: 0 0 16px 0; color: var(--color-text-muted, #666); line-height: 1.4;"></p>
-                        <div id="update-data-result-actions" class="hidden" style="display: flex; justify-content: center; gap: 12px;">
-                            <button class="btn btn-primary" id="btn-close-update-result">Закрити</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Analytics Modal -->

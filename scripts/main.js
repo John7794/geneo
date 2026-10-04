@@ -71,10 +71,6 @@ class App {
 					if (btnShare) {
 						btnShare.style.display = ""; // Always show share button for now, as user wants it back
 					}
-					const btnUpdate = document.getElementById("btn-update-data");
-					if (btnUpdate) {
-						btnUpdate.style.display = "";
-					}
 				}
 			} catch(e) {
 				console.warn("⚠️ Could not fetch user config, using defaults", e);
