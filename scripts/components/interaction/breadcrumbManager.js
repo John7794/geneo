@@ -15,7 +15,8 @@ export class BreadcrumbManager {
 			(() => console.warn("Breadcrumbs: onNavigate not provided"));
 
 		this._handleGlobalClick = this._handleGlobalClick.bind(this);
-		this._handleScrollOrResize = this._closeDropdown.bind(this);
+		this._handleScrollOrResize = this._handleScrollOrResize.bind(this);
+		this._isOpening = false;
 
 		this._initEventListeners();
 	}
@@ -38,6 +39,23 @@ export class BreadcrumbManager {
 		) {
 			this._closeDropdown();
 		}
+	}
+
+	_handleScrollOrResize(e) {
+		if (this._isOpening) return;
+
+		// Не закривати, якщо скрол всередині самого випадаючого списку або списку крихт
+		if (
+			e &&
+			e.target &&
+			(e.target === this.activeDropdown ||
+				this.activeDropdown?.contains(e.target) ||
+				e.target === this.listContainer)
+		) {
+			return;
+		}
+
+		this._closeDropdown();
 	}
 
 	_closeDropdown() {
@@ -66,6 +84,11 @@ export class BreadcrumbManager {
 		triggerEl.classList.add(UI_CLASSES.active);
 		triggerEl.setAttribute("aria-expanded", "true");
 
+		this._isOpening = true;
+		setTimeout(() => {
+			this._isOpening = false;
+		}, 150);
+
 		// 1. СТВОРЮЄМО ОВЕРЛЕЙ (ЗАДНІЙ ФОН)
 		const overlay = document.createElement("div");
 		overlay.className = "breadcrumbs__overlay";
@@ -86,14 +109,6 @@ export class BreadcrumbManager {
 		menu.setAttribute("role", "menu");
 		menu.style.zIndex = "9999";
 
-		// 🔥 Вираховуємо позицію тільки для десктопу! На мобілці працюватиме CSS.
-		const isMobile = window.matchMedia("(max-width: 767px)").matches;
-		if (!isMobile) {
-			menu.style.position = "fixed";
-			menu.style.top = `${rect.bottom + 4}px`;
-			menu.style.left = `${rect.left}px`;
-		}
-
 		items.forEach((item) => {
 			const el = document.createElement("button");
 			el.className = UI_CLASSES.breadcrumbsDropdownItem;
@@ -113,6 +128,43 @@ export class BreadcrumbManager {
 
 		document.body.appendChild(menu);
 		this.activeDropdown = menu;
+
+		// 🔥 Розрахунок позиції для десктопу з урахуванням правого краю екрана
+		const isMobile = window.matchMedia("(max-width: 767px)").matches;
+		if (!isMobile) {
+			menu.style.position = "fixed";
+			menu.style.top = `${rect.bottom + 4}px`;
+
+			// Отримуємо реальну ширину меню після додавання в DOM
+			const menuWidth = Math.max(220, menu.offsetWidth || 220);
+			const padding = 12;
+
+			let leftPos = rect.left;
+
+			// Якщо меню вилазить за правий край екрана — вирівнюємо за правим краєм тригера
+			if (leftPos + menuWidth > window.innerWidth - padding) {
+				leftPos = rect.right - menuWidth;
+			}
+
+			// Страховка від виходу за межі екрана
+			if (leftPos + menuWidth > window.innerWidth - padding) {
+				leftPos = window.innerWidth - menuWidth - padding;
+			}
+			if (leftPos < padding) {
+				leftPos = padding;
+			}
+
+			// Перевірка нижнього краю: якщо меню не вміщується знизу, відкриваємо зверху
+			const menuHeight = menu.offsetHeight || 200;
+			if (rect.bottom + 4 + menuHeight > window.innerHeight - padding) {
+				if (rect.top - menuHeight - 4 > padding) {
+					menu.style.top = `${rect.top - menuHeight - 4}px`;
+				}
+			}
+
+			menu.style.left = `${leftPos}px`;
+			menu.style.right = "auto";
+		}
 
 		// Анімація появи оверлею
 		requestAnimationFrame(() => {
@@ -143,6 +195,10 @@ export class BreadcrumbManager {
 		trigger.onclick = (e) => {
 			e.stopPropagation();
 			e.preventDefault();
+			if (this.activeDropdown && trigger.classList.contains(UI_CLASSES.active)) {
+				this._closeDropdown();
+				return;
+			}
 			this._openDropdown(
 				trigger,
 				item.siblings,
