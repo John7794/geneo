@@ -2,9 +2,9 @@ name: Auto Sync Google Sheets
 
 on:
   schedule:
-    # Запуск кожні 4 години (можна змінити на будь-який інтервал, наприклад раз на добу)
+    # Запуск кожні 4 години
     - cron: '0 */4 * * *'
-  workflow_dispatch: # Дозволяє запустити синхронізацію вручну в 1 клік у вкладці Actions на GitHub
+  workflow_dispatch: # Ручний запуск в 1 клік
 
 jobs:
   sync:
@@ -19,11 +19,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Download Google Sheets & Rebuild Kinship Index
         run: |
