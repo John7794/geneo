@@ -11,26 +11,30 @@
 
 .kinship-grid--5-cols {
 	grid-template-columns: repeat(1, 1fr);
+	align-items: start;
 }
 
 @media (min-width: 640px) {
 	.kinship-grid--5-cols {
 		grid-template-columns: repeat(2, 1fr);
+		align-items: start;
 	}
 }
 @media (min-width: 1024px) {
 	.kinship-grid--5-cols {
 		grid-template-columns: repeat(5, 1fr);
+		align-items: start;
 	}
 }
 
 .kinship-col {
-	display: grid;
+	display: flex;
+	flex-direction: column;
 	gap: var(--spacing-md);
 }
 
 .kinship-col > .kinship-card {
-	/* Grid rows will be assigned via inline style grid-row: span X */
+	height: auto;
 }
 
 /* ==========================================
@@ -180,6 +184,8 @@
 	gap: var(--spacing-xs);
 	border: 1px solid var(--color-border);
 	background-color: transparent; /* Вони трохи темніші на скріні */
+	min-height: 72px;
+	box-sizing: border-box;
 }
 
 /* Роль (напр. ПРА(18)БАБА) */
