@@ -8,8 +8,13 @@ import compression from "compression";
 import path from "path";
 import fs from "fs";
 import cookieParser from "cookie-parser";
-import { initializeApp, getApp, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { initializeApp, getApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
+
+// Ініціалізація конфігурації адміністратора
+const adminEmailsList = (process.env.ADMIN_EMAIL || "www.johnsel771994@gmail.com,johnsel771994@gmail.com")
+  .split(",")
+  .map((e) => e.trim().toLowerCase());
 
 let adminConfig: any = { projectId: "geneo-b8e63" };
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -18,7 +23,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     if (raw.startsWith("'") && raw.endsWith("'")) raw = raw.slice(1, -1);
     const serviceAccount = JSON.parse(raw);
     if (serviceAccount.private_key) {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
     }
     adminConfig.credential = cert(serviceAccount);
     console.log("Using provided FIREBASE_SERVICE_ACCOUNT for credentials.");
@@ -27,9 +32,9 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   }
 }
 initializeApp(adminConfig);
-const fdb = getFirestore(getApp(), 'ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1');
+const fdb = getFirestore(getApp(), "ai-studio-63d48ced-44ea-42e9-9cf6-e86ae5746ff1");
 
-// Check if root filesystem is read-only (Cloud Run / Serverless container)
+// Перевірка чи файлова система доступна лише для читання (Vercel Serverless)
 const IS_READONLY = (() => {
   try {
     const testFile = path.join(process.cwd(), ".write-test-" + Date.now());
@@ -47,7 +52,7 @@ const ACTIVE_DATA_DIR = IS_READONLY
 
 process.env.ACTIVE_DATA_DIR = ACTIVE_DATA_DIR;
 
-// Seed ACTIVE_DATA_DIR on startup if running in read-only environment
+// Ініціалізація та наповнення робочої директорії
 function initActiveDataDir() {
   if (IS_READONLY) {
     if (!fs.existsSync(ACTIVE_DATA_DIR)) {
@@ -76,7 +81,7 @@ let localSyncTimestamp = 0;
 let lastFirestoreCheckTime = 0;
 let isRestoring = false;
 
-// Restore any previously synced data from Firestore if available
+// Відновлення синхронізованих даних із Firestore
 async function restoreSyncedDataFromFirestore() {
   try {
     const snap = await fdb.collection("synced_sheets").get();
@@ -84,13 +89,13 @@ async function restoreSyncedDataFromFirestore() {
       console.log("ℹ️ No remote synced data in Firestore, using bundled database.");
       return;
     }
-    console.log(`📥 Restoring ${snap.size} files from Firestore into ${ACTIVE_DATA_DIR}...`);
+    console.log(`📦 Restoring ${snap.size} files from Firestore into ${ACTIVE_DATA_DIR}...`);
     for (const doc of snap.docs) {
       const data = doc.data();
       if (!data.relativePath || !data.content) continue;
       const targetPath = path.join(ACTIVE_DATA_DIR, data.relativePath);
       fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-      let fileBuf;
+      let fileBuf: Buffer;
       if (data.isCompressed) {
         fileBuf = zlib.inflateSync(Buffer.from(data.content, "base64"));
       } else {
@@ -121,7 +126,7 @@ restoreSyncedDataFromFirestore();
 
 async function ensureLatestDataFromFirestore(force = false) {
   const now = Date.now();
-  if (!force && (now - lastFirestoreCheckTime < 3500 || isRestoring)) {
+  if (!force && (now - lastFirestoreCheckTime < 5000 || isRestoring)) {
     return;
   }
   lastFirestoreCheckTime = now;
@@ -131,10 +136,9 @@ async function ensureLatestDataFromFirestore(force = false) {
     if (!statusDoc.exists) return;
     const remoteTimestamp = statusDoc.data()?.lastSyncedTimestamp || 0;
     if (remoteTimestamp > localSyncTimestamp) {
-      console.log(`🔄 Remote data in Firestore is newer (${remoteTimestamp} > ${localSyncTimestamp}). Updating local instance files...`);
+      console.log(`🔄 Remote data in Firestore is newer (${remoteTimestamp} > ${localSyncTimestamp}). Updating local files...`);
       isRestoring = true;
       await restoreSyncedDataFromFirestore();
-      cachedDbContext = "";
       isRestoring = false;
     }
   } catch (err) {
@@ -142,25 +146,22 @@ async function ensureLatestDataFromFirestore(force = false) {
   }
 }
 
-// Backup newly synced data to Firestore so other/future container instances have it
+// Збереження даних у Firestore для serverless інстанцій
 async function persistSyncedDataToFirestore() {
   try {
-    console.log("📤 Persisting synced database files to Firestore...");
-    const filesToSync = [];
-    
-    // Add all CSV files
+    console.log("📦 Persisting synced database files to Firestore...");
+    const filesToSync: string[] = [];
+
     const ukDir = path.join(ACTIVE_DATA_DIR, "db", "uk");
     if (fs.existsSync(ukDir)) {
-      const csvFiles = fs.readdirSync(ukDir).filter(f => f.endsWith(".csv"));
+      const csvFiles = fs.readdirSync(ukDir).filter((f) => f.endsWith(".csv"));
       for (const f of csvFiles) {
         filesToSync.push(path.join("db", "uk", f));
       }
     }
-    // Add metadata.json
     if (fs.existsSync(path.join(ACTIVE_DATA_DIR, "db", "metadata.json"))) {
       filesToSync.push(path.join("db", "metadata.json"));
     }
-    // Add kinship.json
     if (fs.existsSync(path.join(ACTIVE_DATA_DIR, "kinship.json"))) {
       filesToSync.push("kinship.json");
     }
@@ -171,8 +172,8 @@ async function persistSyncedDataToFirestore() {
       if (!fs.existsSync(fullPath)) continue;
       const rawContent = fs.readFileSync(fullPath);
       const compressedContent = zlib.deflateSync(rawContent).toString("base64");
-      
-      const docId = relPath.replace(/[\/\\]/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
+
+      const docId = relPath.replace(/[/\\]/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
       const ref = fdb.collection("synced_sheets").doc(docId);
       batch.set(ref, {
         relativePath: relPath,
@@ -199,54 +200,77 @@ async function persistSyncedDataToFirestore() {
     });
     localSyncTimestamp = newTimestamp;
 
-    console.log(`✅ Saved ${filesToSync.length} database files and status to Firestore for persistent cloud storage!`);
+    console.log(`✅ Saved ${filesToSync.length} database files and status to Firestore!`);
   } catch (err) {
     console.warn("⚠️ Failed to persist synced data to Firestore:", err);
   }
 }
 
-
 export const app = express();
 app.use(compression());
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-let cachedDbContext = "";
-function getDbContext() {
-  if (cachedDbContext) return cachedDbContext;
+// Допоміжна функція пошуку файлів у робочих каталогах
+const resolveDataFile = (rel: string) => {
+  const candidates = [
+    path.join(ACTIVE_DATA_DIR, rel),
+    path.join(process.cwd(), "dist", "data", rel),
+    path.join(process.cwd(), "data", rel),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return path.join(ACTIVE_DATA_DIR, rel);
+};
+
+// Оптимізований таргетований контекст для Gemini AI
+function getAiContext(profileId?: string): string {
   try {
-    const resolvePath = (rel) => {
-      const candidates = [
-        path.join(ACTIVE_DATA_DIR, rel),
-        path.join(process.cwd(), "dist", "data", rel),
-        path.join(process.cwd(), "data", rel),
-      ];
-      for (const c of candidates) {
-        if (fs.existsSync(c)) return c;
+    const basicPath = resolveDataFile("db/uk/basic.csv");
+    const rolesPath = resolveDataFile("db/uk/familyRoles.csv");
+    const birthPath = resolveDataFile("db/uk/birth.csv");
+    const deathPath = resolveDataFile("db/uk/death.csv");
+
+    if (!fs.existsSync(basicPath)) return "";
+
+    const basicContent = fs.readFileSync(basicPath, "utf8");
+    const rolesContent = fs.existsSync(rolesPath) ? fs.readFileSync(rolesPath, "utf8") : "";
+
+    // Якщо користувач дивиться конкретний профіль, фокусуємо контекст на ньому та найближчих родичах
+    if (profileId) {
+      const basicLines = basicContent.split("\n");
+      const targetLine = basicLines.find((l) => l.startsWith(profileId + ","));
+      const rolesLine = rolesContent.split("\n").find((l) => l.startsWith(profileId + ","));
+
+      let relatedLines: string[] = [];
+      if (rolesLine) {
+        // Знаходимо ID батьків, подружжя, дітей
+        const ids = rolesLine.split(",").join(";").split(/[;\s]+/).filter((x) => /^\d+$/.test(x));
+        relatedLines = basicLines.filter((l) => {
+          const id = l.split(",")[0];
+          return ids.includes(id);
+        });
       }
-      return path.join(ACTIVE_DATA_DIR, rel);
-    };
 
-    const basic = fs.readFileSync(resolvePath("db/uk/basic.csv"), "utf8");
-    const roles = fs.readFileSync(resolvePath("db/uk/familyRoles.csv"), "utf8");
-    const birth = fs.readFileSync(resolvePath("db/uk/birth.csv"), "utf8");
-    const death = fs.readFileSync(resolvePath("db/uk/death.csv"), "utf8");
-        cachedDbContext = `Ось дані бази родоводу (у форматі CSV). Використовуй їх для відповідей на питання.
-Не вигадуй дані, спирайся тільки на цю інформацію.
+      return `
+[ФОКУСНА ПЕРСОНА (ID=${profileId})]:
+${targetLine || "Не знайдено"}
 
-[basic.csv - основні дані (id, прізвище, ім'я, по батькові)]
-${basic}
+[РОДИННІ РОЛІ ТА ЗВ'ЯЗКИ]:
+${rolesLine || "Не вказано"}
 
-[familyRoles.csv - родинні зв'язки (id, біологічні батьки, подружжя)]
-${roles}
+[БЛИЗЬКЕ РОДИННЕ КОЛО]:
+${relatedLines.slice(0, 15).join("\n")}
+`;
+    }
 
-[birth.csv - дані про народження]
-${birth}
-
-[death.csv - дані про смерть]
-${death}`;
-    return cachedDbContext;
-  } catch(e) {
-    console.error("Error reading db files:", e);
+    // Загальний контекст: заголовок і перші рядки для розуміння структури
+    return `
+[ОСНОВНА БАЗА ДАНИХ (фрагмент basic.csv)]:
+${basicContent.split("\n").slice(0, 40).join("\n")}
+`;
+  } catch (e) {
+    console.error("Error reading AI context:", e);
     return "";
   }
 }
@@ -254,78 +278,68 @@ ${death}`;
 app.use(express.json());
 app.use(cookieParser());
 
-// First priority: files in ACTIVE_DATA_DIR
+// Роздача /data зі статичним кешуванням
 app.use("/data", async (req, res, next) => {
   if (req.path.includes("metadata.json") || req.path.includes("basic.csv")) {
     await ensureLatestDataFromFirestore();
   }
   const activeFile = path.join(ACTIVE_DATA_DIR, req.path);
-  if (fs.existsSync(activeFile) && fs.statSync(activeFile).isFile()) {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    return res.sendFile(activeFile);
-  }
   const distFile = path.join(process.cwd(), "dist", "data", req.path);
-  if (fs.existsSync(distFile) && fs.statSync(distFile).isFile()) {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    return res.sendFile(distFile);
-  }
   const cwdFile = path.join(process.cwd(), "data", req.path);
-  if (fs.existsSync(cwdFile) && fs.statSync(cwdFile).isFile()) {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    return res.sendFile(cwdFile);
+
+  const fileToSend = [activeFile, distFile, cwdFile].find(
+    (f) => fs.existsSync(f) && fs.statSync(f).isFile()
+  );
+
+  if (fileToSend) {
+    // metadata.json не кешуємо, але великі файли та kinship.json кешуємо з валідацією
+    if (req.path.includes("metadata.json")) {
+      res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=86400");
+    }
+    return res.sendFile(fileToSend);
   }
   next();
 });
 
+// Ендпоінт індексу спорідненості
 app.get("/api/data/kinship", async (req, res) => {
   await ensureLatestDataFromFirestore();
-  const candidates = [
-    path.join(ACTIVE_DATA_DIR, "kinship.json"),
-    path.join(process.cwd(), "dist", "data", "kinship.json"),
-    path.join(process.cwd(), "data", "kinship.json"),
-  ];
-  for (const c of candidates) {
-    if (fs.existsSync(c)) {
-      res.setHeader("Content-Type", "application/json");
-      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-      return res.sendFile(c, (err) => {
-        if (err && !res.headersSent) {
-          res.status(500).json({ error: "Failed to send kinship index" });
-        }
-      });
-    }
+  const file = resolveDataFile("kinship.json");
+  if (fs.existsSync(file)) {
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=86400");
+    return res.sendFile(file);
   }
   res.status(404).json({ error: "Kinship index not found" });
 });
 
-let isSyncInProgress = false;
-
 function checkCanSync(req: express.Request): boolean {
   let emailOrPhone = req.cookies && req.cookies.auth_email;
   if (!emailOrPhone && req.headers.authorization) {
-    const parts = req.headers.authorization.split(' ');
-    if (parts.length === 2 && parts[0] === 'Bearer') emailOrPhone = parts[1];
+    const parts = req.headers.authorization.split(" ");
+    if (parts.length === 2 && parts[0] === "Bearer") emailOrPhone = parts[1];
   }
   if (!emailOrPhone) {
-    if (process.env.NODE_ENV !== "production") return true;
-    return false;
+    return process.env.NODE_ENV !== "production";
   }
-  const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
-  return val === 'www.johnsel771994@gmail.com' || val === 'johnsel771994@gmail.com';
+  const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, "");
+  return adminEmailsList.includes(val);
 }
 
 app.get("/api/db-status", async (req, res) => {
   await ensureLatestDataFromFirestore();
-  const metaPath = path.join(ACTIVE_DATA_DIR, "db", "metadata.json");
+  const metaPath = resolveDataFile("db/metadata.json");
   let meta = { lastUpdated: null, timestamp: 0, sheetsSynced: 0 };
   if (fs.existsSync(metaPath)) {
     try {
       meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
     } catch (e) {}
   }
-  
+
   let profileCount = 0;
-  const basicPath = path.join(ACTIVE_DATA_DIR, "db", "uk", "basic.csv");
+  const basicPath = resolveDataFile("db/uk/basic.csv");
   if (fs.existsSync(basicPath)) {
     try {
       const lines = fs.readFileSync(basicPath, "utf8").split("\n").filter(Boolean);
@@ -338,21 +352,23 @@ app.get("/api/db-status", async (req, res) => {
     timestamp: meta.timestamp || localSyncTimestamp,
     sheetsSynced: meta.sheetsSynced || 29,
     profileCount,
-    serverTime: Date.now()
+    serverTime: Date.now(),
   });
 });
 
-app.get('/api/sync-data', (req, res) => {
+let isSyncInProgress = false;
+
+app.get("/api/sync-data", (req, res) => {
   res.json({ inProgress: isSyncInProgress });
 });
 
-app.post('/api/sync-data', async (req, res) => {
+app.post("/api/sync-data", async (req, res) => {
   if (!checkCanSync(req)) {
     return res.status(403).json({ error: "У вас немає прав для оновлення бази даних." });
   }
 
   if (isSyncInProgress) {
-    return res.status(409).json({ error: "Синхронізація вже триває. Будь ласка, зачекайте завершення..." });
+    return res.status(409).json({ error: "Синхронізація вже триває. Будь ласка, зачекайте..." });
   }
 
   isSyncInProgress = true;
@@ -376,29 +392,23 @@ app.post('/api/sync-data', async (req, res) => {
     if (stdout) console.log(stdout);
     if (stderr) console.warn(stderr);
 
-    cachedDbContext = "";
-
     if (!IS_READONLY) {
       const distDataPath = path.join(process.cwd(), "dist", "data");
       if (fs.existsSync(distDataPath)) {
         try {
           fs.cpSync(ACTIVE_DATA_DIR, distDataPath, { recursive: true });
-        } catch (cpErr) {
-          console.warn("⚠️ [API] Failed to copy to dist/data:", cpErr);
-        }
+        } catch (cpErr) {}
       }
     }
-    // Persist all synced sheets to Firestore so any Cloud instance has the new data
+
     try {
       await persistSyncedDataToFirestore();
-    } catch (persistErr) {
-      console.warn("⚠️ [API] Firestore persistence warning:", persistErr);
-    }
+    } catch (persistErr) {}
 
     isSyncInProgress = false;
     res.json({
       success: true,
-      message: "Таблиці та родинні зв\x27язки успішно оновлено!",
+      message: "Таблиці та родинні зв'язки успішно оновлено!",
       timestamp: Date.now(),
     });
   } catch (error: any) {
@@ -411,7 +421,7 @@ app.post('/api/sync-data', async (req, res) => {
   }
 });
 
-app.get('/login', (req, res) => {
+app.get("/login", (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html>
@@ -448,8 +458,6 @@ app.get('/login', (req, res) => {
           </svg>
           Увійти через Google
         </button>
-
-        
 
         <div id="error" style="color: red; margin-top: 15px; font-weight: bold;"></div>
       </div>
@@ -494,8 +502,6 @@ app.get('/login', (req, res) => {
           }
         };
 
-
-
         document.getElementById('loginForm').onsubmit = async (e) => {
           e.preventDefault();
           const val = document.getElementById('emailOrPhone').value;
@@ -518,143 +524,157 @@ app.get('/login', (req, res) => {
   `);
 });
 
-app.post('/api/auth-login', (req, res) => {
-  const emailOrPhone = req.body.emailOrPhone || '';
-  if (emailOrPhone) {
-    res.cookie('auth_email', emailOrPhone.toLowerCase().trim(), { httpOnly: true, path: '/', sameSite: 'none', secure: true, partitioned: true });
-    res.cookie('auth_email_client', emailOrPhone.toLowerCase().trim(), { httpOnly: false, path: '/', sameSite: 'none', secure: true, partitioned: true });
-    res.json({ success: true, token: emailOrPhone.toLowerCase().trim() });
+app.post("/api/auth-login", (req, res) => {
+  const emailOrPhone = req.body.emailOrPhone || "";
+  if (emailOrPhone && typeof emailOrPhone === "string") {
+    const cleanAuth = emailOrPhone.toLowerCase().trim().replace(/[\r\n]/g, "");
+    res.cookie("auth_email", cleanAuth, {
+      httpOnly: true,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    res.cookie("auth_email_client", cleanAuth, {
+      httpOnly: false,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    res.json({ success: true, token: cleanAuth });
   } else {
-    res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: "Unauthorized" });
   }
 });
 
-app.post('/api/invite', async (req, res) => {
+app.post("/api/invite", async (req, res) => {
   const emailOrPhone = req.body.email || req.body.phone;
-  if (!emailOrPhone) return res.status(400).json({ error: 'Missing email or phone' });
-  
-  const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
+  if (!emailOrPhone) return res.status(400).json({ error: "Missing email or phone" });
+
+  const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, "");
   try {
-    await fdb.collection('shares').add({
+    await fdb.collection("shares").add({
       email: val,
-      createdAt: FieldValue.serverTimestamp()
+      createdAt: FieldValue.serverTimestamp(),
     });
     res.json({ success: true });
   } catch (e: any) {
     console.error("Invite error:", e);
-    res.status(500).json({ error: 'Failed' });
+    res.status(500).json({ error: "Failed" });
   }
 });
 
-
-app.delete('/api/shares/:id', async (req, res) => {
+app.delete("/api/shares/:id", async (req, res) => {
   try {
-    await fdb.collection('shares').doc(req.params.id).delete();
+    await fdb.collection("shares").doc(req.params.id).delete();
     res.json({ success: true });
   } catch (e: any) {
-    res.status(500).json({ error: 'Failed' });
+    res.status(500).json({ error: "Failed" });
   }
 });
 
-app.get('/api/shares', async (req, res) => {
+app.get("/api/shares", async (req, res) => {
   try {
-    const snap = await fdb.collection('shares').get();
-    const shares = snap.docs.map(doc => ({ id: doc.id, email: doc.data().value, ...doc.data() }));
+    const snap = await fdb.collection("shares").get();
+    const shares = snap.docs.map((doc) => ({ id: doc.id, email: doc.data().value, ...doc.data() }));
     res.json(shares);
-  } catch(e) {
+  } catch (e) {
     res.json([]);
   }
 });
 
-app.get('/api/config', async (req, res) => {
+app.get("/api/config", async (req, res) => {
   let emailOrPhone = req.cookies && req.cookies.auth_email;
   if (!emailOrPhone && req.headers.authorization) {
-    const parts = req.headers.authorization.split(' ');
-    if (parts.length === 2 && parts[0] === 'Bearer') emailOrPhone = parts[1];
+    const parts = req.headers.authorization.split(" ");
+    if (parts.length === 2 && parts[0] === "Bearer") emailOrPhone = parts[1];
   }
   if (emailOrPhone) {
-    const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, '');
-    
-    if (val === 'www.johnsel771994@gmail.com' || val === 'johnsel771994@gmail.com') {
+    const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, "");
+
+    if (adminEmailsList.includes(val)) {
       res.json({ canShare: true, canSync: true, isMainAdmin: true });
       return;
     }
-    
+
     try {
-      const snap = await fdb.collection('shares').where('email', '==', val).get();
-      console.log('Query result for', val, 'empty:', snap.empty);
+      const snap = await fdb.collection("shares").where("email", "==", val).get();
       if (!snap.empty) {
         res.json({ canShare: false, canSync: false, isMainAdmin: false });
         return;
       }
-    } catch(e) { console.error('Firebase shares query error:', e); }
+    } catch (e) {
+      console.error("Firebase shares query error:", e);
+    }
   } else if (process.env.NODE_ENV !== "production") {
     res.json({ canShare: true, canSync: true, isMainAdmin: true });
     return;
   }
-  res.status(401).json({ error: 'Unauthorized' });
+  res.status(401).json({ error: "Unauthorized" });
 });
 
 if (process.env.NODE_ENV !== "production") {
-  const rootScriptsPath = path.join(process.cwd(), 'scripts');
-  app.use('/scripts', express.static(rootScriptsPath, {
-      setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store'); }
-    }));
-  const rootCssPath = path.join(process.cwd(), 'css');
-  app.use('/css', express.static(rootCssPath, {
-      setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store'); }
-    }));
-  const rootAssetsPath = path.join(process.cwd(), 'assets');
-  app.use('/assets', express.static(rootAssetsPath));
+  const rootScriptsPath = path.join(process.cwd(), "scripts");
+  app.use("/scripts", express.static(rootScriptsPath, { setHeaders: (res) => res.setHeader("Cache-Control", "no-store") }));
+  const rootCssPath = path.join(process.cwd(), "css");
+  app.use("/css", express.static(rootCssPath, { setHeaders: (res) => res.setHeader("Cache-Control", "no-store") }));
+  const rootAssetsPath = path.join(process.cwd(), "assets");
+  app.use("/assets", express.static(rootAssetsPath));
 }
 
-app.get('/sw.js', (req, res) => res.sendFile(path.join(process.cwd(), 'sw.js')));
+app.get("/sw.js", (req, res) => res.sendFile(path.join(process.cwd(), "sw.js")));
 
-
-app.post('/api/gemini/chat', async (req, res) => {
+// AI Консультант з оптимізованим контекстом
+app.post("/api/gemini/chat", async (req, res) => {
   try {
     if (!process.env.GEMINI_API_KEY) {
       throw new Error("GEMINI_API_KEY is not configured. Please add your Gemini API Key in the Settings -> Secrets menu.");
     }
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+      httpOptions: { headers: { "User-Agent": "aistudio-build" } },
     });
     const prompt = req.body.prompt;
     const history = req.body.history || [];
     const currentProfileId = req.body.currentProfileId;
-    
-    // Instead of using chat sessions which might require specific message history format,
-    // we'll format the history into the prompt or contents for a simple implementation
-    
+
     let contents = [];
     for (const msg of history) {
-       contents.push({ role: msg.role === 'user' ? 'user' : 'model', parts: [{ text: msg.text }] });
+      contents.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.text }] });
     }
-    contents.push({ role: 'user', parts: [{ text: prompt }] });
-    
+    contents.push({ role: "user", parts: [{ text: prompt }] });
+
+    const focusedContext = getAiContext(currentProfileId);
+
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: contents,
       config: {
-        systemInstruction: "You are a helpful AI assistant specialized in genealogy research. Help the user discover their family history, explain historical contexts, analyze surnames, and suggest where to find archival records. Answer concisely and politely in Ukrainian." +
-          (currentProfileId ? "\n\nКористувач зараз переглядає профіль персони з ID=" + currentProfileId + ". Враховуй це, якщо питання стосується 'цієї людини' або поточного контексту." : "") +
-          "\n\nОсь база даних проекту: " + getDbContext(),
-      }
+        systemInstruction:
+          "You are a helpful AI assistant specialized in genealogy research. Help the user discover their family history, explain historical contexts, analyze surnames, and suggest where to find archival records. Answer concisely, informatively, and politely in Ukrainian." +
+          (currentProfileId
+            ? `\n\nКористувач зараз переглядає профіль персони з ID=${currentProfileId}. Враховуй це, якщо питання стосується 'цієї людини' або її родинних зв'язків.`
+            : "") +
+          (focusedContext ? `\n\nОсь релевантні архівні дані:\n${focusedContext}` : ""),
+      },
     });
-    
-    res.json({ 
-      text: response.text, 
-      usage: response.usageMetadata ? {
-        totalTokenCount: response.usageMetadata.totalTokenCount
-      } : null
+
+    res.json({
+      text: response.text,
+      usage: response.usageMetadata
+        ? {
+            totalTokenCount: response.usageMetadata.totalTokenCount,
+          }
+        : null,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
-    res.status(500).json({ error: error.message || 'Error generating response' });
+    res.status(500).json({ error: error.message || "Error generating response" });
   }
 });
 
+// Продакшен роздача клієнтської статики з оптимізованим кешуванням
 if (process.env.NODE_ENV !== "production") {
   (async () => {
     const viteName = "vi" + "te";
@@ -667,24 +687,31 @@ if (process.env.NODE_ENV !== "production") {
   })();
 } else {
   const distPath = path.join(process.cwd(), "dist");
-  app.use(express.static(distPath, {
-    setHeaders: (res, path) => {
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    }
-  }));
+  app.use(
+    express.static(distPath, {
+      setHeaders: (res, filePath) => {
+        // Хешовані JS/CSS бандли та іконки кешуємо на 1 рік в браузері та CDN
+        if (filePath.includes("/assets/") || filePath.endsWith(".svg") || filePath.endsWith(".png")) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        } else {
+          res.setHeader("Cache-Control", "no-cache, must-revalidate");
+        }
+      },
+    })
+  );
+
   app.get("*", (req, res) => {
     const p = req.path;
     if (p.startsWith("/api") || p.startsWith("/login")) {
-       return res.status(404).end();
+      return res.status(404).end();
     }
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
+    res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
-app.listen(3000, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

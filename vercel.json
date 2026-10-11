@@ -1,9 +1,24 @@
 {
   "version": 2,
+  "cleanUrls": true,
   "routes": [
     {
       "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
       "dest": "/assets/$1"
+    },
+    {
+      "src": "/data/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=300, stale-while-revalidate=86400"
+      },
+      "dest": "/data/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index"
     },
     {
       "src": "/(.*)",
@@ -12,7 +27,8 @@
   ],
   "functions": {
     "api/**/*": {
-      "includeFiles": "{data/**,firebase-applet-config.json,dist/**,scripts/**,css/**,assets/**}"
+      "includeFiles": "{data/**,firebase-applet-config.json,dist/**,scripts/**,css/**,assets/**}",
+      "maxDuration": 60
     }
   }
 }

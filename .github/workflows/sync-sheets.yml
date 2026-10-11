@@ -1,0 +1,44 @@
+name: Auto Sync Google Sheets
+
+on:
+  schedule:
+    # Запуск кожні 4 години (можна змінити на будь-який інтервал, наприклад раз на добу)
+    - cron: '0 */4 * * *'
+  workflow_dispatch: # Дозволяє запустити синхронізацію вручну в 1 клік у вкладці Actions на GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download Google Sheets & Rebuild Kinship Index
+        run: |
+          node scripts/api-tasks/sync-data.js
+          node scripts/api-tasks/generate-kinship.js
+
+      - name: Commit and push changes if updated
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git add data/
+            git commit -m "chore(data): auto-sync database from Google Sheets [skip ci]"
+            git push origin main
+            echo "✅ Дані оновлено та запушено в main! Vercel автоматично виконає деплой."
+          else
+            echo "ℹ️ Дані в Google Sheets не змінювалися. Пропуск комміту."
+          fi

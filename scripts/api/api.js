@@ -8,13 +8,15 @@ import { checkDataVersion, fetchCsv, fetchJson } from "./dataLoader.js";
 /**
  * MAIN DATA FETCH FUNCTION
  * Оркестрація завантаження системних файлів та ініціалізація логічного ядра.
+ * Оптимізовано: повне кешування kinship.json у IndexedDB, паралельне завантаження.
  */
 export async function fetchAllData(userConfig = {}) {
 	const lang = i18n.lang;
-	console.log(`🌍 Fetching data for language: [${lang}]`);
+	console.log(`🌐 Fetching data for language: [${lang}]`);
 
 	const version = await checkDataVersion();
 
+	// 1. Паралельне завантаження 29 CSV таблиць із вбудованим localforage-кешуванням
 	const filePromises = Object.entries(DATA_FILES).map(
 		async ([key, filename]) => {
 			const url = `./data/db/${lang}/${filename}?v=${version}`;
@@ -28,27 +30,67 @@ export async function fetchAllData(userConfig = {}) {
 		},
 	);
 
-	const kinshipUrl = `/api/data/kinship?v=${Date.now()}`;
+	// 2. Оптимізоване завантаження kinship.json з IndexedDB кешем
 	const kinshipPromise = (async () => {
-		try {
-			const res = await fetch(kinshipUrl, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
-			if (!res.ok) throw new Error("HTTP " + res.status);
-			let text = await res.text();
-			
-			// Fix common JSON truncation or escaping issues from proxies
+		const cacheKey = `kinship_index_v${version}`;
+
+		// Спроба взяти миттєво з IndexedDB
+		if (typeof localforage !== "undefined") {
 			try {
-				return JSON.parse(text);
+				const cached = await localforage.getItem(cacheKey);
+				if (cached && typeof cached === "object" && Object.keys(cached).length > 0) {
+					console.log(`⚡ Kinship index миттєво завантажено з кешу IndexedDB (v${version})`);
+					return cached;
+				}
+			} catch (e) {
+				console.warn("Помилка читання kinship з localforage:", e);
+			}
+		}
+
+		// Якщо в кеші немає або версія оновилася — завантажуємо через мережу
+		try {
+			// Спочатку пробуємо прямий статичний файл, якщо ні — API
+			let res = await fetch(`./data/kinship.json?v=${version}`, {
+				headers: { "Accept": "application/json" }
+			});
+			if (!res.ok) {
+				res = await fetch(`/api/data/kinship?v=${version}`);
+			}
+			if (!res.ok) throw new Error("HTTP " + res.status);
+			
+			let text = await res.text();
+			let parsedData;
+
+			try {
+				parsedData = JSON.parse(text);
 			} catch (e1) {
 				try {
-					text = text.replace(/[\x00-\x1F]/g, ""); 
-					return JSON.parse(text);
+					text = text.replace(/[\x00-\x1F]/g, "");
+					parsedData = JSON.parse(text);
 				} catch (e2) {
 					console.warn("Kinship JSON snippet near error:", text.substring(523850, 523900));
 					throw e2;
 				}
 			}
+
+			// Зберігаємо свіжу версію в IndexedDB
+			if (typeof localforage !== "undefined" && parsedData) {
+				localforage.setItem(cacheKey, parsedData).catch(() => {});
+				
+				// Очищаємо старі версії kinship
+				try {
+					const keys = await localforage.keys();
+					for (const k of keys) {
+						if (k.startsWith("kinship_index_v") && k !== cacheKey) {
+							await localforage.removeItem(k);
+						}
+					}
+				} catch (errClean) {}
+			}
+
+			return parsedData || {};
 		} catch (err) {
-			console.warn(`⚠️ Kinship index parse error.`, err);
+			console.warn(`⚠️ Kinship index parse/fetch error:`, err);
 			return {};
 		}
 	})();
@@ -59,25 +101,32 @@ export async function fetchAllData(userConfig = {}) {
 	]);
 
 	const db = Object.fromEntries(fileResults);
-	
-	// Apply profile filtering based on userConfig
+
+	// Фільтрація прихованих профілів
 	const hiddenProfiles = userConfig.hiddenProfiles || [];
 	if (hiddenProfiles.length > 0) {
 		const hideSet = new Set(hiddenProfiles.map(String));
-		
-		// List of tables where PID is used as a primary key
-		const tablesToFilterByPid = ['basic', 'identity', 'familyRoles', 'personal', 'names', 'identity', 'education', 'job', 'military'];
-		
-		tablesToFilterByPid.forEach(table => {
+
+		const tablesToFilterByPid = [
+			'basic',
+			'identity',
+			'familyRoles',
+			'personal',
+			'names',
+			'education',
+			'job',
+			'military'
+		];
+
+		tablesToFilterByPid.forEach((table) => {
 			if (db[table]) {
-				db[table] = db[table].filter(row => !hideSet.has(String(row.pid)));
+				db[table] = db[table].filter((row) => !hideSet.has(String(row.pid)));
 			}
 		});
 
-		// Filter familyList (relationships) - remove rows where PID is either the person or the relative
 		if (db.familyList) {
-			db.familyList = db.familyList.filter(row => 
-				!hideSet.has(String(row.fam_id)) && !hideSet.has(String(row.id))
+			db.familyList = db.familyList.filter(
+				(row) => !hideSet.has(String(row.fam_id)) && !hideSet.has(String(row.id)),
 			);
 		}
 	}
@@ -92,9 +141,7 @@ export async function fetchAllData(userConfig = {}) {
 			kinshipData,
 		);
 
-		console.log(
-			`🚀 FamilyEngine ready. Profiles loaded: ${engine.people?.size || 0}`,
-		);
+		console.log(`🚀 FamilyEngine ready. Profiles loaded: ${engine.people?.size || 0}`);
 		return engine;
 	} catch (e) {
 		console.error("❌ Critical Error: FamilyEngine failed to initialize", e);
