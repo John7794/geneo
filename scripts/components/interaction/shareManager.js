@@ -116,7 +116,6 @@ export class ShareManager {
 	}
 
 	open() {
-		console.log("ShareManager.open() called", this.overlay, this.isOpen);
 		if (!this.overlay || this.isOpen) return;
 		this.isOpen = true;
 

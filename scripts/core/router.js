@@ -482,9 +482,7 @@ export class AppRouter {
 
 		managers.relationship?.restoreUI(false);
 
-		console.log("View param:", viewParam);
 		if (viewParam === "analytics") {
-			console.log("Analytics view triggered");
 			this._setUIVisibility("analytics");
 			if (managers.analytics) managers.analytics.render();
 		} else if (viewParam === "profile") {

@@ -13,10 +13,10 @@ export class AIManager {
         this.init();
     }
 
-    init() { console.log("AIManager init:", !!this.btnOpen, !!this.overlay);
+    init() {
         if (!this.btnOpen || !this.overlay) return;
 
-        this.btnOpen.addEventListener("click", () => { console.log("AI btn clicked!"); this.open(); });
+        this.btnOpen.addEventListener("click", () => this.open());
         if (this.btnClose) {
             this.btnClose.addEventListener("click", () => this.close());
         }

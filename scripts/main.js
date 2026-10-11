@@ -46,8 +46,6 @@ class App {
 	async init() {
 		const loader = document.getElementById("app-loader");
 		try {
-			console.log("🔴 ТЕЛЕМЕТРІЯ: Запуск ініціалізації");
-
 			if (i18n.init) await i18n.init();
 			
 			let userConfig = { rootPerson: APP_CONFIG.rootId || "1", hiddenProfiles: [], canShare: false, canSync: false, isMainAdmin: false };
@@ -76,21 +74,12 @@ class App {
 				console.warn("⚠️ Could not fetch user config, using defaults", e);
 			}
 
-			console.log("🔴 ТЕЛЕМЕТРІЯ: Старт fetchAllData()");
 			this.engine = await fetchAllData(userConfig);
-			console.log("🟢 ТЕЛЕМЕТРІЯ: fetchAllData() завершено. Engine отримано.");
 
 			if (!this.engine) throw new Error("Engine is null");
 
-			console.log("🔴 ТЕЛЕМЕТРІЯ: Старт _initManagers()");
 			this._initManagers();
-			console.log("🟢 ТЕЛЕМЕТРІЯ: _initManagers() завершено.");
-
-			console.log("🔴 ТЕЛЕМЕТРІЯ: Старт router.handlePopState()");
 			this.router.handlePopState();
-			console.log(
-				"🟢 ТЕЛЕМЕТРІЯ: router.handlePopState() завершено. Рендеринг успішний.",
-			);
 		} catch (error) {
 			console.error("❌ Фатальний збій:", error);
 			const container =
@@ -105,8 +94,6 @@ class App {
 	}
 
 	_initManagers() {
-		console.log("   ➤ Ініціалізація базових менеджерів...");
-
 		this.managers.modalInterceptor = new GlobalModalInterceptor();
 		this.managers.modalInterceptor.init();
 
@@ -116,7 +103,6 @@ class App {
 		});
 		this.managers.navigation = new NavigationManager([], this.navigateToId);
 
-		console.log("   ➤ Ініціалізація LineageManager...");
 		this.managers.lineage = new LineageManager(this.engine, this.rootPersonId, {
 			onModeChange: (newQueue) => {
 				this.managers.navigation.updateList(newQueue);
@@ -129,7 +115,6 @@ class App {
 
 		this.managers.navigation.updateList(this.managers.lineage.queue);
 
-		console.log("   ➤ Ініціалізація Search/Events...");
 		this.managers.search = new SearchManager(
 			this.engine,
 			this.navigateToId,
@@ -140,10 +125,8 @@ class App {
 			this.navigateToId,
 			() => this.managers.lineage,
 		);
-		console.log("   ➤ Ініціалізація AnalyticsManager...");
 		this.managers.analytics = new AnalyticsManager(this.engine);
 
-		console.log("   ➤ Ініціалізація RelationshipManager...");
 		this.managers.relationship = new RelationshipManager(
 			this.engine,
 			this.rootPersonId,
@@ -159,7 +142,6 @@ class App {
 			},
 		);
 
-		console.log("   ➤ Ініціалізація PersonPopupManager...");
 		this.managers.personPopup = new PersonPopupManager(
 			{
 				onNavigateToProfile: this.navigateToId,

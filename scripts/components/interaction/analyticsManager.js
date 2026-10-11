@@ -66,7 +66,6 @@ export class AnalyticsManager {
 	}
 
 	render() {
-        console.log("AnalyticsManager render() called with mode:", window.app?.managers?.lineage?.logic?.mode);
         try {
 		    this.calculateStats();
         } catch (e) {
@@ -355,7 +354,7 @@ export class AnalyticsManager {
         }
 
 
-        console.log("Basic length:", this.engine.db.basic?.length); const normalizeSurname = (surname) => {
+        const normalizeSurname = (surname) => {
             let s = surname.replace(/[\?0-9]/g, '').trim();
             const boundary = "(?![А-Яа-яЄєІіЇїҐґa-zA-Z])";
             s = s.replace(new RegExp("ська" + boundary, "g"), "ський");
@@ -793,7 +792,7 @@ export class AnalyticsManager {
 
 
 
-        console.log("namesM length:", Object.keys(namesM).length); const uniqueNamesMCount = Object.keys(namesM).length;
+        const uniqueNamesMCount = Object.keys(namesM).length;
         const uniqueNamesFCount = Object.keys(namesF).length;
         const uniqueSurnamesCount = Object.keys(surnamesMap).length;
         const uniquePlacesCount = Object.keys(placesCount).length;

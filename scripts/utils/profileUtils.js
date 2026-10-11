@@ -238,8 +238,6 @@ export function ensureIndexes(allData) {
 	const DB = allData.db || allData || {};
 	allData._indexes = {};
 
-	console.log("⚡ Building Data Indexes (Map)...");
-
 	const slugsMap = new Map();
 	if (Array.isArray(DB.basic)) {
 		const slugCol = COLUMNS.basic?.slug || "slug";

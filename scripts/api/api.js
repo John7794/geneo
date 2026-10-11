@@ -12,7 +12,6 @@ import { checkDataVersion, fetchCsv, fetchJson } from "./dataLoader.js";
  */
 export async function fetchAllData(userConfig = {}) {
 	const lang = i18n.lang;
-	console.log(`🌐 Fetching data for language: [${lang}]`);
 
 	const version = await checkDataVersion();
 
@@ -39,7 +38,6 @@ export async function fetchAllData(userConfig = {}) {
 			try {
 				const cached = await localforage.getItem(cacheKey);
 				if (cached && typeof cached === "object" && Object.keys(cached).length > 0) {
-					console.log(`⚡ Kinship index миттєво завантажено з кешу IndexedDB (v${version})`);
 					return cached;
 				}
 			} catch (e) {
@@ -131,7 +129,6 @@ export async function fetchAllData(userConfig = {}) {
 		}
 	}
 
-	console.log("⚙️ Initializing FamilyEngine...");
 	try {
 		const engine = new FamilyEngine(
 			db.basic || [],
@@ -141,7 +138,6 @@ export async function fetchAllData(userConfig = {}) {
 			kinshipData,
 		);
 
-		console.log(`🚀 FamilyEngine ready. Profiles loaded: ${engine.people?.size || 0}`);
 		return engine;
 	} catch (e) {
 		console.error("❌ Critical Error: FamilyEngine failed to initialize", e);

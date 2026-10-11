@@ -21,7 +21,6 @@ export class I18n {
 
 			this.updatePage();
 			document.documentElement.lang = this.lang;
-			console.log(`🌍 i18n initialized: ${this.lang}`);
 		} catch (error) {
 			console.error("i18n error:", error);
 		}

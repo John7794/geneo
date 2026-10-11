@@ -47,14 +47,6 @@ function resolveParticipantRole(rawRole) {
  * РІВЕНЬ UI: Фільтрує учасників за роллю, прибирає дублікати та генерує сітку HTML.
  */
 export function renderParticipantTiles(participants, roleCodes, ctx = null) {
-	console.log(
-		"DEBUG [UI_PARTICIPANTS]: Вхідний масив учасників ->",
-		participants,
-	);
-	console.log(
-		"DEBUG [UI_PARTICIPANTS]: Вхідні коди ролей (roleCodes) ->",
-		roleCodes,
-	);
 	if (!Array.isArray(participants) || participants.length === 0) return "";
 
 	// 🔥 ВИПРАВЛЕНО: Правильна обробка Set, масивів та поодиноких значень

@@ -49,8 +49,6 @@ export async function checkDataVersion() {
 					await localforage.clear();
 					// Записуємо нову версію після повного очищення
 					await localforage.setItem(STORE_VERSION_KEY, serverVersion);
-				} else {
-					console.log(`✅ Data cache is valid (${serverVersion}).`);
 				}
 			}
 		}

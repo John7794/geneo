@@ -97,8 +97,6 @@ export class LineageManager {
 			}
 		}
 
-		console.log("[LineageManager] roleIdMap:", roleIdMap);
-
 		this.options.forEach((opt) => {
 			const mode = opt.dataset.mode;
 			const rawText = (opt.innerText || opt.textContent)
