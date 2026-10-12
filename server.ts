@@ -11,7 +11,6 @@ import fs from "fs";
 import cookieParser from "cookie-parser";
 import { initializeApp, getApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { getAuth as getAdminAuth } from "firebase-admin/auth";
 
 // Ініціалізація конфігурації адміністратора
 const adminEmailsList = (process.env.ADMIN_EMAIL || "www.johnsel771994@gmail.com,johnsel771994@gmail.com")
@@ -626,6 +625,28 @@ app.get("/login", (req, res) => {
   `);
 });
 
+async function verifyGoogleIdToken(idToken: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+    if (!res.ok) {
+      console.warn("Google token verification failed with status:", res.status);
+      return null;
+    }
+    const data: any = await res.json();
+    const expectedProjectId = adminConfig.projectId || "geneo-b8e63";
+    if (data.aud !== expectedProjectId && data.iss !== `https://securetoken.google.com/${expectedProjectId}`) {
+      console.warn("Google token audience mismatch:", data.aud, data.iss);
+      return null;
+    }
+    if (data.email && (data.email_verified === "true" || data.email_verified === true)) {
+      return data.email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+    }
+  } catch (err) {
+    console.error("Error verifying Google ID token:", err);
+  }
+  return null;
+}
+
 app.post("/api/auth-login", async (req, res) => {
   const emailOrPhone = req.body.emailOrPhone || "";
   const idToken = req.body.idToken || "";
@@ -633,13 +654,8 @@ app.post("/api/auth-login", async (req, res) => {
   let verifiedEmail: string | null = null;
 
   if (idToken) {
-    try {
-      const decoded = await getAdminAuth().verifyIdToken(idToken);
-      if (decoded && decoded.email) {
-        verifiedEmail = decoded.email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
-      }
-    } catch (e: any) {
-      console.error("Google ID Token verification failed:", e.message || e);
+    verifiedEmail = await verifyGoogleIdToken(idToken);
+    if (!verifiedEmail) {
       return res.status(401).json({ error: "Недійсний токен авторизації Google." });
     }
   }
