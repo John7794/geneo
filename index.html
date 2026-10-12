@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Родове Дерево</title>
 
     <meta property="og:title" content="Родове Дерево" />
@@ -22,7 +22,7 @@
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
 
@@ -114,19 +114,19 @@
         <div class="top-bar-controls">
             <div class="control-group unified-panel">
 
-                <button id="btn-home" class="btn btn-icon" title="На головну" data-i18n-title="ui.home">
+                <button id="btn-home" class="btn btn-icon" title="На головну" aria-label="На головну" data-i18n-title="ui.home">
                     <i class="ri-home-4-line"></i>
                 </button>
 
-                <button id="btn-share" class="btn btn-icon js-open-share" style="display: none;" title="Поділитися" data-i18n-title="ui.share">
+                <button id="btn-share" class="btn btn-icon js-open-share" style="display: none;" title="Поділитися" aria-label="Поділитися" data-i18n-title="ui.share">
                     <i class="ri-share-line"></i>
                 </button>
 
-                <button id="btn-search" class="btn btn-icon js-open-search" title="Пошук" data-i18n-title="ui.searchTitle">
+                <button id="btn-search" class="btn btn-icon js-open-search" title="Пошук" aria-label="Пошук" data-i18n-title="ui.searchTitle">
                     <i class="ri-search-line"></i>
                 </button>
 
-                <button id="btn-lineage" class="btn btn-icon js-open-lineage" title="Гілки роду" data-i18n-title="kinship.toggleTitle">
+                <button id="btn-lineage" class="btn btn-icon js-open-lineage" title="Гілки роду" aria-label="Гілки роду" data-i18n-title="kinship.toggleTitle">
                     <i class="ri-git-branch-line"></i>
                 </button>
 
@@ -134,22 +134,22 @@
 
 
 
-                <button id="btn-ai" class="btn btn-icon js-open-ai" title="AI Асистент" onclick="document.getElementById('ai-overlay').classList.remove('hidden'); document.getElementById('ai-overlay').classList.add('show'); document.getElementById('ai-overlay').setAttribute('aria-hidden', 'false');"><i class="ri-robot-2-line"></i></button>
-                <button id="btn-analytics" class="btn btn-icon js-open-analytics" title="Аналітика">
+                <button id="btn-ai" class="btn btn-icon js-open-ai" title="AI Асистент" aria-label="AI Асистент" onclick="document.getElementById('ai-overlay').classList.remove('hidden'); document.getElementById('ai-overlay').classList.add('show'); document.getElementById('ai-overlay').setAttribute('aria-hidden', 'false');"><i class="ri-robot-2-line"></i></button>
+                <button id="btn-analytics" class="btn btn-icon js-open-analytics" title="Аналітика" aria-label="Аналітика">
                     <i class="ri-bar-chart-2-line"></i>
                 </button>
-                <button id="btn-events" class="btn btn-icon hidden" title="Цей день в історії" data-i18n-title="events.historyTitle">
+                <button id="btn-events" class="btn btn-icon hidden" title="Цей день в історії" aria-label="Цей день в історії" data-i18n-title="events.historyTitle">
                     <i class="ri-calendar-event-line"></i>
                     <span id="events-badge" class="badge-dot badge-dot--tr hidden"></span>
                 </button>
 
 
-                <button id="theme-toggle" class="btn btn-icon" title="Перемкнути тему" data-i18n-title="ui.themeTitle">
+                <button id="theme-toggle" class="btn btn-icon" title="Перемкнути тему" aria-label="Перемкнути тему" data-i18n-title="ui.themeTitle">
                     <i class="ri-moon-line"></i>
                 </button>
 
                 <div class="lang-menu-wrapper">
-                    <button id="btn-lang-toggle" class="btn btn-icon" title="Змінити мову" data-i18n-title="ui.langTitle">
+                    <button id="btn-lang-toggle" class="btn btn-icon" title="Змінити мову" aria-label="Змінити мову" data-i18n-title="ui.langTitle">
                         <i class="ri-translate-2"></i>
                     </button>
 
@@ -170,15 +170,15 @@
         <div id="tree-view" class="tree-container">
             <div class="zoom-controls">
 
-                <button id="btn-zoom-in" class="btn btn-icon" title="Збільшити" data-i18n-title="ui.zoomIn">
+                <button id="btn-zoom-in" class="btn btn-icon" title="Збільшити" aria-label="Збільшити масштаб" data-i18n-title="ui.zoomIn">
                     <i class="ri-add-line"></i>
                 </button>
 
-                <button id="btn-zoom-reset" class="btn btn-icon" title="Скинути" data-i18n-title="ui.zoomReset">
+                <button id="btn-zoom-reset" class="btn btn-icon" title="Скинути" aria-label="Скинути масштаб" data-i18n-title="ui.zoomReset">
                     <i class="ri-fullscreen-line"></i>
                 </button>
 
-                <button id="btn-zoom-out" class="btn btn-icon" title="Зменшити" data-i18n-title="ui.zoomOut">
+                <button id="btn-zoom-out" class="btn btn-icon" title="Зменшити" aria-label="Зменшити масштаб" data-i18n-title="ui.zoomOut">
                     <i class="ri-subtract-line"></i>
                 </button>
                 <span id="zoom-level-display" class="text-meta zoom-display">100%</span>
