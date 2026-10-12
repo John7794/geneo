@@ -19,7 +19,6 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
-    "firebase": "^12.13.0",
     "firebase-admin": "^14.3.0",
     "papaparse": "^5.5.3",
     "vite": "^6.2.3"

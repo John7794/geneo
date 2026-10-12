@@ -50,7 +50,10 @@ export class BreadcrumbManager {
 			e.target &&
 			(e.target === this.activeDropdown ||
 				this.activeDropdown?.contains(e.target) ||
-				e.target === this.listContainer)
+				e.target === this.listContainer ||
+				this.listContainer?.contains(e.target) ||
+				e.target === this.wrapper ||
+				this.wrapper?.contains(e.target))
 		) {
 			return;
 		}
@@ -135,9 +138,12 @@ export class BreadcrumbManager {
 			menu.style.position = "fixed";
 			menu.style.top = `${rect.bottom + 4}px`;
 
-			// Отримуємо реальну ширину меню після додавання в DOM
-			const menuWidth = Math.max(220, menu.offsetWidth || 220);
 			const padding = 12;
+			const maxAllowedWidth = Math.min(360, window.innerWidth - 2 * padding);
+			menu.style.maxWidth = `${maxAllowedWidth}px`;
+
+			// Отримуємо реальну ширину меню після додавання в DOM
+			const menuWidth = Math.max(220, Math.min(menu.offsetWidth || 220, maxAllowedWidth));
 
 			let leftPos = rect.left;
 

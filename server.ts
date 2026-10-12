@@ -809,8 +809,6 @@ if (process.env.NODE_ENV !== "production") {
   app.use("/assets", express.static(rootAssetsPath));
 }
 
-app.get("/sw.js", (req, res) => res.sendFile(path.join(process.cwd(), "sw.js")));
-
 // AI Консультант з оптимізованим контекстом, автентифікацією та лімітами
 app.post("/api/gemini/chat", async (req, res) => {
   try {

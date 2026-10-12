@@ -51,8 +51,6 @@
 	content-visibility: auto;
 	contain-intrinsic-size: 240px 320px;
 	contain: layout paint style;
-	transform: translateZ(0);
-	backface-visibility: hidden;
 	transition:
 		transform var(--transition-base),
 		box-shadow var(--transition-base),
@@ -61,7 +59,7 @@
 
 .record-card:hover,
 .record-card:focus-visible {
-	transform: translateY(-4px) translateZ(0);
+	transform: translateY(-4px);
 	box-shadow: var(--shadow-md);
 	border-color: var(--color-primary-light);
 }
@@ -77,7 +75,6 @@
 	background-color: var(--color-bg-body);
 	border-bottom: 1px solid var(--color-border-light);
 	overflow: hidden; /* Важливо для зуму картинки при наведенні */
-	transform: translateZ(0);
 }
 
 /* 🔥 Виправлено: тепер саме картинка має object-fit, тому вона ніколи не сплюснеться */
@@ -87,8 +84,6 @@
 	object-fit: cover;
 	object-position: top;
 	display: block;
-	transform: translateZ(0);
-	backface-visibility: hidden;
 	transition: transform var(--transition-base);
 }
 
