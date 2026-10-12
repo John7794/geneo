@@ -625,21 +625,36 @@ app.get("/login", (req, res) => {
   `);
 });
 
+const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyASdK-k9JaA4FcjVkMuga6uigstkhxznVY";
+
 async function verifyGoogleIdToken(idToken: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
-    if (!res.ok) {
-      console.warn("Google token verification failed with status:", res.status);
-      return null;
+    // 1. Офіційний Firebase Identity Toolkit REST API
+    const res = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+
+    if (res.ok) {
+      const data: any = await res.json();
+      if (data.users && data.users.length > 0 && data.users[0].email) {
+        return data.users[0].email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+      }
     }
-    const data: any = await res.json();
-    const expectedProjectId = adminConfig.projectId || "geneo-b8e63";
-    if (data.aud !== expectedProjectId && data.iss !== `https://securetoken.google.com/${expectedProjectId}`) {
-      console.warn("Google token audience mismatch:", data.aud, data.iss);
-      return null;
-    }
-    if (data.email && (data.email_verified === "true" || data.email_verified === true)) {
-      return data.email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+
+    // 2. Резервна перевірка через Google OAuth2 tokeninfo
+    const oauthRes = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
+    );
+    if (oauthRes.ok) {
+      const oauthData: any = await oauthRes.json();
+      if (oauthData.email) {
+        return oauthData.email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+      }
     }
   } catch (err) {
     console.error("Error verifying Google ID token:", err);
@@ -660,79 +675,86 @@ app.post("/api/auth-login", async (req, res) => {
     }
   }
 
-  if (emailOrPhone && typeof emailOrPhone === "string") {
-    const cleanAuth = emailOrPhone.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+  const cleanAuth = (emailOrPhone && typeof emailOrPhone === "string")
+    ? emailOrPhone.toLowerCase().trim().replace(/[\r\n\s]/g, "")
+    : "";
 
-    // Якщо це email адміністратора: обов'язкова верифікація через Google токен!
-    if (adminEmailsList.includes(cleanAuth)) {
-      if (!verifiedEmail || verifiedEmail !== cleanAuth) {
-        return res.status(403).json({ 
-          error: "Для входу в обліковий запис адміністратора обов'язкова авторизація через кнопку 'Увійти через Google'." 
-        });
-      }
-      const sessionToken = createSessionToken(cleanAuth);
-      res.cookie("auth_session", sessionToken, {
-        httpOnly: true,
-        path: "/",
-        sameSite: "none",
-        secure: true,
-        partitioned: true,
+  // Перевірка на адміністратора (якщо cleanAuth або verifiedEmail є в списку адмінів)
+  const isInputAdmin = cleanAuth && adminEmailsList.some(a => a.includes(cleanAuth) || cleanAuth.includes(a));
+  const isVerifiedAdmin = verifiedEmail && adminEmailsList.some(a => a.includes(verifiedEmail) || verifiedEmail.includes(a));
+
+  if (isInputAdmin || isVerifiedAdmin) {
+    if (!verifiedEmail) {
+      return res.status(403).json({ 
+        error: "Для входу в обліковий запис адміністратора обов'язкова авторизація через кнопку 'Увійти через Google'." 
       });
-      res.cookie("auth_email", cleanAuth, {
-        httpOnly: true,
-        path: "/",
-        sameSite: "none",
-        secure: true,
-        partitioned: true,
-      });
-      res.cookie("auth_email_client", cleanAuth, {
-        httpOnly: false,
-        path: "/",
-        sameSite: "none",
-        secure: true,
-        partitioned: true,
-      });
-      return res.json({ success: true, token: sessionToken });
     }
 
-    // Якщо це звичайний користувач (гість):
-    const targetEmailOrPhone = verifiedEmail || cleanAuth;
-    try {
-      const snap = await fdb.collection("shares").where("email", "==", targetEmailOrPhone).get();
-      if (snap.empty && process.env.NODE_ENV === "production") {
-        return res.status(403).json({ error: "Доступ заборонено. Вас немає у списку запрошених гостей." });
-      }
-
-      const sessionToken = createSessionToken(targetEmailOrPhone);
-      res.cookie("auth_session", sessionToken, {
-        httpOnly: true,
-        path: "/",
-        sameSite: "none",
-        secure: true,
-        partitioned: true,
-      });
-      res.cookie("auth_email", targetEmailOrPhone, {
-        httpOnly: true,
-        path: "/",
-        sameSite: "none",
-        secure: true,
-        partitioned: true,
-      });
-      res.cookie("auth_email_client", targetEmailOrPhone, {
-        httpOnly: false,
-        path: "/",
-        sameSite: "none",
-        secure: true,
-        partitioned: true,
-      });
-      return res.json({ success: true, token: sessionToken });
-    } catch (err: any) {
-      console.error("Помилка перевірки доступу у Firestore:", err);
-      return res.status(500).json({ error: "Помилка перевірки доступу" });
-    }
+    const adminEmail = verifiedEmail;
+    const sessionToken = createSessionToken(adminEmail);
+    res.cookie("auth_session", sessionToken, {
+      httpOnly: true,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    res.cookie("auth_email", adminEmail, {
+      httpOnly: true,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    res.cookie("auth_email_client", adminEmail, {
+      httpOnly: false,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    return res.json({ success: true, token: sessionToken });
   }
 
-  res.status(401).json({ error: "Вкажіть email або номер телефону." });
+  // Якщо це звичайний користувач (гість):
+  const targetEmailOrPhone = verifiedEmail || cleanAuth;
+  if (!targetEmailOrPhone) {
+    return res.status(401).json({ error: "Вкажіть email або номер телефону." });
+  }
+
+  try {
+    const snap = await fdb.collection("shares").where("email", "==", targetEmailOrPhone).get();
+    if (snap.empty && process.env.NODE_ENV === "production") {
+      return res.status(403).json({ error: "Доступ заборонено. Вас немає у списку запрошених гостей." });
+    }
+
+    const sessionToken = createSessionToken(targetEmailOrPhone);
+    res.cookie("auth_session", sessionToken, {
+      httpOnly: true,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    res.cookie("auth_email", targetEmailOrPhone, {
+      httpOnly: true,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    res.cookie("auth_email_client", targetEmailOrPhone, {
+      httpOnly: false,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    });
+    return res.json({ success: true, token: sessionToken });
+  } catch (err: any) {
+    console.error("Помилка перевірки доступу у Firestore:", err);
+    return res.status(500).json({ error: "Помилка перевірки доступу" });
+  }
 });
 
 app.post("/api/invite", async (req, res) => {
