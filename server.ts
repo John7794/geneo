@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import zlib from "zlib";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -10,6 +11,7 @@ import fs from "fs";
 import cookieParser from "cookie-parser";
 import { initializeApp, getApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getAuth as getAdminAuth } from "firebase-admin/auth";
 
 // Ініціалізація конфігурації адміністратора
 const adminEmailsList = (process.env.ADMIN_EMAIL || "www.johnsel771994@gmail.com,johnsel771994@gmail.com")
@@ -315,17 +317,114 @@ app.get("/api/data/kinship", async (req, res) => {
   res.status(404).json({ error: "Kinship index not found" });
 });
 
-function checkCanSync(req: express.Request): boolean {
-  let emailOrPhone = req.cookies && req.cookies.auth_email;
-  if (!emailOrPhone && req.headers.authorization) {
+const SESSION_SECRET = process.env.SESSION_SECRET || process.env.GEMINI_API_KEY || "geneo-secure-session-salt-2026";
+
+function createSessionToken(identifier: string): string {
+  const sig = crypto.createHmac("sha256", SESSION_SECRET).update(identifier).digest("hex");
+  return `${identifier}.${sig}`;
+}
+
+function verifySessionToken(token: string): string | null {
+  if (!token) return null;
+  const lastDot = token.lastIndexOf(".");
+  if (lastDot === -1) {
+    if (process.env.NODE_ENV !== "production") return token;
+    return null;
+  }
+  const identifier = token.substring(0, lastDot);
+  const sig = token.substring(lastDot + 1);
+  const expectedSig = crypto.createHmac("sha256", SESSION_SECRET).update(identifier).digest("hex");
+  const sigBuf = Buffer.from(sig);
+  const expBuf = Buffer.from(expectedSig);
+  if (sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf)) {
+    return identifier;
+  }
+  return null;
+}
+
+function getAuthenticatedUser(req: express.Request): string | null {
+  if (req.headers.authorization) {
     const parts = req.headers.authorization.split(" ");
-    if (parts.length === 2 && parts[0] === "Bearer") emailOrPhone = parts[1];
+    if (parts.length === 2 && parts[0] === "Bearer" && parts[1]) {
+      const verified = verifySessionToken(parts[1]);
+      if (verified) return verified.toLowerCase().trim();
+      if (req.cookies && req.cookies.auth_email) {
+        const cookieUser = req.cookies.auth_email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+        if (parts[1].toLowerCase().trim() === cookieUser) {
+          return cookieUser;
+        }
+      }
+    }
   }
-  if (!emailOrPhone) {
-    return process.env.NODE_ENV !== "production";
+
+  if (req.cookies && req.cookies.auth_session) {
+    const verified = verifySessionToken(req.cookies.auth_session);
+    if (verified) return verified.toLowerCase().trim();
   }
-  const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, "");
-  return adminEmailsList.includes(val);
+
+  if (req.cookies && req.cookies.auth_email) {
+    return req.cookies.auth_email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return "dev-local-user";
+  }
+
+  return null;
+}
+
+function checkCanSync(req: express.Request): boolean {
+  const user = getAuthenticatedUser(req);
+  if (!user) return false;
+  if (adminEmailsList.includes(user)) return true;
+  return process.env.NODE_ENV !== "production";
+}
+
+async function checkCanShare(req: express.Request): Promise<boolean> {
+  const user = getAuthenticatedUser(req);
+  if (!user) return false;
+  if (adminEmailsList.includes(user)) return true;
+
+  try {
+    const snap = await fdb.collection("shares").where("email", "==", user).get();
+    if (!snap.empty) {
+      const shareData = snap.docs[0].data();
+      return !!shareData.canShare;
+    }
+  } catch (e) {
+    console.error("checkCanShare error:", e);
+  }
+  return false;
+}
+
+// In-memory rate limiting для AI консультанта
+const aiRateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function checkAiRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 хвилина
+  const maxRequests = 15; // максимум 15 запитів на хвилину
+
+  const record = aiRateLimitMap.get(identifier);
+  if (!record || now > record.resetTime) {
+    aiRateLimitMap.set(identifier, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  if (record.count >= maxRequests) {
+    return false;
+  }
+  record.count++;
+  return true;
+}
+
+if (typeof setInterval !== "undefined") {
+  const timer = setInterval(() => {
+    const now = Date.now();
+    for (const [key, val] of aiRateLimitMap.entries()) {
+      if (now > val.resetTime) aiRateLimitMap.delete(key);
+    }
+  }, 5 * 60 * 1000);
+  if (timer.unref) timer.unref();
 }
 
 app.get("/api/db-status", async (req, res) => {
@@ -479,11 +578,12 @@ app.get("/login", (req, res) => {
           try {
             const result = await signInWithPopup(auth, provider);
             const email = result.user.email;
+            const idToken = await result.user.getIdToken();
             
             const res = await fetch('/api/auth-login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ emailOrPhone: email })
+              body: JSON.stringify({ emailOrPhone: email, idToken })
             });
             
             if (res.ok) {
@@ -491,7 +591,8 @@ app.get("/login", (req, res) => {
               if (data.token) localStorage.setItem('auth_token', data.token);
               window.location.href = '/?t=' + Date.now();
             } else {
-              document.getElementById('error').innerText = 'Доступ заборонено або вас немає в списку запрошених.';
+              const data = await res.json().catch(() => ({}));
+              document.getElementById('error').innerText = data.error || 'Доступ заборонено або вас немає в списку запрошених.';
               auth.signOut();
             }
           } catch (error) {
@@ -515,7 +616,8 @@ app.get("/login", (req, res) => {
             if (data.token) localStorage.setItem('auth_token', data.token);
             window.location.href = '/?t=' + Date.now();
           } else {
-            document.getElementById('error').innerText = 'Доступ заборонено або вас немає в списку запрошених.';
+            const data = await res.json().catch(() => ({}));
+            document.getElementById('error').innerText = data.error || 'Доступ заборонено або вас немає в списку запрошених.';
           }
         };
       </script>
@@ -524,31 +626,104 @@ app.get("/login", (req, res) => {
   `);
 });
 
-app.post("/api/auth-login", (req, res) => {
+app.post("/api/auth-login", async (req, res) => {
   const emailOrPhone = req.body.emailOrPhone || "";
-  if (emailOrPhone && typeof emailOrPhone === "string") {
-    const cleanAuth = emailOrPhone.toLowerCase().trim().replace(/[\r\n]/g, "");
-    res.cookie("auth_email", cleanAuth, {
-      httpOnly: true,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
-    });
-    res.cookie("auth_email_client", cleanAuth, {
-      httpOnly: false,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
-    });
-    res.json({ success: true, token: cleanAuth });
-  } else {
-    res.status(401).json({ error: "Unauthorized" });
+  const idToken = req.body.idToken || "";
+
+  let verifiedEmail: string | null = null;
+
+  if (idToken) {
+    try {
+      const decoded = await getAdminAuth().verifyIdToken(idToken);
+      if (decoded && decoded.email) {
+        verifiedEmail = decoded.email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+      }
+    } catch (e: any) {
+      console.error("Google ID Token verification failed:", e.message || e);
+      return res.status(401).json({ error: "Недійсний токен авторизації Google." });
+    }
   }
+
+  if (emailOrPhone && typeof emailOrPhone === "string") {
+    const cleanAuth = emailOrPhone.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+
+    // Якщо це email адміністратора: обов'язкова верифікація через Google токен!
+    if (adminEmailsList.includes(cleanAuth)) {
+      if (!verifiedEmail || verifiedEmail !== cleanAuth) {
+        return res.status(403).json({ 
+          error: "Для входу в обліковий запис адміністратора обов'язкова авторизація через кнопку 'Увійти через Google'." 
+        });
+      }
+      const sessionToken = createSessionToken(cleanAuth);
+      res.cookie("auth_session", sessionToken, {
+        httpOnly: true,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        partitioned: true,
+      });
+      res.cookie("auth_email", cleanAuth, {
+        httpOnly: true,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        partitioned: true,
+      });
+      res.cookie("auth_email_client", cleanAuth, {
+        httpOnly: false,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        partitioned: true,
+      });
+      return res.json({ success: true, token: sessionToken });
+    }
+
+    // Якщо це звичайний користувач (гість):
+    const targetEmailOrPhone = verifiedEmail || cleanAuth;
+    try {
+      const snap = await fdb.collection("shares").where("email", "==", targetEmailOrPhone).get();
+      if (snap.empty && process.env.NODE_ENV === "production") {
+        return res.status(403).json({ error: "Доступ заборонено. Вас немає у списку запрошених гостей." });
+      }
+
+      const sessionToken = createSessionToken(targetEmailOrPhone);
+      res.cookie("auth_session", sessionToken, {
+        httpOnly: true,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        partitioned: true,
+      });
+      res.cookie("auth_email", targetEmailOrPhone, {
+        httpOnly: true,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        partitioned: true,
+      });
+      res.cookie("auth_email_client", targetEmailOrPhone, {
+        httpOnly: false,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        partitioned: true,
+      });
+      return res.json({ success: true, token: sessionToken });
+    } catch (err: any) {
+      console.error("Помилка перевірки доступу у Firestore:", err);
+      return res.status(500).json({ error: "Помилка перевірки доступу" });
+    }
+  }
+
+  res.status(401).json({ error: "Вкажіть email або номер телефону." });
 });
 
 app.post("/api/invite", async (req, res) => {
+  if (!(await checkCanShare(req))) {
+    return res.status(403).json({ error: "Немає прав для запрошення користувачів." });
+  }
+
   const emailOrPhone = req.body.email || req.body.phone;
   if (!emailOrPhone) return res.status(400).json({ error: "Missing email or phone" });
 
@@ -556,6 +731,9 @@ app.post("/api/invite", async (req, res) => {
   try {
     await fdb.collection("shares").add({
       email: val,
+      canShare: !!req.body.canShare,
+      canSync: !!req.body.canSync,
+      hiddenProfiles: Array.isArray(req.body.hiddenProfiles) ? req.body.hiddenProfiles : [],
       createdAt: FieldValue.serverTimestamp(),
     });
     res.json({ success: true });
@@ -566,6 +744,10 @@ app.post("/api/invite", async (req, res) => {
 });
 
 app.delete("/api/shares/:id", async (req, res) => {
+  if (!(await checkCanShare(req))) {
+    return res.status(403).json({ error: "Немає прав для видалення доступів." });
+  }
+
   try {
     await fdb.collection("shares").doc(req.params.id).delete();
     res.json({ success: true });
@@ -575,9 +757,13 @@ app.delete("/api/shares/:id", async (req, res) => {
 });
 
 app.get("/api/shares", async (req, res) => {
+  if (!(await checkCanShare(req))) {
+    return res.status(403).json({ error: "Немає прав для перегляду списку доступів." });
+  }
+
   try {
     const snap = await fdb.collection("shares").get();
-    const shares = snap.docs.map((doc) => ({ id: doc.id, email: doc.data().value, ...doc.data() }));
+    const shares = snap.docs.map((doc) => ({ id: doc.id, email: doc.data().email || doc.data().value, ...doc.data() }));
     res.json(shares);
   } catch (e) {
     res.json([]);
@@ -585,23 +771,23 @@ app.get("/api/shares", async (req, res) => {
 });
 
 app.get("/api/config", async (req, res) => {
-  let emailOrPhone = req.cookies && req.cookies.auth_email;
-  if (!emailOrPhone && req.headers.authorization) {
-    const parts = req.headers.authorization.split(" ");
-    if (parts.length === 2 && parts[0] === "Bearer") emailOrPhone = parts[1];
-  }
-  if (emailOrPhone) {
-    const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, "");
-
-    if (adminEmailsList.includes(val)) {
+  const user = getAuthenticatedUser(req);
+  if (user) {
+    if (adminEmailsList.includes(user)) {
       res.json({ canShare: true, canSync: true, isMainAdmin: true });
       return;
     }
 
     try {
-      const snap = await fdb.collection("shares").where("email", "==", val).get();
+      const snap = await fdb.collection("shares").where("email", "==", user).get();
       if (!snap.empty) {
-        res.json({ canShare: false, canSync: false, isMainAdmin: false });
+        const shareData = snap.docs[0].data();
+        res.json({ 
+          canShare: !!shareData.canShare, 
+          canSync: !!shareData.canSync, 
+          isMainAdmin: false,
+          hiddenProfiles: shareData.hiddenProfiles || []
+        });
         return;
       }
     } catch (e) {
@@ -625,25 +811,45 @@ if (process.env.NODE_ENV !== "production") {
 
 app.get("/sw.js", (req, res) => res.sendFile(path.join(process.cwd(), "sw.js")));
 
-// AI Консультант з оптимізованим контекстом
+// AI Консультант з оптимізованим контекстом, автентифікацією та лімітами
 app.post("/api/gemini/chat", async (req, res) => {
   try {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ error: "Потрібна авторизація для використання AI консультанта." });
+    }
+
+    if (!checkAiRateLimit(user)) {
+      return res.status(429).json({ error: "Забагато запитів до AI. Будь ласка, зачекайте хвилину перед наступним запитом." });
+    }
+
     if (!process.env.GEMINI_API_KEY) {
       throw new Error("GEMINI_API_KEY is not configured. Please add your Gemini API Key in the Settings -> Secrets menu.");
     }
+
+    const prompt = req.body.prompt;
+    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
+      return res.status(400).json({ error: "Текст запиту не може бути порожнім." });
+    }
+    if (prompt.length > 2500) {
+      return res.status(400).json({ error: "Запит занадто довгий (максимум 2500 символів)." });
+    }
+
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
       httpOptions: { headers: { "User-Agent": "aistudio-build" } },
     });
-    const prompt = req.body.prompt;
-    const history = req.body.history || [];
-    const currentProfileId = req.body.currentProfileId;
+
+    const rawHistory = Array.isArray(req.body.history) ? req.body.history.slice(-10) : [];
+    const currentProfileId = req.body.currentProfileId && typeof req.body.currentProfileId === "string" ? req.body.currentProfileId : undefined;
 
     let contents = [];
-    for (const msg of history) {
-      contents.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.text }] });
+    for (const msg of rawHistory) {
+      if (msg && typeof msg.text === "string") {
+        contents.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.text.slice(0, 3000) }] });
+      }
     }
-    contents.push({ role: "user", parts: [{ text: prompt }] });
+    contents.push({ role: "user", parts: [{ text: prompt.trim() }] });
 
     const focusedContext = getAiContext(currentProfileId);
 

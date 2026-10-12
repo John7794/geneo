@@ -92,6 +92,9 @@ export class AIManager {
         const text = this.input.value.trim();
         this.input.value = "";
         
+        if (this.btnSend) this.btnSend.disabled = true;
+        this.input.disabled = true;
+
         this.appendMessage(text, true);
         this.history.push({ role: "user", text: text });
         
@@ -111,9 +114,14 @@ export class AIManager {
             const currentUrl = new URL(window.location);
             const currentId = currentUrl.searchParams.get("id");
             
+            const token = localStorage.getItem("auth_token") || "";
             const res = await fetch("/api/gemini/chat", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    ...(token ? { "Authorization": "Bearer " + token } : {})
+                },
+                credentials: "include",
                 body: JSON.stringify({ 
                     prompt: text, 
                     history: this.history.slice(0, -1),
@@ -138,6 +146,10 @@ export class AIManager {
             const el = document.getElementById(typingId);
             if (el) el.remove();
             this.appendMessage("Вибачте, сталася помилка мережі.", false);
+        } finally {
+            if (this.btnSend) this.btnSend.disabled = false;
+            this.input.disabled = false;
+            this.input.focus();
         }
     }
 }

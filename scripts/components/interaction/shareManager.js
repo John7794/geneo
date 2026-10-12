@@ -66,9 +66,14 @@ export class ShareManager {
 		const canSync = false;
 
 		try {
+			const token = localStorage.getItem("auth_token") || "";
 			const res = await fetch("/api/invite", {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: { 
+					"Content-Type": "application/json",
+					...(token ? { "Authorization": `Bearer ${token}` } : {})
+				},
+				credentials: "include",
 				body: JSON.stringify({ email, hiddenProfiles, canShare, canSync }),
 			});
 			
@@ -137,7 +142,13 @@ export class ShareManager {
 		listContainer.innerHTML = '<li style="color: var(--color-text-muted); font-size: 14px;">Завантаження...</li>';
 		
 		try {
-			const res = await fetch('/api/shares');
+			const token = localStorage.getItem("auth_token") || "";
+			const res = await fetch('/api/shares', {
+				headers: {
+					...(token ? { "Authorization": `Bearer ${token}` } : {})
+				},
+				credentials: "include"
+			});
 			if (!res.ok) throw new Error("Failed connecting to API");
 			const shares = await res.json();
 			
@@ -163,7 +174,14 @@ export class ShareManager {
 					if (confirm("Ви впевнені, що хочете скасувати доступ для цього користувача?")) {
 						btn.disabled = true;
 						try {
-							const delRes = await fetch(`/api/shares/${id}`, { method: 'DELETE' });
+							const token = localStorage.getItem("auth_token") || "";
+							const delRes = await fetch(`/api/shares/${id}`, { 
+								method: 'DELETE',
+								headers: {
+									...(token ? { "Authorization": `Bearer ${token}` } : {})
+								},
+								credentials: "include"
+							});
 							if (delRes.ok) {
 								this.loadActiveShares();
 							} else {
