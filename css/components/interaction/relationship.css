@@ -187,18 +187,33 @@
 	position: relative;
 }
 
-.rel-branch-single:not(:last-child) {
-	padding-top: var(--tree-v-gap);
+/* Коли пряма гілка йде одразу після кореневого блоку (батьків/пари),
+   лінія вже коректно доходить з кореня (.rel-couple-container::after) до верхньої межі картки */
+.rel-level-root + .rel-branch-single {
+	padding-top: 0;
+}
+.rel-level-root + .rel-branch-single::before {
+	display: none;
 }
 
-.rel-branch-single::before {
+/* Коли пряма гілка йде після зведення гілок моста (конвергенція) */
+.rel-branch-bridge + .rel-branch-single {
+	padding-top: var(--tree-v-gap, 44px);
+}
+.rel-branch-bridge + .rel-branch-single::before {
 	content: "";
 	position: absolute;
 	top: 0;
 	left: 50%;
 	transform: translateX(-50%);
-	height: var(--tree-v-gap);
+	height: var(--tree-v-gap, 44px);
 	border-left: var(--tree-line-width) solid var(--tree-line-color);
+	z-index: 1;
+}
+
+.relationship-mode .tree-node {
+	position: relative;
+	z-index: 2;
 }
 
 .rel-node-wrapper {
