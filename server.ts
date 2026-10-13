@@ -382,7 +382,7 @@ function checkCanSync(req: express.Request): boolean {
 async function checkCanShare(req: express.Request): Promise<boolean> {
   const user = getAuthenticatedUser(req);
   if (!user) return false;
-  if (adminEmailsList.includes(user)) return true;
+  if (adminEmailsList.some(a => a.includes(user) || user.includes(a))) return true;
 
   try {
     const snap = await fdb.collection("shares").where("email", "==", user).get();
@@ -811,7 +811,7 @@ app.get("/api/shares", async (req, res) => {
 app.get("/api/config", async (req, res) => {
   const user = getAuthenticatedUser(req);
   if (user) {
-    if (adminEmailsList.includes(user)) {
+    if (adminEmailsList.some(a => a.includes(user) || user.includes(a))) {
       res.json({ canShare: true, canSync: true, isMainAdmin: true });
       return;
     }

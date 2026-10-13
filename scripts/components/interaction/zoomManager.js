@@ -139,7 +139,8 @@ export class ZoomManager {
 		}
 
 		let t = document.getElementById("tree-root");
-		if (t && t !== this.target) {
+		if (t) {
+			const isNew = t !== this.target;
 			this.target = t;
 
 			this.target.style.position = "absolute";
@@ -153,35 +154,37 @@ export class ZoomManager {
 			this.target.style.width = "max-content";
 			this.target.style.minHeight = "max-content";
 
-			if (this.observer) this.observer.disconnect();
-			this.observer = new MutationObserver((mutations) => {
-				if (this.isMobile) return;
-				const hasChanges = mutations.some(
-					(m) =>
-						m.type === "childList" &&
-						(m.addedNodes.length > 0 || m.removedNodes.length > 0),
-				);
-				if (hasChanges) {
-					if (this._mutationTimer) clearTimeout(this._mutationTimer);
-					this._mutationTimer = setTimeout(() => {
-						if (this.isRelationshipMode) {
-							this.centerWholeTree(true);
-						} else {
-							const rootCard = this.target.querySelector(
-								`.${UI_CLASSES.treeNode}`,
-							);
-							if (rootCard) this.centerOnElement(rootCard, true, false);
-						}
-					}, 30);
-				}
-			});
-			this.observer.observe(this.target, { childList: true, subtree: true });
+			if (isNew) {
+				if (this.observer) this.observer.disconnect();
+				this.observer = new MutationObserver((mutations) => {
+					if (this.isMobile) return;
+					const hasChanges = mutations.some(
+						(m) =>
+							m.type === "childList" &&
+							(m.addedNodes.length > 0 || m.removedNodes.length > 0),
+					);
+					if (hasChanges) {
+						if (this._mutationTimer) clearTimeout(this._mutationTimer);
+						this._mutationTimer = setTimeout(() => {
+							if (this.isRelationshipMode) {
+								this.centerWholeTree(true);
+							} else {
+								const rootCard = this.target.querySelector(
+									`.${UI_CLASSES.treeNode}`,
+								);
+								if (rootCard) this.centerOnElement(rootCard, true, false);
+							}
+						}, 30);
+					}
+				});
+				this.observer.observe(this.target, { childList: true, subtree: true });
 
-			if (this.isRelationshipMode) {
-				this.centerWholeTree(true);
-			} else {
-				const rootCard = this.target.querySelector(`.${UI_CLASSES.treeNode}`);
-				if (rootCard) this.centerOnElement(rootCard, true, false);
+				if (this.isRelationshipMode) {
+					this.centerWholeTree(true);
+				} else {
+					const rootCard = this.target.querySelector(`.${UI_CLASSES.treeNode}`);
+					if (rootCard) this.centerOnElement(rootCard, true, false);
+				}
 			}
 		}
 		return this.target;

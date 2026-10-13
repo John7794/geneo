@@ -67,7 +67,7 @@ class App {
 
 					const btnShare = document.getElementById("btn-share");
 					if (btnShare) {
-						btnShare.style.display = ""; // Always show share button for now, as user wants it back
+						btnShare.style.display = (userConfig.isMainAdmin || userConfig.canShare) ? "" : "none";
 					}
 				}
 			} catch(e) {

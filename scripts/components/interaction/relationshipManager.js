@@ -175,8 +175,6 @@ export class RelationshipManager {
 
 		const rootEl = document.getElementById("tree-root");
 		if (rootEl) {
-			rootEl.style.transform = "scale(1)";
-			rootEl.style.transformOrigin = "top center";
 			rootEl.addEventListener("click", this.boundTreeClickHandler, true);
 		}
 
@@ -575,6 +573,12 @@ export class RelationshipManager {
 		const btnNext = document.getElementById("rel-btn-next");
 		if (btnPrev) btnPrev.onclick = () => this.prevScenario(currentProfileId);
 		if (btnNext) btnNext.onclick = () => this.nextScenario(currentProfileId);
+
+		if (window.zoomManager) {
+			void rootEl.offsetHeight;
+			window.zoomManager.getTarget();
+			window.zoomManager.reset(true);
+		}
 
 		setTimeout(() => {
 			const activeItem = document.querySelector(
