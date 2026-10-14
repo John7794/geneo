@@ -498,4 +498,4 @@ export class AppRouter {
 			managers.breadcrumbs?.renderPath(path);
 		}
 	}
-		}
+}

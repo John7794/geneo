@@ -43,9 +43,6 @@ export async function checkDataVersion() {
 				// 🔥 ЖОРСТКА ІНВАЛІДАЦІЯ КЕШУ
 				// Очищуємо, якщо версії відрізняються, АБО якщо версії локально взагалі немає
 				if (!localVersion || localVersion !== serverVersion) {
-					console.log(
-						`♻️ Cache invalidation triggered. Server: ${serverVersion}, Local: ${localVersion || "none"}. Clearing...`,
-					);
 					await localforage.clear();
 					// Записуємо нову версію після повного очищення
 					await localforage.setItem(STORE_VERSION_KEY, serverVersion);

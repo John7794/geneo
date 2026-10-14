@@ -13,7 +13,7 @@
 	/* Текст */
 	--color-text-main: #1f2937;
 	--color-text-muted: #4b5563;
-	--color-text-meta: #9ca3af;
+	--color-text-meta: #6b7280;
 	--color-text-inverse: #ffffff;
 
 	/* Фон */
@@ -158,7 +158,7 @@
 
 	--color-text-main: #f9fafb;
 	--color-text-muted: #9ca3af;
-	--color-text-meta: #6b7280;
+	--color-text-meta: #9ca3af;
 
 	--color-bg-body: #111827;
 	--color-bg-card: #1f2937;

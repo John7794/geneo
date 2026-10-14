@@ -78,9 +78,8 @@ export class ShareManager {
 			});
 			
 			const data = await res.json();
-			
 			if (res.ok) {
-				this.btnSubmit.innerHTML = '<i class="ri-check-line"></i> ' + (data.mock ? 'Імітація успішна (введіть SMTP)' : 'Запрошення надіслано!');
+				this.btnSubmit.innerHTML = '<i class="ri-check-line"></i> Запрошення надіслано!';
 				this.btnSubmit.classList.add("btn-success");
 				this.btnSubmit.style.backgroundColor = "var(--color-success)";
 				this.btnSubmit.style.borderColor = "var(--color-success)";

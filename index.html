@@ -134,7 +134,9 @@
 
 
 
-                <button id="btn-ai" class="btn btn-icon js-open-ai" title="AI Асистент" aria-label="AI Асистент" onclick="document.getElementById('ai-overlay').classList.remove('hidden'); document.getElementById('ai-overlay').classList.add('show'); document.getElementById('ai-overlay').setAttribute('aria-hidden', 'false');"><i class="ri-robot-2-line"></i></button>
+                <button id="btn-ai" class="btn btn-icon js-open-ai" title="AI Асистент" aria-label="AI Асистент">
+                    <i class="ri-robot-2-line"></i>
+                </button>
                 <button id="btn-analytics" class="btn btn-icon js-open-analytics" title="Аналітика" aria-label="Аналітика">
                     <i class="ri-bar-chart-2-line"></i>
                 </button>
@@ -191,13 +193,13 @@
 
         <div id="profile-content" class="hidden"></div>
 
-        <div id="lineage-modal" class="popup-overlay hidden" aria-hidden="true">
+        <div id="lineage-modal" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="lineage-modal-title">
             <div class="popup-container">
                 <div class="popup-header">
-                    <h3 class="popup-name" data-i18n="kinship.toggleTitle">
+                    <h3 id="lineage-modal-title" class="popup-name" data-i18n="kinship.toggleTitle">
                         Обрати лінію роду
                     </h3>
-                    <button id="btn-close-lineage" class="modal-close" data-i18n-title="ui.close">
+                    <button id="btn-close-lineage" class="modal-close" data-i18n-title="ui.close" aria-label="Закрити" title="Закрити">
                         <i class="ri-close-line"></i>
                     </button>
                 </div>
@@ -232,12 +234,12 @@
             </div>
         </div>
 
-        <div id="search-overlay" class="popup-overlay hidden">
+        <div id="search-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Пошук">
             <div class="popup-container">
                 <div class="popup-header popup-header--search">
                     <i class="ri-search-line text-muted"></i>
-                    <input type="text" id="search-input" class="search-input w-100" placeholder="Пошук (ім'я, прізвище, ID)..." data-i18n-placeholder="ui.searchPlaceholder" autocomplete="off" />
-                    <button id="btn-close-search" class="modal-close" data-i18n-title="ui.close">
+                    <input type="text" id="search-input" class="search-input w-100" placeholder="Пошук (ім'я, прізвище, ID)..." data-i18n-placeholder="ui.searchPlaceholder" autocomplete="off" aria-label="Пошук персони" />
+                    <button id="btn-close-search" class="modal-close" data-i18n-title="ui.close" aria-label="Закрити" title="Закрити">
                         <i class="ri-close-line"></i>
                     </button>
                 </div>
@@ -258,17 +260,17 @@
             </div>
         </div>
 
-        <div id="events-overlay" class="popup-overlay hidden">
+        <div id="events-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="events-modal-title">
             <div class="popup-container">
                 <div class="popup-header">
-                    <h3 class="popup-name popup-name--flex">
+                    <h3 id="events-modal-title" class="popup-name popup-name--flex">
                         <i class="ri-calendar-check-line text-primary"></i>
                         <div class="popup-name-title-group">
                             <span data-i18n="events.historyTitle">Цей день в історії</span>
                             <span id="current-date-display"></span>
                         </div>
                     </h3>
-                    <button id="btn-close-events" class="modal-close" data-i18n-title="ui.close">
+                    <button id="btn-close-events" class="modal-close" data-i18n-title="ui.close" aria-label="Закрити" title="Закрити">
                         <i class="ri-close-line"></i>
                     </button>
                 </div>
@@ -281,14 +283,14 @@
             </div>
         </div>
 
-        <div id="share-overlay" class="popup-overlay hidden">
+        <div id="share-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
             <div class="popup-container">
                 <div class="popup-header">
-                    <h3 class="popup-name popup-name--flex">
+                    <h3 id="share-modal-title" class="popup-name popup-name--flex">
                         <i class="ri-share-line text-primary"></i>
                         <span>Поділитися деревом</span>
                     </h3>
-                    <button id="btn-close-share" class="modal-close" title="Закрити">
+                    <button id="btn-close-share" class="modal-close" aria-label="Закрити" title="Закрити">
                         <i class="ri-close-line"></i>
                     </button>
                 </div>
@@ -314,19 +316,18 @@
                 </div>
             </div>
         </div>
-        </div>
 
         <!-- Analytics Modal -->
         <div id="analytics-view" class="hidden analytics-view">
             <div class="analytics-header">
                 <div class="analytics-header-left">
-                    <button id="btn-back-analytics" class="btn-icon" title="Назад">
+                    <button id="btn-back-analytics" class="btn-icon" title="Назад" aria-label="Назад">
                         <i class="ri-arrow-left-line"></i>
                     </button>
                     <i class="ri-bar-chart-2-line text-primary"></i>
                     <h1>Аналітика родоводу</h1>
                 </div>
-                <button id="btn-close-analytics" class="btn-icon" title="Закрити">
+                <button id="btn-close-analytics" class="btn-icon" title="Закрити" aria-label="Закрити">
                     <i class="ri-close-line"></i>
                 </button>
             </div>
@@ -541,18 +542,19 @@
                 </div>
             </div>
         </div>
-        </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 
-        <!-- AI Popup -->
-        <div id="ai-overlay" class="popup-overlay hidden" aria-hidden="true">
-            <div class="popup-container" style="width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column;">
-                <div class="popup-close-pos">
-                    <button class="modal-close js-close-popup" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
-                </div>
-                <div class="popup-header" style="padding: 16px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; padding-right: 48px;">
-                    <h2 class="popup-title" style="margin: 0; font-size: 20px;"><i class="ri-robot-2-line" style="margin-right:8px;"></i> AI Асистент</h2>
+    <!-- AI Popup -->
+    <div id="ai-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ai-modal-title">
+        <div class="popup-container" style="width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column;">
+            <div class="popup-close-pos">
+                <button class="modal-close js-close-popup" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="popup-header" style="padding: 16px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; padding-right: 48px;">
+                <h2 id="ai-modal-title" class="popup-title" style="margin: 0; font-size: 20px;"><i class="ri-robot-2-line" style="margin-right:8px;"></i> AI Асистент</h2>
                     <button id="ai-chat-clear" class="btn btn-outline" style="padding: 4px 12px; font-size: 13px; border-radius: 4px; display: flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--color-border); color: var(--color-text-main); cursor: pointer;">
                         <i class="ri-delete-bin-line"></i> Очистити
                     </button>

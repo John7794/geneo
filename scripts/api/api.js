@@ -66,7 +66,6 @@ export async function fetchAllData(userConfig = {}) {
 					text = text.replace(/[\x00-\x1F]/g, "");
 					parsedData = JSON.parse(text);
 				} catch (e2) {
-					console.warn("Kinship JSON snippet near error:", text.substring(523850, 523900));
 					throw e2;
 				}
 			}
