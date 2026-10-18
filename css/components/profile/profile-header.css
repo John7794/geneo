@@ -36,10 +36,14 @@
 	will-change: height, transform, top;
 }
 
-/* Адаптація відступу для планшетів та мобільних */
+/* Адаптація відступу для планшетів та мобільних: надійно центруємо шапку */
 @media (max-width: 768px) {
 	.profile-header {
 		top: 60px;
+		left: 50% !important;
+		transform: translateX(-50%) !important;
+		width: calc(100% - 32px) !important;
+		max-width: 900px !important;
 	}
 }
 

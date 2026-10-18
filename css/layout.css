@@ -21,7 +21,6 @@
 	/* Симетричні відступи: зверху 80px, по боках 24px, знизу 60px */
 	padding: 80px var(--spacing-md) 60px var(--spacing-md);
 	box-sizing: border-box;
-	will-change: transform, opacity;
 }
 
 /* Обмежуємо ширину ТІЛЬКИ для внутрішніх блоків (шапки і тіла) */

@@ -57,11 +57,9 @@ export class StickyHeaderManager {
 		);
 
 		const hHeight = this.headerNode.offsetHeight;
-		const rect = this.placeholderNode.getBoundingClientRect();
-		const pWidth = rect.width;
-		const pLeft = rect.left;
-
-		if (pWidth <= 0) return;
+		const isMobile =
+			window.innerWidth <= 768 ||
+			window.matchMedia("(max-width: 768px)").matches;
 
 		if (!isCollapsed && hHeight > 0) {
 			this.expandedHeight = hHeight;
@@ -70,8 +68,24 @@ export class StickyHeaderManager {
 			this.placeholderNode.style.height = `${this.expandedHeight}px`;
 		}
 
+		if (isMobile) {
+			// На мобільних пристроях центрування задано нативно в CSS (left: 50%, translateX(-50%))
+			// Не перезаписуємо інлайновими координатами, які можуть зміститися через анімації свайпу
+			this.headerNode.style.width = "";
+			this.headerNode.style.left = "";
+			this.headerNode.style.transform = "";
+			return;
+		}
+
+		const rect = this.placeholderNode.getBoundingClientRect();
+		const pWidth = rect.width;
+		const pLeft = rect.left;
+
+		if (pWidth <= 0) return;
+
 		this.headerNode.style.width = `${pWidth}px`;
 		this.headerNode.style.left = `${pLeft}px`;
+		this.headerNode.style.transform = "";
 	}
 
 	onScroll() {
@@ -85,9 +99,13 @@ export class StickyHeaderManager {
 					this.headerNode &&
 					this.placeholderNode
 				) {
+					const isMobile =
+						window.innerWidth <= 768 ||
+						window.matchMedia("(max-width: 768px)").matches;
 					if (
-						!this.headerNode.style.width ||
-						this.headerNode.style.width === "0px"
+						!isMobile &&
+						(!this.headerNode.style.width ||
+							this.headerNode.style.width === "0px")
 					) {
 						this.syncLayout();
 					}

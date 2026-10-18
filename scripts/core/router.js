@@ -127,6 +127,12 @@ export class AppRouter {
 							"transform 0.2s cubic-bezier(0, 0, 0.2, 1), opacity 0.2s ease-out";
 						viewContainer.style.transform = "";
 						viewContainer.style.opacity = "1";
+
+						setTimeout(() => {
+							viewContainer.style.transition = "";
+							viewContainer.style.transform = "";
+							viewContainer.style.opacity = "";
+						}, 250);
 					});
 				}, 150);
 			} else {
