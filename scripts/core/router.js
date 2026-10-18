@@ -48,7 +48,7 @@ export class AppRouter {
 		}
 	}
 
-	_navigateSibling(direction) {
+	_navigateSwipe(direction) {
 		const managers = this.app.managers;
 		const url = new URL(window.location);
 		const mode = url.searchParams.get("mode");
@@ -59,97 +59,238 @@ export class AppRouter {
 				const container = document.querySelector("#tree-view:not(.hidden)");
 				if (container) {
 					const translateX = direction > 0 ? "-30px" : "30px";
-					container.style.transition = "transform 0.15s ease-out, opacity 0.15s ease-out";
+					container.style.transition =
+						"transform 0.15s ease-out, opacity 0.15s ease-out";
 					container.style.transform = `translateX(${translateX})`;
 					container.style.opacity = "0.3";
 
 					setTimeout(() => {
-						if (direction > 0) managers.relationship.nextScenario(this.app.currentProfileId);
-						else managers.relationship.prevScenario(this.app.currentProfileId);
-						
+						if (direction > 0)
+							managers.relationship.nextScenario(this.app.currentProfileId);
+						else
+							managers.relationship.prevScenario(this.app.currentProfileId);
+
 						container.style.transform = "";
 						container.style.opacity = "1";
 					}, 150);
 				} else {
-					if (direction > 0) managers.relationship.nextScenario(this.app.currentProfileId);
+					if (direction > 0)
+						managers.relationship.nextScenario(this.app.currentProfileId);
 					else managers.relationship.prevScenario(this.app.currentProfileId);
 				}
 			}
 			return;
 		}
 
-		// 2. Profile or Tree Mode (Свайп по братам і сестрам)
-		let targetSiblingId = null;
+		// 2. Визначаємо активний режим: Профіль чи Дерево
+		const currentView = url.searchParams.get("view");
+		const profileEl = document.getElementById("profile-content");
+		const isProfileMode =
+			currentView === "profile" ||
+			(profileEl && !profileEl.classList.contains("hidden"));
 
-		// Спробуємо використати активну лінію навігації (якщо lineage.mode !== "all")
-		if (managers.lineage && typeof managers.lineage.logic?.buildPath === "function") {
-			const path = managers.lineage.logic.buildPath(this.app.currentProfileId);
-			if (path && path.length > 0) {
-				const currentItem = path[path.length - 1];
-				if (currentItem && currentItem.siblings && currentItem.siblings.length > 1) {
-					const currentIndex = currentItem.siblings.findIndex(
-						(s) => String(s.id) === String(currentItem.id) || String(s.id) === String(this.app.currentProfileId),
-					);
-					if (currentIndex !== -1) {
-						let tIndex = currentIndex + direction;
-						if (tIndex >= currentItem.siblings.length) tIndex = 0;
-						if (tIndex < 0) tIndex = currentItem.siblings.length - 1;
-						targetSiblingId = currentItem.siblings[tIndex]?.id;
-					}
-				}
-			}
+		let targetId = null;
+
+		if (isProfileMode) {
+			targetId = this._getNextProfileId(direction);
+		} else {
+			targetId = this._getNextTreeId(direction);
 		}
 
-		// Відкат до глобального пошуку братів і сестер для поточної особи
-		if (!targetSiblingId) {
-			const p = buildPersonObject(this.app.currentProfileId, this.app.engine);
-			if (p) {
-				let siblingIds = [String(this.app.currentProfileId)];
-				
-				if (p.siblings) {
-					const addIds = (arr) => {
-						if (Array.isArray(arr)) arr.forEach(s => siblingIds.push(String(s.id)));
-					};
-					addIds(p.siblings.full);
-					addIds(p.siblings.half_p);
-					addIds(p.siblings.half_m);
-				}
-
-				siblingIds = [...new Set(siblingIds)]; // Дедуплікація
-
-				if (siblingIds.length > 1) {
-					const currentIndex = siblingIds.indexOf(String(this.app.currentProfileId));
-					if (currentIndex !== -1) {
-						let tIndex = currentIndex + direction;
-						if (tIndex >= siblingIds.length) tIndex = 0;
-						if (tIndex < 0) tIndex = siblingIds.length - 1;
-						targetSiblingId = siblingIds[tIndex];
-					}
-				}
-			}
-		}
-
-		if (targetSiblingId) {
+		if (targetId && String(targetId) !== String(this.app.currentProfileId)) {
 			const viewContainer = document.querySelector(
-				"#tree-view:not(.hidden), #profile-content:not(.hidden)",
+				"#profile-content:not(.hidden), #tree-view:not(.hidden)",
 			);
 
 			if (viewContainer) {
-				const translateX = direction > 0 ? "-30px" : "30px";
+				const exitX = direction > 0 ? "-40px" : "40px";
+				const enterX = direction > 0 ? "40px" : "-40px";
+
 				viewContainer.style.transition =
-					"transform 0.15s ease-out, opacity 0.15s ease-out";
-				viewContainer.style.transform = `translateX(${translateX})`;
-				viewContainer.style.opacity = "0.3";
+					"transform 0.15s cubic-bezier(0.2, 0, 0, 1), opacity 0.15s ease-out";
+				viewContainer.style.transform = `translateX(${exitX})`;
+				viewContainer.style.opacity = "0.2";
 
 				setTimeout(() => {
-					this.navigateToId(targetSiblingId, false);
-					viewContainer.style.transform = "";
-					viewContainer.style.opacity = "1";
+					this.navigateToId(
+						targetId,
+						false,
+						isProfileMode ? "profile" : null,
+					);
+
+					viewContainer.style.transition = "none";
+					viewContainer.style.transform = `translateX(${enterX})`;
+					viewContainer.style.opacity = "0.2";
+
+					requestAnimationFrame(() => {
+						viewContainer.style.transition =
+							"transform 0.2s cubic-bezier(0, 0, 0.2, 1), opacity 0.2s ease-out";
+						viewContainer.style.transform = "";
+						viewContainer.style.opacity = "1";
+					});
 				}, 150);
 			} else {
-				this.navigateToId(targetSiblingId, false);
+				this.navigateToId(
+					targetId,
+					false,
+					isProfileMode ? "profile" : null,
+				);
 			}
 		}
+	}
+
+	_navigateSibling(direction) {
+		return this._navigateSwipe(direction);
+	}
+
+	_getNextProfileId(direction) {
+		const managers = this.app.managers;
+		const currentIdStr = String(this.app.currentProfileId);
+
+		// 1. Пріоритет: Навігаційна черга активної лінії роду (Lineage / Navigation queue)
+		const navQueue =
+			managers.navigation?.sortedIds &&
+			managers.navigation.sortedIds.length > 0
+				? managers.navigation.sortedIds
+				: managers.lineage?.queue || [];
+
+		let qIdx = navQueue.indexOf(currentIdStr);
+		if (qIdx === -1 && this.app.engine) {
+			const resolved = resolveRealId(currentIdStr, this.app.engine);
+			if (resolved) qIdx = navQueue.indexOf(String(resolved));
+		}
+
+		if (qIdx !== -1 && navQueue.length > 1) {
+			let nextIdx =
+				(qIdx + direction + navQueue.length) % navQueue.length;
+			return navQueue[nextIdx];
+		}
+
+		// 2. Якщо особа поза чергою (наприклад, зведений родич) — перемикаємо серед братів/сестер
+		const p = buildPersonObject(this.app.currentProfileId, this.app.engine);
+		if (p && p.siblings) {
+			let siblingIds = [currentIdStr];
+			const addIds = (arr) => {
+				if (Array.isArray(arr))
+					arr.forEach((s) => siblingIds.push(String(s.id)));
+			};
+			addIds(p.siblings.full);
+			addIds(p.siblings.half_p);
+			addIds(p.siblings.half_m);
+			siblingIds = [...new Set(siblingIds)];
+
+			if (siblingIds.length > 1) {
+				let sIdx = siblingIds.indexOf(currentIdStr);
+				if (sIdx !== -1) {
+					let nextSIdx =
+						(sIdx + direction + siblingIds.length) % siblingIds.length;
+					return siblingIds[nextSIdx];
+				}
+			}
+		}
+
+		// 3. Близькі родичі (подружжя, діти, батьки)
+		if (p) {
+			const familyMembers = [];
+			if (Array.isArray(p.spouses))
+				p.spouses.forEach((s) => familyMembers.push(String(s.id)));
+			if (Array.isArray(p.children))
+				p.children.forEach((c) => familyMembers.push(String(c.id)));
+			if (Array.isArray(p.parents))
+				p.parents.forEach((par) => familyMembers.push(String(par.id)));
+
+			const validFamily = [...new Set(familyMembers)].filter(
+				(id) => id && id !== currentIdStr,
+			);
+			if (validFamily.length > 0) {
+				let fIdx = direction > 0 ? 0 : validFamily.length - 1;
+				return validFamily[fIdx];
+			}
+		}
+
+		// 4. Глобальний фолбек по базі basic.csv
+		if (this.app.engine?.db?.basic && this.app.engine.db.basic.length > 1) {
+			const allBasic = this.app.engine.db.basic;
+			const allIds = allBasic
+				.map((r) => String(r.person_id || r.id || "").trim())
+				.filter(Boolean);
+			let bIdx = allIds.indexOf(currentIdStr);
+			if (bIdx !== -1) {
+				return allIds[(bIdx + direction + allIds.length) % allIds.length];
+			}
+		}
+
+		return null;
+	}
+
+	_getNextTreeId(direction) {
+		const managers = this.app.managers;
+		const currentIdStr = String(this.app.currentProfileId);
+
+		// У режимі дерева на мобільному свайп перемикає пробанда серед братів/сестер активної гілки
+		if (
+			managers.lineage &&
+			typeof managers.lineage.logic?.buildPath === "function"
+		) {
+			const path = managers.lineage.logic.buildPath(
+				this.app.currentProfileId,
+			);
+			if (path && path.length > 0) {
+				const currentItem = path[path.length - 1];
+				if (
+					currentItem &&
+					currentItem.siblings &&
+					currentItem.siblings.length > 1
+				) {
+					const currentIndex = currentItem.siblings.findIndex(
+						(s) =>
+							String(s.id) === String(currentItem.id) ||
+							String(s.id) === currentIdStr,
+					);
+					if (currentIndex !== -1) {
+						let tIndex =
+							(currentIndex + direction + currentItem.siblings.length) %
+							currentItem.siblings.length;
+						return currentItem.siblings[tIndex]?.id;
+					}
+				}
+			}
+		}
+
+		const p = buildPersonObject(this.app.currentProfileId, this.app.engine);
+		if (p && p.siblings) {
+			let siblingIds = [currentIdStr];
+			const addIds = (arr) => {
+				if (Array.isArray(arr))
+					arr.forEach((s) => siblingIds.push(String(s.id)));
+			};
+			addIds(p.siblings.full);
+			addIds(p.siblings.half_p);
+			addIds(p.siblings.half_m);
+			siblingIds = [...new Set(siblingIds)];
+
+			if (siblingIds.length > 1) {
+				const currentIndex = siblingIds.indexOf(currentIdStr);
+				if (currentIndex !== -1) {
+					let tIndex =
+						(currentIndex + direction + siblingIds.length) %
+						siblingIds.length;
+					return siblingIds[tIndex];
+				}
+			}
+		}
+
+		// Якщо сиблінгів немає — перемикаємо по навігаційній черзі лінії
+		const navQueue =
+			managers.navigation?.sortedIds || managers.lineage?.queue || [];
+		if (navQueue.length > 1) {
+			let qIdx = navQueue.indexOf(currentIdStr);
+			if (qIdx !== -1) {
+				return navQueue[(qIdx + direction + navQueue.length) % navQueue.length];
+			}
+		}
+
+		return null;
 	}
 
 	_handleDocumentClick(e) {

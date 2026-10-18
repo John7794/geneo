@@ -45,13 +45,18 @@ export class MobileSwipeManager {
 	}
 
 	_checkIfDisabled(target) {
-		// Ігноруємо свайпи, якщо відкриті модалки, галерея, меню або активовано зум
+		// Ігноруємо свайпи, якщо відкриті модалки, галерея, меню або інтерактивні поля
 		const ignoreSelectors = [
 			".gallery-scroll-content",
 			".popup-overlay",
 			".breadcrumbs__dropdown-menu",
 			".breadcrumbs__overlay",
 			".panel-resizer",
+			"input",
+			"textarea",
+			"select",
+			"audio",
+			"video",
 		];
 
 		if (
@@ -61,7 +66,23 @@ export class MobileSwipeManager {
 			return true;
 		}
 
-		return target.closest(ignoreSelectors.join(", ")) !== null;
+		if (target.closest(ignoreSelectors.join(", ")) !== null) {
+			return true;
+		}
+
+		const isMobile =
+			window.innerWidth <= 768 ||
+			window.matchMedia("(max-width: 768px)").matches;
+		const profileEl = document.getElementById("profile-content");
+		const isProfileActive =
+			profileEl && !profileEl.classList.contains("hidden");
+
+		// Якщо це десктоп і ми не в профілі (наприклад, дерево з власним зумом) — не перехоплюємо свайпи
+		if (!isMobile && !isProfileActive) {
+			return true;
+		}
+
+		return false;
 	}
 
 	_handleTouchStart(e) {
@@ -102,6 +123,7 @@ export class MobileSwipeManager {
 	_handleTouchEnd(e) {
 		if (this.isDisabled || !this.startX) {
 			this.startX = 0;
+			this.startY = 0;
 			return;
 		}
 
@@ -114,12 +136,14 @@ export class MobileSwipeManager {
 		this.startX = 0;
 		this.startY = 0;
 
-		// Більш м'які пороги: dy <= 160 дозволяє дугоподібні свайпи
+		const isHorizontal = Math.abs(dx) > Math.abs(dy) * 1.1;
+
+		// Спрацьовує як на плавний свайп, так і на швидкий жест (флік)
 		if (
-			this.isSwiping &&
+			(this.isSwiping || isHorizontal) &&
 			elapsedTime <= this.timeout &&
 			Math.abs(dx) >= this.threshold &&
-			Math.abs(dy) <= 160
+			Math.abs(dy) <= 180
 		) {
 			if (dx > 0) {
 				// Змах вліво (наступний елемент)
