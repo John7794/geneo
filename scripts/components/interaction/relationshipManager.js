@@ -330,22 +330,6 @@ export class RelationshipManager {
 
 		scenario.root.forEach((r) => this.focusIds.add(String(r.id)));
 
-		const iconLeft = UI_CLASSES.icons?.arrowLeftSLine || "ri-arrow-left-s-line";
-		const iconRight =
-			UI_CLASSES.icons?.arrowRightSLine || "ri-arrow-right-s-line";
-
-		const navHTML =
-			total > 1
-				? `
-            <button class="nav-arrow nav-arrow--left" id="rel-btn-prev" aria-label="Попередній варіант">
-                <i class="${iconLeft}" aria-hidden="true"></i>
-            </button>
-            <button class="nav-arrow nav-arrow--right" id="rel-btn-next" aria-label="Наступний варіант">
-                <i class="${iconRight}" aria-hidden="true"></i>
-            </button>
-        `
-				: "";
-
 		const isCouple = scenario.root.length > 1;
 		const mainNodes = scenario.branch.main || [];
 		const sideNodes = scenario.branch.side || [];
@@ -578,13 +562,7 @@ export class RelationshipManager {
 				"beforeend",
 				`<div id="rel-dynamic-footer" class="${UI_CLASSES.relFooterUnified}"><div class="${UI_CLASSES.relFooterCol} ${UI_CLASSES.relFooterColLeft}">${leftInfo}</div><div class="${UI_CLASSES.relFooterSep}" aria-hidden="true"></div><div class="${UI_CLASSES.relFooterCol} ${UI_CLASSES.relFooterColRight}">${rightInfo}</div></div>`,
 			);
-			if (navHTML) treeViewEl.insertAdjacentHTML("beforeend", navHTML);
 		}
-
-		const btnPrev = document.getElementById("rel-btn-prev");
-		const btnNext = document.getElementById("rel-btn-next");
-		if (btnPrev) btnPrev.onclick = () => this.prevScenario(currentProfileId);
-		if (btnNext) btnNext.onclick = () => this.nextScenario(currentProfileId);
 
 		if (window.zoomManager) {
 			void rootEl.offsetHeight;
