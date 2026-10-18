@@ -4,48 +4,112 @@
    ========================================================================== */
 
 @page {
-	size: auto;
+	size: landscape;
+	margin: 8mm 10mm;
+}
+
+@page landscape-page {
+	size: landscape;
+	margin: 8mm 10mm;
+}
+
+@page portrait-page {
+	size: portrait;
 	margin: 10mm 12mm;
 }
 
 @media print {
-	/* 1. Глобальне скидання та базовий аркуш */
+	/* 1. ГЛОБАЛЬНЕ СКИДАННЯ ТЕМИ: ВИКЛЮЧНО СВІТЛИЙ ПАПЕРОВИЙ ФОН */
+	:root,
+	:root.theme-dark,
+	html,
+	html.theme-dark,
+	body {
+		--color-primary: #2563eb !important;
+		--color-primary-hover: #1d4ed8 !important;
+		--color-primary-light: #eff6ff !important;
+		--color-text-main: #0f172a !important;
+		--color-text-muted: #334155 !important;
+		--color-text-meta: #475569 !important;
+		--color-text-inverse: #0f172a !important;
+
+		--color-bg-body: #ffffff !important;
+		--color-bg-card: #ffffff !important;
+		--color-bg-hover: #f8fafc !important;
+		--color-bg-sub: #f8fafc !important;
+		--color-bg-muted: #f1f5f9 !important;
+
+		--color-border: #cbd5e1 !important;
+		--color-border-light: #e2e8f0 !important;
+		--color-border-hover: #94a3b8 !important;
+
+		--color-tree-line: #334155 !important;
+		--tree-line-color: #334155 !important;
+		--tree-line-width: 2.5px !important;
+
+		background-color: #ffffff !important;
+		background: #ffffff !important;
+		color: #0f172a !important;
+	}
+
 	*,
 	*::before,
 	*::after {
 		box-shadow: none !important;
 		text-shadow: none !important;
-	}
-
-	html,
-	body {
-		background-color: #ffffff !important;
-		color: #111827 !important;
-		font-size: 11pt !important;
-		line-height: 1.4 !important;
-		width: 100% !important;
-		height: auto !important;
-		overflow: visible !important;
-		margin: 0 !important;
-		padding: 0 !important;
 		-webkit-print-color-adjust: exact !important;
 		print-color-adjust: exact !important;
 	}
 
-	/* 2. СТРОГЕ ПРИХОВУВАННЯ НЕАКТИВНИХ ТА СИСТЕМНИХ ЕЛЕМЕНТІВ */
+	html,
+	body {
+		background: #ffffff !important;
+		color: #0f172a !important;
+		font-size: 10.5pt !important;
+		line-height: 1.4 !important;
+		width: 100% !important;
+		height: auto !important;
+		min-height: auto !important;
+		overflow: visible !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	.app-wrapper {
+		display: block !important;
+		position: static !important;
+		width: 100% !important;
+		height: auto !important;
+		min-height: auto !important;
+		background: #ffffff !important;
+		background-color: #ffffff !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		overflow: visible !important;
+	}
+
+	/* 2. ПРИХОВУВАННЯ СИСТЕМНИХ, НАВІГАЦІЙНИХ ТА НЕАКТИВНИХ ЕЛЕМЕНТІВ */
 	.hidden,
 	[hidden],
 	#tree-view.hidden,
 	#profile-content.hidden,
 	#analytics-view.hidden,
 	#breadcrumbs-container,
+	.breadcrumbs-container,
 	.breadcrumbs-wrapper,
 	.breadcrumbs__list,
 	#breadcrumbs-list,
+	.breadcrumbs__item-wrapper,
+	.breadcrumbs-tab-btn,
+	.breadcrumbs__link,
+	.breadcrumbs__separator,
+	.breadcrumbs__dropdown-menu,
+	.breadcrumbs__overlay,
 	.top-bar-controls,
 	#mobile-menu-btn,
 	.mobile-menu-toggle,
 	.unified-panel,
+	.control-group,
 	.zoom-controls,
 	#zoom-container,
 	.fab-container,
@@ -70,12 +134,18 @@
 	.btn-expanded,
 	.rel-nav-controls,
 	#btn-lineage-toggle,
+	.nav-arrow,
+	#rel-btn-prev,
+	#rel-btn-next,
 	.audio-player,
 	audio,
 	video,
 	button:not(.print-preserve) {
 		display: none !important;
 		visibility: hidden !important;
+		opacity: 0 !important;
+		height: 0 !important;
+		overflow: hidden !important;
 	}
 
 	/* Приховування URL після посилань */
@@ -88,7 +158,7 @@
 		content: "" !important;
 	}
 
-	/* 3. РЕЖИМ ПРОФІЛЮ (Коли #profile-content активний) */
+	/* 3. РЕЖИМ ПРОФІЛЮ (Коли #profile-content не має .hidden) */
 	#profile-content:not(.hidden) {
 		display: block !important;
 		visibility: visible !important;
@@ -98,9 +168,11 @@
 		margin: 0 auto !important;
 		padding: 0 !important;
 		overflow: visible !important;
+		background: #ffffff !important;
+		page: portrait-page;
 	}
 
-	/* Скидання фіксованої шапки профілю */
+	/* Скидання шапки профілю з fixed на чистий статичний блок */
 	.profile-header,
 	.profile-header.is-collapsed,
 	#sticky-header {
@@ -112,10 +184,11 @@
 		max-width: 100% !important;
 		transform: none !important;
 		box-shadow: none !important;
-		border: 1px solid #d1d5db !important;
+		border: 1px solid #cbd5e1 !important;
 		border-radius: 12px !important;
 		margin: 0 0 20px 0 !important;
 		padding: 0 !important;
+		background-color: #ffffff !important;
 		background: #ffffff !important;
 		page-break-inside: avoid !important;
 		break-inside: avoid !important;
@@ -147,17 +220,17 @@
 	}
 
 	.profile-avatar-main {
-		width: 80px !important;
-		height: 80px !important;
-		margin: 0 auto 12px auto !important;
-		border: 2px solid #e5e7eb !important;
+		width: 76px !important;
+		height: 76px !important;
+		margin: 0 auto 10px auto !important;
+		border: 2px solid #e2e8f0 !important;
 		border-radius: 50% !important;
 		object-fit: cover !important;
 	}
 
 	.profile-name {
 		font-family: "Playfair Display", Georgia, serif !important;
-		font-size: 22pt !important;
+		font-size: 20pt !important;
 		font-weight: 700 !important;
 		color: #0f172a !important;
 		margin: 0 0 8px 0 !important;
@@ -174,12 +247,13 @@
 
 	.profile-status-pill {
 		display: inline-block !important;
-		padding: 4px 12px !important;
-		border: 1px solid #d1d5db !important;
+		padding: 3px 12px !important;
+		border: 1px solid #cbd5e1 !important;
 		border-radius: 20px !important;
-		font-size: 9pt !important;
-		background: #f3f4f6 !important;
-		color: #374151 !important;
+		font-size: 8.5pt !important;
+		font-weight: 600 !important;
+		background: #f1f5f9 !important;
+		color: #1e293b !important;
 	}
 
 	.profile-body {
@@ -188,71 +262,127 @@
 		overflow: visible !important;
 		padding: 0 !important;
 		margin: 0 !important;
+		background: #ffffff !important;
 	}
 
 	.profile-block {
 		page-break-inside: avoid !important;
 		break-inside: avoid !important;
+		background-color: #ffffff !important;
 		background: #ffffff !important;
-		border: 1px solid #e5e7eb !important;
+		border: 1px solid #cbd5e1 !important;
 		border-radius: 8px !important;
-		padding: 14px 18px !important;
+		padding: 0 !important;
 		margin-bottom: 16px !important;
+		overflow: hidden !important;
 	}
 
-	.profile-block-header {
-		font-size: 14pt !important;
+	.profile-block__header {
+		display: flex !important;
+		align-items: center !important;
+		padding: 10px 16px !important;
+		background-color: #f8fafc !important;
+		background: #f8fafc !important;
+		color: #0f172a !important;
+		font-size: 13pt !important;
 		font-weight: 600 !important;
-		color: #1f2937 !important;
-		border-bottom: 1px solid #e5e7eb !important;
-		padding-bottom: 6px !important;
-		margin-bottom: 12px !important;
+		border-bottom: 1px solid #cbd5e1 !important;
+		margin: 0 !important;
 	}
 
-	/* 4. РЕЖИМ ДЕРЕВА (Коли #tree-view активний) */
-	#tree-view:not(.hidden) {
+	.profile-block__body {
+		padding: 12px 16px !important;
+		background: #ffffff !important;
+	}
+
+	.data-row {
+		border-bottom: 1px solid #e2e8f0 !important;
+		padding: 10px 0 !important;
+		background: transparent !important;
+	}
+	.data-row:last-child {
+		border-bottom: none !important;
+	}
+
+	.data-row__key {
+		color: #475569 !important;
+		font-weight: 500 !important;
+	}
+
+	.data-row__value {
+		color: #0f172a !important;
+	}
+
+	.date-format-main {
+		color: #0f172a !important;
+	}
+	.date-format-sub {
+		color: #475569 !important;
+	}
+
+	.kinship-card {
+		background-color: #ffffff !important;
+		background: #ffffff !important;
+		border: 1px solid #cbd5e1 !important;
+		color: #0f172a !important;
+	}
+	.kinship-role {
+		color: #475569 !important;
+	}
+	.kinship-name {
+		color: #0f172a !important;
+	}
+
+	/* 4. РЕЖИМ ДЕРЕВА (Коли #tree-view не має .hidden) */
+	#tree-view:not(.hidden),
+	.tree-container:not(.hidden) {
 		display: block !important;
 		visibility: visible !important;
+		opacity: 1 !important;
 		position: static !important;
 		width: 100% !important;
 		height: auto !important;
 		overflow: visible !important;
 		background: #ffffff !important;
 		background-image: none !important;
+		page: landscape-page;
 	}
 
 	.tree-scroll-wrapper {
-		display: flex !important;
-		justify-content: center !important;
-		align-items: flex-start !important;
-		padding: 10px 0 !important;
+		display: block !important;
+		text-align: center !important;
 		margin: 0 auto !important;
+		padding: 0 !important;
 		width: 100% !important;
 		min-width: 0 !important;
-		min-height: 0 !important;
+		max-width: 100% !important;
 		overflow: visible !important;
 		box-sizing: border-box !important;
 	}
 
+	#tree-root.genealogy-tree,
 	#tree-root {
 		display: inline-block !important;
-		margin: 0 auto !important;
 		position: static !important;
-		overflow: visible !important;
-		width: auto !important;
-	}
-
-	/* Масштабування для дерева з багатьма поколіннями */
-	.genealogy-tree {
-		display: inline-block !important;
+		left: auto !important;
+		top: auto !important;
+		right: auto !important;
+		bottom: auto !important;
 		margin: 0 auto !important;
+		width: max-content !important;
+		min-width: 0 !important;
+		max-width: none !important;
+		overflow: visible !important;
 		text-align: center !important;
-		zoom: 0.65;
+		white-space: nowrap !important;
+		transform: none !important;
+		zoom: 0.28 !important;
 	}
 
-	@supports not (zoom: 0.65) {
-		.genealogy-tree {
-			transform: scale(0.65) !important;
+	@supports not (zoom: 0.28) {
+		#tree-root.genealogy-tree,
+		#tree-root {
+			transform: scale(0.28) !important;
 			transform-origin: top center !important;
 		}
 	}
@@ -261,12 +391,70 @@
 		page-break-inside: avoid !important;
 		break-inside: avoid !important;
 		background: #ffffff !important;
-		border: 1px solid #64748b !important;
+		background-color: #ffffff !important;
+		border: 1.5px solid #475569 !important;
+		color: #0f172a !important;
 		box-shadow: none !important;
 	}
 
+	.tree-node__name,
+	.tree-node-name {
+		color: #0f172a !important;
+		font-weight: 700 !important;
+		font-size: 13pt !important;
+	}
+	.tree-node__dates,
+	.tree-node-dates {
+		color: #334155 !important;
+		font-weight: 600 !important;
+		font-size: 10pt !important;
+	}
+	.tree-node__photo,
 	.tree-node-photo {
 		border: 1px solid #cbd5e1 !important;
+	}
+
+	/* ЛІНІЇ ДЕРЕВА: гарантована видимість та товщина */
+	.genealogy-tree li::before {
+		border-top-color: #334155 !important;
+		border-top-width: 2.5px !important;
+	}
+	.genealogy-tree li::after {
+		border-top-color: #334155 !important;
+		border-top-width: 2.5px !important;
+		border-left-color: #334155 !important;
+		border-left-width: 2.5px !important;
+	}
+	.genealogy-tree li:last-child::before {
+		border-right-color: #334155 !important;
+		border-right-width: 2.5px !important;
+	}
+	.genealogy-tree ul ul::before {
+		border-left-color: #334155 !important;
+		border-left-width: 2.5px !important;
+		border-left-style: solid !important;
+	}
+
+	/* Мобільне дерево у друці */
+	.genealogy-tree-mobile-wrapper,
+	.tree-mobile-container {
+		display: flex !important;
+		flex-direction: column !important;
+		align-items: center !important;
+		width: 100% !important;
+		max-width: 650px !important;
+		margin: 0 auto !important;
+		overflow: visible !important;
+	}
+	.tree-mobile-container .kinship-card {
+		background: #ffffff !important;
+		border: 1px solid #cbd5e1 !important;
+		page-break-inside: avoid !important;
+		break-inside: avoid !important;
+	}
+	.tree-mobile-divider span {
+		background: #ffffff !important;
+		color: #475569 !important;
 	}
 
 	/* 5. РЕЖИМ ПОРІВНЯННЯ ТА СПОРІДНЕНОСТІ */
@@ -276,6 +464,8 @@
 		align-items: center !important;
 		width: 100% !important;
 		margin: 0 auto !important;
+		background: #ffffff !important;
+		page: landscape-page;
 	}
 
 	.rel-tree-wrapper {
@@ -285,28 +475,112 @@
 		display: flex !important;
 		flex-direction: column !important;
 		align-items: center !important;
+		background: #ffffff !important;
 	}
 
-	.rel-footer {
+	/* Лінії зв'язку між родичами */
+	.rel-couple-container.is-couple::before {
+		border-top-color: #334155 !important;
+		border-top-width: 2.5px !important;
+	}
+	.rel-couple-container.is-couple::after,
+	.rel-couple-container:not(.is-couple)::after {
+		border-left-color: #334155 !important;
+		border-left-width: 2.5px !important;
+	}
+	.rel-branch-connector::before {
+		border-top-color: #334155 !important;
+		border-top-width: 2.5px !important;
+	}
+	.rel-branch-connector::after {
+		border-left-color: #334155 !important;
+		border-left-width: 2.5px !important;
+	}
+	.rel-line-down {
+		border-left-color: #334155 !important;
+		border-left-width: 2.5px !important;
+	}
+	.rel-merge-bracket {
+		border-bottom-color: #334155 !important;
+		border-bottom-width: 2.5px !important;
+	}
+	.rel-merge-left {
+		border-left-color: #334155 !important;
+		border-left-width: 2.5px !important;
+	}
+	.rel-merge-right {
+		border-right-color: #334155 !important;
+		border-right-width: 2.5px !important;
+	}
+
+	/* Фінальний блок розрахунку спорідненості */
+	.rel-footer-unified {
 		position: static !important;
-		margin: 20px auto !important;
-		border: 1px solid #d1d5db !important;
-		border-radius: 8px !important;
+		transform: none !important;
+		left: auto !important;
+		right: auto !important;
+		bottom: auto !important;
+		margin: 28px auto 0 auto !important;
+		width: max-content !important;
+		min-width: 320px !important;
+		max-width: 600px !important;
 		background: #ffffff !important;
+		background-color: #ffffff !important;
+		border: 1.5px solid #cbd5e1 !important;
+		border-radius: 12px !important;
 		box-shadow: none !important;
 		page-break-inside: avoid !important;
 		break-inside: avoid !important;
-		width: fit-content !important;
-		padding: 12px 24px !important;
+		padding: 14px 28px !important;
+		display: flex !important;
+		justify-content: center !important;
+		align-items: center !important;
 	}
 
-	/* Таблиці та списки */
+	.rel-footer-col {
+		flex: 1 1 auto !important;
+		color: #0f172a !important;
+	}
+	.rel-footer-col--left {
+		align-items: flex-end !important;
+		text-align: right !important;
+	}
+	.rel-footer-col--right {
+		align-items: flex-start !important;
+		text-align: left !important;
+	}
+	.rel-footer-sep {
+		width: 1px !important;
+		background-color: #cbd5e1 !important;
+		height: 36px !important;
+		margin: 0 16px !important;
+	}
+	.rel-row {
+		display: flex !important;
+		align-items: center !important;
+		gap: 12px !important;
+	}
+	.rel-lbl {
+		color: #475569 !important;
+		font-size: 10pt !important;
+		white-space: nowrap !important;
+	}
+	.rel-val {
+		color: #0f172a !important;
+		font-size: 11pt !important;
+		font-weight: 700 !important;
+		white-space: nowrap !important;
+	}
+
+	/* Таблиці */
 	table,
 	tr,
 	td,
 	th {
 		page-break-inside: avoid !important;
 		break-inside: avoid !important;
-		border-color: #e5e7eb !important;
+		border-color: #cbd5e1 !important;
+		background: #ffffff !important;
+		color: #0f172a !important;
 	}
 }

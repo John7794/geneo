@@ -129,6 +129,20 @@ export class ZoomManager {
 		window.addEventListener("touchend", this._handleTouchEnd);
 		window.addEventListener("touchcancel", this._handleTouchEnd);
 
+		window.addEventListener("beforeprint", () => {
+			const target = document.getElementById("tree-root");
+			if (target) {
+				this._savedInlineTransform = target.style.transform;
+				target.style.transform = "none";
+			}
+		});
+		window.addEventListener("afterprint", () => {
+			const target = document.getElementById("tree-root");
+			if (target && this._savedInlineTransform !== undefined) {
+				target.style.transform = this._savedInlineTransform;
+			}
+		});
+
 		this.updateUI();
 	}
 
