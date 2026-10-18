@@ -224,20 +224,21 @@ const resolveDataFile = (rel: string) => {
   return path.join(ACTIVE_DATA_DIR, rel);
 };
 
-// Оптимізований таргетований контекст для Gemini AI
+// Повнотекстовий контекст для Gemini AI (Gemini 2.5 Flash має вікно 1M токенів)
 function getAiContext(profileId?: string): string {
   try {
     const basicPath = resolveDataFile("db/uk/basic.csv");
     const rolesPath = resolveDataFile("db/uk/familyRoles.csv");
-    const birthPath = resolveDataFile("db/uk/birth.csv");
-    const deathPath = resolveDataFile("db/uk/death.csv");
+    const namesPath = resolveDataFile("db/uk/names.csv");
 
     if (!fs.existsSync(basicPath)) return "";
 
     const basicContent = fs.readFileSync(basicPath, "utf8");
     const rolesContent = fs.existsSync(rolesPath) ? fs.readFileSync(rolesPath, "utf8") : "";
+    const namesContent = fs.existsSync(namesPath) ? fs.readFileSync(namesPath, "utf8") : "";
 
-    // Якщо користувач дивиться конкретний профіль, фокусуємо контекст на ньому та найближчих родичах
+    let focusContext = "";
+    // Якщо користувач дивиться конкретний профіль, фокусуємо контекст на ньому та його родичах
     if (profileId) {
       const basicLines = basicContent.split("\n");
       const targetLine = basicLines.find((l) => l.startsWith(profileId + ","));
@@ -253,22 +254,28 @@ function getAiContext(profileId?: string): string {
         });
       }
 
-      return `
+      focusContext = `
 [ФОКУСНА ПЕРСОНА (ID=${profileId})]:
 ${targetLine || "Не знайдено"}
 
-[РОДИННІ РОЛІ ТА ЗВ'ЯЗКИ]:
+[РОДИННІ РОЛІ ТА ЗВ'ЯЗКИ ДЛЯ ЦІЄЇ ПЕРСОНИ]:
 ${rolesLine || "Не вказано"}
 
 [БЛИЗЬКЕ РОДИННЕ КОЛО]:
-${relatedLines.slice(0, 15).join("\n")}
+${relatedLines.join("\n")}
 `;
     }
 
-    // Загальний контекст: заголовок і перші рядки для розуміння структури
     return `
-[ОСНОВНА БАЗА ДАНИХ (фрагмент basic.csv)]:
-${basicContent.split("\n").slice(0, 40).join("\n")}
+${focusContext}
+[ОСНОВНА БАЗА ДАНИХ (basic.csv)]:
+${basicContent}
+
+[РОДИННІ ЗВ'ЯЗКИ ТА РОЛІ (familyRoles.csv)]:
+${rolesContent}
+
+[АЛЬТЕРНАТИВНІ ТА ДІВОЧІ ПРІЗВИЩА (names.csv)]:
+${namesContent}
 `;
   } catch (e) {
     console.error("Error reading AI context:", e);

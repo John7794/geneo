@@ -66,13 +66,20 @@ export class AnalyticsManager {
 	}
 
 	render() {
-        try {
-		    this.calculateStats();
-        } catch (e) {
-            if (this.containerSummary) {
-                this.containerSummary.innerHTML = '<div style="color:red; font-size:20px;">ERROR: ' + e.message + '<br>' + e.stack + '</div>';
-            }
-        }
+		try {
+			this.calculateStats();
+		} catch (e) {
+			console.error("Помилка розрахунку аналітики:", e);
+			if (this.containerSummary) {
+				this.containerSummary.innerHTML = `
+					<div class="analytics-error-state" style="padding: 32px 16px; text-align: center; color: var(--color-text-meta);">
+						<i class="ri-error-warning-line" style="font-size: 40px; color: var(--color-danger, #ef4444); margin-bottom: 12px; display: inline-block;"></i>
+						<h4 style="font-size: 16px; font-weight: 600; color: var(--color-text-main); margin-bottom: 8px;">Не вдалося розрахувати статистику</h4>
+						<p style="font-size: 13px; max-width: 400px; margin: 0 auto;">Будь ласка, перевірте цілісність таблиць бази даних або оновіть сторінку.</p>
+					</div>
+				`;
+			}
+		}
 	}
 
 	initAccordions() {

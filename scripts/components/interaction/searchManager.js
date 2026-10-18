@@ -5,6 +5,7 @@ import { i18n } from "../../core/i18n.js";
 import { UI_CLASSES } from "../../core/uiClasses.js";
 import { isFemale } from "../../utils/genderUtils.js";
 import { getAvatarUrl, getFullName } from "../../utils/personUtils.js";
+import { getCachedDates } from "../../utils/treeUtils.js";
 
 export class SearchManager {
 	constructor(globalContext, onNavigate, getNavigator) {
@@ -24,10 +25,13 @@ export class SearchManager {
 
 		this.selectedIndex = -1;
 		this.results = [];
+		this._allMatches = [];
+		this.displayLimit = 20;
 		this.searchTimeout = null;
 
 		// Кеш пошукових запитів для усунення навантаження на GC
 		this._searchCache = null;
+		this._cacheByPersonId = null;
 
 		this._handleGlobalKeydown = this._handleGlobalKeydown.bind(this);
 
@@ -106,6 +110,8 @@ export class SearchManager {
 
 	resetResults() {
 		this.results = [];
+		this._allMatches = [];
+		this.displayLimit = 20;
 		this.renderResults();
 		if (this.hintState) this.hintState.classList.remove(UI_CLASSES.hidden);
 		if (this.emptyState) this.emptyState.classList.add(UI_CLASSES.hidden);
@@ -121,7 +127,40 @@ export class SearchManager {
 		const cPat = COLUMNS.basic?.patronymic || "patronymic";
 		const cSlug = COLUMNS.basic?.slug || "slug";
 
+		const DB = this.context.db || this.context;
+		const namesMap = new Map();
+
+		if (DB && Array.isArray(DB.names)) {
+			const cPersonId = COLUMNS.names?.personId || "person_id";
+			const cBSur = COLUMNS.names?.bSurname || "b_surname";
+			const cAltSur = COLUMNS.names?.altSurnames || "alt_surnames";
+			const cMSur = COLUMNS.names?.mSurname || "m_surname";
+			const cAltFirst = COLUMNS.names?.altFirstNames || "alt_first_names";
+			const cBap = COLUMNS.names?.baptismName || "baptism_name";
+
+			for (let i = 0; i < DB.names.length; i++) {
+				const n = DB.names[i];
+				const pid = String(n[cPersonId] || "").trim();
+				if (!pid) continue;
+				const parts = [
+					n[cBSur],
+					n[cAltSur],
+					n[cMSur],
+					n[cAltFirst],
+					n[cBap],
+				]
+					.filter(Boolean)
+					.join(" ");
+				if (parts) {
+					const existing = namesMap.get(pid);
+					namesMap.set(pid, existing ? `${existing} ${parts}` : parts);
+				}
+			}
+		}
+
 		const cache = new Array(dbBasic.length);
+		const byPersonId = new Map();
+
 		for (let i = 0; i < dbBasic.length; i++) {
 			const p = dbBasic[i];
 			const id = String(p[cId] || "");
@@ -129,6 +168,12 @@ export class SearchManager {
 			const sur = p[cSur] || "";
 			const pat = p[cPat] || "";
 			const slug = p[cSlug] || "";
+
+			const extraNames = namesMap.get(id) || "";
+			const dates = DB ? getCachedDates(id, DB) : null;
+			const bYear = dates?.bYear ? String(dates.bYear) : "";
+			const dYear = dates?.dYear ? String(dates.dYear) : "";
+			const yearsText = [bYear, dYear].filter(Boolean).join(" ");
 
 			const text = (
 				id +
@@ -139,11 +184,20 @@ export class SearchManager {
 				" " +
 				pat +
 				" " +
-				slug
+				slug +
+				" " +
+				extraNames +
+				" " +
+				yearsText
 			).toLowerCase();
-			cache[i] = { p, text, id };
+
+			const item = { p, text, id, bYear, dYear, extraNames };
+			cache[i] = item;
+			byPersonId.set(id, item);
 		}
+
 		this._searchCache = cache;
+		this._cacheByPersonId = byPersonId;
 	}
 
 	handleInput(query) {
@@ -186,6 +240,7 @@ export class SearchManager {
 			if (match) allMatches.push(item.p);
 		}
 
+		this._allMatches = allMatches;
 		const totalCount = allMatches.length;
 		if (this.statusEl) {
 			if (totalCount > 0) {
@@ -197,7 +252,8 @@ export class SearchManager {
 			}
 		}
 
-		this.results = allMatches.slice(0, 20);
+		this.displayLimit = 20;
+		this.results = allMatches.slice(0, this.displayLimit);
 		this.selectedIndex = 0;
 		this.renderResults();
 
@@ -271,13 +327,30 @@ export class SearchManager {
 				person[COLUMNS.basic?.photo || "photo"],
 				isFemale(person[COLUMNS.basic?.gender || "gender"]),
 			);
-			const safeId = person[COLUMNS.basic?.id || "id"] || "";
+			const safeId = String(person[COLUMNS.basic?.id || "id"] || "");
+
+			const cachedItem = this._cacheByPersonId?.get(safeId);
+			const metaParts = [`${idLabel}: ${safeId}`];
+
+			if (cachedItem?.bYear || cachedItem?.dYear) {
+				if (cachedItem.bYear && cachedItem.dYear) {
+					metaParts.push(`${cachedItem.bYear} – ${cachedItem.dYear}`);
+				} else if (cachedItem.bYear) {
+					metaParts.push(`* ${cachedItem.bYear}`);
+				} else {
+					metaParts.push(`† ${cachedItem.dYear}`);
+				}
+			}
+
+			if (cachedItem?.extraNames) {
+				metaParts.push(`(${cachedItem.extraNames})`);
+			}
 
 			li.innerHTML = `
                 <img src="${photoSrc}" class="${UI_CLASSES.searchAvatar}" alt="" loading="lazy">
                 <div class="${UI_CLASSES.searchInfo}">
                     <span class="${UI_CLASSES.searchName}"></span>
-                    <span class="${UI_CLASSES.searchMeta}">${idLabel}: ${safeId}</span>
+                    <span class="${UI_CLASSES.searchMeta}">${metaParts.join(" • ")}</span>
                 </div>
             `;
 
@@ -292,11 +365,28 @@ export class SearchManager {
 			fragment.appendChild(li);
 		});
 
+		if (this._allMatches && this._allMatches.length > this.results.length) {
+			const remaining = this._allMatches.length - this.results.length;
+			const moreBtn = document.createElement("button");
+			moreBtn.className = "search-show-more-btn";
+			moreBtn.type = "button";
+			const showMoreLabel = i18n.t("ui.showMore") || "Показати ще";
+			moreBtn.innerHTML = `<span>${showMoreLabel} (+${Math.min(remaining, 20)})</span> <small style="opacity:0.7">залишилося ${remaining}</small>`;
+			moreBtn.addEventListener("click", () => {
+				this.displayLimit += 20;
+				this.results = this._allMatches.slice(0, this.displayLimit);
+				this.renderResults();
+			});
+			fragment.appendChild(moreBtn);
+		}
+
 		this.resultsList.appendChild(fragment);
 	}
 
 	destroy() {
 		document.removeEventListener("keydown", this._handleGlobalKeydown);
 		this._searchCache = null;
+		this._cacheByPersonId = null;
 	}
 }
+

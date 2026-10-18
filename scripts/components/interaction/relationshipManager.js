@@ -113,6 +113,18 @@ export class RelationshipManager {
 
 		this.onBreadcrumbsUpdate(branches, this.currentIndex, (newIndex) => {
 			this.currentIndex = newIndex;
+			try {
+				const url = new URL(window.location);
+				url.searchParams.set("rel_idx", String(newIndex));
+				window.history.replaceState(
+					{
+						...window.history.state,
+						rel_idx: newIndex,
+					},
+					"",
+					url.pathname + url.search,
+				);
+			} catch (_) {}
 			this.renderCurrentScenario(this.currentProfileId);
 		});
 	}

@@ -1,0 +1,158 @@
+/* ==========================================================================
+   Стилі друку (Print Stylesheet) для архіву "Родове Дерево"
+   Активуються при виклику діалогу друку браузера (Ctrl+P / window.print())
+   ========================================================================== */
+
+@page {
+	size: auto;
+	margin: 12mm 15mm;
+}
+
+@media print {
+	/* 1. Глобальне скидання кольорів та фонів */
+	*,
+	*::before,
+	*::after {
+		background: transparent !important;
+		color: #111827 !important;
+		box-shadow: none !important;
+		text-shadow: none !important;
+	}
+
+	html,
+	body {
+		background-color: #ffffff !important;
+		color: #111827 !important;
+		font-size: 11pt !important;
+		line-height: 1.4 !important;
+		width: 100% !important;
+		height: auto !important;
+		overflow: visible !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	/* 2. Приховування навігаційних, інтерактивних та плаваючих елементів */
+	.fab-container,
+	.fab-trigger,
+	.menu-wrapper,
+	.menu-toggle,
+	.nav-bar,
+	#mobile-nav,
+	.zoom-controls,
+	#zoom-container,
+	#btn-zoom-in,
+	#btn-zoom-out,
+	#btn-zoom-reset,
+	#btn-zoom-fit,
+	#breadcrumbs,
+	.breadcrumbs-container,
+	#btn-prev,
+	#btn-next,
+	#btn-home,
+	#btn-search,
+	#btn-lineage-toggle,
+	#btn-close-profile,
+	#btn-close-analytics,
+	#btn-back-analytics,
+	.btn-goto-profile,
+	.search-overlay,
+	#search-overlay,
+	.modal-backdrop,
+	.modal,
+	.popup,
+	.onboarding-overlay,
+	.toast,
+	#notification-toast,
+	audio,
+	video,
+	.audio-player,
+	button:not(.print-preserve) {
+		display: none !important;
+		visibility: hidden !important;
+	}
+
+	/* Не виводити URL у дужках після посилань */
+	a,
+	a:visited {
+		text-decoration: none !important;
+		color: inherit !important;
+	}
+
+	a[href]::after {
+		content: "" !important;
+	}
+
+	/* 3. Оптимізація картки персони та профілю */
+	#profile-content {
+		display: block !important;
+		visibility: visible !important;
+		position: static !important;
+		overflow: visible !important;
+		width: 100% !important;
+		height: auto !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	.profile-container,
+	.profile-card,
+	.profile-section,
+	.profile-block {
+		page-break-inside: avoid !important;
+		break-inside: avoid !important;
+		border-color: #e5e7eb !important;
+		background: #ffffff !important;
+		margin-bottom: 12pt !important;
+	}
+
+	.identity-name,
+	.profile-title {
+		font-family: "Playfair Display", Georgia, serif !important;
+		font-weight: 700 !important;
+		font-size: 20pt !important;
+		color: #0f172a !important;
+		margin-bottom: 4pt !important;
+	}
+
+	.identity-avatar img,
+	.search-avatar,
+	.tree-node-photo {
+		border: 1px solid #d1d5db !important;
+		filter: none !important;
+	}
+
+	/* 4. Оптимізація дерева при друку */
+	#tree-view {
+		overflow: visible !important;
+		width: 100% !important;
+		height: auto !important;
+		position: static !important;
+	}
+
+	#tree-root {
+		transform: none !important;
+		position: static !important;
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.tree-node {
+		page-break-inside: avoid !important;
+		break-inside: avoid !important;
+		border: 1px solid #94a3b8 !important;
+		background-color: #ffffff !important;
+	}
+
+	/* 5. Таблиці та списки родинних зв'язків */
+	table,
+	tr,
+	td,
+	th {
+		page-break-inside: avoid !important;
+		break-inside: avoid !important;
+		border-color: #e5e7eb !important;
+	}
+}
