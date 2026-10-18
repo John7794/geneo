@@ -342,10 +342,6 @@ export class SearchManager {
 				}
 			}
 
-			if (cachedItem?.extraNames) {
-				metaParts.push(`(${cachedItem.extraNames})`);
-			}
-
 			li.innerHTML = `
                 <img src="${photoSrc}" class="${UI_CLASSES.searchAvatar}" alt="" loading="lazy">
                 <div class="${UI_CLASSES.searchInfo}">
@@ -370,7 +366,9 @@ export class SearchManager {
 			const moreBtn = document.createElement("button");
 			moreBtn.className = "search-show-more-btn";
 			moreBtn.type = "button";
-			const showMoreLabel = i18n.t("ui.showMore") || "Показати ще";
+			const rawLabel = i18n.t("ui.showMore");
+			const showMoreLabel =
+				!rawLabel || rawLabel === "ui.showMore" ? "Показати ще" : rawLabel;
 			moreBtn.innerHTML = `<span>${showMoreLabel} (+${Math.min(remaining, 20)})</span> <small style="opacity:0.7">залишилося ${remaining}</small>`;
 			moreBtn.addEventListener("click", () => {
 				this.displayLimit += 20;

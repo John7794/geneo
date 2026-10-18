@@ -897,7 +897,7 @@ app.post("/api/gemini/chat", async (req, res) => {
     const focusedContext = getAiContext(currentProfileId);
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: contents,
       config: {
         systemInstruction:

@@ -106,6 +106,9 @@ export class LangManager {
 		setTimeout(() => {
 			if (!this.isOpen) {
 				this.menu.classList.add(UI_CLASSES.hidden || "hidden");
+				if (this.menuParent && this.menu.parentElement !== this.menuParent) {
+					this.menuParent.appendChild(this.menu);
+				}
 			}
 		}, 150);
 	}

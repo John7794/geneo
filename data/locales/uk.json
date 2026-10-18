@@ -58,8 +58,10 @@
         "ariaPrev": "Попереднє зображення",
         "ariaNext": "Наступне зображення",
         "ariaClose": "Закрити галерею",
-        "ariaZoomedImg": "Збільшене зображення"
+        "ariaZoomedImg": "Збільшене зображення",
+        "showMore": "Показати ще"
     },
+
     "time": {
         "century": "століття",
         "monthsNominative": [
