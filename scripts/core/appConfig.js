@@ -60,6 +60,7 @@ export const COATS_MAP = Object.freeze({
 	гриф: "gryf",
 	гржимала: "grzymala",
 	леліва: "leliwa",
+	лебідь: "labedz",
 	могила: "mogila",
 	несобя: "niesobia",
 	новина: "nowina",
