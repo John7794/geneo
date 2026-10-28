@@ -487,11 +487,6 @@ export class AppRouter {
 	}
 
 	_setUIVisibility(mode) {
-		if (mode === "tree" || mode === "profile" || mode === "analytics") {
-			document.documentElement.setAttribute("data-view-mode", mode);
-			const loader = document.getElementById("app-loader");
-			if (loader) loader.setAttribute("data-view", mode);
-		}
 		const treeViewEl = document.getElementById("tree-view");
 		const profileContentEl = document.getElementById("profile-content");
 		const analyticsViewEl = document.getElementById("analytics-view");
