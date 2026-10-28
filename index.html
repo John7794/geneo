@@ -94,7 +94,7 @@
             window.location.href = "/login";
         });
     </script>
-        <script>
+            <script>
         (function() {
             try {
                 var p = new URLSearchParams(window.location.search);
@@ -139,114 +139,9 @@
 
         <!-- 2. РЕЖИМ 1: ДЕРЕВО (TREE VIEW) -->
         <div class="skeleton-view skeleton-view--tree">
-            <!-- ДЕСКТОПНЕ ДЕРЕВО (Canvas з картками 210x160 та лініями зв'язку) -->
+            <!-- ДЕСКТОПНЕ ДЕРЕВО (Canvas з реальним ієрархічним розташуванням гілок зверху вниз) -->
             <div class="skeleton-tree-desktop">
-                <!-- Покоління 2 (Діди та баби - 4 картки) -->
-                <div class="skeleton-gen skeleton-gen--2">
-                    <div class="skeleton-node skeleton-node--male">
-                        <div class="skeleton-node-header">
-                            <div class="skeleton-avatar skeleton-shimmer"></div>
-                            <div class="skeleton-node-info">
-                                <div class="skeleton-line skeleton-line--name skeleton-shimmer"></div>
-                                <div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-node-footer">
-                            <div class="skeleton-badge skeleton-shimmer"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton-node skeleton-node--female">
-                        <div class="skeleton-node-header">
-                            <div class="skeleton-avatar skeleton-shimmer"></div>
-                            <div class="skeleton-node-info">
-                                <div class="skeleton-line skeleton-line--name skeleton-shimmer"></div>
-                                <div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-node-footer">
-                            <div class="skeleton-badge skeleton-shimmer"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton-node skeleton-node--male">
-                        <div class="skeleton-node-header">
-                            <div class="skeleton-avatar skeleton-shimmer"></div>
-                            <div class="skeleton-node-info">
-                                <div class="skeleton-line skeleton-line--name skeleton-shimmer"></div>
-                                <div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-node-footer">
-                            <div class="skeleton-badge skeleton-shimmer"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton-node skeleton-node--female">
-                        <div class="skeleton-node-header">
-                            <div class="skeleton-avatar skeleton-shimmer"></div>
-                            <div class="skeleton-node-info">
-                                <div class="skeleton-line skeleton-line--name skeleton-shimmer"></div>
-                                <div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-node-footer">
-                            <div class="skeleton-badge skeleton-shimmer"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- З'єднувальні лінії між поколіннями 2 та 1 -->
-                <div class="skeleton-tree-connectors skeleton-tree-connectors--2to1">
-                    <div class="skeleton-branch-pair"></div>
-                    <div class="skeleton-branch-pair"></div>
-                </div>
-
-                <!-- Покоління 1 (Батьки - 2 картки) -->
-                <div class="skeleton-gen skeleton-gen--1">
-                    <div class="skeleton-node skeleton-node--male">
-                        <div class="skeleton-node-header">
-                            <div class="skeleton-avatar skeleton-shimmer"></div>
-                            <div class="skeleton-node-info">
-                                <div class="skeleton-line skeleton-line--name skeleton-shimmer"></div>
-                                <div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-node-footer">
-                            <div class="skeleton-badge skeleton-shimmer"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton-node skeleton-node--female">
-                        <div class="skeleton-node-header">
-                            <div class="skeleton-avatar skeleton-shimmer"></div>
-                            <div class="skeleton-node-info">
-                                <div class="skeleton-line skeleton-line--name skeleton-shimmer"></div>
-                                <div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-node-footer">
-                            <div class="skeleton-badge skeleton-shimmer"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- З'єднувальні лінії між поколіннями 1 та 0 -->
-                <div class="skeleton-tree-connectors skeleton-tree-connectors--1to0">
-                    <div class="skeleton-branch-pair skeleton-branch-pair--center"></div>
-                </div>
-
-                <!-- Покоління 0 (Пробанд / Кореневий предок) -->
-                <div class="skeleton-gen skeleton-gen--0">
-                    <div class="skeleton-node skeleton-node--root">
-                        <div class="skeleton-node-header">
-                            <div class="skeleton-avatar skeleton-shimmer"></div>
-                            <div class="skeleton-node-info">
-                                <div class="skeleton-line skeleton-line--name skeleton-shimmer"></div>
-                                <div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-node-footer">
-                            <div class="skeleton-badge skeleton-shimmer"></div>
-                        </div>
-                    </div>
-                </div>
+<div class="skeleton-genealogy-tree"><ul><li><div class="skeleton-node skeleton-node--root"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li></ul></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li></ul></li></ul></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li></ul></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div><ul><li><div class="skeleton-node skeleton-node--male"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li><li><div class="skeleton-node skeleton-node--female"><div class="skeleton-node-btn skeleton-shimmer"></div><div class="skeleton-node-photo skeleton-shimmer"></div><div class="skeleton-line skeleton-line--name skeleton-shimmer"></div><div class="skeleton-line skeleton-line--dates skeleton-shimmer"></div></div></li></ul></li></ul></li></ul></li></ul></li></ul></div>
             </div>
 
             <!-- МОБІЛЬНЕ ДЕРЕВО (Список поколінь на 88vw з kinship-card) -->
@@ -460,7 +355,7 @@
                         </div>
                         <div class="skeleton-list-row">
                             <div class="skeleton-line skeleton-line--label skeleton-shimmer"></div>
-                            <div class="skeleton-line skeleton-shimmer" style="width: 40%; height: 10px; border-radius: 5px;"></div>
+                            <div class="skeleton-line skeleton-line--val skeleton-shimmer"></div>
                         </div>
                     </div>
                 </div>
@@ -474,7 +369,7 @@
         </div>
     </div>
 
-<main class="app-wrapper">
+    <main class="app-wrapper">
 
 
         <div id="breadcrumbs-container" class="breadcrumbs-wrapper hidden">

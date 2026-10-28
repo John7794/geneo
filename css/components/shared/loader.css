@@ -308,16 +308,19 @@
 	position: relative;
 }
 
-/* ДЕСКТОПНЕ ДЕРЕВО (Canvas з картками 210x160) */
+/* ДЕСКТОПНЕ ДЕРЕВО (Реальне ієрархічне родове дерево як на скріні: корінь зверху, гілки вниз) */
 @media (min-width: 769px) {
 	.skeleton-tree-desktop {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
+		justify-content: flex-start;
 		width: 100%;
-		padding: 40px 20px 80px;
+		min-height: 100vh;
+		padding: 70px 20px 80px;
 		box-sizing: border-box;
+		overflow-x: auto;
+		overflow-y: hidden;
 	}
 
 	.skeleton-tree-mobile {
@@ -333,151 +336,173 @@
 	}
 }
 
-.skeleton-gen {
+.skeleton-genealogy-tree {
+	display: inline-block;
+	white-space: nowrap;
+	transform-origin: center top;
+	margin: 20px auto 0;
+	--tree-line-width: 1.5px;
+	--tree-line-color: var(--color-tree-line, #38bdf8);
+	--tree-v-gap: 26px;
+	--tree-radius: 6px;
+	transform: scale(0.72);
+}
+
+:root.theme-dark .skeleton-genealogy-tree,
+.theme-dark .skeleton-genealogy-tree {
+	--tree-line-color: #3b82f6;
+}
+
+@media (min-width: 1600px) {
+	.skeleton-genealogy-tree {
+		transform: scale(0.85);
+	}
+}
+
+@media (max-width: 1366px) {
+	.skeleton-genealogy-tree {
+		transform: scale(0.62);
+	}
+}
+
+@media (max-width: 1024px) {
+	.skeleton-genealogy-tree {
+		transform: scale(0.48);
+	}
+}
+
+/* Ієрархічні списки дерева */
+.skeleton-genealogy-tree ul {
+	position: relative;
+	padding-top: var(--tree-v-gap);
 	display: flex;
 	justify-content: center;
-	align-items: center;
-	gap: 28px;
+	margin: 0;
+	padding-left: 0;
+}
+
+.skeleton-genealogy-tree li {
+	list-style-type: none;
 	position: relative;
-	z-index: 2;
-}
-
-.skeleton-node {
-	width: 210px;
-	height: 150px;
-	box-sizing: border-box;
-	background-color: var(--sk-card-bg);
-	border-radius: 0 0 16px 16px;
-	border: 1px solid var(--sk-card-border);
-	border-top: 5px solid var(--sk-line);
-	padding: 16px;
-	box-shadow: var(--sk-shadow);
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-}
-
-.skeleton-node--male {
-	border-top-color: var(--sk-male);
-}
-
-.skeleton-node--female {
-	border-top-color: var(--sk-female);
-}
-
-.skeleton-node--root {
-	border-top-color: var(--color-primary, #2563eb);
-	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.skeleton-node-header {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-}
-
-.skeleton-avatar {
-	width: 48px;
-	height: 48px;
-	border-radius: 50%;
+	padding: var(--tree-v-gap) 5px 0 5px;
+	text-align: center;
 	flex-shrink: 0;
 }
 
-.skeleton-node-info {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	flex: 1;
-	min-width: 0;
+/* Горизонтальні лінії гілок (руки) */
+.skeleton-genealogy-tree li::before,
+.skeleton-genealogy-tree li::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 50%;
+	border-top: var(--tree-line-width) solid var(--tree-line-color);
+	width: 50%;
+	height: var(--tree-v-gap);
 }
 
-.skeleton-line {
+.skeleton-genealogy-tree li::after {
+	right: auto;
+	left: 50%;
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+}
+
+.skeleton-genealogy-tree li:only-child::after,
+.skeleton-genealogy-tree li:only-child::before {
+	display: none;
+}
+
+.skeleton-genealogy-tree li:only-child {
+	padding-top: 0;
+}
+
+.skeleton-genealogy-tree li:first-child::before,
+.skeleton-genealogy-tree li:last-child::after {
+	border: 0 none;
+}
+
+.skeleton-genealogy-tree li:first-child::after {
+	border-radius: var(--tree-radius) 0 0 0;
+}
+
+.skeleton-genealogy-tree li:last-child::before {
+	border-right: var(--tree-line-width) solid var(--tree-line-color);
+	border-radius: 0 var(--tree-radius) 0 0;
+}
+
+/* Вертикальна лінія-ніжка від батька донизу */
+.skeleton-genealogy-tree ul ul::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	border-left: var(--tree-line-width) solid var(--tree-line-color);
+	width: 0;
+	height: var(--tree-v-gap);
+}
+
+/* Картка вузла дерева (TreeNode точно як на скріні) */
+.skeleton-node {
+	width: 124px;
+	height: 82px;
+	box-sizing: border-box;
+	background-color: var(--sk-card-bg);
+	border-radius: 0 0 8px 8px;
+	border: 1px solid var(--sk-card-border);
+	border-top: 3.5px solid var(--sk-line);
+	padding: 8px 6px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	gap: 5px;
+	vertical-align: top;
+}
+
+/* Кольорові плашки статі та кореня */
+.skeleton-node--male {
+	border-top-color: #38bdf8 !important;
+}
+
+.skeleton-node--female {
+	border-top-color: #f43f5e !important;
+}
+
+.skeleton-node--root {
+	border-top-color: #f59e0b !important;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+/* Маленька кнопка в кутку картки */
+.skeleton-node-btn {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	width: 12px;
 	height: 12px;
-	border-radius: 4px;
+	border-radius: 3px;
+	opacity: 0.7;
+}
+
+/* Круглий аватар */
+.skeleton-node-photo {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 2px solid var(--sk-card-border);
+	flex-shrink: 0;
 }
 
 .skeleton-line--name {
-	width: 85%;
-	height: 13px;
+	width: 78%;
+	height: 8px;
 }
 
 .skeleton-line--dates {
-	width: 65%;
-	height: 9px;
-}
-
-.skeleton-line--meta {
-	width: 50%;
-	height: 10px;
-}
-
-.skeleton-line--label {
-	width: 35%;
-	height: 12px;
-}
-
-.skeleton-line--val {
-	width: 55%;
-	height: 12px;
-}
-
-.skeleton-node-footer {
-	display: flex;
-	justify-content: flex-start;
-}
-
-.skeleton-badge {
-	width: 64px;
-	height: 18px;
-	border-radius: var(--radius-full, 9999px);
-}
-
-/* З'єднувальні лінії дерева на десктопі */
-.skeleton-tree-connectors {
-	position: relative;
-	width: 100%;
-	height: 40px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: 1;
-}
-
-.skeleton-tree-connectors--2to1 {
-	max-width: 950px;
-	justify-content: space-around;
-}
-
-.skeleton-tree-connectors--1to0 {
-	max-width: 480px;
-}
-
-.skeleton-branch-pair {
-	position: relative;
-	width: 238px;
-	height: 40px;
-	border-bottom: 2px solid var(--sk-line);
-}
-
-.skeleton-branch-pair::before,
-.skeleton-branch-pair::after {
-	content: "";
-	position: absolute;
-	width: 2px;
-	height: 20px;
-	background-color: var(--sk-line);
-}
-
-.skeleton-branch-pair::before {
-	top: 0;
-	left: 50%;
-	transform: translateX(-50%);
-}
-
-.skeleton-branch-pair::after {
-	bottom: -20px;
-	left: 50%;
-	transform: translateX(-50%);
+	width: 52%;
+	height: 6px;
 }
 
 /* МОБІЛЬНЕ ДЕРЕВО (Список поколінь на 88vw) */
