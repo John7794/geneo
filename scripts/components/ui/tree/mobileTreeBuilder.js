@@ -59,21 +59,33 @@ export function buildMobileGenerationHTML(
 
 			const { fatherId, motherId } = getMappedParents(node.id, context);
 
-			const validFather =
-				fatherId && (!allowedIds || allowedIds.includes(String(fatherId)))
-					? fatherId
-					: "unknown";
-			const validMother =
-				motherId && (!allowedIds || allowedIds.includes(String(motherId)))
-					? motherId
-					: "unknown";
+			const hasFatherInDb = Boolean(fatherId);
+			const hasMotherInDb = Boolean(motherId);
 
-			if (validFather !== "unknown" || validMother !== "unknown") {
+			const fatherAllowed =
+				hasFatherInDb && (!allowedIds || allowedIds.includes(String(fatherId)));
+			const motherAllowed =
+				hasMotherInDb && (!allowedIds || allowedIds.includes(String(motherId)));
+
+			// Батько: якщо входить до обраної гілки — показуємо, якщо взагалі невідомий у базі при відомій матері — показуємо плашку
+			if (fatherAllowed) {
+				nextGen.push({ id: fatherId, role: "father" });
+				hasParents = true;
+			} else if (!hasFatherInDb && motherAllowed) {
+				nextGen.push({ id: "unknown", role: "father" });
 				hasParents = true;
 			}
+			// Якщо батько є в базі, але відсіяний фільтром гілки — повністю приховуємо
 
-			nextGen.push({ id: validFather, role: "father" });
-			nextGen.push({ id: validMother, role: "mother" });
+			// Мати: якщо входить до обраної гілки — показуємо, якщо взагалі невідома у базі при відомому батькові — показуємо плашку
+			if (motherAllowed) {
+				nextGen.push({ id: motherId, role: "mother" });
+				hasParents = true;
+			} else if (!hasMotherInDb && fatherAllowed) {
+				nextGen.push({ id: "unknown", role: "mother" });
+				hasParents = true;
+			}
+			// Якщо мати є в базі, але відсіяна фільтром гілки — повністю приховуємо
 		});
 
 		// Інтеграція масиву невідомих вузлів перед зупинкою обходу

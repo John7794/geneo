@@ -94,10 +94,92 @@
             window.location.href = "/login";
         });
     </script>
-    <div id="app-loader" class="loader">
-        <div class="loader__spinner"></div>
-        <div class="loader__text" data-i18n="system.loading">
-            Завантаження архіву...
+    <div id="app-loader" class="loader" aria-label="Завантаження родоводу..." role="status">
+        <div class="skeleton-app">
+            <div class="skeleton-header">
+                <div class="skeleton-pill skeleton-pill--home">
+                    <div class="skeleton-shimmer skeleton-circle"></div>
+                </div>
+                <div class="skeleton-pill skeleton-pill--nav">
+                    <div class="skeleton-shimmer skeleton-btn-icon"></div>
+                    <div class="skeleton-shimmer skeleton-btn-icon"></div>
+                    <div class="skeleton-shimmer skeleton-btn-icon"></div>
+                    <div class="skeleton-shimmer skeleton-btn-icon"></div>
+                    <div class="skeleton-divider-v"></div>
+                    <div class="skeleton-shimmer skeleton-btn-icon"></div>
+                    <div class="skeleton-shimmer skeleton-btn-icon"></div>
+                </div>
+            </div>
+            <div class="skeleton-tree">
+                <div class="skeleton-level skeleton-level--0">
+                    <div class="skeleton-card skeleton-card--root">
+                        <div class="skeleton-shimmer skeleton-avatar"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--name"></div>
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="skeleton-branch">
+                    <div class="skeleton-branch-line"></div>
+                </div>
+                <div class="skeleton-gen-divider">
+                    <div class="skeleton-shimmer skeleton-badge"></div>
+                </div>
+                <div class="skeleton-level skeleton-level--1">
+                    <div class="skeleton-card">
+                        <div class="skeleton-shimmer skeleton-avatar"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--name"></div>
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-shimmer skeleton-avatar"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--name"></div>
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="skeleton-gen-divider">
+                    <div class="skeleton-shimmer skeleton-badge"></div>
+                </div>
+                <div class="skeleton-level skeleton-level--2">
+                    <div class="skeleton-card">
+                        <div class="skeleton-shimmer skeleton-avatar"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--name"></div>
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-shimmer skeleton-avatar"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--name"></div>
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-card skeleton-card--desktop">
+                        <div class="skeleton-shimmer skeleton-avatar"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--name"></div>
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-card skeleton-card--desktop">
+                        <div class="skeleton-shimmer skeleton-avatar"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--name"></div>
+                            <div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="skeleton-status-pill">
+                <span class="skeleton-status-pulse"></span>
+                <span class="skeleton-status-text" data-i18n="system.loading">Завантаження архіву...</span>
+            </div>
         </div>
     </div>
 
@@ -216,13 +298,13 @@
                             <span data-i18n="kinship.maternalSide">Тільки по Мамі</span>
                         </button>
                         <button class="lineage-option" data-mode="fatherFather">
-                            <span data-i18n="kinship.fatherFather">Дід (по татові)</span>
-                        </button>
-                        <button class="lineage-option" data-mode="motherFather">
-                            <span data-i18n="kinship.motherFather">Дід (по мамі)</span>
+                            <span data-i18n="kinship.fatherFather">Дідо (по татові)</span>
                         </button>
                         <button class="lineage-option" data-mode="fatherMother">
                             <span data-i18n="kinship.fatherMother">Баба (по татові)</span>
+                        </button>
+                        <button class="lineage-option" data-mode="motherFather">
+                            <span data-i18n="kinship.motherFather">Дідо (по мамі)</span>
                         </button>
                         <button class="lineage-option" data-mode="motherMother">
                             <span data-i18n="kinship.motherMother">Баба (по мамі)</span>
