@@ -2,7 +2,7 @@
 
 import { UI_CLASSES } from "../../../core/uiClasses.js";
 import { i18n } from "../../../core/i18n.js";
-import { escapeHtml } from "../../../utils/helpers.js";
+import { escapeHtml, convertDriveLink } from "../../../utils/helpers.js";
 
 /**
  * РІВЕНЬ UI: Формує HTML для вкладки "Нагороди та відзнаки".
@@ -51,8 +51,19 @@ export function buildAwardsHtml(awardsList) {
 		let iconHtml = "";
 		if (item.icon && (item.icon.includes("/") || item.icon.includes("."))) {
 			const imgClass = UI_CLASSES.awardTileIconImg || "award-tile-icon-img";
-			const safeIconUrl = encodeURI(item.icon);
-			iconHtml = `<img src="${safeIconUrl}" alt="${iconDefaultAlt}" class="${imgClass}" loading="lazy">`;
+			let rawIcon = String(item.icon).trim();
+			if (rawIcon.includes("drive.google.com")) {
+				rawIcon = convertDriveLink(rawIcon);
+			}
+			// Не допускати подвійного кодування (%2C -> %252C тощо)
+			let safeIconUrl = rawIcon;
+			if (/%[0-9A-Fa-f]{2}/.test(rawIcon)) {
+				safeIconUrl = rawIcon.replace(/ /g, "%20");
+			} else {
+				safeIconUrl = encodeURI(rawIcon);
+			}
+			const fallbackIcon = escapeHtml(UI_CLASSES.icons?.medalLine || "ri-medal-line");
+			iconHtml = `<img src="${escapeHtml(safeIconUrl)}" alt="${escapeHtml(item.title || iconDefaultAlt)}" class="${imgClass}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'${fallbackIcon}\'></i>';">`;
 		} else {
 			const iconClass =
 				item.icon || UI_CLASSES.icons?.medalLine || "ri-medal-line";

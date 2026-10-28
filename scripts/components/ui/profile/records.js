@@ -43,7 +43,7 @@ function renderRecordCard(record, ctx) {
 		}
 
 		const isMilitary =
-			type === "w" || type === "military" || type === "військові";
+			type === "w" || type === "military" || type === "військові" || type === "mil";
 		const folder = isMilitary ? "military" : "records";
 		const ext = cleanName.includes(".") ? "" : ".png";
 
@@ -300,11 +300,19 @@ export function renderRecords(person) {
 		i18n.t("profile.archivalSources") || "Архівні джерела",
 	);
 
+	const getCategoryWeight = (category) => {
+		const c = String(category || "").toLowerCase();
+		if (c.includes("метрич")) return 1;
+		if (c.includes("сповід")) return 2;
+		if (c.includes("ревіз")) return 3;
+		if (c.includes("воєн") || c.includes("військ") || c.includes("mil")) return 4;
+		return 5;
+	};
+
 	const contentHtml = Object.entries(grouped)
 		.sort(([catA], [catB]) => {
-			const isMetric = (cat) => cat.toLowerCase().includes("метрич");
-			if (isMetric(catA) && !isMetric(catB)) return -1;
-			if (!isMetric(catA) && isMetric(catB)) return 1;
+			const diff = getCategoryWeight(catA) - getCategoryWeight(catB);
+			if (diff !== 0) return diff;
 			return catA.localeCompare(catB);
 		})
 		.map(([category, items]) =>

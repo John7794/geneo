@@ -337,6 +337,7 @@ export function getEventIcon(type) {
 		w: icons.military || "ri-sword-line",
 		military: icons.military || "ri-sword-line",
 		військові: icons.military || "ri-sword-line",
+		mil: icons.military || "ri-sword-line",
 		a: icons.medalLine || "ri-medal-line",
 		award: icons.medalLine || "ri-medal-line",
 		нагорода: icons.medalLine || "ri-medal-line",

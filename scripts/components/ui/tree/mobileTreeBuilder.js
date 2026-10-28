@@ -67,25 +67,25 @@ export function buildMobileGenerationHTML(
 			const motherAllowed =
 				hasMotherInDb && (!allowedIds || allowedIds.includes(String(motherId)));
 
-			// Батько: якщо входить до обраної гілки — показуємо, якщо взагалі невідомий у базі при відомій матері — показуємо плашку
-			if (fatherAllowed) {
-				nextGen.push({ id: fatherId, role: "father" });
-				hasParents = true;
-			} else if (!hasFatherInDb && motherAllowed) {
+			// Батько: якщо входить до обраної гілки — показуємо, якщо невідомий у базі — показуємо ?
+			if (hasFatherInDb) {
+				if (fatherAllowed) {
+					nextGen.push({ id: fatherId, role: "father" });
+					hasParents = true;
+				}
+			} else {
 				nextGen.push({ id: "unknown", role: "father" });
-				hasParents = true;
 			}
-			// Якщо батько є в базі, але відсіяний фільтром гілки — повністю приховуємо
 
-			// Мати: якщо входить до обраної гілки — показуємо, якщо взагалі невідома у базі при відомому батькові — показуємо плашку
-			if (motherAllowed) {
-				nextGen.push({ id: motherId, role: "mother" });
-				hasParents = true;
-			} else if (!hasMotherInDb && fatherAllowed) {
+			// Мати: якщо входить до обраної гілки — показуємо, якщо невідома у базі — показуємо ?
+			if (hasMotherInDb) {
+				if (motherAllowed) {
+					nextGen.push({ id: motherId, role: "mother" });
+					hasParents = true;
+				}
+			} else {
 				nextGen.push({ id: "unknown", role: "mother" });
-				hasParents = true;
 			}
-			// Якщо мати є в базі, але відсіяна фільтром гілки — повністю приховуємо
 		});
 
 		// Інтеграція масиву невідомих вузлів перед зупинкою обходу
