@@ -61,7 +61,6 @@
         "ariaZoomedImg": "Збільшене зображення",
         "showMore": "Показати ще"
     },
-
     "time": {
         "century": "століття",
         "monthsNominative": [
@@ -199,7 +198,9 @@
         "greatgrandparents": "Прадідусі та прабабусі",
         "greatgreatgrandparents": "Прапрадідусі та прапрабабусі",
         "grandChildren": "Онуки",
-        "relatives": "Родичі"
+        "relatives": "Родичі",
+        "awardDocuments": "Нагородні документи",
+        "militaryRecords": "Воєнний запис"
     },
     "events": {
         "historyTitle": "Цей день в історії",

@@ -32,19 +32,25 @@ function renderRecordCard(record, ctx) {
 		.toLowerCase()
 		.trim();
 
+	const catRaw = String(record[COLUMNS.records?.category || "category"] || "").toLowerCase();
+	const isMilitary =
+		type === "w" || type === "military" || type === "військові" || type === "mil" ||
+		catRaw.includes("воєн") || catRaw.includes("військ") || catRaw.includes("mil");
+	const isAward =
+		type === "a" || type === "award" || type === "awards" || type === "нагорода" || type === "нагороди" ||
+		catRaw.includes("нагород") || catRaw.includes("award");
+
 	const buildImgUrl = (filename) => {
 		if (!filename) return "";
 		let cleanName = String(filename).trim();
 
-		if (cleanName.includes("drive.google.com") || cleanName.includes("/")) {
+		if (cleanName.includes("drive.google.com") || cleanName.includes("google.com") || cleanName.includes("/")) {
 			return typeof convertDriveLink === "function"
 				? convertDriveLink(cleanName)
 				: cleanName;
 		}
 
-		const isMilitary =
-			type === "w" || type === "military" || type === "військові" || type === "mil";
-		const folder = isMilitary ? "military" : "records";
+		const folder = isMilitary ? "military" : (isAward ? "awards" : "records");
 		const ext = cleanName.includes(".") ? "" : ".png";
 
 		return `/assets/imgs/${folder}/${cleanName}${ext}`;
@@ -65,7 +71,12 @@ function renderRecordCard(record, ctx) {
 	const fullUrls = imageList.map((u) => encodeURI(buildImgUrl(u))).join(";");
 	const hasImage = !!thumbUrl;
 
-	const icon = escapeHtml(getEventIcon(type));
+	let iconType = type;
+	if (!iconType || iconType === "doc") {
+		if (isAward) iconType = "award";
+		else if (isMilitary) iconType = "mil";
+	}
+	const icon = escapeHtml(getEventIcon(iconType));
 	const roleRaw = record._role || "";
 	const roleLabel = escapeHtml(i18n.t("common.role") || "Роль");
 
@@ -158,7 +169,11 @@ function renderRecordCard(record, ctx) {
 		: "";
 
 	const docIcon = escapeHtml(
-		UI_CLASSES.icons?.defaultEvent || "ri-file-text-line",
+		isAward
+			? (UI_CLASSES.icons?.medalLine || "ri-medal-line")
+			: (isMilitary
+				? (UI_CLASSES.icons?.military || "ri-sword-line")
+				: (UI_CLASSES.icons?.defaultEvent || "ri-file-text-line"))
 	);
 
 	const placeholderClass =
@@ -265,6 +280,7 @@ function renderCategory(categoryName, items, ctx) {
 				if (combined.includes("народжен") || combined.includes("birth") || combined.includes("baptism") || combined.includes("хрещен")) return 1;
 				if (combined.includes("шлюб") || combined.includes("marriage")) return 2;
 				if (combined.includes("смерт") || combined.includes("death") || combined.includes("funeral") || combined.includes("похован") || combined.includes("померл")) return 4;
+				if (combined.includes("нагород") || combined.includes("award")) return 5;
 				return 3;
 			};
 			return getWeight(a) - getWeight(b);
@@ -294,8 +310,30 @@ export function renderRecords(person) {
 
 	const categoryKey = COLUMNS.records?.category || "category";
 
+	const getEffectiveCategory = (rec) => {
+		const rawCat = rec[categoryKey];
+		if (rawCat && String(rawCat).trim() && rawCat !== "undefined") {
+			return String(rawCat).trim();
+		}
+		const t = String(rec[COLUMNS.records?.type || "type"] || "").toLowerCase().trim();
+		if (t === "a" || t === "award" || t === "awards" || t === "нагорода" || t === "нагороди") {
+			return i18n.t("profile.awardDocuments") || "Нагородні документи";
+		}
+		if (t === "w" || t === "mil" || t === "military" || t === "військові") {
+			return i18n.t("profile.militaryRecords") || "Воєнний запис";
+		}
+		return i18n.t("profile.otherDocuments") || "Інші документи";
+	};
+
 	// Групування суто для відображення
-	const grouped = groupBy(records, categoryKey);
+	const grouped = {};
+	for (let i = 0; i < records.length; i++) {
+		const rec = records[i];
+		const cat = getEffectiveCategory(rec);
+		grouped[cat] ??= [];
+		grouped[cat].push(rec);
+	}
+
 	const headerLabel = escapeHtml(
 		i18n.t("profile.archivalSources") || "Архівні джерела",
 	);
@@ -306,7 +344,8 @@ export function renderRecords(person) {
 		if (c.includes("сповід")) return 2;
 		if (c.includes("ревіз")) return 3;
 		if (c.includes("воєн") || c.includes("військ") || c.includes("mil")) return 4;
-		return 5;
+		if (c.includes("нагород") || c.includes("award")) return 5;
+		return 6;
 	};
 
 	const contentHtml = Object.entries(grouped)

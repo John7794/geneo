@@ -49,14 +49,14 @@ export function buildAwardsHtml(awardsList) {
 
 		// 2. Іконка (з фолбеком на стандартну медаль, якщо іконки немає, але є інші дані)
 		let iconHtml = "";
+		let safeIconUrl = "";
 		if (item.icon && (item.icon.includes("/") || item.icon.includes("."))) {
 			const imgClass = UI_CLASSES.awardTileIconImg || "award-tile-icon-img";
 			let rawIcon = String(item.icon).trim();
-			if (rawIcon.includes("drive.google.com")) {
+			if (rawIcon.includes("google.com") || rawIcon.includes("/d/")) {
 				rawIcon = convertDriveLink(rawIcon);
 			}
 			// Не допускати подвійного кодування (%2C -> %252C тощо)
-			let safeIconUrl = rawIcon;
 			if (/%[0-9A-Fa-f]{2}/.test(rawIcon)) {
 				safeIconUrl = rawIcon.replace(/ /g, "%20");
 			} else {
@@ -83,8 +83,12 @@ export function buildAwardsHtml(awardsList) {
 			? `<div class="${UI_CLASSES.awardTileTitle || "award-tile-title"}">${titleContent}</div>`
 			: "";
 
+		const galleryAttributes = safeIconUrl
+			? ` class="${UI_CLASSES.awardTile || "award-tile"} js-gallery-item is-clickable" data-full="${escapeHtml(safeIconUrl)}" data-caption="${escapeHtml(item.title || '')}" data-date="${escapeHtml(item.date || '')}" data-group="awards" tabindex="0" role="button"`
+			: ` class="${UI_CLASSES.awardTile || "award-tile"}"`;
+
 		htmlBuffer.push(`
-            <div class="${UI_CLASSES.awardTile || "award-tile"}">
+            <div${galleryAttributes}>
                 <div class="${UI_CLASSES.awardTileIconWrapper || "award-tile-icon-wrapper"}">
                     ${iconHtml}
                 </div>

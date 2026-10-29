@@ -340,8 +340,11 @@ export function getEventIcon(type) {
 		mil: icons.military || "ri-sword-line",
 		a: icons.medalLine || "ri-medal-line",
 		award: icons.medalLine || "ri-medal-line",
+		awards: icons.medalLine || "ri-medal-line",
 		нагорода: icons.medalLine || "ri-medal-line",
 		нагороди: icons.medalLine || "ri-medal-line",
+		нагородний: icons.medalLine || "ri-medal-line",
+		нагородні: icons.medalLine || "ri-medal-line",
 	};
 	return map[t] || icons.defaultEvent || "ri-file-text-line";
 }
