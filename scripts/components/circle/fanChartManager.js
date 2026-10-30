@@ -3,6 +3,7 @@
 import { buildPedigreeData, getGenerationRibbonLabel } from "./pedigreeCalculator.js";
 import { renderFanChartSVG, FAN_CONFIG } from "./fanChartRenderer.js";
 import { escapeHtml, convertDriveLink } from "../../utils/helpers.js";
+import { UI_CLASSES } from "../../core/uiClasses.js";
 
 export class FanChartManager {
 	/**
@@ -115,7 +116,7 @@ export class FanChartManager {
 		this.currentPersonId = String(personId);
 
 		// Розрахунок предків до 7 поколінь (8 поколінь сумарно)
-		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 7);
+		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 6);
 
 		this._renderRings();
 		this._renderNavPills();
@@ -401,14 +402,9 @@ export class FanChartManager {
 		const sosaStr = target.getAttribute("data-sosa");
 		if (!sosaStr) return;
 		const sosa = Number(sosaStr);
-		const sectorData = this.pedigreeData?.sosaMap?.get(sosa);
 
-		// Динамічне підсвічування гілки предків від пробанда до обраного сектора
+		// Хувер просто виділяє та підсвічує гілку
 		this._highlightBranch(sosa);
-
-		if (sectorData && sectorData.isKnown && window.matchMedia("(min-width: 768px)").matches) {
-			this.showFlyout(sectorData, e.clientX, e.clientY);
-		}
 	}
 
 	_handleSectorOut(e) {
@@ -417,17 +413,11 @@ export class FanChartManager {
 		const nextSector = related?.closest(".fan-sector, .fan-proband-group");
 		if (!nextSector) {
 			this._clearBranchHighlight();
-			if (!this.selectedSosa) {
-				this.hideFlyout();
-			}
 		}
 	}
 
 	_handleCanvasLeave() {
 		this._clearBranchHighlight();
-		if (!this.selectedSosa) {
-			this.hideFlyout();
-		}
 	}
 
 	_highlightBranch(sosa) {
@@ -510,6 +500,8 @@ export class FanChartManager {
 
 		const target = e.target.closest(".fan-sector, .fan-proband-group");
 		if (!target) {
+			this.selectedSosa = null;
+			this._highlightSelectedSector(null);
 			this.hideFlyout();
 			return;
 		}
@@ -581,12 +573,15 @@ export class FanChartManager {
 			? `<div class="fan-flyout-badge-records"><i class="ri-file-text-line"></i> Документів: ${sectorData.recordsCount}</div>`
 			: "";
 
+		const birthIcon = UI_CLASSES.icons?.birth || "ri-parent-line";
+		const deathIcon = UI_CLASSES.icons?.death || "ri-skull-line";
+
 		const birthHtml = sectorData.birth?.info
-			? `<div class="fan-flyout-row fan-flyout-row--birth"><i class="ri-cake-2-line" title="Народження"></i> <span>${escapeHtml(sectorData.birth.info)}</span></div>`
+			? `<div class="fan-flyout-row fan-flyout-row--birth"><i class="${birthIcon}" title="Народження"></i> <span>${escapeHtml(sectorData.birth.info)}</span></div>`
 			: "";
 
 		const deathHtml = sectorData.death?.info
-			? `<div class="fan-flyout-row fan-flyout-row--death"><i class="ri-cross-line" title="Смерть"></i> <span>${escapeHtml(sectorData.death.info)}</span></div>`
+			? `<div class="fan-flyout-row fan-flyout-row--death"><i class="${deathIcon}" title="Смерть"></i> <span>${escapeHtml(sectorData.death.info)}</span></div>`
 			: "";
 
 		const jobHtml = p.job

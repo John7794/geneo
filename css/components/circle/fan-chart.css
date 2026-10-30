@@ -269,9 +269,9 @@
 	fill: #e2e8f0;
 }
 
-.fan-text-gen-4 { font-size: 9.5px; font-weight: 600; }
-.fan-text-gen-5 { font-size: 8.5px; font-weight: 600; }
-.fan-text-gen-6 { font-size: 7.5px; font-weight: 500; }
+.fan-text-gen-4 { font-size: 10.5px; font-weight: 600; }
+.fan-text-gen-5 { font-size: 9.5px; font-weight: 600; }
+.fan-text-gen-6 { font-size: 8.5px; font-weight: 600; }
 .fan-text-gen-7 { font-size: 6.8px; font-weight: 500; }
 
 /* Приховуємо текст на невідомих секторах */
@@ -308,9 +308,15 @@
 }
 
 .fan-sector--selected .fan-sector-shape {
-	stroke: var(--color-primary) !important;
-	stroke-width: 3px !important;
-	filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.5));
+	stroke: #ffffff !important;
+	stroke-width: 2.5px !important;
+	filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)) !important;
+}
+
+:root:not(.theme-dark) .fan-sector--selected .fan-sector-shape {
+	stroke: #0f172a !important;
+	stroke-width: 2.5px !important;
+	filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.35)) !important;
 }
 
 /* Затемнення неактивних кілець при комбінованій фільтрації */
@@ -336,25 +342,37 @@
 .fan-sector.fan-sector--hovered .fan-sector-shape {
 	stroke: #ffffff;
 	stroke-width: 2.2px;
-	filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
+	filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
+}
+
+:root:not(.theme-dark) .fan-sector.fan-sector--hovered .fan-sector-shape {
+	stroke: #0f172a;
+	stroke-width: 2.2px;
+	filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.25));
 }
 
 :root.theme-dark .fan-sector.fan-sector--hovered .fan-sector-shape {
-	stroke: #38bdf8;
+	stroke: #ffffff;
 	stroke-width: 2.2px;
-	filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
+	filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
 
 .fan-proband-group.fan-proband--hovered .fan-proband-circle {
 	stroke: #ffffff;
-	stroke-width: 3.5px;
-	filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+	stroke-width: 3px;
+	filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+}
+
+:root:not(.theme-dark) .fan-proband-group.fan-proband--hovered .fan-proband-circle {
+	stroke: #0f172a;
+	stroke-width: 3px;
+	filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
 }
 
 :root.theme-dark .fan-proband-group.fan-proband--hovered .fan-proband-circle {
-	stroke: #38bdf8;
-	stroke-width: 3.5px;
-	filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6));
+	stroke: #ffffff;
+	stroke-width: 3px;
+	filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
 }
 
 /* ==========================================================================
@@ -741,4 +759,40 @@
 	.js-view-toggle {
 		display: none !important;
 	}
+}
+
+/* ==========================================================================
+   ІДЕНТИФІКАЦІЯ РІВНІВ ПОКОЛІНЬ (LEVEL PILLS)
+   ========================================================================== */
+.fan-level-pill {
+	pointer-events: none;
+	user-select: none;
+}
+
+.fan-level-pill-bg {
+	fill: rgba(15, 23, 42, 0.88);
+	stroke: rgba(255, 255, 255, 0.2);
+	stroke-width: 1px;
+}
+
+:root.theme-dark .fan-level-pill-bg {
+	fill: rgba(30, 41, 59, 0.92);
+	stroke: rgba(255, 255, 255, 0.25);
+}
+
+:root:not(.theme-dark) .fan-level-pill-bg {
+	fill: rgba(255, 255, 255, 0.94);
+	stroke: rgba(15, 23, 42, 0.22);
+}
+
+.fan-level-pill-text {
+	font-family: var(--font-family-base);
+	font-size: 10px;
+	font-weight: 600;
+	fill: #f8fafc;
+	letter-spacing: 0.02em;
+}
+
+:root:not(.theme-dark) .fan-level-pill-text {
+	fill: #0f172a;
 }

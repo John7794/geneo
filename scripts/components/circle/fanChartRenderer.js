@@ -12,14 +12,13 @@ export const FAN_CONFIG = {
 	rProband: 85,
 	// Радіуси для кожного покоління (0..7)
 	ringRadii: [
-		{ in: 0, out: 85 },     // Gen 0 (Пробанд)
-		{ in: 85, out: 145 },   // Gen 1 (Батьки: ширина 60)
-		{ in: 145, out: 205 },  // Gen 2 (Дідусі: ширина 60)
-		{ in: 205, out: 265 },  // Gen 3 (Прадідусі: ширина 60)
-		{ in: 265, out: 320 },  // Gen 4 (Пра(2)дідусі: ширина 55)
-		{ in: 320, out: 370 },  // Gen 5 (Пра(3)дідусі: ширина 50)
-		{ in: 370, out: 415 },  // Gen 6 (Пра(4)дідусі: ширина 45)
-		{ in: 415, out: 455 },  // Gen 7 (Пра(5)дідусі: ширина 40)
+		{ in: 0, out: 85 },     // Gen 0 (Ви / Пробанд: r=85)
+		{ in: 85, out: 150 },   // Gen 1 (Батьки: ширина 65)
+		{ in: 150, out: 215 },  // Gen 2 (Дідусі: ширина 65)
+		{ in: 215, out: 280 },  // Gen 3 (Прадідусі: ширина 65)
+		{ in: 280, out: 340 },  // Gen 4 (Пра(2)дідусі: ширина 60)
+		{ in: 340, out: 400 },  // Gen 5 (Пра(3)дідусі: ширина 60)
+		{ in: 400, out: 455 },  // Gen 6 (Пра(4)дідусі: ширина 55)
 	],
 };
 
@@ -167,6 +166,58 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 		viewportGroup.appendChild(probandGroup);
 	}
 
+	// Бейджі ідентифікації рівнів поколінь вздовж верхнього вертикального розділювача
+	const levelLabels = {
+		1: "Батьки",
+		2: "Діди",
+		3: "Прадіди",
+		4: "Пра(2)діди",
+		5: "Пра(3)діди",
+		6: "Пра(4)діди",
+	};
+
+	const levelPillsGroup = document.createElementNS(svgNS, "g");
+	levelPillsGroup.setAttribute("class", "fan-level-pills-group");
+
+	for (let gen = 1; gen < Math.min(generations.length, ringRadii.length); gen++) {
+		const rInfo = ringRadii[gen];
+		if (!rInfo || !levelLabels[gen]) continue;
+
+		const rMid = (rInfo.in + rInfo.out) / 2;
+		const pillY = cy - rMid;
+		const labelText = levelLabels[gen];
+
+		const pillG = document.createElementNS(svgNS, "g");
+		pillG.setAttribute("class", "fan-level-pill");
+		pillG.setAttribute("transform", `translate(${cx}, ${pillY.toFixed(1)})`);
+
+		const pillW = labelText.length > 7 ? 68 : (labelText.length > 5 ? 56 : 46);
+		const pillH = 17;
+
+		const rect = document.createElementNS(svgNS, "rect");
+		rect.setAttribute("x", String(-pillW / 2));
+		rect.setAttribute("y", String(-pillH / 2));
+		rect.setAttribute("width", String(pillW));
+		rect.setAttribute("height", String(pillH));
+		rect.setAttribute("rx", String(pillH / 2));
+		rect.setAttribute("ry", String(pillH / 2));
+		rect.setAttribute("class", "fan-level-pill-bg");
+
+		const text = document.createElementNS(svgNS, "text");
+		text.setAttribute("x", "0");
+		text.setAttribute("y", "0");
+		text.setAttribute("text-anchor", "middle");
+		text.setAttribute("dominant-baseline", "central");
+		text.setAttribute("class", "fan-level-pill-text");
+		text.textContent = labelText;
+
+		pillG.appendChild(rect);
+		pillG.appendChild(text);
+		levelPillsGroup.appendChild(pillG);
+	}
+
+	viewportGroup.appendChild(levelPillsGroup);
+
 	svg.appendChild(viewportGroup);
 
 	return svg;
@@ -263,8 +314,8 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 		textPath.textContent = fullLabel;
 		text.appendChild(textPath);
 		textGroup.appendChild(text);
-	} else if (generation <= 5) {
-		// Покоління 4..5: радіальне розміщення у два рядки (Прізвище + Ім'я)
+	} else {
+		// Покоління 4..6: природне радіальне розміщення без деформації шрифтів
 		const midAngle = angles.mid;
 		const normAngle = ((midAngle % 360) + 360) % 360;
 		const isLeft = normAngle > 90 && normAngle < 270;
@@ -288,81 +339,23 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 			tspanSurname.setAttribute("dy", "-0.45em");
 			tspanSurname.setAttribute("font-weight", "700");
 			tspanSurname.textContent = surname;
-			if (surname.length > 9) {
-				tspanSurname.setAttribute("textLength", String(maxRadialLength));
-				tspanSurname.setAttribute("lengthAdjust", "spacingAndGlyphs");
-			}
 
 			const tspanName = document.createElementNS(svgNS, "tspan");
 			tspanName.setAttribute("x", String(tx.toFixed(1)));
 			tspanName.setAttribute("dy", "1.1em");
 			tspanName.setAttribute("font-weight", "500");
 			tspanName.textContent = name;
-			if (name.length > 9) {
-				tspanName.setAttribute("textLength", String(maxRadialLength));
-				tspanName.setAttribute("lengthAdjust", "spacingAndGlyphs");
-			}
 
 			text.appendChild(tspanSurname);
 			text.appendChild(tspanName);
 		} else {
-			const singleText = surname || name;
-			text.textContent = singleText;
-			if (singleText.length > 9) {
-				text.setAttribute("textLength", String(maxRadialLength));
-				text.setAttribute("lengthAdjust", "spacingAndGlyphs");
-			}
-		}
-
-		textGroup.appendChild(text);
-	} else {
-		// Покоління 6..7: компактне радіальне розміщення з автоматичним масштабуванням glyphs
-		const midAngle = angles.mid;
-		const normAngle = ((midAngle % 360) + 360) % 360;
-		const isLeft = normAngle > 90 && normAngle < 270;
-		const textRot = isLeft ? normAngle + 180 : normAngle;
-
-		const rad = toRad(midAngle);
-		const tx = cx + rMid * Math.cos(rad);
-		const ty = cy + rMid * Math.sin(rad);
-
-		const text = document.createElementNS(svgNS, "text");
-		text.setAttribute("class", `fan-sector-text fan-sector-text--radial fan-text-gen-${generation}`);
-		text.setAttribute("x", String(tx.toFixed(1)));
-		text.setAttribute("y", String(ty.toFixed(1)));
-		text.setAttribute("text-anchor", "middle");
-		text.setAttribute("dominant-baseline", "central");
-		text.setAttribute("transform", `rotate(${textRot.toFixed(1)}, ${tx.toFixed(1)}, ${ty.toFixed(1)})`);
-
-		const displayName = surname || name;
-		text.textContent = displayName;
-
-		// Щоб довгі прізвища ніколи не вилазили за межі кільця
-		if (displayName.length > 7) {
-			text.setAttribute("textLength", String(maxRadialLength));
-			text.setAttribute("lengthAdjust", "spacingAndGlyphs");
+			text.textContent = surname || name;
 		}
 
 		textGroup.appendChild(text);
 	}
 
 	g.appendChild(textGroup);
-
-	// 4. Маркер наявності документів/нагород (тільки якщо є архівні записи)
-	if (hasRecords) {
-		const rad = toRad(angles.mid);
-		const dotR = rInfo.out - 4;
-		const dotX = cx + dotR * Math.cos(rad);
-		const dotY = cy + dotR * Math.sin(rad);
-
-		const dot = document.createElementNS(svgNS, "circle");
-		dot.setAttribute("cx", String(dotX.toFixed(1)));
-		dot.setAttribute("cy", String(dotY.toFixed(1)));
-		dot.setAttribute("r", generation >= 5 ? "2" : "2.8");
-		dot.setAttribute("class", "fan-sector-record-dot");
-		dot.setAttribute("title", "Є архівні записи");
-		g.appendChild(dot);
-	}
 
 	return g;
 }

@@ -157,7 +157,7 @@ function formatEventData(event, isBirth, baseRow, placesMap) {
  * @param {number} maxGenerations - скільки поколінь будувати (за замовчуванням 7, тобто 0..7 = 8 поколінь)
  * @returns {object} Структуровані дані для рендерингу
  */
-export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
+export function buildPedigreeData(engine, rootPersonId, maxGenerations = 6) {
 	const sosaToPersonId = new Map();
 	const personIdToSosa = new Map();
 	const sosaMap = new Map();
