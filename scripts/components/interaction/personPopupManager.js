@@ -160,7 +160,10 @@ class PersonDAO {
 				: `[ID: ${p.id}]`;
 		}
 
-		p.photoSrc = getAvatarUrl(p.rawPhoto, isFemale(p.gender));
+		const pName = p.name || p.first_name || "";
+		const pSurname = p.surname || p.last_name || "";
+		p.photoSrc = getAvatarUrl(p.photo || p.rawPhoto, isFemale(p.gender), pName, pSurname);
+		p.fallbackPhotoSrc = getAvatarUrl(null, isFemale(p.gender), pName, pSurname);
 		p.lifeString = this._buildLifeString(data, famRow, p, engine);
 
 		return p;
@@ -492,7 +495,7 @@ export class PersonPopupManager {
 		return `
             <div class="popup-header-layout">
                 <div class="popup-avatar-container">
-                    <img src="${escapeHtml(p.photoSrc)}" alt="${escapeHtml(p.fullName)}" class="${UI_CLASSES.popupPhoto}">
+                    <img src="${escapeHtml(p.photoSrc)}" alt="${escapeHtml(p.fullName)}" class="${UI_CLASSES.popupPhoto}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${escapeHtml(p.fallbackPhotoSrc)}';">
                     ${roleBadge}
                 </div>
                 <div class="popup-person-info">

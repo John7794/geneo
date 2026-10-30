@@ -181,12 +181,14 @@ export function renderCardHTML(
 	const genderClass = isFem
 		? UI_CLASSES.treeNodeFemale
 		: UI_CLASSES.treeNodeMale;
+	const pName = person.name || person.first_name || "";
+	const pSurname = person.surname || person.last_name || "";
 	const photoSrc = escapeHTML(
-		getAvatarUrl(person.photo || person.fam_photo, isFem),
+		getAvatarUrl(person.photo || person.fam_photo, isFem, pName, pSurname),
 	);
-	const fallbackSrc = escapeHTML(getAvatarUrl(null, isFem));
+	const fallbackSrc = escapeHTML(getAvatarUrl(null, isFem, pName, pSurname));
 
-	const imgHtml = `<img src="${photoSrc}" class="${UI_CLASSES.treeNodePhoto}" alt="${fullName}" loading="lazy" onerror="this.onerror=null; this.src='${fallbackSrc}';">`;
+	const imgHtml = `<img src="${photoSrc}" class="${UI_CLASSES.treeNodePhoto}" alt="${fullName}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${fallbackSrc}';">`;
 
 	let buttonHtml = "";
 	if (type === "direct" && person.hasProfile !== false) {

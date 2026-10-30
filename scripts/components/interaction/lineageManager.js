@@ -128,7 +128,10 @@ export class LineageManager {
 					const photoId = rawRow.photo_id || rawRow.photo || rawRow.fam_photo;
 					const gender = String(pNode.gender || rawRow.gender || rawRow.fam_gender || "");
 					const isFem = gender[0]?.toLowerCase() === "f" || gender[0]?.toLowerCase() === "ж";
-					photoSrc = getAvatarUrl(photoId, isFem);
+					const pName = rawRow.name || rawRow.first_name || rawRow.fam_first_name || "";
+					const pSurname = rawRow.surname || rawRow.last_name || rawRow.fam_surname || "";
+					photoSrc = getAvatarUrl(photoId, isFem, pName, pSurname);
+					fallbackIcon = getAvatarUrl(null, isFem, pName, pSurname);
 				}
 			}
 
@@ -136,6 +139,7 @@ export class LineageManager {
                 <img class="${UI_CLASSES.lineageTileAvatar || "lineage-tile-avatar"}" 
                      src="${photoSrc}" 
                      alt="${rawText}" 
+                     referrerpolicy="no-referrer"
                      onerror="this.onerror=null; this.src='${fallbackIcon}';">
                 <div class="${UI_CLASSES.lineageTileInfo || "lineage-tile-info"}">
                     <span class="${UI_CLASSES.lineageTileName || "lineage-tile-name"}">${rawText}</span>

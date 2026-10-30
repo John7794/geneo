@@ -323,10 +323,15 @@ export class SearchManager {
 
 			const fullName =
 				getFullName(person) || person[COLUMNS.basic?.name || "name"] || "";
+			const pName = person[COLUMNS.basic?.name || "name"] || person.name || "";
+			const pSurname = person[COLUMNS.basic?.surname || "surname"] || person.surname || "";
 			const photoSrc = getAvatarUrl(
-				person[COLUMNS.basic?.photo || "photo"],
+				person[COLUMNS.basic?.photo || "photo"] || person.photo,
 				isFemale(person[COLUMNS.basic?.gender || "gender"]),
+				pName,
+				pSurname,
 			);
+			const fallbackSrc = getAvatarUrl(null, isFemale(person[COLUMNS.basic?.gender || "gender"]), pName, pSurname);
 			const safeId = String(person[COLUMNS.basic?.id || "id"] || "");
 
 			const cachedItem = this._cacheByPersonId?.get(safeId);
@@ -343,7 +348,7 @@ export class SearchManager {
 			}
 
 			li.innerHTML = `
-                <img src="${photoSrc}" class="${UI_CLASSES.searchAvatar}" alt="" loading="lazy">
+                <img src="${photoSrc}" class="${UI_CLASSES.searchAvatar}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${fallbackSrc}';">
                 <div class="${UI_CLASSES.searchInfo}">
                     <span class="${UI_CLASSES.searchName}"></span>
                     <span class="${UI_CLASSES.searchMeta}">${metaParts.join(" • ")}</span>

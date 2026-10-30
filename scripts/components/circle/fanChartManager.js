@@ -2,7 +2,7 @@
 
 import { buildPedigreeData, getGenerationRibbonLabel } from "./pedigreeCalculator.js";
 import { renderFanChartSVG, FAN_CONFIG } from "./fanChartRenderer.js";
-import { escapeHtml } from "../../utils/helpers.js";
+import { escapeHtml, convertDriveLink } from "../../utils/helpers.js";
 
 export class FanChartManager {
 	/**
@@ -102,6 +102,8 @@ export class FanChartManager {
 		// Делегування подій на сектори
 		this.canvas.addEventListener("click", this._handleSectorClick);
 		this.canvas.addEventListener("pointerover", this._handleSectorHover);
+		this.canvas.addEventListener("pointerout", this._handleSectorOut);
+		this.canvas.addEventListener("pointerleave", this._handleCanvasLeave);
 	}
 
 	/**
@@ -127,6 +129,8 @@ export class FanChartManager {
 
 	_renderRings() {
 		if (!this.canvas || !this.pedigreeData) return;
+		this._cachedSectorEls = null;
+		this.viewport = null;
 		this.canvas.innerHTML = "";
 
 		const svg = renderFanChartSVG(this.pedigreeData, {
@@ -399,9 +403,106 @@ export class FanChartManager {
 		const sosa = Number(sosaStr);
 		const sectorData = this.pedigreeData?.sosaMap?.get(sosa);
 
+		// Динамічне підсвічування гілки предків від пробанда до обраного сектора
+		this._highlightBranch(sosa);
+
 		if (sectorData && sectorData.isKnown && window.matchMedia("(min-width: 768px)").matches) {
 			this.showFlyout(sectorData, e.clientX, e.clientY);
 		}
+	}
+
+	_handleSectorOut(e) {
+		if (this.isDragging) return;
+		const related = e.relatedTarget;
+		const nextSector = related?.closest(".fan-sector, .fan-proband-group");
+		if (!nextSector) {
+			this._clearBranchHighlight();
+			if (!this.selectedSosa) {
+				this.hideFlyout();
+			}
+		}
+	}
+
+	_handleCanvasLeave() {
+		this._clearBranchHighlight();
+		if (!this.selectedSosa) {
+			this.hideFlyout();
+		}
+	}
+
+	_highlightBranch(sosa) {
+		if (!this.viewport) {
+			this.viewport = this.canvas?.querySelector("#fan-viewport");
+		}
+		if (!this.viewport) return;
+
+		if (sosa === 1) {
+			this._clearBranchHighlight();
+			const probandEl = this.canvas?.querySelector(".fan-proband-group");
+			probandEl?.classList.add("fan-proband--hovered");
+			return;
+		}
+
+		const branchSosas = new Set();
+		// 1. Лінія предків до пробанда (sosa -> 1)
+		let curr = sosa;
+		while (curr >= 1) {
+			branchSosas.add(curr);
+			curr = Math.floor(curr / 2);
+		}
+
+		// 2. Всі предки, що відходять від цього сектора назовні (його піддерево)
+		if (Array.isArray(this.pedigreeData?.sectors)) {
+			for (let i = 0; i < this.pedigreeData.sectors.length; i++) {
+				const sec = this.pedigreeData.sectors[i];
+				let a = sec.sosa;
+				while (a > sosa) {
+					a = Math.floor(a / 2);
+				}
+				if (a === sosa) {
+					branchSosas.add(sec.sosa);
+				}
+			}
+		}
+
+		this.viewport.classList.add("fan-branch-active");
+
+		if (!this._cachedSectorEls) {
+			this._cachedSectorEls = Array.from(this.canvas.querySelectorAll(".fan-sector, .fan-proband-group"));
+		}
+
+		for (let i = 0; i < this._cachedSectorEls.length; i++) {
+			const el = this._cachedSectorEls[i];
+			const s = Number(el.getAttribute("data-sosa"));
+			if (branchSosas.has(s)) {
+				el.classList.add("fan-sector--branch-highlight");
+				if (s === sosa) {
+					el.classList.add("fan-sector--hovered");
+				} else {
+					el.classList.remove("fan-sector--hovered");
+				}
+			} else {
+				el.classList.remove("fan-sector--branch-highlight");
+				el.classList.remove("fan-sector--hovered");
+			}
+		}
+	}
+
+	_clearBranchHighlight() {
+		if (!this.viewport) {
+			this.viewport = this.canvas?.querySelector("#fan-viewport");
+		}
+		if (!this.viewport) return;
+		this.viewport.classList.remove("fan-branch-active");
+		if (this._cachedSectorEls) {
+			for (let i = 0; i < this._cachedSectorEls.length; i++) {
+				const el = this._cachedSectorEls[i];
+				el.classList.remove("fan-sector--branch-highlight");
+				el.classList.remove("fan-sector--hovered");
+			}
+		}
+		const probandEl = this.canvas?.querySelector(".fan-proband-group");
+		probandEl?.classList.remove("fan-proband--hovered");
 	}
 
 	_handleSectorClick(e) {
@@ -444,13 +545,30 @@ export class FanChartManager {
 		const isConfirmed = sectorData.isConfirmed;
 
 		const fullName = [p.name || p.first_name, p.surname || p.last_name].filter(Boolean).join(" ");
-		const avatarUrl = p.photo || p.avatar;
+		let avatarUrl = p.photo || p.avatar;
+		if (avatarUrl && String(avatarUrl).includes("google.com")) {
+			avatarUrl = convertDriveLink(avatarUrl);
+		}
+		const hasRealPhoto = avatarUrl &&
+			!avatarUrl.includes("placeholder") &&
+			!avatarUrl.includes("male.png") &&
+			!avatarUrl.includes("female.png") &&
+			!avatarUrl.startsWith("data:image/svg+xml");
+
+		const f = (p.name || p.first_name || "").charAt(0);
+		const l = (p.surname || p.last_name || "").charAt(0);
+		let initialsStr = "";
+		if (f && l) initialsStr = (f + l).toUpperCase();
+		else if (f) initialsStr = f.toUpperCase();
+		else if (l) initialsStr = l.toUpperCase();
+		else initialsStr = "?";
+
+		const avatarHtml = hasRealPhoto
+			? `<img src="${avatarUrl}" class="fan-flyout-avatar" alt="${escapeHtml(fullName)}" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span class=\\'fan-flyout-avatar-initials\\'>${escapeHtml(initialsStr)}</span>';" />`
+			: `<span class="fan-flyout-avatar-initials">${escapeHtml(initialsStr)}</span>`;
+
 		const dates = p.dates || p.lifespan || "";
 		const displayDates = sectorData.lifeYears || dates;
-
-		const avatarHtml = (avatarUrl && !avatarUrl.includes("placeholder"))
-			? `<img src="${avatarUrl}" class="fan-flyout-avatar" alt="${escapeHtml(fullName)}" />`
-			: `<span class="fan-flyout-avatar-initials">${(fullName.charAt(0) || "Я").toUpperCase()}</span>`;
 
 		// Бейдж статусу підтвердження як у профілі (без зайвих іконок)
 		const statusBadgeHtml = `

@@ -320,6 +320,44 @@
 }
 
 /* ==========================================================================
+   ПІДСВІЧУВАННЯ ГІЛОК ПРИ НАВЕДЕННІ (BRANCH HIGHLIGHTING ON HOVER)
+   ========================================================================== */
+.fan-viewport.fan-branch-active .fan-sector,
+.fan-viewport.fan-branch-active .fan-proband-group {
+	opacity: 0.18;
+	transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fan-viewport.fan-branch-active .fan-sector.fan-sector--branch-highlight,
+.fan-viewport.fan-branch-active .fan-proband-group.fan-sector--branch-highlight {
+	opacity: 1 !important;
+}
+
+.fan-sector.fan-sector--hovered .fan-sector-shape {
+	stroke: #ffffff;
+	stroke-width: 2.2px;
+	filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
+}
+
+:root.theme-dark .fan-sector.fan-sector--hovered .fan-sector-shape {
+	stroke: #38bdf8;
+	stroke-width: 2.2px;
+	filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
+}
+
+.fan-proband-group.fan-proband--hovered .fan-proband-circle {
+	stroke: #ffffff;
+	stroke-width: 3.5px;
+	filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+}
+
+:root.theme-dark .fan-proband-group.fan-proband--hovered .fan-proband-circle {
+	stroke: #38bdf8;
+	stroke-width: 3.5px;
+	filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6));
+}
+
+/* ==========================================================================
    8. ЦЕНТРАЛЬНИЙ ПРОБАНД (CENTER PROBAND CIRCLE)
    ========================================================================== */
 .fan-proband-group {

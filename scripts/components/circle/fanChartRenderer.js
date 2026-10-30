@@ -1,6 +1,6 @@
 // ./scripts/components/circle/fanChartRenderer.js
 
-import { escapeHtml } from "../../utils/helpers.js";
+import { escapeHtml, convertDriveLink } from "../../utils/helpers.js";
 
 /**
  * Конфігурація геометрії кола
@@ -390,10 +390,20 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 	g.appendChild(bgCircle);
 
 	// Аватар або ініціали
-	const avatarUrl = person?.photo || person?.avatar;
-	if (avatarUrl && !avatarUrl.includes("placeholder")) {
+	let avatarUrl = person?.photo || person?.avatar;
+	if (avatarUrl && String(avatarUrl).includes("google.com")) {
+		avatarUrl = convertDriveLink(avatarUrl);
+	}
+	const hasValidPhoto = avatarUrl &&
+		!avatarUrl.includes("placeholder") &&
+		!avatarUrl.includes("male.png") &&
+		!avatarUrl.includes("female.png") &&
+		!avatarUrl.startsWith("data:image/svg+xml");
+
+	if (hasValidPhoto) {
 		const img = document.createElementNS(svgNS, "image");
 		img.setAttribute("href", avatarUrl);
+		img.setAttributeNS("http://www.w3.org/1999/xlink", "href", avatarUrl);
 		img.setAttribute("x", String(cx - 28));
 		img.setAttribute("y", String(cy - 50));
 		img.setAttribute("width", "56");
@@ -417,7 +427,12 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 		initials.setAttribute("class", "fan-proband-initials");
 		const f = (person?.first_name || person?.name || "").charAt(0);
 		const l = (person?.last_name || person?.surname || "").charAt(0);
-		initials.textContent = (f + l).toUpperCase() || "Я";
+		let initText = "";
+		if (f && l) initText = (f + l).toUpperCase();
+		else if (f) initText = f.toUpperCase();
+		else if (l) initText = l.toUpperCase();
+		else initText = "Я";
+		initials.textContent = initText;
 		g.appendChild(initials);
 	}
 

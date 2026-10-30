@@ -158,22 +158,54 @@ export function getFullName(personObj) {
 	return res;
 }
 
-export function getAvatarUrl(identifier, genderParam) {
-	let fallbackSrc = PATHS.iconMale;
+export function getInitials(name, surname) {
+	const n = (name || "").trim();
+	const s = (surname || "").trim();
+	const f = n.charAt(0);
+	const l = s.charAt(0);
+	if (f && l) return (f + l).toUpperCase();
+	if (f) return f.toUpperCase();
+	if (l) return l.toUpperCase();
+	return "?";
+}
 
+export function generateInitialsAvatar(name, surname, isFem = false) {
+	const initials = getInitials(name, surname);
+	let bg = "#64748b";
+	if (initials !== "?") {
+		bg = isFem ? "#e11d48" : "#2563eb";
+	}
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" rx="32" fill="${bg}"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700">${initials}</text></svg>`;
+	return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export function getAvatarUrl(identifier, genderParam, name = "", surname = "") {
+	let isFem = false;
 	if (typeof genderParam === "boolean") {
-		fallbackSrc = genderParam ? PATHS.iconFemale : PATHS.iconMale;
+		isFem = genderParam;
 	} else {
 		const normalized = normalizeGender(genderParam);
-		if (normalized === "f") fallbackSrc = PATHS.iconFemale;
+		if (normalized === "f") isFem = true;
 	}
+
+	const fallbackSrc = generateInitialsAvatar(name, surname, isFem);
 
 	if (!identifier || String(identifier).trim() === "") {
 		return fallbackSrc;
 	}
 
 	const exactId = String(identifier).trim();
-	
+
+	// Якщо це старі заглушки або placeholder — одразу повертаємо генеровані ініціали
+	if (
+		exactId.includes("male.png") ||
+		exactId.includes("female.png") ||
+		exactId.includes("avatar-") ||
+		exactId.includes("placeholder")
+	) {
+		return fallbackSrc;
+	}
+
 	if (exactId.includes("google.com")) {
 		return convertDriveLink(exactId);
 	}
@@ -198,8 +230,11 @@ export function getGenitiveName(item) {
 }
 
 function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
-	const rawPhoto =
+	const rawPhotoVal =
 		rawRow[C?.photo || "photo"] || rawRow.photo || rawRow.fam_photo || null;
+	const rawPhoto = rawPhotoVal && String(rawPhotoVal).includes("google.com")
+		? convertDriveLink(rawPhotoVal)
+		: rawPhotoVal;
 
 	let bDate =
 		rawRow[C?.birthDate || "birthDate"] ||
@@ -307,8 +342,11 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 }
 
 function buildBasicPersonObj(basicPerson, nameInfo, exactId, allData) {
-	const rawPhoto =
+	const rawPhotoVal =
 		basicPerson[COLUMNS.basic?.photo || "photo"] || basicPerson.photo || null;
+	const rawPhoto = rawPhotoVal && String(rawPhotoVal).includes("google.com")
+		? convertDriveLink(rawPhotoVal)
+		: rawPhotoVal;
 
 	let bDate =
 		basicPerson[COLUMNS.basic?.birthDate || "birthDate"] ||

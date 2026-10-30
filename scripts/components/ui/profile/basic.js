@@ -19,11 +19,11 @@ export function renderBasicBlock(person) {
 	const female = isFemale(person.gender);
 	const themeClass = female ? UI_CLASSES.themeFemale : UI_CLASSES.themeMale;
 
-	const rawPhotoSrc = getAvatarUrl(person.photo, female);
+	const pName = person.name || person.first_name || "";
+	const pSurname = person.surname || person.last_name || "";
+	const rawPhotoSrc = getAvatarUrl(person.photo, female, pName, pSurname);
 	const safePhotoSrc = encodeURI(rawPhotoSrc);
-	const defaultAvatar = encodeURI(
-		female ? APP_CONFIG.defaultFemale : APP_CONFIG.defaultMale,
-	);
+	const defaultAvatar = encodeURI(getAvatarUrl(null, female, pName, pSurname));
 
 	// 🔥 Комбінований статус: генеруємо І ТЕКСТ, І ІКОНКУ
 	const rawStatus = String(person.status || "")
@@ -93,6 +93,7 @@ export function renderBasicBlock(person) {
                      class="${avatarClass} profile-avatar-main" 
                      alt="${safeFullName}" 
                      loading="eager"
+                     referrerpolicy="no-referrer"
                      onerror="this.onerror=null; this.src='${defaultAvatar}';">
                 
                 <div class="profile-info-center">

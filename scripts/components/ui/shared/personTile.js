@@ -41,12 +41,12 @@ export function renderPersonTile(
 	const nameHtml = formatPersonNameHtml(person, options);
 	const isFem = isFemale(person.gender);
 
-	const rawPhotoSrc = getAvatarUrl(person.photo || person.rawPhoto, isFem);
+	const pName = person.name || person.first_name || "";
+	const pSurname = person.surname || person.last_name || "";
+	const rawPhotoSrc = getAvatarUrl(person.photo || person.rawPhoto, isFem, pName, pSurname);
 	const photoSrc = encodeURI(rawPhotoSrc);
 
-	const rawFallbackSrc = isFem
-		? APP_CONFIG.defaultFemale
-		: APP_CONFIG.defaultMale;
+	const rawFallbackSrc = getAvatarUrl(null, isFem, pName, pSurname);
 	const fallbackSrc = encodeURI(rawFallbackSrc);
 
 	const safeId = escapeHtml(String(person.id || ""));
@@ -102,6 +102,7 @@ export function renderPersonTile(
             <img src="${photoSrc}" 
                  alt="${altText}" 
                  loading="lazy" 
+                 referrerpolicy="no-referrer"
                  class="${UI_CLASSES.kinshipCardImg}"
                  onerror="this.onerror=null; this.src='${fallbackSrc}';">
         </div>
