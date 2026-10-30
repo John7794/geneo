@@ -219,7 +219,11 @@ export class RelationshipManager {
 		if (relPrev) relPrev.remove();
 		if (relNext) relNext.remove();
 
-		document.getElementById("tree-view")?.classList.add(UI_CLASSES.hidden);
+		const tv = document.getElementById("tree-view");
+		if (tv) {
+			tv.classList.remove("is-relationship-mode");
+			tv.classList.add(UI_CLASSES.hidden);
+		}
 		document
 			.getElementById("profile-content")
 			?.classList.remove(UI_CLASSES.hidden);
@@ -361,6 +365,7 @@ export class RelationshipManager {
 				</div>`;
 			}
 
+			let prevWasFullWidth = !isCouple;
 			const maxLen = Math.max(mainNodes.length, sideNodes.length);
 			let gridRowsHTML = "";
 
@@ -380,6 +385,16 @@ export class RelationshipManager {
 							${this.renderNodeAdapter(nodeA, false)}
 						</div>
 					</div>`;
+					prevWasFullWidth = true;
+				} else if (prevWasFullWidth && ((nodeA && !nodeB) || (!nodeA && nodeB))) {
+					const singleNode = nodeA || nodeB;
+					gridRowsHTML += `
+					<div class="rel-mobile-row rel-mobile-row--merged">
+						<div class="rel-mobile-cell rel-mobile-cell--center">
+							${this.renderNodeAdapter(singleNode, !nodeA)}
+						</div>
+					</div>`;
+					prevWasFullWidth = true;
 				} else {
 					const emptyCardHtml = `<div class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardPlaceholder} rel-invisible-node" style="opacity:0; pointer-events:none; border:none; box-shadow:none; background:transparent;"></div>`;
 
@@ -395,6 +410,7 @@ export class RelationshipManager {
 						<div class="rel-mobile-cell">${cardA}</div>
 						<div class="rel-mobile-cell">${cardB}</div>
 					</div>`;
+					prevWasFullWidth = false;
 				}
 			}
 			branchesAreaHTML = `<div class="rel-mobile-grid">${gridRowsHTML}</div>`;
@@ -558,6 +574,7 @@ export class RelationshipManager {
 		if (oldNext) oldNext.remove();
 
 		if (treeViewEl) {
+			treeViewEl.classList.add("is-relationship-mode");
 			treeViewEl.insertAdjacentHTML(
 				"beforeend",
 				`<div id="rel-dynamic-footer" class="${UI_CLASSES.relFooterUnified}"><div class="${UI_CLASSES.relFooterCol} ${UI_CLASSES.relFooterColLeft}">${leftInfo}</div><div class="${UI_CLASSES.relFooterSep}" aria-hidden="true"></div><div class="${UI_CLASSES.relFooterCol} ${UI_CLASSES.relFooterColRight}">${rightInfo}</div></div>`,

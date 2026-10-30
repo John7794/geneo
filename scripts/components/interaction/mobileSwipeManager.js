@@ -47,6 +47,15 @@ export class MobileSwipeManager {
 	_checkIfDisabled(target) {
 		// Ігноруємо свайпи, якщо відкриті модалки, галерея, меню або інтерактивні поля
 		const ignoreSelectors = [
+			"#breadcrumbs-container",
+			".breadcrumbs-wrapper",
+			"#breadcrumbs-list",
+			".breadcrumbs__list",
+			".breadcrumbs__item",
+			".breadcrumbs__link",
+			".breadcrumbs-container",
+			"[class*='breadcrumbs']",
+			"nav",
 			".gallery-scroll-content",
 			".popup-overlay",
 			".breadcrumbs__dropdown-menu",
