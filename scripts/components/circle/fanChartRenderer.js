@@ -255,8 +255,9 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 			fullLabel = surname || name;
 		}
 
-		if (generation <= 2 && dates) {
-			fullLabel += ` (${dates})`;
+		const lifeYears = sector.lifeYears || dates;
+		if (generation <= 2 && lifeYears) {
+			fullLabel += ` (${lifeYears})`;
 		}
 
 		textPath.textContent = fullLabel;
@@ -347,8 +348,8 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 
 	g.appendChild(textGroup);
 
-	// 4. Маркер наявності документів/нагород або статусу підтвердження
-	if (hasRecords || isConfirmed) {
+	// 4. Маркер наявності документів/нагород (тільки якщо є архівні записи)
+	if (hasRecords) {
 		const rad = toRad(angles.mid);
 		const dotR = rInfo.out - 4;
 		const dotX = cx + dotR * Math.cos(rad);
@@ -358,8 +359,8 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 		dot.setAttribute("cx", String(dotX.toFixed(1)));
 		dot.setAttribute("cy", String(dotY.toFixed(1)));
 		dot.setAttribute("r", generation >= 5 ? "2" : "2.8");
-		dot.setAttribute("class", hasRecords ? "fan-sector-record-dot" : "fan-sector-verified-dot");
-		dot.setAttribute("title", hasRecords ? "Є архівні записи" : "Підтверджений зв'язок");
+		dot.setAttribute("class", "fan-sector-record-dot");
+		dot.setAttribute("title", "Є архівні записи");
 		g.appendChild(dot);
 	}
 
@@ -439,7 +440,7 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 	g.appendChild(nameText);
 
 	// Роки життя
-	const dates = person?.dates || person?.lifespan || "";
+	const dates = probandData.lifeYears || person?.dates || person?.lifespan || "";
 	if (dates) {
 		const datesText = document.createElementNS(svgNS, "text");
 		datesText.setAttribute("x", String(cx));

@@ -446,17 +446,15 @@ export class FanChartManager {
 		const fullName = [p.name || p.first_name, p.surname || p.last_name].filter(Boolean).join(" ");
 		const avatarUrl = p.photo || p.avatar;
 		const dates = p.dates || p.lifespan || "";
-		const place = p.living_place || p.location || p.place || "";
-		const status = p.social_status || p.status || "";
+		const displayDates = sectorData.lifeYears || dates;
 
 		const avatarHtml = (avatarUrl && !avatarUrl.includes("placeholder"))
 			? `<img src="${avatarUrl}" class="fan-flyout-avatar" alt="${escapeHtml(fullName)}" />`
 			: `<span class="fan-flyout-avatar-initials">${(fullName.charAt(0) || "Я").toUpperCase()}</span>`;
 
-		// Бейдж статусу підтвердження як у профілі
+		// Бейдж статусу підтвердження як у профілі (без зайвих іконок)
 		const statusBadgeHtml = `
 			<div class="profile-status-pill ${isConfirmed ? "status-badge--confirmed" : "status-badge--hypothetical"}">
-				<i class="${isConfirmed ? "ri-shield-check-line" : "ri-question-line"} status-icon" style="margin-right: 5px; font-size: 13px;"></i>
 				<span class="status-text">${isConfirmed ? "Підтверджений зв'язок" : "Гіпотетичний зв'язок"}</span>
 			</div>
 		`;
@@ -465,12 +463,16 @@ export class FanChartManager {
 			? `<div class="fan-flyout-badge-records"><i class="ri-file-text-line"></i> Документів: ${sectorData.recordsCount}</div>`
 			: "";
 
-		const placeHtml = place
-			? `<div class="fan-flyout-row"><i class="ri-map-pin-2-line"></i> <span>${escapeHtml(place)}</span></div>`
+		const birthHtml = sectorData.birth?.info
+			? `<div class="fan-flyout-row fan-flyout-row--birth"><i class="ri-cake-2-line" title="Народження"></i> <span>${escapeHtml(sectorData.birth.info)}</span></div>`
 			: "";
 
-		const statusHtml = status
-			? `<div class="fan-flyout-row"><i class="ri-user-star-line"></i> <span>${escapeHtml(status)}</span></div>`
+		const deathHtml = sectorData.death?.info
+			? `<div class="fan-flyout-row fan-flyout-row--death"><i class="ri-cross-line" title="Смерть"></i> <span>${escapeHtml(sectorData.death.info)}</span></div>`
+			: "";
+
+		const jobHtml = p.job
+			? `<div class="fan-flyout-row"><i class="ri-briefcase-line"></i> <span>${escapeHtml(p.job)}</span></div>`
 			: "";
 
 		const kinshipClass = isMaternal ? "fan-flyout-kinship-badge fan-flyout-kinship-badge--maternal" : "fan-flyout-kinship-badge";
@@ -484,15 +486,16 @@ export class FanChartManager {
 				<div class="fan-flyout-title-wrap">
 					<span class="${kinshipClass}">№ ${sosa} • ${escapeHtml(sectorData.kinshipTitle)}</span>
 					<h4 class="fan-flyout-name" title="${escapeHtml(fullName)}">${escapeHtml(fullName)}</h4>
-					${dates ? `<div class="fan-flyout-meta">${escapeHtml(dates)}</div>` : ""}
+					${displayDates ? `<div class="fan-flyout-meta">${escapeHtml(displayDates)}</div>` : ""}
 				</div>
 			</div>
 			<div class="fan-flyout-status-container">
 				${statusBadgeHtml}
 			</div>
 			<div class="fan-flyout-body">
-				${placeHtml}
-				${statusHtml}
+				${birthHtml}
+				${deathHtml}
+				${jobHtml}
 				${recordsHtml}
 			</div>
 			<div class="fan-flyout-actions">

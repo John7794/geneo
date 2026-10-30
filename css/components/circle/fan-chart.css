@@ -280,7 +280,7 @@
 }
 
 /* ==========================================================================
-   6. МАРКЕРИ НАЯВНОСТІ АРХІВНИХ ДОКУМЕНТІВ ТА ПІДТВЕРДЖЕННЯ
+   6. МАРКЕРИ НАЯВНОСТІ АРХІВНИХ ДОКУМЕНТІВ
    ========================================================================== */
 .fan-sector-record-dot {
 	fill: #f59e0b; /* Золотистий колір документа */
@@ -290,17 +290,6 @@
 }
 
 :root.theme-dark .fan-sector-record-dot {
-	stroke: #1e293b;
-}
-
-.fan-sector-verified-dot {
-	fill: #10b981; /* Зелений колір підтвердженого зв'язку */
-	stroke: #ffffff;
-	stroke-width: 0.8px;
-	pointer-events: none;
-}
-
-:root.theme-dark .fan-sector-verified-dot {
 	stroke: #1e293b;
 }
 
@@ -575,6 +564,18 @@
 	font-size: 14px;
 	color: var(--color-text-meta);
 	flex-shrink: 0;
+}
+
+.fan-flyout-row--birth i {
+	color: #10b981 !important;
+}
+
+.fan-flyout-row--death i {
+	color: #64748b !important;
+}
+
+:root.theme-dark .fan-flyout-row--death i {
+	color: #94a3b8 !important;
 }
 
 .fan-flyout-badge-records {

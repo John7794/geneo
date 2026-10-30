@@ -64,11 +64,9 @@ export function calculateSectorAngles(sosa, gen) {
 
 	let start, end;
 	if (idx < count / 2) {
-		// Батьківська лінія (ліва півсфера: від 270° проти годинникової стрілки до 90°)
 		start = 270 - (idx + 1) * span;
 		end = 270 - idx * span;
 	} else {
-		// Материнська лінія (права півсфера: від 270° за годинниковою стрілкою до 90°/450°)
 		const mIdx = idx - count / 2;
 		start = 270 + mIdx * span;
 		end = 270 + (mIdx + 1) * span;
@@ -97,9 +95,59 @@ export function getQuadrant(sosa) {
 		cur = Math.floor(cur / 2);
 	}
 	if (cur >= 4 && cur <= 7) {
-		return cur - 3; // 4->1, 5->2, 6->3, 7->4
+		return cur - 3;
 	}
 	return 1;
+}
+
+/**
+ * Форматує дату та місце події (народження або смерті)
+ */
+function formatEventData(event, isBirth, baseRow, placesMap) {
+	let datePart = "";
+	const day = isBirth ? event?.b_day : event?.d_day;
+	const month = isBirth ? event?.b_month : event?.d_month;
+	const year = isBirth ? event?.b_year : event?.d_year;
+	const dateSort = event?.date_sort;
+
+	if (day && month && year) {
+		const dd = String(day).padStart(2, "0");
+		const mm = String(month).padStart(2, "0");
+		datePart = `${dd}.${mm}.${year}`;
+	} else if (year) {
+		datePart = String(year);
+	} else if (dateSort && dateSort.length >= 4) {
+		datePart = String(dateSort);
+	} else if (isBirth && baseRow?.birth_year) {
+		datePart = String(baseRow.birth_year);
+	} else if (!isBirth && baseRow?.death_year) {
+		datePart = String(baseRow.death_year);
+	}
+
+	let placePart = "";
+	const placeId = String(event?.place_id || "").trim();
+	if (placeId && placesMap.has(placeId)) {
+		placePart = placesMap.get(placeId);
+	} else {
+		const details = isBirth ? event?.b_place_details : event?.d_place_details;
+		const admin = isBirth ? event?.b_admin_division : event?.d_admin_division;
+		if (details) {
+			placePart = details;
+		} else if (admin) {
+			placePart = admin.split("/")[0].trim();
+		}
+	}
+
+	const parts = [];
+	if (datePart) parts.push(datePart);
+	if (placePart) parts.push(placePart);
+
+	return {
+		date: datePart,
+		year: year || (isBirth ? baseRow?.birth_year : baseRow?.death_year) || datePart.slice(-4),
+		place: placePart,
+		info: parts.join(" • "),
+	};
 }
 
 /**
@@ -117,6 +165,45 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
 	const rootIdStr = String(rootPersonId).trim();
 	sosaToPersonId.set(1, rootIdStr);
 	personIdToSosa.set(rootIdStr, 1);
+
+	// Швидка індексація гео-локацій (places.csv)
+	const placesMap = new Map();
+	const rawPlaces = engine?.db?.places || [];
+	if (Array.isArray(rawPlaces)) {
+		for (let i = 0; i < rawPlaces.length; i++) {
+			const p = rawPlaces[i];
+			const id = String(p.place_id || p.id || "").trim();
+			if (id) {
+				placesMap.set(id, p.name_current || p.name || id);
+			}
+		}
+	}
+
+	// Швидка індексація народжень (birth.csv)
+	const birthMap = new Map();
+	const rawBirth = engine?.db?.birth || [];
+	if (Array.isArray(rawBirth)) {
+		for (let i = 0; i < rawBirth.length; i++) {
+			const b = rawBirth[i];
+			const pid = String(b.person_id || b.id || "").trim();
+			if (pid && !birthMap.has(pid)) {
+				birthMap.set(pid, b);
+			}
+		}
+	}
+
+	// Швидка індексація смертей (death.csv)
+	const deathMap = new Map();
+	const rawDeath = engine?.db?.deaths || engine?.db?.death || [];
+	if (Array.isArray(rawDeath)) {
+		for (let i = 0; i < rawDeath.length; i++) {
+			const d = rawDeath[i];
+			const pid = String(d.person_id || d.id || "").trim();
+			if (pid && !deathMap.has(pid)) {
+				deathMap.set(pid, d);
+			}
+		}
+	}
 
 	// Швидка індексація наявності записів та нагород
 	const recordsMap = new Map();
@@ -208,7 +295,7 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
 			const quadrant = getQuadrant(sosa);
 			const recordsCount = personId ? recordsMap.get(personId) || 0 : 0;
 
-			// Статус зв'язку: підтверджений чи гіпотетичний (як у профілі)
+			// Статус зв'язку: підтверджений чи гіпотетичний
 			const rawStatus = String(personDetails?.status || "").trim().toLowerCase();
 			const isConfirmed = isKnown && (
 				rawStatus === "1" ||
@@ -217,6 +304,23 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
 				rawStatus === "так" ||
 				rawStatus === "+"
 			);
+
+			// Дати та місця народження / смерті
+			const rawBase = personId ? engine?.db?.basic?.find(r => String(r.person_id || r.id) === personId) : null;
+			const birthEvent = personId ? birthMap.get(personId) : null;
+			const deathEvent = personId ? deathMap.get(personId) : null;
+
+			const birthData = formatEventData(birthEvent, true, rawBase, placesMap);
+			const deathData = formatEventData(deathEvent, false, rawBase, placesMap);
+
+			let lifeYears = "";
+			if (birthData.year && deathData.year) {
+				lifeYears = `${birthData.year} — ${deathData.year}`;
+			} else if (birthData.year) {
+				lifeYears = `нар. ${birthData.year}`;
+			} else if (deathData.year) {
+				lifeYears = `пом. ${deathData.year}`;
+			}
 
 			const sectorData = {
 				sosa,
@@ -232,6 +336,9 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
 				hasRecords: recordsCount > 0,
 				recordsCount,
 				angles,
+				birth: birthData,
+				death: deathData,
+				lifeYears,
 			};
 
 			sectors.push(sectorData);
