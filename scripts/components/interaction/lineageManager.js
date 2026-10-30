@@ -110,7 +110,7 @@ export class LineageManager {
 
 			const requiredMinNum = ICON_MAP[mode];
 			const isMale = [2, 4, 6].includes(requiredMinNum);
-			const fallbackIcon = isMale
+			let fallbackIcon = isMale
 				? APP_CONFIG.defaultMale
 				: APP_CONFIG.defaultFemale;
 
