@@ -19,6 +19,7 @@ import { ZoomManager } from "./components/interaction/zoomManager.js";
 import { enableDragScroll } from "./components/interaction/dragScrollManager.js";
 import { LangManager } from "./components/interaction/langManager.js";
 import { AnalyticsManager } from "./components/interaction/analyticsManager.js";
+import { FanChartManager } from "./components/circle/fanChartManager.js";
 import { ThemeManager } from "./components/interaction/themeManager.js";
 import { MobileMenuManager } from "./components/interaction/mobileMenuManager.js";
 import { ShareManager } from "./components/interaction/shareManager.js";
@@ -126,6 +127,10 @@ class App {
 			() => this.managers.lineage,
 		);
 		this.managers.analytics = new AnalyticsManager(this.engine);
+		this.managers.fanChart = new FanChartManager(this.engine, {
+			onNavigateToProfile: (id) => this.navigateToId(id, false, "profile"),
+			onCenterOnPerson: (id) => this.navigateToId(id, false, "circle"),
+		});
 
 		this.managers.relationship = new RelationshipManager(
 			this.engine,
@@ -175,6 +180,17 @@ class App {
 		const btnHome = document.getElementById("btn-home");
 		if (btnHome) {
 			btnHome.addEventListener("click", this._handleHomeClick);
+		}
+
+		const btnViewToggle = document.getElementById("btn-view-toggle");
+		if (btnViewToggle) {
+			btnViewToggle.addEventListener("click", (e) => {
+				e.preventDefault();
+				const url = new URL(window.location);
+				const currentView = url.searchParams.get("view");
+				const targetView = currentView === "circle" || currentView === "fan" ? "tree" : "circle";
+				this.navigateToId(this.currentProfileId || this.rootPersonId, false, targetView);
+			});
 		}
 
 

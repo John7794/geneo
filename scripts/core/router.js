@@ -488,6 +488,7 @@ export class AppRouter {
 
 	_setUIVisibility(mode) {
 		const treeViewEl = document.getElementById("tree-view");
+		const fanChartViewEl = document.getElementById("fan-chart-view");
 		const profileContentEl = document.getElementById("profile-content");
 		const analyticsViewEl = document.getElementById("analytics-view");
 		if (analyticsViewEl) analyticsViewEl.classList.add("hidden");
@@ -495,14 +496,25 @@ export class AppRouter {
 		if (mode === "error") {
 			document.body.classList.add("error-state-active");
 			if (treeViewEl) treeViewEl.classList.add("hidden");
+			if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
 			if (profileContentEl) profileContentEl.classList.remove("hidden");
 		} else if (mode === "tree") {
 			document.body.classList.remove("error-state-active");
 			if (profileContentEl) profileContentEl.classList.add("hidden");
+			if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
 			if (treeViewEl) {
 				treeViewEl.style.opacity = "0";
 				treeViewEl.style.transition = "opacity 0.2s ease";
 				treeViewEl.classList.remove("hidden");
+			}
+		} else if (mode === "circle" || mode === "fan") {
+			document.body.classList.remove("error-state-active");
+			if (profileContentEl) profileContentEl.classList.add("hidden");
+			if (treeViewEl) treeViewEl.classList.add("hidden");
+			if (fanChartViewEl) {
+				fanChartViewEl.style.opacity = "0";
+				fanChartViewEl.style.transition = "opacity 0.2s ease";
+				fanChartViewEl.classList.remove("hidden");
 			}
 		} else if (mode === "profile") {
 			document.body.classList.remove("error-state-active");
@@ -511,10 +523,12 @@ export class AppRouter {
 				treeViewEl.style.opacity = "1";
 				treeViewEl.style.transition = "";
 			}
+			if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
 			if (profileContentEl) profileContentEl.classList.remove("hidden");
 		} else if (mode === "analytics") {
 			document.body.classList.remove("error-state-active");
 			if (treeViewEl) treeViewEl.classList.add("hidden");
+			if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
 			if (profileContentEl) profileContentEl.classList.add("hidden");
 			if (analyticsViewEl) analyticsViewEl.classList.remove("hidden");
 		}
@@ -537,6 +551,7 @@ export class AppRouter {
 
 	_renderTree(id, engine) {
 		this._setUIVisibility("tree");
+		this._updateViewToggleButton("tree");
 		const treeRootEl = document.getElementById("tree-root");
 		const treeViewEl = document.getElementById("tree-view");
 
@@ -579,6 +594,37 @@ export class AppRouter {
 	_renderProfile(personData) {
 		this._setUIVisibility("profile");
 		renderProfile(personData);
+	}
+
+	_renderCircle(id, engine) {
+		this._setUIVisibility("circle");
+		const fanChartViewEl = document.getElementById("fan-chart-view");
+		if (this.app.managers.fanChart) {
+			this.app.managers.fanChart.render(id);
+			requestAnimationFrame(() => {
+				if (fanChartViewEl) fanChartViewEl.style.opacity = "1";
+			});
+		} else {
+			if (fanChartViewEl) fanChartViewEl.style.opacity = "1";
+		}
+		this._updateViewToggleButton("circle");
+	}
+
+	_updateViewToggleButton(view) {
+		const btn = document.getElementById("btn-view-toggle");
+		if (!btn) return;
+		const icon = btn.querySelector("i");
+		if (view === "circle" || view === "fan") {
+			btn.classList.add("active");
+			btn.setAttribute("title", "Родове дерево");
+			btn.setAttribute("aria-label", "Перемкнути на дерево");
+			if (icon) icon.className = "ri-node-tree";
+		} else {
+			btn.classList.remove("active");
+			btn.setAttribute("title", "Коло роду");
+			btn.setAttribute("aria-label", "Перемкнути на коло роду");
+			if (icon) icon.className = "ri-pie-chart-2-line";
+		}
 	}
 
 	handlePopState() {
@@ -634,6 +680,8 @@ export class AppRouter {
 			if (managers.analytics) managers.analytics.render();
 		} else if (viewParam === "profile") {
 			this._renderProfile(personData);
+		} else if (viewParam === "circle" || viewParam === "fan") {
+			this._renderCircle(id, engine);
 		} else {
 			this._renderTree(id, engine);
 		}

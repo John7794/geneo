@@ -47,6 +47,7 @@
 <link rel="stylesheet" href="/css/components/interaction/relationship.css" />
 <link rel="stylesheet" href="/css/components/interaction/search.css" />
 <link rel="stylesheet" href="/css/components/interaction/zoom.css" />
+<link rel="stylesheet" href="/css/components/circle/fan-chart.css" />
 <link rel="stylesheet" href="/css/components/profile/ancestors.css" />
 <link rel="stylesheet" href="/css/components/profile/awards.css" />
 <link rel="stylesheet" href="/css/components/profile/descendants.css" />
@@ -131,6 +132,10 @@
                     <i class="ri-git-branch-line"></i>
                 </button>
 
+                <button id="btn-view-toggle" class="btn btn-icon js-view-toggle" title="Коло роду" aria-label="Перемкнути вигляд: Коло роду" data-i18n-title="ui.viewCircle">
+                    <i class="ri-pie-chart-2-line"></i>
+                </button>
+
                 <hr class="panel-divider" />
 
 
@@ -191,6 +196,8 @@
                 <div id="tree-root" class="tree-chart"></div>
             </div>
         </div>
+
+        <div id="fan-chart-view" class="fan-chart-view hidden"></div>
 
         <div id="profile-content" class="hidden"></div>
 
