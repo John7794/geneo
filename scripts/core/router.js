@@ -632,14 +632,13 @@ export class AppRouter {
 			return;
 		}
 		btn.style.display = "";
+		btn.classList.remove("active");
 		const icon = btn.querySelector("i");
 		if (view === "circle" || view === "fan") {
-			btn.classList.add("active");
 			btn.setAttribute("title", "Родове дерево");
 			btn.setAttribute("aria-label", "Перемкнути на дерево");
 			if (icon) icon.className = "ri-node-tree";
 		} else {
-			btn.classList.remove("active");
 			btn.setAttribute("title", "Коло роду");
 			btn.setAttribute("aria-label", "Перемкнути на коло роду");
 			if (icon) icon.className = "ri-pie-chart-2-line";

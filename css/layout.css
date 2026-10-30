@@ -82,6 +82,10 @@
 	z-index: 999999;
 }
 
+#btn-view-toggle.active {
+	background-color: transparent !important;
+}
+
 @media (max-width: 768px) {
 	#btn-view-toggle,
 	.js-view-toggle {
