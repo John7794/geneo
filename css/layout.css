@@ -83,6 +83,11 @@
 }
 
 @media (max-width: 768px) {
+	#btn-view-toggle,
+	.js-view-toggle {
+		display: none !important;
+	}
+
 	.top-bar-controls {
 		top: 110px;
 		right: var(--spacing-sm);
@@ -173,3 +178,4 @@
 .block-divider::after {
 	margin-left: 16px;
 }
+

@@ -696,39 +696,11 @@
 /* ==========================================================================
    11. АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ (MOBILE RESPONSIVENESS)
    ========================================================================== */
-@media (max-width: 767px) {
-	.fan-generation-nav {
-		top: 60px;
-		max-width: calc(100vw - 20px);
-		padding: 4px 6px;
-		gap: 4px;
-	}
-
-	.fan-nav-pill {
-		padding: 5px 9px;
-		font-size: 11px;
-	}
-
-	.fan-zoom-controls {
-		bottom: 16px;
-		right: 16px;
-	}
-
-	.fan-zoom-btn {
-		width: 32px;
-		height: 32px;
-		font-size: 15px;
-	}
-
-	.fan-flyout-card {
-		position: fixed;
-		left: 12px !important;
-		right: 12px !important;
-		bottom: 16px !important;
-		top: auto !important;
-		width: calc(100vw - 24px) !important;
-		max-width: 400px;
-		margin: 0 auto;
-		transform: none !important;
+@media (max-width: 768px) {
+	#fan-chart-view,
+	.fan-chart-view,
+	#btn-view-toggle,
+	.js-view-toggle {
+		display: none !important;
 	}
 }

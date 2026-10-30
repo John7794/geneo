@@ -129,7 +129,7 @@ class App {
 		this.managers.analytics = new AnalyticsManager(this.engine);
 		this.managers.fanChart = new FanChartManager(this.engine, {
 			onNavigateToProfile: (id) => this.navigateToId(id, false, "profile"),
-			onCenterOnPerson: (id) => this.navigateToId(id, false, "circle"),
+			onCenterOnPerson: (id) => this.navigateToId(id, false, window.matchMedia("(max-width: 768px)").matches ? "tree" : "circle"),
 		});
 
 		this.managers.relationship = new RelationshipManager(
@@ -186,6 +186,7 @@ class App {
 		if (btnViewToggle) {
 			btnViewToggle.addEventListener("click", (e) => {
 				e.preventDefault();
+				if (window.matchMedia("(max-width: 768px)").matches) return;
 				const url = new URL(window.location);
 				const currentView = url.searchParams.get("view");
 				const targetView = currentView === "circle" || currentView === "fan" ? "tree" : "circle";
@@ -233,3 +234,4 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 });
+

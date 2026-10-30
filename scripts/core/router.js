@@ -17,7 +17,7 @@ export class AppRouter {
 		this._handleDocumentClick = this._handleDocumentClick.bind(this);
 		this._handleMediaQueryChange = this._handleMediaQueryChange.bind(this);
 
-		this._mediaQueryList = window.matchMedia("(max-width: 767px)");
+		this._mediaQueryList = window.matchMedia("(max-width: 768px)");
 
 		window.addEventListener("popstate", this.handlePopState);
 		document.body.addEventListener("click", this._handleDocumentClick);
@@ -382,13 +382,22 @@ export class AppRouter {
 
 	_handleMediaQueryChange() {
 		const currentUrl = new URL(window.location);
-		if (currentUrl.searchParams.get("view") !== "profile") {
+		const view = currentUrl.searchParams.get("view");
+		if (this._mediaQueryList.matches && (view === "circle" || view === "fan")) {
+			this.navigateToId(this.app.currentProfileId || this.app.rootPersonId, true, "tree");
+			return;
+		}
+		if (view !== "profile") {
 			this.handlePopState();
 		}
 	}
 
 	navigateToId(id, replaceHistory = false, viewMode = null) {
 		if (!id) return;
+
+		if (this._mediaQueryList?.matches && (viewMode === "circle" || viewMode === "fan")) {
+			viewMode = "tree";
+		}
 
 		const url = new URL(window.location);
 		url.searchParams.set("id", id);
@@ -438,7 +447,7 @@ export class AppRouter {
 			needsUpdate = true;
 		}
 
-		if (!viewParam) {
+		if (!viewParam || (this._mediaQueryList?.matches && (viewParam === "circle" || viewParam === "fan"))) {
 			currentUrl.searchParams.set("view", "tree");
 			viewParam = "tree";
 			needsUpdate = true;
@@ -597,6 +606,10 @@ export class AppRouter {
 	}
 
 	_renderCircle(id, engine) {
+		if (this._mediaQueryList?.matches) {
+			this._renderTree(id, engine);
+			return;
+		}
 		this._setUIVisibility("circle");
 		const fanChartViewEl = document.getElementById("fan-chart-view");
 		if (this.app.managers.fanChart) {
@@ -613,6 +626,11 @@ export class AppRouter {
 	_updateViewToggleButton(view) {
 		const btn = document.getElementById("btn-view-toggle");
 		if (!btn) return;
+		if (this._mediaQueryList?.matches) {
+			btn.style.display = "none";
+			return;
+		}
+		btn.style.display = "";
 		const icon = btn.querySelector("i");
 		if (view === "circle" || view === "fan") {
 			btn.classList.add("active");
@@ -630,7 +648,10 @@ export class AppRouter {
 	handlePopState() {
 		const currentUrl = new URL(window.location);
 		const mode = currentUrl.searchParams.get("mode");
-		const viewParam = currentUrl.searchParams.get("view");
+		let viewParam = currentUrl.searchParams.get("view");
+		if (this._mediaQueryList?.matches && (viewParam === "circle" || viewParam === "fan")) {
+			viewParam = "tree";
+		}
 		const rootId = this.app.rootPersonId;
 		const managers = this.app.managers;
 		const engine = this.app.engine;
