@@ -308,26 +308,25 @@
    7. ВЗАЄМОДІЯ ТА ХОВЕР (HOVER & SELECTION)
    ========================================================================== */
 .fan-sector--known:hover .fan-sector-shape {
-	filter: brightness(1.18);
+	filter: brightness(1.15);
 	stroke: #ffffff;
-	stroke-width: 2.5px;
+	stroke-width: 2px;
 }
 
 :root.theme-dark .fan-sector--known:hover .fan-sector-shape {
-	filter: brightness(1.3);
-	stroke: var(--color-primary);
+	filter: brightness(1.2);
+	stroke: #ffffff;
+	stroke-width: 2px;
 }
 
 .fan-sector--selected .fan-sector-shape {
 	stroke: #ffffff !important;
 	stroke-width: 2.5px !important;
-	filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)) !important;
 }
 
 :root:not(.theme-dark) .fan-sector--selected .fan-sector-shape {
 	stroke: #0f172a !important;
 	stroke-width: 2.5px !important;
-	filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.35)) !important;
 }
 
 /* Затемнення неактивних кілець при комбінованій фільтрації */
@@ -341,8 +340,8 @@
    ========================================================================== */
 .fan-viewport.fan-branch-active .fan-sector,
 .fan-viewport.fan-branch-active .fan-proband-group {
-	opacity: 0.18;
-	transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+	opacity: 0.2;
+	transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fan-viewport.fan-branch-active .fan-sector.fan-sector--branch-highlight,
@@ -352,38 +351,35 @@
 
 .fan-sector.fan-sector--hovered .fan-sector-shape {
 	stroke: #ffffff;
-	stroke-width: 2.2px;
-	filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
+	stroke-width: 2px;
+	filter: brightness(1.15);
 }
 
 :root:not(.theme-dark) .fan-sector.fan-sector--hovered .fan-sector-shape {
 	stroke: #0f172a;
-	stroke-width: 2.2px;
-	filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.25));
+	stroke-width: 2px;
+	filter: brightness(1.1);
 }
 
 :root.theme-dark .fan-sector.fan-sector--hovered .fan-sector-shape {
 	stroke: #ffffff;
-	stroke-width: 2.2px;
-	filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+	stroke-width: 2px;
+	filter: brightness(1.2);
 }
 
 .fan-proband-group.fan-proband--hovered .fan-proband-circle {
 	stroke: #ffffff;
 	stroke-width: 3px;
-	filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
 }
 
 :root:not(.theme-dark) .fan-proband-group.fan-proband--hovered .fan-proband-circle {
 	stroke: #0f172a;
 	stroke-width: 3px;
-	filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
 }
 
 :root.theme-dark .fan-proband-group.fan-proband--hovered .fan-proband-circle {
 	stroke: #ffffff;
 	stroke-width: 3px;
-	filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
 }
 
 /* ==========================================================================

@@ -52,6 +52,23 @@ export function buildAnnularPath(cx, cy, rIn, rOut, startAngle, endAngle) {
 	const p3 = { x: cx + rOut * Math.cos(bRad), y: cy + rOut * Math.sin(bRad) };
 	const p4 = { x: cx + rIn * Math.cos(bRad), y: cy + rIn * Math.sin(bRad) };
 
+	if (span >= 179.9 && span <= 180.1) {
+		// Для точного півкола (180°) будуємо дугу через точну проміжну точку (midAngle)
+		// Це усуває викривлення та нестабільність SVG-дуги при 180°
+		const midAngle = (startAngle + endAngle) / 2;
+		const mRad = toRad(midAngle);
+		const pMidOut = { x: cx + rOut * Math.cos(mRad), y: cy + rOut * Math.sin(mRad) };
+		const pMidIn = { x: cx + rIn * Math.cos(mRad), y: cy + rIn * Math.sin(mRad) };
+
+		return `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} ` +
+			`L ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} ` +
+			`A ${rOut} ${rOut} 0 0 1 ${pMidOut.x.toFixed(2)} ${pMidOut.y.toFixed(2)} ` +
+			`A ${rOut} ${rOut} 0 0 1 ${p3.x.toFixed(2)} ${p3.y.toFixed(2)} ` +
+			`L ${p4.x.toFixed(2)} ${p4.y.toFixed(2)} ` +
+			`A ${rIn} ${rIn} 0 0 0 ${pMidIn.x.toFixed(2)} ${pMidIn.y.toFixed(2)} ` +
+			`A ${rIn} ${rIn} 0 0 0 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} Z`;
+	}
+
 	const largeArc = span > 180 ? 1 : 0;
 
 	return `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} ` +
@@ -466,13 +483,13 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 	nameText.textContent = fullName || "Пробанд";
 	g.appendChild(nameText);
 
-	// Бейдж спорідненості "Ви (Пробанд)"
+	// Бейдж спорідненості "Пробанд"
 	const badgeText = document.createElementNS(svgNS, "text");
 	badgeText.setAttribute("x", String(cx));
 	badgeText.setAttribute("y", String(cy + 40));
 	badgeText.setAttribute("text-anchor", "middle");
 	badgeText.setAttribute("class", "fan-proband-badge");
-	badgeText.textContent = "Ви (Пробанд)";
+	badgeText.textContent = "Пробанд";
 	g.appendChild(badgeText);
 
 	return g;

@@ -10,7 +10,7 @@ import { findPersonDetails } from "../../utils/personUtils.js";
  * @returns {string}
  */
 export function getKinshipTitle(sosa, gender = "m") {
-	if (sosa === 1) return "Ви";
+	if (sosa === 1) return "Пробанд";
 	if (sosa === 2) return "Батько";
 	if (sosa === 3) return "Мати";
 
@@ -37,7 +37,7 @@ export function getKinshipTitle(sosa, gender = "m") {
  * @returns {string}
  */
 export function getGenerationRibbonLabel(gen, lineageMode = "all") {
-	if (gen === 0) return "Ви";
+	if (gen === 0) return "Пробанд";
 	const config = getLineageFilterConfig(lineageMode);
 	if (config.subRootGen > 0) {
 		if (gen === 1) {

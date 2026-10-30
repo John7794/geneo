@@ -179,7 +179,7 @@ export class FanChartManager {
 
 		for (let g = 0; g < generations.length; g++) {
 			const genData = generations[g];
-			if (!genData || (g > 3 && genData.knownCount === 0)) continue;
+			if (!genData || genData.knownCount === 0) continue;
 
 			const isGenActive = !isAllActive && (this.activeGens.has(String(g)) || this.activeGens.has(g));
 			const label = genData.label || getGenerationRibbonLabel(g, this.lineageMode || "all");
@@ -208,7 +208,7 @@ export class FanChartManager {
 	 */
 	toggleGenerationLevel(gen) {
 		const generations = this.pedigreeData?.generations || [];
-		const validGens = generations.filter((g, idx) => idx <= 3 || g.knownCount > 0).map(g => String(g.generation));
+		const validGens = generations.filter(g => g.knownCount > 0).map(g => String(g.generation));
 
 		if (gen === "all") {
 			this.activeGens.clear();
