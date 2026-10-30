@@ -3,7 +3,7 @@ import { i18n } from "../../core/i18n.js";
 import { calculateAgeAtDeath, convertJulianToGregorian } from "../../utils/dateUtils.js";
 import { resolveCoatUrl } from "../../utils/coatUtils.js";
 import { renderPersonTile } from "../ui/shared/personTile.js";
-import { findPersonDetails } from "../../utils/personUtils.js";
+import { findPersonDetails, generateInitialsAvatar } from "../../utils/personUtils.js";
 import { escapeHtml } from "../../utils/helpers.js";
 
 export class AnalyticsManager {
@@ -580,16 +580,16 @@ export class AnalyticsManager {
                 let avatarHtml = '';
                 if (obj && obj.id && window.app && window.app.engine && window.app.engine.db) {
                     const person = window.app.engine.db.names.find(n => n.id === obj.id);
-                    if (person) {
-                        const avatarPath = window.app.engine.getPersonPhoto(person);
-                        if (avatarPath) {
-                            avatarHtml = `<img src="${avatarPath}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
-                        } else {
-                            avatarHtml = `<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-body); display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); font-size: 10px;"><i class="ri-user-3-line"></i></div>`;
-                        }
+                    const avatarPath = person ? window.app.engine.getPersonPhoto(person) : null;
+                    if (avatarPath) {
+                        avatarHtml = `<img src="${avatarPath}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
+                    } else {
+                        const initSrc = generateInitialsAvatar(obj.name || shortName, "", obj.gender === 'f');
+                        avatarHtml = `<img src="${initSrc}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
                     }
                 } else if (obj) {
-                     avatarHtml = `<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-body); display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); font-size: 10px;"><i class="ri-user-3-line"></i></div>`;
+                    const initSrc = generateInitialsAvatar(obj.name || shortName, "", obj.gender === 'f');
+                    avatarHtml = `<img src="${initSrc}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
                 }
 
 				return `

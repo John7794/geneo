@@ -44,10 +44,10 @@ export function renderPersonTile(
 	const pName = person.name || person.first_name || "";
 	const pSurname = person.surname || person.last_name || "";
 	const rawPhotoSrc = getAvatarUrl(person.photo || person.rawPhoto, isFem, pName, pSurname);
-	const photoSrc = encodeURI(rawPhotoSrc);
+	const photoSrc = rawPhotoSrc.startsWith("data:") ? rawPhotoSrc : encodeURI(rawPhotoSrc);
 
 	const rawFallbackSrc = getAvatarUrl(null, isFem, pName, pSurname);
-	const fallbackSrc = encodeURI(rawFallbackSrc);
+	const fallbackSrc = rawFallbackSrc.startsWith("data:") ? rawFallbackSrc : encodeURI(rawFallbackSrc);
 
 	const safeId = escapeHtml(String(person.id || ""));
 	const altText = escapeHtml(person.name || unknownLabelRaw);
@@ -104,7 +104,7 @@ export function renderPersonTile(
                  loading="lazy" 
                  referrerpolicy="no-referrer"
                  class="${UI_CLASSES.kinshipCardImg}"
-                 onerror="this.onerror=null; this.src='${fallbackSrc}';">
+                 onerror="this.onerror=null; this.src='${escapeHtml(fallbackSrc)}';">
         </div>
         
         <div class="${UI_CLASSES.kinshipCardInfo}">

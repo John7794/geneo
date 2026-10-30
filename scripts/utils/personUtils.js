@@ -158,24 +158,62 @@ export function getFullName(personObj) {
 	return res;
 }
 
-export function getInitials(name, surname) {
-	const n = (name || "").trim();
-	const s = (surname || "").trim();
-	const f = n.charAt(0);
-	const l = s.charAt(0);
-	if (f && l) return (f + l).toUpperCase();
-	if (f) return f.toUpperCase();
-	if (l) return l.toUpperCase();
+export function getInitials(name = "", surname = "") {
+	let n = "";
+	let s = "";
+
+	if (typeof name === "object" && name !== null) {
+		const p = name;
+		n = p.name || p.first_name || p.fam_first_name || "";
+		s = p.surname || p.last_name || p.fam_surname || "";
+		if (!n && !s) {
+			n = p.fullName || getFullName(p) || "";
+		}
+	} else {
+		n = String(name || "").trim();
+		s = String(surname || "").trim();
+	}
+
+	if (n && s) {
+		const f = n.charAt(0);
+		const l = s.charAt(0);
+		return (f + l).toUpperCase();
+	}
+
+	const single = n || s;
+	if (!single) return "?";
+
+	const clean = single.replace(/[()\[\]"']/g, "").trim();
+	const parts = clean.split(/\s+/).filter(Boolean);
+	if (parts.length >= 2) {
+		return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+	}
+	if (parts.length === 1) {
+		return parts[0].charAt(0).toUpperCase();
+	}
 	return "?";
 }
 
-export function generateInitialsAvatar(name, surname, isFem = false) {
-	const initials = getInitials(name, surname);
+export function generateInitialsAvatar(name = "", surname = "", isFem = false) {
+	let pName = name;
+	let pSurname = surname;
+
+	if (typeof name === "object" && name !== null) {
+		const p = name;
+		pName = p.name || p.first_name || p.fam_first_name || "";
+		pSurname = p.surname || p.last_name || p.fam_surname || "";
+		if (!pName && !pSurname) {
+			pName = p.fullName || getFullName(p) || "";
+		}
+	}
+
+	const initials = getInitials(pName, pSurname);
 	let bg = "#64748b";
 	if (initials !== "?") {
 		bg = isFem ? "#e11d48" : "#2563eb";
 	}
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" rx="32" fill="${bg}"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700">${initials}</text></svg>`;
+	// font-family без одинарних лапок, щоб не ламати inline onerror атрибути
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" rx="32" fill="${bg}"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="24" font-weight="700">${initials}</text></svg>`;
 	return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
@@ -188,7 +226,18 @@ export function getAvatarUrl(identifier, genderParam, name = "", surname = "") {
 		if (normalized === "f") isFem = true;
 	}
 
-	const fallbackSrc = generateInitialsAvatar(name, surname, isFem);
+	let pName = name;
+	let pSurname = surname;
+	if (typeof name === "object" && name !== null) {
+		const p = name;
+		pName = p.name || p.first_name || p.fam_first_name || "";
+		pSurname = p.surname || p.last_name || p.fam_surname || "";
+		if (!pName && !pSurname) {
+			pName = p.fullName || getFullName(p) || "";
+		}
+	}
+
+	const fallbackSrc = generateInitialsAvatar(pName, pSurname, isFem);
 
 	if (!identifier || String(identifier).trim() === "") {
 		return fallbackSrc;

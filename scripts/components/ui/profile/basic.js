@@ -22,8 +22,8 @@ export function renderBasicBlock(person) {
 	const pName = person.name || person.first_name || "";
 	const pSurname = person.surname || person.last_name || "";
 	const rawPhotoSrc = getAvatarUrl(person.photo, female, pName, pSurname);
-	const safePhotoSrc = encodeURI(rawPhotoSrc);
-	const defaultAvatar = encodeURI(getAvatarUrl(null, female, pName, pSurname));
+	const safePhotoSrc = rawPhotoSrc.startsWith("data:") ? rawPhotoSrc : encodeURI(rawPhotoSrc);
+	const defaultAvatar = getAvatarUrl(null, female, pName, pSurname);
 
 	// 🔥 Комбінований статус: генеруємо І ТЕКСТ, І ІКОНКУ
 	const rawStatus = String(person.status || "")
@@ -94,7 +94,7 @@ export function renderBasicBlock(person) {
                      alt="${safeFullName}" 
                      loading="eager"
                      referrerpolicy="no-referrer"
-                     onerror="this.onerror=null; this.src='${defaultAvatar}';">
+                     onerror="this.onerror=null; this.src='${escapeHtml(defaultAvatar)}';">
                 
                 <div class="profile-info-center">
                     <h1 class="${UI_CLASSES.profileName || "profile-name"}">${safeFullName}</h1>
