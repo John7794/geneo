@@ -107,6 +107,9 @@ class App {
 		this.managers.lineage = new LineageManager(this.engine, this.rootPersonId, {
 			onModeChange: (newQueue) => {
 				this.managers.navigation.updateList(newQueue);
+				if (this.managers.fanChart) {
+					this.managers.fanChart.setLineageMode(this.managers.lineage.mode);
+				}
 				setTimeout(() => this.router.handlePopState(), 0);
 			},
 			onRefreshEvents: () => {

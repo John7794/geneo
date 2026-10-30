@@ -613,7 +613,8 @@ export class AppRouter {
 		this._setUIVisibility("circle");
 		const fanChartViewEl = document.getElementById("fan-chart-view");
 		if (this.app.managers.fanChart) {
-			this.app.managers.fanChart.render(id);
+			const lineageMode = this.app.managers.lineage?.mode || "all";
+			this.app.managers.fanChart.render(id, lineageMode);
 			requestAnimationFrame(() => {
 				if (fanChartViewEl) fanChartViewEl.style.opacity = "1";
 			});

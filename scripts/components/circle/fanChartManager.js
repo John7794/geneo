@@ -16,6 +16,7 @@ export class FanChartManager {
 
 		this.container = document.getElementById("fan-chart-view");
 		this.currentPersonId = null;
+		this.lineageMode = "all";
 		this.pedigreeData = null;
 
 		// Множина активних поколінь (підтримка комбінації з декількох рівнів)
@@ -50,6 +51,8 @@ export class FanChartManager {
 		this._handlePointerUp = this._handlePointerUp.bind(this);
 		this._handleSectorClick = this._handleSectorClick.bind(this);
 		this._handleSectorHover = this._handleSectorHover.bind(this);
+		this._handleSectorOut = this._handleSectorOut.bind(this);
+		this._handleCanvasLeave = this._handleCanvasLeave.bind(this);
 		this._handleResize = this._handleResize.bind(this);
 
 		this._buildDOM();
@@ -108,15 +111,30 @@ export class FanChartManager {
 	}
 
 	/**
+	 * Встановлює режим роду та оновлює відображення кола
+	 * @param {string} mode 
+	 */
+	setLineageMode(mode) {
+		this.lineageMode = mode || "all";
+		if (this.currentPersonId && this.container && !this.container.classList.contains("hidden")) {
+			this.render(this.currentPersonId, this.lineageMode);
+		}
+	}
+
+	/**
 	 * Рендерить коло роду для обраної особи
 	 * @param {string|number} personId 
+	 * @param {string} lineageMode 
 	 */
-	render(personId) {
+	render(personId, lineageMode = null) {
 		if (!personId || !this.engine) return;
 		this.currentPersonId = String(personId);
+		if (lineageMode !== null) {
+			this.lineageMode = lineageMode;
+		}
 
-		// Розрахунок предків до 7 поколінь (8 поколінь сумарно)
-		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 6);
+		// Розрахунок предків до 7 поколінь (8 поколінь сумарно) з урахуванням режиму роду
+		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 6, this.lineageMode || "all");
 
 		this._renderRings();
 		this._renderNavPills();
@@ -164,7 +182,7 @@ export class FanChartManager {
 			if (!genData || (g > 3 && genData.knownCount === 0)) continue;
 
 			const isGenActive = !isAllActive && (this.activeGens.has(String(g)) || this.activeGens.has(g));
-			const label = getGenerationRibbonLabel(g);
+			const label = genData.label || getGenerationRibbonLabel(g, this.lineageMode || "all");
 
 			html += `
 				<button class="fan-nav-pill ${isGenActive ? "active" : ""}" data-gen="${g}">

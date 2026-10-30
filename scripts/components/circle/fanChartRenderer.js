@@ -34,10 +34,18 @@ function toRad(deg) {
  */
 export function buildAnnularPath(cx, cy, rIn, rOut, startAngle, endAngle) {
 	const span = Math.abs(endAngle - startAngle);
-	const safeEnd = span >= 180 ? startAngle + Math.min(span, 179.999) : endAngle;
+	if (span >= 359.9) {
+		// Повне кільце (360°) — огортає пробанда
+		return `M ${cx} ${cy - rOut} ` +
+			`A ${rOut} ${rOut} 0 1 1 ${cx} ${cy + rOut} ` +
+			`A ${rOut} ${rOut} 0 1 1 ${cx} ${cy - rOut} ` +
+			`M ${cx} ${cy - rIn} ` +
+			`A ${rIn} ${rIn} 0 1 0 ${cx} ${cy + rIn} ` +
+			`A ${rIn} ${rIn} 0 1 0 ${cx} ${cy - rIn} Z`;
+	}
 
 	const aRad = toRad(startAngle);
-	const bRad = toRad(safeEnd);
+	const bRad = toRad(endAngle);
 
 	const p1 = { x: cx + rIn * Math.cos(aRad), y: cy + rIn * Math.sin(aRad) };
 	const p2 = { x: cx + rOut * Math.cos(aRad), y: cy + rOut * Math.sin(aRad) };
@@ -58,6 +66,14 @@ export function buildAnnularPath(cx, cy, rIn, rOut, startAngle, endAngle) {
  * Щоб текст не був догори дриґом у нижній півсфері, змінюємо напрямок
  */
 export function buildTextArcPath(cx, cy, r, startAngle, endAngle) {
+	const span = Math.abs(endAngle - startAngle);
+	if (span >= 359.9) {
+		// Повне кільце (360°) — розміщуємо текст по верхній дузі (210° -> 330°)
+		const pStart = { x: cx + r * Math.cos(toRad(210)), y: cy + r * Math.sin(toRad(210)) };
+		const pEnd = { x: cx + r * Math.cos(toRad(330)), y: cy + r * Math.sin(toRad(330)) };
+		return `M ${pStart.x.toFixed(2)} ${pStart.y.toFixed(2)} A ${r.toFixed(1)} ${r.toFixed(1)} 0 0 1 ${pEnd.x.toFixed(2)} ${pEnd.y.toFixed(2)}`;
+	}
+
 	const norm = (a) => ((a % 360) + 360) % 360;
 	const mid = (startAngle + endAngle) / 2;
 	const normMid = norm(mid);
@@ -80,7 +96,6 @@ export function buildTextArcPath(cx, cy, r, startAngle, endAngle) {
 		sweep = 0;
 	}
 
-	const span = Math.abs(e - s);
 	const largeArc = span > 180 ? 1 : 0;
 
 	return `M ${pStart.x.toFixed(2)} ${pStart.y.toFixed(2)} A ${r.toFixed(1)} ${r.toFixed(1)} 0 ${largeArc} ${sweep} ${pEnd.x.toFixed(2)} ${pEnd.y.toFixed(2)}`;
@@ -181,11 +196,20 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 
 	for (let gen = 1; gen < Math.min(generations.length, ringRadii.length); gen++) {
 		const rInfo = ringRadii[gen];
-		if (!rInfo || !levelLabels[gen]) continue;
+		const genData = generations[gen];
+		if (!rInfo) continue;
+
+		let labelText = genData?.label || levelLabels[gen];
+		if (!labelText) continue;
+		if (labelText.includes("Дідо (по татові)")) labelText = "Дід (Т)";
+		else if (labelText.includes("Баба (по татові)")) labelText = "Баба (Т)";
+		else if (labelText.includes("Дідо (по мамі)")) labelText = "Дід (М)";
+		else if (labelText.includes("Баба (по мамі)")) labelText = "Баба (М)";
+		else if (labelText.includes("Дідусі (по татові)")) labelText = "Діди (Т)";
+		else if (labelText.includes("Дідусі (по мамі)")) labelText = "Діди (М)";
 
 		const rMid = (rInfo.in + rInfo.out) / 2;
 		const pillY = cy - rMid;
-		const labelText = levelLabels[gen];
 
 		const pillG = document.createElementNS(svgNS, "g");
 		pillG.setAttribute("class", "fan-level-pill");

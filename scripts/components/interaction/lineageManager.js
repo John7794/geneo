@@ -226,6 +226,13 @@ export class LineageManager {
 			(this.modal.classList.contains(UI_CLASSES.open || "open") ||
 				this.modal.classList.contains("show"))
 		) {
+			if (this.modal.contains(document.activeElement)) {
+				if (this.btnToggle && typeof this.btnToggle.focus === "function") {
+					this.btnToggle.focus();
+				} else if (document.activeElement && typeof document.activeElement.blur === "function") {
+					document.activeElement.blur();
+				}
+			}
 			this.modal.classList.remove(UI_CLASSES.open || "open", "show");
 			document.body.classList.remove(UI_CLASSES.noScroll || "no-scroll");
 			this.modal.setAttribute("aria-hidden", "true");

@@ -33,15 +33,64 @@ export function getKinshipTitle(sosa, gender = "m") {
 /**
  * Отримує назву рівня для стрічки фільтрації поколінь
  * @param {number} gen 
+ * @param {string} lineageMode
  * @returns {string}
  */
-export function getGenerationRibbonLabel(gen) {
+export function getGenerationRibbonLabel(gen, lineageMode = "all") {
 	if (gen === 0) return "Ви";
+	const config = getLineageFilterConfig(lineageMode);
+	if (config.subRootGen > 0) {
+		if (gen === 1) {
+			if (config.subRootSosa === 2 || config.subRootSosa === 4 || config.subRootSosa === 5) {
+				return "Батько";
+			}
+			return "Мати";
+		}
+		if (gen === 2) {
+			if (config.subRootSosa === 4) return "Дідо (по татові)";
+			if (config.subRootSosa === 5) return "Баба (по татові)";
+			if (config.subRootSosa === 6) return "Дідо (по мамі)";
+			if (config.subRootSosa === 7) return "Баба (по мамі)";
+			if (config.subRootSosa === 2) return "Дідусі (по татові)";
+			if (config.subRootSosa === 3) return "Дідусі (по мамі)";
+		}
+	}
 	if (gen === 1) return "Батьки";
 	if (gen === 2) return "Дідусі";
 	if (gen === 3) return "Прадідусі";
 	const n = gen - 2;
 	return `Пра(${n})дідусі`;
+}
+
+/**
+ * Конфігурація для фільтрації ліній роду (Lineage mode)
+ * @param {string} lineageMode 
+ * @returns {{ subRootSosa: number, subRootGen: number }}
+ */
+export function getLineageFilterConfig(lineageMode = "all") {
+	const mode = String(lineageMode || "all").trim();
+	switch (mode) {
+		case "father":
+		case "paternal":
+			return { subRootSosa: 2, subRootGen: 1 };
+		case "mother":
+		case "maternal":
+			return { subRootSosa: 3, subRootGen: 1 };
+		case "fatherFather":
+		case "paternal_f":
+			return { subRootSosa: 4, subRootGen: 2 };
+		case "fatherMother":
+		case "paternal_m":
+			return { subRootSosa: 5, subRootGen: 2 };
+		case "motherFather":
+		case "maternal_f":
+			return { subRootSosa: 6, subRootGen: 2 };
+		case "motherMother":
+		case "maternal_m":
+			return { subRootSosa: 7, subRootGen: 2 };
+		default:
+			return { subRootSosa: 1, subRootGen: 0 };
+	}
 }
 
 /**
@@ -51,11 +100,40 @@ export function getGenerationRibbonLabel(gen) {
  * Права півсфера (270° за годинниковою стрілкою до 90°) — Материнська лінія.
  * @param {number} sosa
  * @param {number} gen
+ * @param {string} lineageMode
  * @returns {{ start: number, end: number, span: number, mid: number }}
  */
-export function calculateSectorAngles(sosa, gen) {
+export function calculateSectorAngles(sosa, gen, lineageMode = "all") {
 	if (gen === 0) {
 		return { start: 0, end: 360, span: 360, mid: 0 };
+	}
+
+	const config = getLineageFilterConfig(lineageMode);
+
+	if (config.subRootGen > 0) {
+		if (gen <= config.subRootGen) {
+			// Огортає пробанда / попереднє покоління повним кільцем 360°
+			return { start: 0, end: 360, span: 360, mid: 270 };
+		}
+
+		const d = gen - config.subRootGen;
+		const N = 1 << d;
+		const startSosa = config.subRootSosa << d;
+		const idx = sosa - startSosa;
+		const span = 360 / N;
+
+		let start, end;
+		if (idx < N / 2) {
+			start = 270 - (idx + 1) * span;
+			end = 270 - idx * span;
+		} else {
+			const mIdx = idx - N / 2;
+			start = 270 + mIdx * span;
+			end = 270 + (mIdx + 1) * span;
+		}
+
+		const mid = (start + end) / 2;
+		return { start, end, span, mid };
 	}
 
 	const count = 1 << gen; // 2^gen секторів у поколінні
@@ -154,10 +232,11 @@ function formatEventData(event, isBirth, baseRow, placesMap) {
  * Головна функція підготовки даних для віялового кола роду (Fan Chart)
  * @param {object} engine - FamilyEngine instance
  * @param {string|number} rootPersonId
- * @param {number} maxGenerations - скільки поколінь будувати (за замовчуванням 7, тобто 0..7 = 8 поколінь)
+ * @param {number} maxGenerations - скільки поколінь будувати (за замовчуванням 6, тобто 0..6 = 7 поколінь)
+ * @param {string} lineageMode - режим лінії роду (all, father, mother, fatherFather, тощо)
  * @returns {object} Структуровані дані для рендерингу
  */
-export function buildPedigreeData(engine, rootPersonId, maxGenerations = 6) {
+export function buildPedigreeData(engine, rootPersonId, maxGenerations = 6, lineageMode = "all") {
 	const sosaToPersonId = new Map();
 	const personIdToSosa = new Map();
 	const sosaMap = new Map();
@@ -227,18 +306,70 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 6) {
 		}
 	}
 
-	// Поколінний обхід
+	// 1. Попередній обхід: збираємо зв'язки Sosa для всіх предків до maxGenerations
+	for (let gen = 0; gen < maxGenerations; gen++) {
+		const startSosa = 1 << gen;
+		const endSosa = (1 << (gen + 1)) - 1;
+
+		for (let sosa = startSosa; sosa <= endSosa; sosa++) {
+			const personId = sosaToPersonId.get(sosa);
+			if (!personId) continue;
+
+			const personNode = engine.getPerson(personId);
+			const parentIds = personNode?.parents || [];
+
+			for (let pIdx = 0; pIdx < parentIds.length; pIdx++) {
+				const pId = String(parentIds[pIdx]).trim();
+				const pNode = engine.getPerson(pId);
+				const isFather = pNode?.gender === "m" || (!pNode?.gender && !sosaToPersonId.has(sosa * 2));
+
+				if (isFather) {
+					if (!sosaToPersonId.has(sosa * 2)) {
+						sosaToPersonId.set(sosa * 2, pId);
+						personIdToSosa.set(pId, sosa * 2);
+					}
+				} else {
+					if (!sosaToPersonId.has(sosa * 2 + 1)) {
+						sosaToPersonId.set(sosa * 2 + 1, pId);
+						personIdToSosa.set(pId, sosa * 2 + 1);
+					}
+				}
+			}
+		}
+	}
+
+	// 2. Поколінний обхід з урахуванням обраної лінії роду (lineageMode)
+	const config = getLineageFilterConfig(lineageMode);
 	const generations = [];
+	const allSectors = [];
 	let totalKnown = 0;
 	let deepestGeneration = 0;
 
 	for (let gen = 0; gen <= maxGenerations; gen++) {
-		const startSosa = 1 << gen;
-		const endSosa = (1 << (gen + 1)) - 1;
 		const sectors = [];
 		let knownInGen = 0;
 
-		for (let sosa = startSosa; sosa <= endSosa; sosa++) {
+		let sosaList = [];
+		if (config.subRootGen === 0) {
+			const startSosa = 1 << gen;
+			const endSosa = (1 << (gen + 1)) - 1;
+			for (let s = startSosa; s <= endSosa; s++) sosaList.push(s);
+		} else if (gen === 0) {
+			sosaList = [1];
+		} else if (gen < config.subRootGen) {
+			const s = Math.floor(config.subRootSosa / (1 << (config.subRootGen - gen)));
+			sosaList = [s];
+		} else if (gen === config.subRootGen) {
+			sosaList = [config.subRootSosa];
+		} else {
+			const d = gen - config.subRootGen;
+			const startSosa = config.subRootSosa << d;
+			const endSosa = ((config.subRootSosa + 1) << d) - 1;
+			for (let s = startSosa; s <= endSosa; s++) sosaList.push(s);
+		}
+
+		for (let sIdx = 0; sIdx < sosaList.length; sIdx++) {
+			const sosa = sosaList[sIdx];
 			const personId = sosaToPersonId.get(sosa) || null;
 			const isKnown = !!personId;
 			let personDetails = null;
@@ -247,32 +378,7 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 6) {
 				knownInGen++;
 				totalKnown++;
 				if (gen > deepestGeneration) deepestGeneration = gen;
-
 				personDetails = findPersonDetails(personId, engine);
-
-				// Пошук батьків для наступного покоління
-				if (gen < maxGenerations) {
-					const personNode = engine.getPerson(personId);
-					const parentIds = personNode?.parents || [];
-
-					for (let pIdx = 0; pIdx < parentIds.length; pIdx++) {
-						const pId = String(parentIds[pIdx]).trim();
-						const pNode = engine.getPerson(pId);
-						const isFather = pNode?.gender === "m" || (!pNode?.gender && !sosaToPersonId.has(sosa * 2));
-
-						if (isFather) {
-							if (!sosaToPersonId.has(sosa * 2)) {
-								sosaToPersonId.set(sosa * 2, pId);
-								personIdToSosa.set(pId, sosa * 2);
-							}
-						} else {
-							if (!sosaToPersonId.has(sosa * 2 + 1)) {
-								sosaToPersonId.set(sosa * 2 + 1, pId);
-								personIdToSosa.set(pId, sosa * 2 + 1);
-							}
-						}
-					}
-				}
 			}
 
 			// Визначення статі
@@ -286,12 +392,14 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 6) {
 			// Визначення гілки
 			let side = "center";
 			if (sosa > 1) {
-				const count = 1 << gen;
-				const idx = sosa - count;
-				side = idx < count / 2 ? "paternal" : "maternal";
+				let cur = sosa;
+				while (cur >= 4) {
+					cur = Math.floor(cur / 2);
+				}
+				side = cur === 2 ? "paternal" : "maternal";
 			}
 
-			const angles = calculateSectorAngles(sosa, gen);
+			const angles = calculateSectorAngles(sosa, gen, lineageMode);
 			const quadrant = getQuadrant(sosa);
 			const recordsCount = personId ? recordsMap.get(personId) || 0 : 0;
 
@@ -343,23 +451,26 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 6) {
 
 			sectors.push(sectorData);
 			sosaMap.set(sosa, sectorData);
+			allSectors.push(sectorData);
 		}
 
 		generations.push({
 			generation: gen,
-			count: 1 << gen,
+			count: sosaList.length,
 			knownCount: knownInGen,
-			label: getGenerationRibbonLabel(gen),
+			label: getGenerationRibbonLabel(gen, lineageMode),
 			sectors,
 		});
 	}
 
 	return {
 		rootPersonId: rootIdStr,
+		lineageMode,
 		maxGenerations,
 		deepestGeneration,
 		totalKnown,
 		generations,
+		sectors: allSectors,
 		sosaMap,
 		personIdToSosa,
 	};
