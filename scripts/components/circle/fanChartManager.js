@@ -1,6 +1,6 @@
 // ./scripts/components/circle/fanChartManager.js
 
-import { buildPedigreeData } from "./pedigreeCalculator.js";
+import { buildPedigreeData, getGenerationRibbonLabel } from "./pedigreeCalculator.js";
 import { renderFanChartSVG, FAN_CONFIG } from "./fanChartRenderer.js";
 import { escapeHtml } from "../../utils/helpers.js";
 
@@ -17,15 +17,17 @@ export class FanChartManager {
 		this.currentPersonId = null;
 		this.pedigreeData = null;
 
-		this.activeGen = "all";
+		// Множина активних поколінь (підтримка комбінації з декількох рівнів)
+		this.activeGens = new Set(["all"]);
 		this.selectedSosa = null;
 
-		// Kinematic transform state
+		// Векторний трансформ SVG <g id="fan-viewport">
 		this.scale = 1;
 		this.translateX = 0;
 		this.translateY = 0;
-		this.minScale = 0.35;
-		this.maxScale = 3.5;
+		this.minScale = 0.2;
+		this.maxScale = 4.0;
+		this.step = 0.25;
 
 		// Drag tracking
 		this.isDragging = false;
@@ -38,6 +40,8 @@ export class FanChartManager {
 		// Touch pinch tracking
 		this.initialPinchDistance = null;
 		this.initialPinchScale = 1;
+		this.pinchCenterX = 0;
+		this.pinchCenterY = 0;
 
 		this._handleWheel = this._handleWheel.bind(this);
 		this._handlePointerDown = this._handlePointerDown.bind(this);
@@ -56,17 +60,15 @@ export class FanChartManager {
 			<!-- Верхня стрічка фільтрації поколінь -->
 			<nav class="fan-generation-nav" id="fan-generation-nav" aria-label="Фільтр поколінь"></nav>
 
-			<!-- Полотно для зуму та драгу -->
-			<div class="fan-chart-canvas" id="fan-chart-canvas">
-				<div class="fan-chart-transform-layer" id="fan-transform-layer"></div>
-			</div>
+			<!-- Полотно для SVG -->
+			<div class="fan-chart-canvas" id="fan-chart-canvas"></div>
 
-			<!-- Плаваюча панель масштабування -->
+			<!-- Плаваюча панель масштабування (ідентична до дерева) -->
 			<div class="fan-zoom-controls">
 				<button class="fan-zoom-btn" id="fan-btn-zoom-in" title="Збільшити" aria-label="Збільшити масштаб">
 					<i class="ri-add-line"></i>
 				</button>
-				<button class="fan-zoom-btn" id="fan-btn-fit" title="Вмістити" aria-label="Вмістити коло по центру">
+				<button class="fan-zoom-btn" id="fan-btn-fit" title="Скинути" aria-label="Вмістити коло по центру">
 					<i class="ri-fullscreen-line"></i>
 				</button>
 				<button class="fan-zoom-btn" id="fan-btn-zoom-out" title="Зменшити" aria-label="Зменшити масштаб">
@@ -80,17 +82,16 @@ export class FanChartManager {
 		`;
 
 		this.canvas = this.container.querySelector("#fan-chart-canvas");
-		this.layer = this.container.querySelector("#fan-transform-layer");
 		this.nav = this.container.querySelector("#fan-generation-nav");
 		this.flyout = this.container.querySelector("#fan-flyout-card");
 		this.zoomLevelDisplay = this.container.querySelector("#fan-zoom-level");
 
-		// Обробники зуму
-		this.container.querySelector("#fan-btn-zoom-in")?.addEventListener("click", () => this.zoom(1.2));
-		this.container.querySelector("#fan-btn-zoom-out")?.addEventListener("click", () => this.zoom(0.83));
+		// Обробники зуму через кнопки
+		this.container.querySelector("#fan-btn-zoom-in")?.addEventListener("click", () => this.zoomByButton(1));
+		this.container.querySelector("#fan-btn-zoom-out")?.addEventListener("click", () => this.zoomByButton(-1));
 		this.container.querySelector("#fan-btn-fit")?.addEventListener("click", () => this.fitToScreen());
 
-		// Кінематика полотна
+		// Кінематика полотна (ідентична до режиму дерева)
 		this.canvas.addEventListener("wheel", this._handleWheel, { passive: false });
 		this.canvas.addEventListener("pointerdown", this._handlePointerDown);
 		window.addEventListener("pointermove", this._handlePointerMove);
@@ -99,8 +100,8 @@ export class FanChartManager {
 		window.addEventListener("resize", this._handleResize);
 
 		// Делегування подій на сектори
-		this.layer.addEventListener("click", this._handleSectorClick);
-		this.layer.addEventListener("pointerover", this._handleSectorHover);
+		this.canvas.addEventListener("click", this._handleSectorClick);
+		this.canvas.addEventListener("pointerover", this._handleSectorHover);
 	}
 
 	/**
@@ -118,22 +119,24 @@ export class FanChartManager {
 		this._renderNavPills();
 		this.hideFlyout();
 
-		// Центруємо та оптимізуємо масштаб під екран
+		// Точне центрування кола на екрані
 		requestAnimationFrame(() => {
 			this.fitToScreen();
 		});
 	}
 
 	_renderRings() {
-		if (!this.layer || !this.pedigreeData) return;
-		this.layer.innerHTML = "";
+		if (!this.canvas || !this.pedigreeData) return;
+		this.canvas.innerHTML = "";
 
 		const svg = renderFanChartSVG(this.pedigreeData, {
-			activeGen: this.activeGen,
+			activeGens: this.activeGens,
 			selectedSosa: this.selectedSosa,
 		});
 
-		this.layer.appendChild(svg);
+		this.canvas.appendChild(svg);
+		this.svgElement = svg;
+		this.viewportGroup = svg.querySelector("#fan-viewport");
 	}
 
 	/**
@@ -142,77 +145,102 @@ export class FanChartManager {
 	_renderNavPills() {
 		if (!this.nav || !this.pedigreeData) return;
 
-		const labels = [
-			"Ви",
-			"Батьки",
-			"Дідусі",
-			"Прадідусі",
-			"Пра²дідусі",
-			"Пра³дідусі",
-			"Пра⁴дідусі",
-			"Пра⁵дідусі",
-		];
-
 		const generations = this.pedigreeData.generations || [];
-		const maxGen = Math.min(generations.length, labels.length);
+		const isAllActive = this.activeGens.has("all");
 
 		let html = `
-			<button class="fan-nav-pill ${this.activeGen === "all" ? "active" : ""}" data-gen="all">
+			<button class="fan-nav-pill ${isAllActive ? "active" : ""}" data-gen="all">
 				Усі <span class="fan-nav-pill-badge">${this.pedigreeData.totalKnown}</span>
 			</button>
 		`;
 
-		for (let g = 0; g < maxGen; g++) {
+		for (let g = 0; g < generations.length; g++) {
 			const genData = generations[g];
 			if (!genData || (g > 3 && genData.knownCount === 0)) continue;
 
-			const isActive = String(this.activeGen) === String(g);
+			const isGenActive = !isAllActive && (this.activeGens.has(String(g)) || this.activeGens.has(g));
+			const label = getGenerationRibbonLabel(g);
+
 			html += `
-				<button class="fan-nav-pill ${isActive ? "active" : ""}" data-gen="${g}">
-					${labels[g]} <span class="fan-nav-pill-badge">${genData.knownCount}</span>
+				<button class="fan-nav-pill ${isGenActive ? "active" : ""}" data-gen="${g}">
+					${label} <span class="fan-nav-pill-badge">${genData.knownCount}</span>
 				</button>
 			`;
 		}
 
 		this.nav.innerHTML = html;
 
-		// Обробник вибору покоління
+		// Обробник вибору покоління (підтримка комбінації з декількох рівнів)
 		this.nav.querySelectorAll(".fan-nav-pill").forEach((btn) => {
 			btn.addEventListener("click", (e) => {
 				const gen = btn.getAttribute("data-gen");
-				this.filterGeneration(gen);
+				this.toggleGenerationLevel(gen);
 			});
 		});
 	}
 
 	/**
-	 * Фільтрує або підсвічує обране покоління
+	 * Перемикає покоління або додає/прибирає його з комбінації
+	 * @param {string} gen 
 	 */
-	filterGeneration(gen) {
-		this.activeGen = gen;
-		this._renderNavPills();
+	toggleGenerationLevel(gen) {
+		const generations = this.pedigreeData?.generations || [];
+		const validGens = generations.filter((g, idx) => idx <= 3 || g.knownCount > 0).map(g => String(g.generation));
 
-		const svgRoot = this.layer?.querySelector("#fan-chart-svg-root");
+		if (gen === "all") {
+			this.activeGens.clear();
+			this.activeGens.add("all");
+		} else {
+			if (this.activeGens.has("all")) {
+				// Якщо було обрано "Усі", перехід на конкретний рівень
+				this.activeGens.clear();
+				this.activeGens.add(gen);
+			} else {
+				// Додавання або вилучення з комбінації
+				if (this.activeGens.has(gen)) {
+					this.activeGens.delete(gen);
+					// Якщо нічого не обрано — повертаємося до "Усі"
+					if (this.activeGens.size === 0) {
+						this.activeGens.add("all");
+					}
+				} else {
+					this.activeGens.add(gen);
+					// Якщо обрано всі можливі рівні — активуємо "Усі"
+					const allSelected = validGens.every(g => this.activeGens.has(g));
+					if (allSelected) {
+						this.activeGens.clear();
+						this.activeGens.add("all");
+					}
+				}
+			}
+		}
+
+		this._updateGenerationVisibility();
+		this._renderNavPills();
+	}
+
+	_updateGenerationVisibility() {
+		const svgRoot = this.svgElement || this.container.querySelector("#fan-chart-svg-root");
 		if (!svgRoot) return;
 
 		const genGroups = svgRoot.querySelectorAll(".fan-generation-group");
 		const probandGroup = svgRoot.querySelector(".fan-proband-group");
+		const isAllActive = this.activeGens.has("all");
 
-		if (gen === "all") {
+		if (isAllActive) {
 			genGroups.forEach((g) => g.classList.remove("fan-gen--dimmed"));
 			probandGroup?.classList.remove("fan-gen--dimmed");
 		} else {
-			const targetGen = Number(gen);
 			genGroups.forEach((g) => {
-				const gNum = Number(g.getAttribute("data-generation"));
-				if (gNum === targetGen) {
+				const gNum = g.getAttribute("data-generation");
+				if (this.activeGens.has(gNum)) {
 					g.classList.remove("fan-gen--dimmed");
 				} else {
 					g.classList.add("fan-gen--dimmed");
 				}
 			});
 
-			if (targetGen === 0) {
+			if (this.activeGens.has("0") || this.activeGens.has(0)) {
 				probandGroup?.classList.remove("fan-gen--dimmed");
 			} else {
 				probandGroup?.classList.add("fan-gen--dimmed");
@@ -221,7 +249,7 @@ export class FanChartManager {
 	}
 
 	/**
-	 * Вміщує коло по центру екрана зі збереженням пропорцій
+	 * Точне центрування кола роду по центру екрана зі збереженням пропорцій
 	 */
 	fitToScreen() {
 		if (!this.container) return;
@@ -229,62 +257,104 @@ export class FanChartManager {
 		const w = rect.width;
 		const h = rect.height;
 
-		const size = FAN_CONFIG.viewBoxSize; // 1000
+		const chartDiameter = 920; // 460px радіус * 2
 		const pad = 80;
 		const targetW = Math.max(w - pad, 280);
 		const targetH = Math.max(h - pad - 60, 280);
 
-		const scale = Math.min(targetW / size, targetH / size, 1.25);
+		const scale = Math.min(targetW / chartDiameter, targetH / chartDiameter, 1.2);
 		this.scale = Math.max(this.minScale, Math.min(scale, this.maxScale));
 
-		this.translateX = (w - size * this.scale) / 2;
-		this.translateY = (h - size * this.scale) / 2 + 20;
+		// Центр кола (500, 500) розміщується точно по центру вікна
+		this.translateX = w / 2 - 500 * this.scale;
+		this.translateY = (h + 40) / 2 - 500 * this.scale; // Невеликий зсув вниз через верхню панель
 
 		this._applyTransform();
 	}
 
-	zoom(factor) {
+	/**
+	 * Зум через кнопки панелі керування (по центру екрана)
+	 */
+	zoomByButton(direction) {
+		const rect = this.container.getBoundingClientRect();
+		const cx = rect.width / 2;
+		const cy = (rect.height + 40) / 2;
+		const factor = direction > 0 ? 1 + this.step : 1 / (1 + this.step);
+		this.zoomAtPoint(factor, cx, cy);
+	}
+
+	/**
+	 * Зум у точці з координатами (mouseX, mouseY)
+	 */
+	zoomAtPoint(factor, mouseX, mouseY) {
 		const newScale = Math.max(this.minScale, Math.min(this.scale * factor, this.maxScale));
 		if (newScale === this.scale) return;
 
-		const rect = this.container.getBoundingClientRect();
-		const cx = rect.width / 2;
-		const cy = rect.height / 2;
+		// Світові координати точки під курсором до зуму
+		const worldX = (mouseX - this.translateX) / this.scale;
+		const worldY = (mouseY - this.translateY) / this.scale;
 
-		this.translateX = cx - (cx - this.translateX) * (newScale / this.scale);
-		this.translateY = cy - (cy - this.translateY) * (newScale / this.scale);
 		this.scale = newScale;
+		this.translateX = mouseX - worldX * this.scale;
+		this.translateY = mouseY - worldY * this.scale;
 
+		this._applyTransform();
+	}
+
+	/**
+	 * Панорамування полотна
+	 */
+	pan(dx, dy) {
+		this.translateX += dx;
+		this.translateY += dy;
 		this._applyTransform();
 	}
 
 	_applyTransform() {
-		if (!this.layer) return;
-		this.layer.style.transform = `translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+		if (!this.viewportGroup) {
+			this.viewportGroup = this.container.querySelector("#fan-viewport");
+		}
+		if (this.viewportGroup) {
+			// Векторний трансформ SVG групи — усуває розмиття пікселів при будь-якому масштабі!
+			this.viewportGroup.setAttribute(
+				"transform",
+				`translate(${this.translateX.toFixed(2)}, ${this.translateY.toFixed(2)}) scale(${this.scale.toFixed(4)})`
+			);
+		}
 		if (this.zoomLevelDisplay) {
 			this.zoomLevelDisplay.textContent = `${Math.round(this.scale * 100)}%`;
 		}
 	}
 
+	/**
+	 * Поведінка скролу як у режимі дерева:
+	 * Якщо затиснуто Ctrl/Meta — плавний зум до курсора.
+	 * Інакше — плавне панорамування полотна.
+	 */
 	_handleWheel(e) {
 		e.preventDefault();
-		const zoomDelta = e.deltaY < 0 ? 1.12 : 0.89;
-		const newScale = Math.max(this.minScale, Math.min(this.scale * zoomDelta, this.maxScale));
-		if (newScale === this.scale) return;
+		e.stopPropagation();
 
 		const rect = this.container.getBoundingClientRect();
 		const mouseX = e.clientX - rect.left;
 		const mouseY = e.clientY - rect.top;
 
-		this.translateX = mouseX - (mouseX - this.translateX) * (newScale / this.scale);
-		this.translateY = mouseY - (mouseY - this.translateY) * (newScale / this.scale);
-		this.scale = newScale;
-
-		this._applyTransform();
+		if (e.ctrlKey || e.metaKey) {
+			// Ctrl + Wheel: Плавний зум до точки курсора
+			const isTouchpad = Math.abs(e.deltaY) < 50;
+			const dynamicStep = isTouchpad ? 0.05 : 0.15;
+			const factor = e.deltaY < 0 ? 1 + dynamicStep : 1 - dynamicStep;
+			this.zoomAtPoint(factor, mouseX, mouseY);
+		} else {
+			// Звичайний скрол: панорамування
+			this.pan(-e.deltaX, -e.deltaY);
+		}
 	}
 
 	_handlePointerDown(e) {
 		if (e.button !== 0 && e.pointerType === "mouse") return;
+		if (e.target.closest("button, a, .fan-nav-pill, .fan-zoom-btn")) return;
+
 		this.isDragging = true;
 		this.hasMoved = false;
 		this.startX = e.clientX;
@@ -335,7 +405,7 @@ export class FanChartManager {
 	}
 
 	_handleSectorClick(e) {
-		if (this.hasMoved) return; // Ігноруємо клік після драгу
+		if (this.hasMoved) return; // Ігноруємо клік після перетягування
 
 		const target = e.target.closest(".fan-sector, .fan-proband-group");
 		if (!target) {
@@ -356,21 +426,22 @@ export class FanChartManager {
 	}
 
 	_highlightSelectedSector(sosa) {
-		const prev = this.layer?.querySelectorAll(".fan-sector--selected");
+		const prev = this.canvas?.querySelectorAll(".fan-sector--selected");
 		prev?.forEach((el) => el.classList.remove("fan-sector--selected"));
 
-		const current = this.layer?.querySelector(`[data-sosa="${sosa}"]`);
+		const current = this.canvas?.querySelector(`[data-sosa="${sosa}"]`);
 		current?.classList.add("fan-sector--selected");
 	}
 
 	/**
-	 * Відображає плаваючу картку предка
+	 * Відображає плаваючу картку предка з бейджем статусу як у профілі
 	 */
 	showFlyout(sectorData, clientX, clientY, isPinned = false) {
 		if (!this.flyout || !sectorData || !sectorData.person) return;
 		const p = sectorData.person;
 		const sosa = sectorData.sosa;
 		const isMaternal = sectorData.side === "maternal";
+		const isConfirmed = sectorData.isConfirmed;
 
 		const fullName = [p.name || p.first_name, p.surname || p.last_name].filter(Boolean).join(" ");
 		const avatarUrl = p.photo || p.avatar;
@@ -381,6 +452,14 @@ export class FanChartManager {
 		const avatarHtml = (avatarUrl && !avatarUrl.includes("placeholder"))
 			? `<img src="${avatarUrl}" class="fan-flyout-avatar" alt="${escapeHtml(fullName)}" />`
 			: `<span class="fan-flyout-avatar-initials">${(fullName.charAt(0) || "Я").toUpperCase()}</span>`;
+
+		// Бейдж статусу підтвердження як у профілі
+		const statusBadgeHtml = `
+			<div class="profile-status-pill ${isConfirmed ? "status-badge--confirmed" : "status-badge--hypothetical"}">
+				<i class="${isConfirmed ? "ri-shield-check-line" : "ri-question-line"} status-icon" style="margin-right: 5px; font-size: 13px;"></i>
+				<span class="status-text">${isConfirmed ? "Підтверджений зв'язок" : "Гіпотетичний зв'язок"}</span>
+			</div>
+		`;
 
 		const recordsHtml = sectorData.hasRecords
 			? `<div class="fan-flyout-badge-records"><i class="ri-file-text-line"></i> Документів: ${sectorData.recordsCount}</div>`
@@ -407,6 +486,9 @@ export class FanChartManager {
 					<h4 class="fan-flyout-name" title="${escapeHtml(fullName)}">${escapeHtml(fullName)}</h4>
 					${dates ? `<div class="fan-flyout-meta">${escapeHtml(dates)}</div>` : ""}
 				</div>
+			</div>
+			<div class="fan-flyout-status-container">
+				${statusBadgeHtml}
 			</div>
 			<div class="fan-flyout-body">
 				${placeHtml}
@@ -443,7 +525,7 @@ export class FanChartManager {
 		// Позиціонування на десктопі
 		if (window.matchMedia("(min-width: 768px)").matches) {
 			const flyoutW = 290;
-			const flyoutH = this.flyout.offsetHeight || 190;
+			const flyoutH = this.flyout.offsetHeight || 210;
 			let posX = clientX + 16;
 			let posY = clientY - 40;
 

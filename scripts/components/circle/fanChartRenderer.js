@@ -16,10 +16,10 @@ export const FAN_CONFIG = {
 		{ in: 85, out: 145 },   // Gen 1 (Батьки: ширина 60)
 		{ in: 145, out: 205 },  // Gen 2 (Дідусі: ширина 60)
 		{ in: 205, out: 265 },  // Gen 3 (Прадідусі: ширина 60)
-		{ in: 265, out: 320 },  // Gen 4 (Пра²дідусі: ширина 55)
-		{ in: 320, out: 370 },  // Gen 5 (Пра³дідусі: ширина 50)
-		{ in: 370, out: 415 },  // Gen 6 (Пра⁴дідусі: ширина 45)
-		{ in: 415, out: 455 },  // Gen 7 (Пра⁵дідусі: ширина 40)
+		{ in: 265, out: 320 },  // Gen 4 (Пра(2)дідусі: ширина 55)
+		{ in: 320, out: 370 },  // Gen 5 (Пра(3)дідусі: ширина 50)
+		{ in: 370, out: 415 },  // Gen 6 (Пра(4)дідусі: ширина 45)
+		{ in: 415, out: 455 },  // Gen 7 (Пра(5)дідусі: ширина 40)
 	],
 };
 
@@ -35,7 +35,6 @@ function toRad(deg) {
  */
 export function buildAnnularPath(cx, cy, rIn, rOut, startAngle, endAngle) {
 	const span = Math.abs(endAngle - startAngle);
-	// Запобігаємо зливанню точок при рівно 180° чи 360°
 	const safeEnd = span >= 180 ? startAngle + Math.min(span, 179.999) : endAngle;
 
 	const aRad = toRad(startAngle);
@@ -67,7 +66,6 @@ export function buildTextArcPath(cx, cy, r, startAngle, endAngle) {
 	// Нижня півсфера: від 20° до 160°
 	const isBottom = normMid > 20 && normMid < 160;
 
-	// Зменшуємо дугу на невеликий відступ, щоб текст не наїжджав на краї
 	const pad = Math.min(Math.abs(endAngle - startAngle) * 0.04, 3);
 	const s = startAngle + pad;
 	const e = endAngle - pad;
@@ -91,21 +89,23 @@ export function buildTextArcPath(cx, cy, r, startAngle, endAngle) {
 
 /**
  * Головний рендерер SVG
+ * Повертає повнорозмірний SVG із внутрішнім контейнером <g id="fan-viewport">
  * @param {object} pedigreeData - результат buildPedigreeData
  * @param {object} options
  * @returns {SVGElement}
  */
 export function renderFanChartSVG(pedigreeData, options = {}) {
-	const { activeGen = null, selectedSosa = null } = options;
-	const { cx, cy, viewBoxSize, ringRadii } = FAN_CONFIG;
+	const { activeGens = null, selectedSosa = null } = options;
+	const { cx, cy, ringRadii } = FAN_CONFIG;
 
 	const svgNS = "http://www.w3.org/2000/svg";
 	const svg = document.createElementNS(svgNS, "svg");
-	svg.setAttribute("viewBox", `0 0 ${viewBoxSize} ${viewBoxSize}`);
+	svg.setAttribute("width", "100%");
+	svg.setAttribute("height", "100%");
 	svg.setAttribute("class", "fan-chart-svg");
 	svg.setAttribute("id", "fan-chart-svg-root");
 
-	// <defs> для шляхів тексту та обрізки фото
+	// <defs> для шляхів тексту, обрізки аватара та секторів
 	const defs = document.createElementNS(svgNS, "defs");
 
 	// ClipPath для аватара пробанда
@@ -120,11 +120,19 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 
 	svg.appendChild(defs);
 
+	// Головний векторний шар масштабування та панорамування
+	const viewportGroup = document.createElementNS(svgNS, "g");
+	viewportGroup.setAttribute("id", "fan-viewport");
+	viewportGroup.setAttribute("class", "fan-viewport");
+
 	// Група кілець предків (покоління 1..max)
 	const ringsGroup = document.createElementNS(svgNS, "g");
 	ringsGroup.setAttribute("class", "fan-rings-group");
 
 	const generations = pedigreeData.generations || [];
+
+	// Чи всі покоління активні?
+	const isAllActive = !activeGens || activeGens.has("all") || activeGens.size === 0;
 
 	// Рендеримо кільця від 1 до N
 	for (let gIdx = 1; gIdx < generations.length; gIdx++) {
@@ -136,7 +144,7 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 		genGroup.setAttribute("class", `fan-generation-group fan-gen-${gen}`);
 		genGroup.setAttribute("data-generation", String(gen));
 
-		if (activeGen !== null && activeGen !== "all" && Number(activeGen) !== gen) {
+		if (!isAllActive && !activeGens.has(String(gen)) && !activeGens.has(gen)) {
 			genGroup.classList.add("fan-gen--dimmed");
 		}
 
@@ -149,14 +157,17 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 		ringsGroup.appendChild(genGroup);
 	}
 
-	svg.appendChild(ringsGroup);
+	viewportGroup.appendChild(ringsGroup);
 
 	// Центральне коло пробанда (покоління 0)
 	const probandData = generations[0]?.sectors[0];
 	if (probandData) {
-		const probandGroup = createProbandElement(probandData, ringRadii[0], cx, cy, svgNS, activeGen);
-		svg.appendChild(probandGroup);
+		const isProbandDimmed = !isAllActive && !activeGens.has("0") && !activeGens.has(0);
+		const probandGroup = createProbandElement(probandData, ringRadii[0], cx, cy, svgNS, isProbandDimmed);
+		viewportGroup.appendChild(probandGroup);
 	}
+
+	svg.appendChild(viewportGroup);
 
 	return svg;
 }
@@ -165,7 +176,7 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
  * Створює елемент сектора предка
  */
 function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
-	const { sosa, generation, side, quadrant, isKnown, person, angles, hasRecords } = sector;
+	const { sosa, generation, side, quadrant, isKnown, isConfirmed, person, angles, hasRecords } = sector;
 	const g = document.createElementNS(svgNS, "g");
 
 	const isSelected = selectedSosa === sosa;
@@ -175,6 +186,7 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 		`fan-sector--${side}`,
 		`fan-sector--q${quadrant}`,
 		isKnown ? "fan-sector--known" : "fan-sector--unknown",
+		isKnown && isConfirmed ? "fan-sector--confirmed" : (isKnown ? "fan-sector--hypothetical" : ""),
 		isSelected ? "fan-sector--selected" : "",
 	].filter(Boolean).join(" ");
 
@@ -183,25 +195,44 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 	g.setAttribute("data-generation", String(generation));
 	if (sector.personId) g.setAttribute("data-person-id", String(sector.personId));
 
+	const pathD = buildAnnularPath(cx, cy, rInfo.in, rInfo.out, angles.start, angles.end);
+
 	// 1. SVG Path дуги
 	const path = document.createElementNS(svgNS, "path");
-	path.setAttribute("d", buildAnnularPath(cx, cy, rInfo.in, rInfo.out, angles.start, angles.end));
+	path.setAttribute("d", pathD);
 	path.setAttribute("class", "fan-sector-shape");
 	g.appendChild(path);
 
-	// 2. Якщо предок невідомий — просто повертаємо форму з контуром
+	// 2. Якщо предок невідомий — форма з пунктирним контуром
 	if (!isKnown) {
 		return g;
 	}
 
-	// 3. Текст: для поколінь 1..3 використовуємо дуговий <textPath>, для 4+ радіальний поворот
-	const name = person?.name || person?.first_name || "";
-	const surname = person?.surname || person?.last_name || "";
-	const dates = person?.dates || person?.lifespan || "";
+	// Створюємо clipPath для сектора, щоб текст гарантовано ніколи не вилазив за межі
+	const clipId = `fan-clip-sosa-${sosa}`;
+	const clip = document.createElementNS(svgNS, "clipPath");
+	clip.setAttribute("id", clipId);
+	const clipPathElem = document.createElementNS(svgNS, "path");
+	clipPathElem.setAttribute("d", pathD);
+	clip.appendChild(clipPathElem);
+	defs.appendChild(clip);
+
+	// Група тексту з прив'язкою до clipPath
+	const textGroup = document.createElementNS(svgNS, "g");
+	textGroup.setAttribute("clip-path", `url(#${clipId})`);
+	textGroup.setAttribute("class", "fan-sector-content");
+
+	// 3. Текст: повне ім'я та прізвище (без скорочення до ініціалів!)
+	const name = (person?.name || person?.first_name || "").trim();
+	const surname = (person?.surname || person?.last_name || "").trim();
+	const dates = (person?.dates || person?.lifespan || "").trim();
+
+	const rMid = (rInfo.in + rInfo.out) / 2;
+	const radialDepth = rInfo.out - rInfo.in;
+	const maxRadialLength = Math.max(radialDepth - 10, 20);
 
 	if (generation <= 3) {
-		// Текстовий дуговий шлях
-		const rMid = (rInfo.in + rInfo.out) / 2;
+		// Покоління 1..3: дуговий текст через <textPath>
 		const pathId = `fan-text-path-${sosa}`;
 		const textArcPath = document.createElementNS(svgNS, "path");
 		textArcPath.setAttribute("id", pathId);
@@ -217,56 +248,107 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 		textPath.setAttribute("startOffset", "50%");
 		textPath.setAttribute("text-anchor", "middle");
 
-		// Форматування тексту
-		let label = "";
-		if (generation === 1) {
-			label = `${name} ${surname}`;
-			if (dates) label += ` • ${dates}`;
-		} else if (generation === 2) {
-			label = `${surname} ${name}`;
-			if (dates) label += ` (${dates})`;
+		let fullLabel = "";
+		if (surname && name) {
+			fullLabel = `${surname} ${name}`;
 		} else {
-			// Gen 3
-			label = surname ? `${surname} ${name.charAt(0)}.` : name;
+			fullLabel = surname || name;
 		}
 
-		textPath.textContent = label;
+		if (generation <= 2 && dates) {
+			fullLabel += ` (${dates})`;
+		}
+
+		textPath.textContent = fullLabel;
 		text.appendChild(textPath);
-		g.appendChild(text);
-	} else {
-		// Покоління 4..7: радіальний розворот тексту
+		textGroup.appendChild(text);
+	} else if (generation <= 5) {
+		// Покоління 4..5: радіальне розміщення у два рядки (Прізвище + Ім'я)
 		const midAngle = angles.mid;
 		const normAngle = ((midAngle % 360) + 360) % 360;
 		const isLeft = normAngle > 90 && normAngle < 270;
-
 		const textRot = isLeft ? normAngle + 180 : normAngle;
-		const rPos = isLeft ? rInfo.out - 6 : rInfo.in + 6;
-		const textAnchor = isLeft ? "end" : "start";
 
 		const rad = toRad(midAngle);
-		const tx = cx + rPos * Math.cos(rad);
-		const ty = cy + rPos * Math.sin(rad);
+		const tx = cx + rMid * Math.cos(rad);
+		const ty = cy + rMid * Math.sin(rad);
 
 		const text = document.createElementNS(svgNS, "text");
 		text.setAttribute("class", `fan-sector-text fan-sector-text--radial fan-text-gen-${generation}`);
 		text.setAttribute("x", String(tx.toFixed(1)));
 		text.setAttribute("y", String(ty.toFixed(1)));
-		text.setAttribute("text-anchor", textAnchor);
+		text.setAttribute("text-anchor", "middle");
 		text.setAttribute("dominant-baseline", "central");
 		text.setAttribute("transform", `rotate(${textRot.toFixed(1)}, ${tx.toFixed(1)}, ${ty.toFixed(1)})`);
 
-		// Лаконічне ім'я
-		let displayName = surname || name;
-		if (surname && name && generation <= 5) {
-			displayName = `${surname} ${name.charAt(0)}.`;
+		if (surname && name) {
+			const tspanSurname = document.createElementNS(svgNS, "tspan");
+			tspanSurname.setAttribute("x", String(tx.toFixed(1)));
+			tspanSurname.setAttribute("dy", "-0.45em");
+			tspanSurname.setAttribute("font-weight", "700");
+			tspanSurname.textContent = surname;
+			if (surname.length > 9) {
+				tspanSurname.setAttribute("textLength", String(maxRadialLength));
+				tspanSurname.setAttribute("lengthAdjust", "spacingAndGlyphs");
+			}
+
+			const tspanName = document.createElementNS(svgNS, "tspan");
+			tspanName.setAttribute("x", String(tx.toFixed(1)));
+			tspanName.setAttribute("dy", "1.1em");
+			tspanName.setAttribute("font-weight", "500");
+			tspanName.textContent = name;
+			if (name.length > 9) {
+				tspanName.setAttribute("textLength", String(maxRadialLength));
+				tspanName.setAttribute("lengthAdjust", "spacingAndGlyphs");
+			}
+
+			text.appendChild(tspanSurname);
+			text.appendChild(tspanName);
+		} else {
+			const singleText = surname || name;
+			text.textContent = singleText;
+			if (singleText.length > 9) {
+				text.setAttribute("textLength", String(maxRadialLength));
+				text.setAttribute("lengthAdjust", "spacingAndGlyphs");
+			}
 		}
 
+		textGroup.appendChild(text);
+	} else {
+		// Покоління 6..7: компактне радіальне розміщення з автоматичним масштабуванням glyphs
+		const midAngle = angles.mid;
+		const normAngle = ((midAngle % 360) + 360) % 360;
+		const isLeft = normAngle > 90 && normAngle < 270;
+		const textRot = isLeft ? normAngle + 180 : normAngle;
+
+		const rad = toRad(midAngle);
+		const tx = cx + rMid * Math.cos(rad);
+		const ty = cy + rMid * Math.sin(rad);
+
+		const text = document.createElementNS(svgNS, "text");
+		text.setAttribute("class", `fan-sector-text fan-sector-text--radial fan-text-gen-${generation}`);
+		text.setAttribute("x", String(tx.toFixed(1)));
+		text.setAttribute("y", String(ty.toFixed(1)));
+		text.setAttribute("text-anchor", "middle");
+		text.setAttribute("dominant-baseline", "central");
+		text.setAttribute("transform", `rotate(${textRot.toFixed(1)}, ${tx.toFixed(1)}, ${ty.toFixed(1)})`);
+
+		const displayName = surname || name;
 		text.textContent = displayName;
-		g.appendChild(text);
+
+		// Щоб довгі прізвища ніколи не вилазили за межі кільця
+		if (displayName.length > 7) {
+			text.setAttribute("textLength", String(maxRadialLength));
+			text.setAttribute("lengthAdjust", "spacingAndGlyphs");
+		}
+
+		textGroup.appendChild(text);
 	}
 
-	// 4. Маркер наявності документів/нагород (делікатна крапка на зовнішній кромці)
-	if (hasRecords) {
+	g.appendChild(textGroup);
+
+	// 4. Маркер наявності документів/нагород або статусу підтвердження
+	if (hasRecords || isConfirmed) {
 		const rad = toRad(angles.mid);
 		const dotR = rInfo.out - 4;
 		const dotX = cx + dotR * Math.cos(rad);
@@ -276,8 +358,8 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 		dot.setAttribute("cx", String(dotX.toFixed(1)));
 		dot.setAttribute("cy", String(dotY.toFixed(1)));
 		dot.setAttribute("r", generation >= 5 ? "2" : "2.8");
-		dot.setAttribute("class", "fan-sector-record-dot");
-		dot.setAttribute("title", "Є архівні записи");
+		dot.setAttribute("class", hasRecords ? "fan-sector-record-dot" : "fan-sector-verified-dot");
+		dot.setAttribute("title", hasRecords ? "Є архівні записи" : "Підтверджений зв'язок");
 		g.appendChild(dot);
 	}
 
@@ -287,14 +369,14 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 /**
  * Створює центральний елемент пробанда (Покоління 0)
  */
-function createProbandElement(probandData, rInfo, cx, cy, svgNS, activeGen) {
-	const { person, gender, hasRecords } = probandData;
+function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
+	const { person, gender, isConfirmed } = probandData;
 	const g = document.createElementNS(svgNS, "g");
 	g.setAttribute("class", "fan-proband-group");
 	g.setAttribute("data-sosa", "1");
 	if (probandData.personId) g.setAttribute("data-person-id", String(probandData.personId));
 
-	if (activeGen !== null && activeGen !== "all" && Number(activeGen) !== 0) {
+	if (isDimmed) {
 		g.classList.add("fan-gen--dimmed");
 	}
 
@@ -319,7 +401,6 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, activeGen) {
 		img.setAttribute("preserveAspectRatio", "xMidYMid slice");
 		g.appendChild(img);
 	} else {
-		// Іконка/ініціали
 		const initCircle = document.createElementNS(svgNS, "circle");
 		initCircle.setAttribute("cx", String(cx));
 		initCircle.setAttribute("cy", String(cy - 22));
@@ -369,7 +450,7 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, activeGen) {
 		g.appendChild(datesText);
 	}
 
-	// Бейдж спорідненості "Ви"
+	// Бейдж спорідненості "Ви (Пробанд)"
 	const badgeText = document.createElementNS(svgNS, "text");
 	badgeText.setAttribute("x", String(cx));
 	badgeText.setAttribute("y", String(cy + 54));

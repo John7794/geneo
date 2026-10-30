@@ -40,9 +40,7 @@
 	left: 0;
 	cursor: grab;
 	touch-action: none;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	overflow: hidden;
 }
 
 .fan-chart-canvas:active,
@@ -50,20 +48,17 @@
 	cursor: grabbing;
 }
 
-.fan-chart-transform-layer {
-	transform-origin: 500px 500px;
-	width: 1000px;
-	height: 1000px;
-	position: absolute;
-	will-change: transform;
-	pointer-events: none;
+/* Векторний SVG займає все полотно, векторні координати масштабуються без розмиття */
+.fan-chart-svg {
+	width: 100%;
+	height: 100%;
+	display: block;
+	overflow: visible;
 }
 
-.fan-chart-svg {
-	width: 1000px;
-	height: 1000px;
-	overflow: visible;
-	pointer-events: auto;
+.fan-viewport {
+	transform-origin: 0 0;
+	will-change: transform;
 }
 
 /* ==========================================================================
@@ -71,7 +66,7 @@
    ========================================================================== */
 .fan-generation-nav {
 	position: fixed;
-	top: 72px; /* Під панеллю хлібних крихт / верхньою плашкою */
+	top: 72px; /* Під панеллю хлібних крихт */
 	left: 50%;
 	transform: translateX(-50%);
 	z-index: 100;
@@ -96,14 +91,14 @@
 .fan-nav-pill {
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: 5px;
 	padding: 6px 12px;
 	font-family: var(--font-family-base);
 	font-size: var(--font-size-xs);
 	font-weight: 600;
 	color: var(--color-text-muted);
 	background: transparent;
-	border: none;
+	border: 1px solid transparent;
 	border-radius: var(--radius-full);
 	cursor: pointer;
 	white-space: nowrap;
@@ -118,6 +113,7 @@
 .fan-nav-pill.active {
 	color: var(--color-text-inverse);
 	background: var(--color-primary);
+	border-color: var(--color-primary);
 	box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
 }
 
@@ -138,7 +134,7 @@
    ========================================================================== */
 .fan-sector {
 	cursor: pointer;
-	transition: filter 0.15s ease, opacity 0.2s ease, transform 0.15s ease;
+	transition: filter 0.15s ease, opacity 0.2s ease;
 }
 
 .fan-sector-shape {
@@ -149,7 +145,6 @@
 }
 
 /* --- Батьківська лінія (Left hemisphere: Індиго / Синій) --- */
-/* Світла тема: від насиченого синього вглиб до легкого індиго */
 .fan-sector--paternal.fan-sector--gen-1 .fan-sector-shape { fill: #2563eb; }
 .fan-sector--paternal.fan-sector--gen-2 .fan-sector-shape { fill: #3b82f6; }
 .fan-sector--paternal.fan-sector--gen-3 .fan-sector-shape { fill: #60a5fa; }
@@ -158,7 +153,7 @@
 .fan-sector--paternal.fan-sector--gen-6 .fan-sector-shape { fill: #dbeafe; }
 .fan-sector--paternal.fan-sector--gen-7 .fan-sector-shape { fill: #eff6ff; }
 
-/* Диференціація гілок дідуся і бабусі по батькові (легкий відтінковий зсув) */
+/* Диференціація гілок дідуся і бабусі по батькові */
 .fan-sector--paternal.fan-sector--q2.fan-sector--gen-2 .fan-sector-shape { fill: #6366f1; }
 .fan-sector--paternal.fan-sector--q2.fan-sector--gen-3 .fan-sector-shape { fill: #818cf8; }
 .fan-sector--paternal.fan-sector--q2.fan-sector--gen-4 .fan-sector-shape { fill: #a5b4fc; }
@@ -182,6 +177,12 @@
 .fan-sector--maternal.fan-sector--q3.fan-sector--gen-5 .fan-sector-shape { fill: #fbcfe8; }
 .fan-sector--maternal.fan-sector--q3.fan-sector--gen-6 .fan-sector-shape { fill: #fdf2f8; }
 .fan-sector--maternal.fan-sector--q3.fan-sector--gen-7 .fan-sector-shape { fill: #fdf4ff; }
+
+/* --- Гіпотетичний зв'язок (пунктирний контур) --- */
+.fan-sector--hypothetical .fan-sector-shape {
+	stroke-dasharray: 4 2.5;
+	stroke-width: 1.8px;
+}
 
 /* --- Невідомий предок --- */
 .fan-sector--unknown {
@@ -269,17 +270,17 @@
 }
 
 .fan-text-gen-4 { font-size: 9.5px; font-weight: 600; }
-.fan-text-gen-5 { font-size: 8.5px; font-weight: 500; }
+.fan-text-gen-5 { font-size: 8.5px; font-weight: 600; }
 .fan-text-gen-6 { font-size: 7.5px; font-weight: 500; }
 .fan-text-gen-7 { font-size: 6.8px; font-weight: 500; }
 
-/* Приховуємо текст на глибоких поколіннях для невідомих секторів */
+/* Приховуємо текст на невідомих секторах */
 .fan-sector--unknown .fan-sector-text {
 	display: none;
 }
 
 /* ==========================================================================
-   6. МАРКЕР НАЯВНОСТІ АРХІВНИХ ДОКУМЕНТІВ (RECORD DOT)
+   6. МАРКЕРИ НАЯВНОСТІ АРХІВНИХ ДОКУМЕНТІВ ТА ПІДТВЕРДЖЕННЯ
    ========================================================================== */
 .fan-sector-record-dot {
 	fill: #f59e0b; /* Золотистий колір документа */
@@ -289,6 +290,17 @@
 }
 
 :root.theme-dark .fan-sector-record-dot {
+	stroke: #1e293b;
+}
+
+.fan-sector-verified-dot {
+	fill: #10b981; /* Зелений колір підтвердженого зв'язку */
+	stroke: #ffffff;
+	stroke-width: 0.8px;
+	pointer-events: none;
+}
+
+:root.theme-dark .fan-sector-verified-dot {
 	stroke: #1e293b;
 }
 
@@ -312,9 +324,9 @@
 	filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.5));
 }
 
-/* Затемнення неактивних кілець при фільтрації */
+/* Затемнення неактивних кілець при комбінованій фільтрації */
 .fan-gen--dimmed {
-	opacity: 0.22;
+	opacity: 0.16;
 	transition: opacity 0.25s ease;
 }
 
@@ -416,7 +428,7 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	margin-bottom: 10px;
+	margin-bottom: 6px;
 }
 
 .fan-flyout-avatar-box {
@@ -480,6 +492,46 @@
 	margin-top: 2px;
 }
 
+.fan-flyout-status-container {
+	margin: 6px 0 10px 0;
+	display: flex;
+	align-items: center;
+}
+
+/* Бейдж статусу зв'язку як у профілі */
+.fan-flyout-card .profile-status-pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px 10px;
+	border-radius: 50px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	white-space: nowrap;
+}
+
+.fan-flyout-card .profile-status-pill.status-badge--confirmed {
+	background-color: var(--c-success-bg, #e6f4ea);
+	color: var(--c-success-text, #137333);
+}
+
+.fan-flyout-card .profile-status-pill.status-badge--hypothetical {
+	background-color: var(--c-warning-bg, #fef7e0);
+	color: var(--c-warning-text, #b06000);
+}
+
+:root.theme-dark .fan-flyout-card .profile-status-pill.status-badge--confirmed {
+	background-color: rgba(129, 201, 149, 0.15);
+	color: #81c995;
+}
+
+:root.theme-dark .fan-flyout-card .profile-status-pill.status-badge--hypothetical {
+	background-color: rgba(253, 214, 99, 0.15);
+	color: #fdd663;
+}
+
 .fan-flyout-close {
 	position: absolute;
 	top: 10px;
@@ -506,7 +558,6 @@
 .fan-flyout-body {
 	border-top: 1px solid var(--color-border-light);
 	padding-top: 8px;
-	margin-top: 4px;
 	display: flex;
 	flex-direction: column;
 	gap: 5px;

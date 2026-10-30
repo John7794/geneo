@@ -3,7 +3,8 @@
 import { findPersonDetails } from "../../utils/personUtils.js";
 
 /**
- * Отримує назву спорідненості за номером Sosa-Stradonitz
+ * Отримує назву спорідненості за номером Sosa-Stradonitz згідно зі схемою проєкту:
+ * пра(n)дід, пра(n)баба, де n — число від 2 до n рівнів.
  * @param {number} sosa 
  * @param {'m'|'f'|'u'} gender 
  * @returns {string}
@@ -23,23 +24,24 @@ export function getKinshipTitle(sosa, gender = "m") {
 	if (gen === 3) {
 		return isMale ? "Прадід" : "Прабаба";
 	}
-	if (gen === 4) {
-		return isMale ? "Пра²дід" : "Пра²баба";
-	}
-	if (gen === 5) {
-		return isMale ? "Пра³дід" : "Пра³баба";
-	}
-	if (gen === 6) {
-		return isMale ? "Пра⁴дід" : "Пра⁴баба";
-	}
-	if (gen === 7) {
-		return isMale ? "Пра⁵дід" : "Пра⁵баба";
-	}
-	if (gen === 8) {
-		return isMale ? "Пра⁶дід" : "Пра⁶баба";
-	}
+	
+	// Починаючи з 4-го покоління (прапрадідусі): n = gen - 2
+	const n = gen - 2;
+	return isMale ? `Пра(${n})дід` : `Пра(${n})баба`;
+}
 
-	return isMale ? `Пра${gen - 2}дід` : `Пра${gen - 2}баба`;
+/**
+ * Отримує назву рівня для стрічки фільтрації поколінь
+ * @param {number} gen 
+ * @returns {string}
+ */
+export function getGenerationRibbonLabel(gen) {
+	if (gen === 0) return "Ви";
+	if (gen === 1) return "Батьки";
+	if (gen === 2) return "Дідусі";
+	if (gen === 3) return "Прадідусі";
+	const n = gen - 2;
+	return `Пра(${n})дідусі`;
 }
 
 /**
@@ -206,6 +208,16 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
 			const quadrant = getQuadrant(sosa);
 			const recordsCount = personId ? recordsMap.get(personId) || 0 : 0;
 
+			// Статус зв'язку: підтверджений чи гіпотетичний (як у профілі)
+			const rawStatus = String(personDetails?.status || "").trim().toLowerCase();
+			const isConfirmed = isKnown && (
+				rawStatus === "1" ||
+				rawStatus === "confirmed" ||
+				rawStatus === "true" ||
+				rawStatus === "так" ||
+				rawStatus === "+"
+			);
+
 			const sectorData = {
 				sosa,
 				generation: gen,
@@ -214,6 +226,7 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
 				gender,
 				personId,
 				isKnown,
+				isConfirmed,
 				person: personDetails,
 				kinshipTitle: getKinshipTitle(sosa, gender),
 				hasRecords: recordsCount > 0,
@@ -229,6 +242,7 @@ export function buildPedigreeData(engine, rootPersonId, maxGenerations = 7) {
 			generation: gen,
 			count: 1 << gen,
 			knownCount: knownInGen,
+			label: getGenerationRibbonLabel(gen),
 			sectors,
 		});
 	}
