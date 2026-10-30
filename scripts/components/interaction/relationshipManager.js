@@ -65,7 +65,6 @@ export class RelationshipManager {
 		this.focusIds = new Set([
 			String(realIdA),
 			String(realIdB),
-			String(this.myRootId),
 		]);
 
 		const data = this.logic.calculate(realIdA, realIdB);
@@ -332,7 +331,15 @@ export class RelationshipManager {
 		const rootEl = document.getElementById("tree-root");
 		const total = this.currentData.length;
 
-		scenario.root.forEach((r) => this.focusIds.add(String(r.id)));
+		this.focusIds = new Set([
+			String(this.currentProfileId),
+			String(this.targetProfileId),
+		]);
+		if (scenario.root && Array.isArray(scenario.root)) {
+			scenario.root.forEach((r) => {
+				if (r && r.id) this.focusIds.add(String(r.id));
+			});
+		}
 
 		const isCouple = scenario.root.length > 1;
 		const mainNodes = scenario.branch.main || [];
@@ -630,8 +637,12 @@ export class RelationshipManager {
 				extraClasses.push(UI_CLASSES.nodeIndirect);
 			}
 
-			if (this.focusIds.size > 0 && !this.focusIds.has(String(personObj.id))) {
-				extraClasses.push(UI_CLASSES.nodeDimmed);
+			if (this.focusIds.size > 0) {
+				if (this.focusIds.has(String(personObj.id))) {
+					extraClasses.push("node-focus");
+				} else {
+					extraClasses.push(UI_CLASSES.nodeDimmed);
+				}
 			}
 
 			if (
@@ -686,8 +697,12 @@ export class RelationshipManager {
 				if (!html.includes(genderClass)) extraClasses.push(genderClass);
 			}
 
-			if (this.focusIds.size > 0 && !this.focusIds.has(String(personObj.id))) {
-				extraClasses.push(UI_CLASSES.nodeDimmed);
+			if (this.focusIds.size > 0) {
+				if (this.focusIds.has(String(personObj.id))) {
+					extraClasses.push("node-focus");
+				} else {
+					extraClasses.push(UI_CLASSES.nodeDimmed);
+				}
 			}
 
 			if (

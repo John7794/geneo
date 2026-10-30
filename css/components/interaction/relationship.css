@@ -243,9 +243,16 @@
 	border-top: 5px solid #f1c40f;
 }
 
+.node-focus {
+	opacity: 1 !important;
+	border-color: var(--color-primary) !important;
+	box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-sm);
+}
+
 .node-dimmed {
-	opacity: 0.4;
-	transition: opacity var(--transition-base);
+	opacity: 0.38 !important;
+	filter: grayscale(35%);
+	transition: opacity var(--transition-base), filter var(--transition-base);
 }
 
 .node-dimmed:hover {
@@ -408,7 +415,7 @@
 		box-sizing: border-box !important;
 		padding-left: 0 !important;
 		padding-right: 0 !important;
-		padding-top: 16px !important;
+		padding-top: 0 !important;
 		padding-bottom: 120px !important;
 		overflow-x: hidden !important;
 	}
@@ -418,8 +425,8 @@
 		max-width: 100vw !important;
 		min-width: 0 !important;
 		box-sizing: border-box !important;
-		padding-top: 16px;
-		padding-bottom: 120px;
+		padding-top: 68px !important;
+		padding-bottom: 120px !important;
 		padding-left: 8px;
 		padding-right: 8px;
 		background-image: none;
@@ -501,6 +508,23 @@
 	/* 🔥 ЛІКВІДАЦІЯ ВЕРХНЬОГО БОРДЕРА */
 	.relationship-mode .kinship-card.node-indirect {
 		border-top: 1px solid var(--color-border);
+	}
+
+	.relationship-mode .kinship-card.node-focus {
+		opacity: 1 !important;
+		border-color: var(--color-primary) !important;
+		box-shadow: 0 0 0 1px var(--color-primary), 0 2px 8px rgba(37, 99, 235, 0.2);
+	}
+
+	.relationship-mode .kinship-card.node-dimmed {
+		opacity: 0.38 !important;
+		filter: grayscale(35%);
+		transition: opacity 0.2s ease, filter 0.2s ease;
+	}
+
+	.relationship-mode .kinship-card.node-dimmed:hover {
+		opacity: 0.85 !important;
+		filter: grayscale(0%);
 	}
 
 	.relationship-mode .kinship-card .kinship-card__media {
@@ -599,13 +623,13 @@
 
 	#rel-dynamic-footer .rel-row,
 	.rel-footer-unified .rel-row {
-		display: flex;
+		display: grid;
+		grid-template-columns: auto 1fr;
 		width: 100%;
 		max-width: none;
-		justify-content: space-between;
 		align-items: baseline;
 		margin: 0;
-		gap: 8px;
+		gap: 12px;
 		min-width: 0;
 	}
 
@@ -620,14 +644,13 @@
 
 	#rel-dynamic-footer .rel-val,
 	.rel-footer-unified .rel-val {
-		text-align: right;
+		text-align: left;
 		white-space: normal;
 		word-break: break-word;
 		font-size: 12px;
 		font-weight: 600;
 		color: var(--color-text-main);
 		min-width: 0;
-		flex: 1 1 auto;
 		line-height: 1.25;
 	}
 }
