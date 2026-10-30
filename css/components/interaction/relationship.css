@@ -245,8 +245,6 @@
 
 .node-focus {
 	opacity: 1 !important;
-	border-color: var(--color-primary) !important;
-	box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-sm);
 }
 
 .node-dimmed {
@@ -512,8 +510,6 @@
 
 	.relationship-mode .kinship-card.node-focus {
 		opacity: 1 !important;
-		border-color: var(--color-primary) !important;
-		box-shadow: 0 0 0 1px var(--color-primary), 0 2px 8px rgba(37, 99, 235, 0.2);
 	}
 
 	.relationship-mode .kinship-card.node-dimmed {
@@ -592,9 +588,10 @@
 	.rel-footer-unified {
 		bottom: 16px;
 		left: 16px;
+		right: 92px;
 		transform: none;
-		width: calc(100% - 88px);
-		max-width: calc(100% - 88px);
+		width: auto;
+		max-width: calc(100% - 108px);
 		min-width: 0;
 		padding: 10px 14px;
 		flex-direction: column;
