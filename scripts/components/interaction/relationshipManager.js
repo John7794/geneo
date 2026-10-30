@@ -372,7 +372,7 @@ export class RelationshipManager {
 				</div>`;
 			}
 
-			let prevWasFullWidth = !isCouple;
+			let branchSplit = false;
 			const maxLen = Math.max(mainNodes.length, sideNodes.length);
 			let gridRowsHTML = "";
 
@@ -384,6 +384,7 @@ export class RelationshipManager {
 					nodeB &&
 					String(nodeA.id) === String(nodeB.id)
 				);
+				const isSingle = (nodeA && !nodeB) || (!nodeA && nodeB);
 
 				if (isMerged) {
 					gridRowsHTML += `
@@ -392,8 +393,7 @@ export class RelationshipManager {
 							${this.renderNodeAdapter(nodeA, false)}
 						</div>
 					</div>`;
-					prevWasFullWidth = true;
-				} else if (prevWasFullWidth && ((nodeA && !nodeB) || (!nodeA && nodeB))) {
+				} else if (!branchSplit && isSingle) {
 					const singleNode = nodeA || nodeB;
 					gridRowsHTML += `
 					<div class="rel-mobile-row rel-mobile-row--merged">
@@ -401,8 +401,8 @@ export class RelationshipManager {
 							${this.renderNodeAdapter(singleNode, !nodeA)}
 						</div>
 					</div>`;
-					prevWasFullWidth = true;
 				} else {
+					branchSplit = true;
 					const emptyCardHtml = `<div class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardPlaceholder} rel-invisible-node" style="opacity:0; pointer-events:none; border:none; box-shadow:none; background:transparent;"></div>`;
 
 					const cardA = nodeA
@@ -417,7 +417,6 @@ export class RelationshipManager {
 						<div class="rel-mobile-cell">${cardA}</div>
 						<div class="rel-mobile-cell">${cardB}</div>
 					</div>`;
-					prevWasFullWidth = false;
 				}
 			}
 			branchesAreaHTML = `<div class="rel-mobile-grid">${gridRowsHTML}</div>`;
