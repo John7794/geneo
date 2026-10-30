@@ -262,7 +262,7 @@ export class FanChartManager {
 		const w = rect.width;
 		const h = rect.height;
 
-		const chartDiameter = 920; // 460px радіус * 2
+		const chartDiameter = 1060; // 525px радіус * 2 + відступи
 		const pad = 80;
 		const targetW = Math.max(w - pad, 280);
 		const targetH = Math.max(h - pad - 60, 280);
@@ -270,9 +270,9 @@ export class FanChartManager {
 		const scale = Math.min(targetW / chartDiameter, targetH / chartDiameter, 1.2);
 		this.scale = Math.max(this.minScale, Math.min(scale, this.maxScale));
 
-		// Центр кола (500, 500) розміщується точно по центру вікна
-		this.translateX = w / 2 - 500 * this.scale;
-		this.translateY = (h + 40) / 2 - 500 * this.scale; // Невеликий зсув вниз через верхню панель
+		// Центр кола (550, 550) розміщується точно по центру вікна
+		this.translateX = w / 2 - 550 * this.scale;
+		this.translateY = (h + 40) / 2 - 550 * this.scale; // Невеликий зсув вниз через верхню панель
 
 		this._applyTransform();
 	}
@@ -599,7 +599,6 @@ export class FanChartManager {
 				<div class="fan-flyout-title-wrap">
 					<span class="${kinshipClass}">№ ${sosa} • ${escapeHtml(sectorData.kinshipTitle)}</span>
 					<h4 class="fan-flyout-name" title="${escapeHtml(fullName)}">${escapeHtml(fullName)}</h4>
-					${displayDates ? `<div class="fan-flyout-meta">${escapeHtml(displayDates)}</div>` : ""}
 				</div>
 			</div>
 			<div class="fan-flyout-status-container">

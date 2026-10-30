@@ -6,19 +6,19 @@ import { escapeHtml, convertDriveLink } from "../../utils/helpers.js";
  * Конфігурація геометрії кола
  */
 export const FAN_CONFIG = {
-	cx: 500,
-	cy: 500,
-	viewBoxSize: 1000,
-	rProband: 85,
-	// Радіуси для кожного покоління (0..7)
+	cx: 550,
+	cy: 550,
+	viewBoxSize: 1100,
+	rProband: 75,
+	// Радіуси для кожного покоління (0..6)
 	ringRadii: [
-		{ in: 0, out: 85 },     // Gen 0 (Ви / Пробанд: r=85)
-		{ in: 85, out: 150 },   // Gen 1 (Батьки: ширина 65)
-		{ in: 150, out: 215 },  // Gen 2 (Дідусі: ширина 65)
-		{ in: 215, out: 280 },  // Gen 3 (Прадідусі: ширина 65)
-		{ in: 280, out: 340 },  // Gen 4 (Пра(2)дідусі: ширина 60)
-		{ in: 340, out: 400 },  // Gen 5 (Пра(3)дідусі: ширина 60)
-		{ in: 400, out: 455 },  // Gen 6 (Пра(4)дідусі: ширина 55)
+		{ in: 0, out: 75 },     // Gen 0 (Ви / Пробанд: r=75, d=150)
+		{ in: 75, out: 145 },   // Gen 1 (Батьки: ширина 70)
+		{ in: 145, out: 215 },  // Gen 2 (Дідусі: ширина 70)
+		{ in: 215, out: 285 },  // Gen 3 (Прадідусі: ширина 70)
+		{ in: 285, out: 360 },  // Gen 4 (Пра(2)дідусі: ширина 75)
+		{ in: 360, out: 440 },  // Gen 5 (Пра(3)дідусі: ширина 80)
+		{ in: 440, out: 525 },  // Gen 6 (Пра(4)дідусі: ширина 85)
 	],
 };
 
@@ -112,8 +112,8 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 	clipPath.setAttribute("id", "fan-avatar-clip");
 	const clipCircle = document.createElementNS(svgNS, "circle");
 	clipCircle.setAttribute("cx", String(cx));
-	clipCircle.setAttribute("cy", String(cy - 22));
-	clipCircle.setAttribute("r", "28");
+	clipCircle.setAttribute("cy", String(cy - 20));
+	clipCircle.setAttribute("r", "25");
 	clipPath.appendChild(clipCircle);
 	defs.appendChild(clipPath);
 
@@ -306,11 +306,6 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 			fullLabel = surname || name;
 		}
 
-		const lifeYears = sector.lifeYears || dates;
-		if (generation <= 2 && lifeYears) {
-			fullLabel += ` (${lifeYears})`;
-		}
-
 		textPath.textContent = fullLabel;
 		text.appendChild(textPath);
 		textGroup.appendChild(text);
@@ -337,13 +332,13 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 			const tspanSurname = document.createElementNS(svgNS, "tspan");
 			tspanSurname.setAttribute("x", String(tx.toFixed(1)));
 			tspanSurname.setAttribute("dy", "-0.45em");
-			tspanSurname.setAttribute("font-weight", "700");
+			tspanSurname.setAttribute("font-weight", "600");
 			tspanSurname.textContent = surname;
 
 			const tspanName = document.createElementNS(svgNS, "tspan");
 			tspanName.setAttribute("x", String(tx.toFixed(1)));
 			tspanName.setAttribute("dy", "1.1em");
-			tspanName.setAttribute("font-weight", "500");
+			tspanName.setAttribute("font-weight", "600");
 			tspanName.textContent = name;
 
 			text.appendChild(tspanSurname);
@@ -397,24 +392,24 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 		const img = document.createElementNS(svgNS, "image");
 		img.setAttribute("href", avatarUrl);
 		img.setAttributeNS("http://www.w3.org/1999/xlink", "href", avatarUrl);
-		img.setAttribute("x", String(cx - 28));
-		img.setAttribute("y", String(cy - 50));
-		img.setAttribute("width", "56");
-		img.setAttribute("height", "56");
+		img.setAttribute("x", String(cx - 25));
+		img.setAttribute("y", String(cy - 45));
+		img.setAttribute("width", "50");
+		img.setAttribute("height", "50");
 		img.setAttribute("clip-path", "url(#fan-avatar-clip)");
 		img.setAttribute("preserveAspectRatio", "xMidYMid slice");
 		g.appendChild(img);
 	} else {
 		const initCircle = document.createElementNS(svgNS, "circle");
 		initCircle.setAttribute("cx", String(cx));
-		initCircle.setAttribute("cy", String(cy - 22));
-		initCircle.setAttribute("r", "26");
+		initCircle.setAttribute("cy", String(cy - 20));
+		initCircle.setAttribute("r", "25");
 		initCircle.setAttribute("class", "fan-proband-avatar-placeholder");
 		g.appendChild(initCircle);
 
 		const initials = document.createElementNS(svgNS, "text");
 		initials.setAttribute("x", String(cx));
-		initials.setAttribute("y", String(cy - 21));
+		initials.setAttribute("y", String(cy - 19));
 		initials.setAttribute("text-anchor", "middle");
 		initials.setAttribute("dominant-baseline", "central");
 		initials.setAttribute("class", "fan-proband-initials");
@@ -432,12 +427,12 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 	// Рамка аватара
 	const avatarBorder = document.createElementNS(svgNS, "circle");
 	avatarBorder.setAttribute("cx", String(cx));
-	avatarBorder.setAttribute("cy", String(cy - 22));
-	avatarBorder.setAttribute("r", "27");
+	avatarBorder.setAttribute("cy", String(cy - 20));
+	avatarBorder.setAttribute("r", "26");
 	avatarBorder.setAttribute("class", "fan-proband-avatar-border");
 	g.appendChild(avatarBorder);
 
-	// ПІБ пробанда
+	// ПІБ пробанда (лише ім'я та прізвище, без дат)
 	const nameText = document.createElementNS(svgNS, "text");
 	nameText.setAttribute("x", String(cx));
 	nameText.setAttribute("y", String(cy + 22));
@@ -447,22 +442,10 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 	nameText.textContent = fullName || "Пробанд";
 	g.appendChild(nameText);
 
-	// Роки життя
-	const dates = probandData.lifeYears || person?.dates || person?.lifespan || "";
-	if (dates) {
-		const datesText = document.createElementNS(svgNS, "text");
-		datesText.setAttribute("x", String(cx));
-		datesText.setAttribute("y", String(cy + 38));
-		datesText.setAttribute("text-anchor", "middle");
-		datesText.setAttribute("class", "fan-proband-dates");
-		datesText.textContent = dates;
-		g.appendChild(datesText);
-	}
-
 	// Бейдж спорідненості "Ви (Пробанд)"
 	const badgeText = document.createElementNS(svgNS, "text");
 	badgeText.setAttribute("x", String(cx));
-	badgeText.setAttribute("y", String(cy + 54));
+	badgeText.setAttribute("y", String(cy + 40));
 	badgeText.setAttribute("text-anchor", "middle");
 	badgeText.setAttribute("class", "fan-proband-badge");
 	badgeText.textContent = "Ви (Пробанд)";
