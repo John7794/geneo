@@ -925,6 +925,9 @@ export class AnalyticsManager {
                      const title = btn.getAttribute("data-title");
                      
                      this.containerSummary.style.display = "none";
+                     const analyticsView = document.getElementById("analytics-view");
+                     if (analyticsView) analyticsView.classList.add('in-detailed-view');
+
                      if (detailedView) {
                          detailedView.style.display = "flex";
                          
@@ -939,10 +942,17 @@ export class AnalyticsManager {
                                  parentSec.classList.add('accordion-open');
                                  const h4 = parentSec.querySelector('h4');
                                  if (h4) h4.style.display = 'none'; // hide the h4 because we show it in the header
+
+                                 if (parentSec.querySelector('.analytics-sort-controls')) {
+                                     detailedView.classList.add('has-sort-controls');
+                                 } else {
+                                     detailedView.classList.remove('has-sort-controls');
+                                 }
                              }
                          }
 
                          if (titleView) titleView.textContent = title;
+                         window.scrollTo(0, 0);
                      }
                  });
              });
@@ -950,8 +960,14 @@ export class AnalyticsManager {
              if (btnBack && !btnBack.dataset.init) {
                  btnBack.dataset.init = "true";
                  btnBack.addEventListener("click", () => {
-                     if (detailedView) detailedView.style.display = "none";
+                     if (detailedView) {
+                         detailedView.style.display = "none";
+                         detailedView.classList.remove('has-sort-controls');
+                     }
                      this.containerSummary.style.display = "flex";
+                     const analyticsView = document.getElementById("analytics-view");
+                     if (analyticsView) analyticsView.classList.remove('in-detailed-view');
+                     window.scrollTo(0, 0);
                  });
              }
 
@@ -1129,10 +1145,38 @@ export class AnalyticsManager {
                             body.style.display = 'block';
                             if (icon) icon.style.transform = 'rotate(180deg)';
                         }
+                        if (sidebar) {
+                            sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
+                            link.classList.add('active');
+                        }
                         targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
             });
+
+            // Scroll-spy observer to keep active place in view inside sticky sidebar
+            if (sidebar && window.IntersectionObserver) {
+                if (this._placesObserver) {
+                    this._placesObserver.disconnect();
+                }
+                this._placesObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const id = entry.target.id;
+                            const link = sidebar.querySelector(`.profile-toc-link[href="#${id}"]`);
+                            if (link) {
+                                sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
+                                link.classList.add('active');
+                                link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                            }
+                        }
+                    });
+                }, {
+                    rootMargin: '-172px 0px -70% 0px',
+                    threshold: 0
+                });
+                placeItems.forEach(item => this._placesObserver.observe(item));
+            }
             
             // Sort container buttons
             const activeSort = sortMode || window.app?.managers?.analytics?.currentPlaceSort || 'alphabet_az'; 
@@ -1544,10 +1588,42 @@ export class AnalyticsManager {
                                     body.style.display = 'block';
                                     if (icon) icon.style.transform = 'rotate(180deg)';
                                 }
+                                const sidebarEl = eventsSectionContent.querySelector('.events-sidebar-desktop');
+                                if (sidebarEl) {
+                                    sidebarEl.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
+                                    link.classList.add('active');
+                                }
                                 targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             }
                         });
                     });
+
+                    const eventsSidebar = eventsSectionContent.querySelector('.events-sidebar-desktop');
+                    if (eventsSidebar && window.innerWidth >= 1200) {
+                        eventsSidebar.style.display = 'block';
+                    }
+                    if (eventsSidebar && window.IntersectionObserver) {
+                        if (this._eventsObserver) {
+                            this._eventsObserver.disconnect();
+                        }
+                        this._eventsObserver = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    const id = entry.target.id;
+                                    const link = eventsSidebar.querySelector(`.profile-toc-link[href="#${id}"]`);
+                                    if (link) {
+                                        eventsSidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
+                                        link.classList.add('active');
+                                        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                                    }
+                                }
+                            });
+                        }, {
+                            rootMargin: '-136px 0px -70% 0px',
+                            threshold: 0
+                        });
+                        newContainerEvents.querySelectorAll('.analytics-event-month-item').forEach(item => this._eventsObserver.observe(item));
+                    }
 
                     // Add link behavior
 // delegated to router
@@ -2631,10 +2707,35 @@ const renderTimeline = () => {
                             const targetId = link.getAttribute('href').substring(1);
                             const targetEl = document.getElementById(targetId);
                             if (targetEl) {
+                                sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
+                                link.classList.add('active');
                                 targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             }
                         });
                     });
+
+                    if (sidebar && window.IntersectionObserver) {
+                        if (this._timelineObserver) {
+                            this._timelineObserver.disconnect();
+                        }
+                        this._timelineObserver = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    const id = entry.target.id;
+                                    const link = sidebar.querySelector(`.profile-toc-link[href="#${id}"]`);
+                                    if (link) {
+                                        sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
+                                        link.classList.add('active');
+                                        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                                    }
+                                }
+                            });
+                        }, {
+                            rootMargin: '-172px 0px -70% 0px',
+                            threshold: 0
+                        });
+                        timelineList.querySelectorAll('.analytics-timeline-century-item').forEach(item => this._timelineObserver.observe(item));
+                    }
                 }
                 
                 // Attach events to newly generated links

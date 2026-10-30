@@ -14,7 +14,11 @@
     background: var(--color-bg-card);
     position: sticky;
     top: 0;
-    z-index: 20;
+    z-index: 100;
+}
+.analytics-view:not(.in-detailed-view) .analytics-header,
+.analytics-view:not(.in-detailed-view) .analytics-header::before {
+    border-bottom: 1px solid var(--color-border);
 }
 .analytics-header::before {
     content: '';
@@ -272,10 +276,11 @@
     align-items: center;
     position: sticky;
     top: 112px;
-    z-index: 14;
+    z-index: 80;
     background: var(--color-bg-card);
     padding: 8px var(--analytics-padding);
     margin: 0 calc(-1 * var(--analytics-padding)) 12px calc(-1 * var(--analytics-padding));
+    border-bottom: 1px solid var(--color-border);
 }
 .analytics-sort-controls::before {
     content: '';
@@ -286,6 +291,7 @@
     bottom: 0;
     background: var(--color-bg-card);
     z-index: -1;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .analytics-sort-controls span {
@@ -344,7 +350,11 @@
     position: sticky;
     top: 56px;
     background: var(--color-bg-card);
-    z-index: 15;
+    z-index: 90;
+}
+#analytics-detailed-view:not(.has-sort-controls) .detailed-view-header,
+#analytics-detailed-view:not(.has-sort-controls) .detailed-view-header::before {
+    border-bottom: 1px solid var(--color-border);
 }
 .detailed-view-header::before {
     content: '';
@@ -374,22 +384,78 @@
         margin-right: 40px;
         top: 0;
         bottom: 0;
-        width: 160px;
-        z-index: 15;
+        width: 180px;
+        z-index: 50;
         pointer-events: none;
     }
 
     .events-sidebar-desktop > div {
         position: sticky;
-        top: 180px;
-        max-height: calc(100vh - 200px);
+        top: 172px;
+        max-height: calc(100dvh - 192px);
         overflow-y: auto;
         pointer-events: auto;
+        overscroll-behavior: contain;
+        padding-right: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-border) transparent;
     }
 
-    .events-sidebar-desktop::-webkit-scrollbar, .events-sidebar-desktop > div::-webkit-scrollbar {
-        display: none;
-        width: 0;
+    .events-sidebar-desktop > div::-webkit-scrollbar {
+        width: 4px;
+    }
+    .events-sidebar-desktop > div::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .events-sidebar-desktop > div::-webkit-scrollbar-thumb {
+        background: var(--color-border);
+        border-radius: 4px;
+    }
+    .events-sidebar-desktop > div::-webkit-scrollbar-thumb:hover {
+        background: var(--color-text-muted);
+    }
+
+    .events-sidebar-desktop .profile-toc-title {
+        margin-top: 0;
+        margin-bottom: 12px;
+        padding-top: 4px;
+        padding-bottom: 8px;
+        background-color: var(--color-bg-body);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .events-sidebar-desktop .profile-toc-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .events-sidebar-desktop .profile-toc-link {
+        font-size: 13px;
+        line-height: 1.35;
+        color: var(--color-text-meta);
+        text-decoration: none;
+        transition: color 0.15s ease, background-color 0.15s ease;
+        display: block;
+        word-break: break-word;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .events-sidebar-desktop .profile-toc-link:hover {
+        color: var(--color-primary);
+        background: var(--color-bg-card);
+    }
+
+    .events-sidebar-desktop .profile-toc-link.active {
+        color: var(--color-primary);
+        font-weight: 600;
+        background: var(--color-bg-card);
     }
 
     .events-body-blocks {
@@ -444,29 +510,22 @@
     scroll-margin-top: 180px;
 }
 
-/* Custom scrollbar for sidebar */
-.events-sidebar-desktop::-webkit-scrollbar, .events-sidebar-desktop > div::-webkit-scrollbar {
-    display: none;
-    width: 0;
-}
 
-.events-sidebar-desktop, .events-sidebar-desktop > div {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
 
 
 
 
 #analytics-timeline .events-sidebar-desktop > div {
     top: 172px;
+    max-height: calc(100dvh - 192px);
 }
 #analytics-events .events-sidebar-desktop > div {
     top: 136px;
+    max-height: calc(100dvh - 156px);
 }
-
 #analytics-places .events-sidebar-desktop > div {
     top: 172px;
+    max-height: calc(100dvh - 192px);
 }
 
 .analytics-place-item {

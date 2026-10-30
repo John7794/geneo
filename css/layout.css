@@ -6,7 +6,7 @@
 	flex-direction: column;
 	min-height: 100dvh; /* Змінено з 100vh на динамічні 100dvh */
 	background-color: var(--color-bg-body);
-	overflow-x: hidden;
+	overflow-x: clip;
 }
 
 /* ==========================================
