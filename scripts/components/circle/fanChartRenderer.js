@@ -259,6 +259,21 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 
 	viewportGroup.appendChild(levelPillsGroup);
 
+	// Верхній шар для обраного сектора (selected overlay)
+	const selectedOverlay = document.createElementNS(svgNS, "g");
+	selectedOverlay.setAttribute("id", "fan-selected-overlay");
+	selectedOverlay.setAttribute("class", "fan-selected-overlay");
+	selectedOverlay.setAttribute("pointer-events", "none");
+	viewportGroup.appendChild(selectedOverlay);
+
+	// Верхній шар для підсвічування при наведенні (hover overlay)
+	// Йде поверх решти сегментів кола, усуваючи будь-яке викривлення
+	const hoverOverlay = document.createElementNS(svgNS, "g");
+	hoverOverlay.setAttribute("id", "fan-hover-overlay");
+	hoverOverlay.setAttribute("class", "fan-hover-overlay");
+	hoverOverlay.setAttribute("pointer-events", "none");
+	viewportGroup.appendChild(hoverOverlay);
+
 	svg.appendChild(viewportGroup);
 
 	return svg;

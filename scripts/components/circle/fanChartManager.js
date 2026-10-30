@@ -448,6 +448,7 @@ export class FanChartManager {
 			this._clearBranchHighlight();
 			const probandEl = this.canvas?.querySelector(".fan-proband-group");
 			probandEl?.classList.add("fan-proband--hovered");
+			this._updateHoverOverlay(1);
 			return;
 		}
 
@@ -494,6 +495,42 @@ export class FanChartManager {
 				el.classList.remove("fan-sector--hovered");
 			}
 		}
+
+		this._updateHoverOverlay(sosa);
+	}
+
+	_updateHoverOverlay(sosa) {
+		const overlay = this.canvas?.querySelector("#fan-hover-overlay");
+		if (!overlay) return;
+		overlay.innerHTML = "";
+		if (!sosa) return;
+
+		const svgNS = "http://www.w3.org/2000/svg";
+
+		if (sosa === 1) {
+			const probandCircle = this.canvas?.querySelector(".fan-proband-circle");
+			if (probandCircle) {
+				const circle = document.createElementNS(svgNS, "circle");
+				circle.setAttribute("cx", probandCircle.getAttribute("cx") || "550");
+				circle.setAttribute("cy", probandCircle.getAttribute("cy") || "550");
+				circle.setAttribute("r", probandCircle.getAttribute("r") || "75");
+				circle.setAttribute("class", "fan-hover-outline fan-hover-outline--proband");
+				overlay.appendChild(circle);
+			}
+			return;
+		}
+
+		const sectorEl = this.canvas?.querySelector(`.fan-sector[data-sosa="${sosa}"]`);
+		const shape = sectorEl?.querySelector(".fan-sector-shape");
+		if (shape) {
+			const d = shape.getAttribute("d");
+			if (d) {
+				const path = document.createElementNS(svgNS, "path");
+				path.setAttribute("d", d);
+				path.setAttribute("class", "fan-hover-outline");
+				overlay.appendChild(path);
+			}
+		}
 	}
 
 	_clearBranchHighlight() {
@@ -511,6 +548,9 @@ export class FanChartManager {
 		}
 		const probandEl = this.canvas?.querySelector(".fan-proband-group");
 		probandEl?.classList.remove("fan-proband--hovered");
+
+		const overlay = this.canvas?.querySelector("#fan-hover-overlay");
+		if (overlay) overlay.innerHTML = "";
 	}
 
 	_handleSectorClick(e) {
@@ -542,6 +582,28 @@ export class FanChartManager {
 
 		const current = this.canvas?.querySelector(`[data-sosa="${sosa}"]`);
 		current?.classList.add("fan-sector--selected");
+
+		this._updateSelectedOverlay(sosa);
+	}
+
+	_updateSelectedOverlay(sosa) {
+		const overlay = this.canvas?.querySelector("#fan-selected-overlay");
+		if (!overlay) return;
+		overlay.innerHTML = "";
+		if (!sosa || sosa === 1) return;
+
+		const sectorEl = this.canvas?.querySelector(`.fan-sector[data-sosa="${sosa}"]`);
+		const shape = sectorEl?.querySelector(".fan-sector-shape");
+		if (shape) {
+			const d = shape.getAttribute("d");
+			if (d) {
+				const svgNS = "http://www.w3.org/2000/svg";
+				const path = document.createElementNS(svgNS, "path");
+				path.setAttribute("d", d);
+				path.setAttribute("class", "fan-selected-outline");
+				overlay.appendChild(path);
+			}
+		}
 	}
 
 	/**

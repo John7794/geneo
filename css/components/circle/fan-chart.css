@@ -350,36 +350,63 @@
 }
 
 .fan-sector.fan-sector--hovered .fan-sector-shape {
-	stroke: #ffffff;
-	stroke-width: 2px;
 	filter: brightness(1.15);
 }
 
 :root:not(.theme-dark) .fan-sector.fan-sector--hovered .fan-sector-shape {
-	stroke: #0f172a;
-	stroke-width: 2px;
 	filter: brightness(1.1);
 }
 
 :root.theme-dark .fan-sector.fan-sector--hovered .fan-sector-shape {
-	stroke: #ffffff;
-	stroke-width: 2px;
 	filter: brightness(1.2);
 }
 
 .fan-proband-group.fan-proband--hovered .fan-proband-circle {
-	stroke: #ffffff;
-	stroke-width: 3px;
+	filter: brightness(1.15);
 }
 
 :root:not(.theme-dark) .fan-proband-group.fan-proband--hovered .fan-proband-circle {
-	stroke: #0f172a;
-	stroke-width: 3px;
+	filter: brightness(1.1);
 }
 
 :root.theme-dark .fan-proband-group.fan-proband--hovered .fan-proband-circle {
+	filter: brightness(1.2);
+}
+
+/* ==========================================================================
+   ВЕРХНІЙ ШАР ПІДСВІЧУВАННЯ (HOVER & SELECTION OVERLAYS - ON TOP OF ALL SECTORS)
+   ========================================================================== */
+.fan-hover-overlay,
+.fan-selected-overlay {
+	pointer-events: none;
+}
+
+.fan-hover-outline {
+	fill: none;
 	stroke: #ffffff;
-	stroke-width: 3px;
+	stroke-width: 2.5px;
+	pointer-events: none;
+	vector-effect: non-scaling-stroke;
+}
+
+:root:not(.theme-dark) .fan-hover-outline {
+	stroke: #0f172a;
+}
+
+.fan-hover-outline--proband {
+	stroke-width: 3.5px;
+}
+
+.fan-selected-outline {
+	fill: none;
+	stroke: #ffffff;
+	stroke-width: 2.5px;
+	pointer-events: none;
+	vector-effect: non-scaling-stroke;
+}
+
+:root:not(.theme-dark) .fan-selected-outline {
+	stroke: #0f172a;
 }
 
 /* ==========================================================================
