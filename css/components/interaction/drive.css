@@ -275,8 +275,31 @@ select.form-input option {
 }
 
 .form-grid-row {
+	display: grid;
+	grid-template-columns: 1fr 160px;
+	gap: 14px;
+	align-items: flex-end;
+}
+
+.form-grid-row .form-group {
 	display: flex;
-	gap: 10px;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 0;
+}
+
+.form-grid-row label {
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: var(--color-text-main);
+	white-space: nowrap;
+}
+
+.form-grid-row .form-input,
+.form-grid-row select.form-input,
+.form-grid-row input.form-input {
+	height: 42px;
+	box-sizing: border-box;
 }
 
 .drop-zone-wrapper {
@@ -400,4 +423,26 @@ select.form-input option {
 	color: var(--color-primary);
 	font-weight: 600;
 	text-decoration: underline;
+}
+
+/* Інформаційний банер для BYOS Google Диску */
+.drive-explainer-banner {
+	background: rgba(59, 130, 246, 0.08);
+	border: 1px solid rgba(59, 130, 246, 0.25);
+	border-radius: 10px;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	font-size: 0.88rem;
+	line-height: 1.45;
+	color: var(--color-text-main);
+}
+
+.drive-explainer-banner i {
+	font-size: 1.25rem;
+	color: var(--color-primary);
+	flex-shrink: 0;
+	margin-top: 1px;
 }

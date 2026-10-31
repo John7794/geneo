@@ -355,6 +355,7 @@ export interface StoredUser {
   id: string;
   email: string;
   displayName: string;
+  avatar?: string;
   passwordHash?: string;
   salt?: string;
   authProvider: "password" | "google" | "guest";
@@ -1143,6 +1144,7 @@ app.post("/api/auth-register", async (req, res) => {
     user: {
       email: cleanEmail,
       displayName: name,
+      avatar: null,
       role: role,
       isMainAdmin: isAdmin,
     },
@@ -1203,6 +1205,7 @@ app.post("/api/auth-login", async (req, res) => {
       user: {
         email: user.email,
         displayName: user.displayName,
+        avatar: user.avatar || null,
         role: user.role,
         isMainAdmin: isAdmin,
       },
@@ -1254,6 +1257,7 @@ app.post("/api/auth-login", async (req, res) => {
       user: {
         email: user.email,
         displayName: user.displayName,
+        avatar: user.avatar || null,
         role: user.role,
         isMainAdmin: isAdmin,
       },
@@ -1323,6 +1327,7 @@ app.get("/api/auth-me", async (req, res) => {
     user: {
       email: email,
       displayName: user?.displayName || email.split("@")[0],
+      avatar: user?.avatar || null,
       role: user?.role || (isAdmin ? "admin" : "owner"),
       isMainAdmin: isAdmin,
       canShare: isAdmin || user?.role === "admin" || user?.role === "owner",
@@ -1353,6 +1358,52 @@ app.post("/api/user/drive-status", async (req, res) => {
   await saveUser(user);
 
   res.json({ success: true, driveInfo });
+});
+
+// ОНОВЛЕННЯ ПРОФІЛЮ КОРИСТУВАЧА (Ім'я, Аватар)
+app.post("/api/user/profile", async (req, res) => {
+  const email = getAuthenticatedUser(req);
+  if (!email) return res.status(401).json({ error: "Не авторизовано." });
+
+  const { displayName, avatar } = req.body || {};
+  let user = await findUserByEmail(email);
+  const isAdmin = adminEmailsList.some((a) => a.includes(email) || email.includes(a));
+
+  if (!user) {
+    user = {
+      id: email,
+      email: email,
+      displayName: email.split("@")[0],
+      authProvider: "password",
+      role: isAdmin ? "admin" : "owner",
+      createdAt: Date.now(),
+      lastLoginAt: Date.now(),
+    };
+  }
+
+  if (typeof displayName === "string" && displayName.trim()) {
+    user.displayName = displayName.trim().slice(0, 100);
+  }
+
+  if (typeof avatar === "string") {
+    // Дозволяємо data:image URL або https/http посилання
+    if (avatar.startsWith("data:image/") || avatar.startsWith("http://") || avatar.startsWith("https://") || avatar === "") {
+      user.avatar = avatar;
+    }
+  }
+
+  await saveUser(user);
+
+  res.json({
+    success: true,
+    user: {
+      email: user.email,
+      displayName: user.displayName,
+      avatar: user.avatar || null,
+      role: user.role,
+      isMainAdmin: isAdmin,
+    },
+  });
 });
 
 app.post("/api/invite", async (req, res) => {

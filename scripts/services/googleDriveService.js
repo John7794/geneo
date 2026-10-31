@@ -72,6 +72,7 @@ export class GoogleDriveService {
 		if (clientId && clientId.trim()) {
 			this.clientId = clientId.trim();
 			localStorage.setItem(STORAGE_KEYS.CLIENT_ID, this.clientId);
+			this._setupTokenClient();
 		}
 	}
 

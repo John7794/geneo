@@ -87,18 +87,67 @@
 	gap: 14px;
 }
 
+.account-avatar-picker-wrap {
+	position: relative;
+	cursor: pointer;
+	border-radius: 50%;
+	display: inline-block;
+	flex-shrink: 0;
+}
+
+.account-avatar-picker-wrap:hover .avatar-camera-badge {
+	transform: scale(1.12);
+	background-color: var(--color-primary);
+	color: #ffffff;
+}
+
 .account-large-avatar {
-	width: 48px;
-	height: 48px;
+	width: 52px;
+	height: 52px;
 	border-radius: 50%;
 	background: linear-gradient(135deg, var(--color-primary) 0%, #1e40af 100%);
 	color: white;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 18px;
+	font-size: 19px;
 	font-weight: 700;
 	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	position: relative;
+}
+
+.account-avatar-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.avatar-camera-badge {
+	position: absolute;
+	bottom: -2px;
+	right: -2px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--color-bg-card, #ffffff);
+	border: 1px solid var(--color-border);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+	color: var(--color-text-main);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	transition: all 0.2s ease;
+}
+
+.toolbar-avatar-img {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	object-fit: cover;
+	display: block;
 }
 
 .account-user-meta h3 {
@@ -184,6 +233,77 @@
 }
 
 /* Вкладка Профіль */
+.account-profile-card {
+	background: var(--color-bg-card, #ffffff);
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+	padding: 1.25rem;
+	margin-bottom: 1.25rem;
+}
+
+.profile-card-title {
+	margin: 0 0 6px 0;
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--color-text-main);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.profile-name-form-group {
+	margin-top: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.profile-name-form-group label {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--color-text-main);
+}
+
+.profile-name-input-wrap {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.profile-name-input-wrap .form-input {
+	flex: 1;
+	height: 42px;
+}
+
+.profile-name-input-wrap .btn {
+	height: 42px;
+	padding: 0 18px;
+	white-space: nowrap;
+}
+
+.profile-avatar-actions {
+	margin-top: 14px;
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	padding-top: 12px;
+	border-top: 1px dashed var(--color-border);
+}
+
+.name-save-feedback {
+	font-size: 0.85rem;
+	margin-top: 4px;
+	font-weight: 500;
+}
+
+.name-save-feedback.success {
+	color: #16a34a;
+}
+
+.name-save-feedback.error {
+	color: #dc2626;
+}
+
 .account-info-grid {
 	background: var(--color-bg-subtle, #f8fafc);
 	border: 1px solid var(--color-border);
@@ -649,4 +769,26 @@
 	gap: 6px;
 	cursor: pointer;
 	user-select: none;
+}
+
+/* Інформаційний банер для BYOS Google Диску */
+.drive-explainer-banner {
+	background: rgba(59, 130, 246, 0.08);
+	border: 1px solid rgba(59, 130, 246, 0.25);
+	border-radius: 10px;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	font-size: 0.88rem;
+	line-height: 1.45;
+	color: var(--color-text-main);
+}
+
+.drive-explainer-banner i {
+	font-size: 1.25rem;
+	color: var(--color-primary);
+	flex-shrink: 0;
+	margin-top: 1px;
 }

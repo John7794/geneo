@@ -139,6 +139,49 @@ export class AuthManager {
 	}
 
 	/**
+	 * Оновити профіль поточного користувача (ім'я, аватар)
+	 */
+	async updateProfile({ displayName, avatar }) {
+		if (!this.user) {
+			this.user = {};
+		}
+		if (displayName !== undefined && displayName !== null) {
+			this.user.displayName = displayName.trim();
+		}
+		if (avatar !== undefined) {
+			this.user.avatar = avatar;
+		}
+
+		localStorage.setItem(this._storageKeyUser, JSON.stringify(this.user));
+		this._notifyListeners();
+
+		// Відправляємо на сервер, якщо є сесія
+		try {
+			const token = localStorage.getItem(this._storageKeyToken);
+			const headers = { "Content-Type": "application/json" };
+			if (token) headers["Authorization"] = `Bearer ${token}`;
+
+			const res = await fetch("/api/user/profile", {
+				method: "POST",
+				headers,
+				body: JSON.stringify({ displayName, avatar }),
+			});
+			if (res.ok) {
+				const data = await res.json();
+				if (data.user) {
+					this.user = { ...this.user, ...data.user };
+					localStorage.setItem(this._storageKeyUser, JSON.stringify(this.user));
+					this._notifyListeners();
+				}
+			}
+		} catch (e) {
+			console.warn("⚠️ Не вдалося синхронізувати профіль із сервером (збережено локально):", e);
+		}
+
+		return this.user;
+	}
+
+	/**
 	 * Чи є користувач адміністратором системи
 	 */
 	isAdmin() {

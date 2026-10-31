@@ -87,6 +87,10 @@ export class WorkspaceManager {
 		return [...this.workspaces];
 	}
 
+	getWorkspaces() {
+		return this.listWorkspaces();
+	}
+
 	/**
 	 * Чи має поточний користувач право надавати доступ до активного дерева?
 	 * Суворе правило: ділитися може ВИКЛЮЧНО власник цього дерева!

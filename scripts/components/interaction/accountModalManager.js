@@ -66,21 +66,33 @@ export class AccountModalManager {
 	}
 
 	_syncAccountButton() {
-		if (!this.accountBtn) return;
 		const user = this.auth.getUser();
 		const initials = this.auth.getUserInitials();
 
-		const avatarEl = this.accountBtn.querySelector(".account-pill-avatar");
-		const nameEl = this.accountBtn.querySelector(".account-pill-name");
+		if (this.accountBtn) {
+			const avatarEl = this.accountBtn.querySelector(".account-pill-avatar");
+			const nameEl = this.accountBtn.querySelector(".account-pill-name");
 
-		if (avatarEl) avatarEl.textContent = initials;
-		if (nameEl) {
-			nameEl.textContent = user?.displayName || (this.auth.isAuthenticated ? "Мій профіль" : "Увійти");
+			if (avatarEl) {
+				if (user?.avatar) {
+					avatarEl.innerHTML = `<img src="${user.avatar}" class="toolbar-avatar-img" alt="Avatar" />`;
+				} else {
+					avatarEl.textContent = initials;
+				}
+			}
+			if (nameEl) {
+				nameEl.textContent = user?.displayName || (this.auth.isAuthenticated ? "Мій профіль" : "Увійти");
+			}
 		}
 
 		const menuBtn = document.getElementById("btn-account-menu");
 		if (menuBtn) {
 			menuBtn.title = user ? `${user.displayName || user.email} (Особистий кабінет)` : "Особистий кабінет";
+			if (user?.avatar) {
+				menuBtn.innerHTML = `<img src="${user.avatar}" class="toolbar-avatar-img" alt="Avatar" />`;
+			} else {
+				menuBtn.innerHTML = `<i class="ri-user-settings-line"></i>`;
+			}
 		}
 	}
 
@@ -119,9 +131,13 @@ export class AccountModalManager {
 		const emailContainer = this.modal.querySelector("#account-modal-email");
 		const roleContainer = this.modal.querySelector("#account-modal-role");
 
-		if (avatarContainer) avatarContainer.textContent = initials;
-		if (nameContainer) nameContainer.textContent = user?.displayName || "Користувач";
-		if (emailContainer) emailContainer.textContent = user?.email || "local@geneo.app";
+		if (avatarContainer) {
+			if (user?.avatar) {
+				avatarContainer.innerHTML = `<img src="${user.avatar}" class="account-avatar-img" alt="Avatar" />`;
+			} else {
+				avatarContainer.textContent = initials;
+			}
+		}
 
 		if (roleContainer) {
 			const role = user?.role || "owner";
@@ -137,6 +153,12 @@ export class AccountModalManager {
 			roleContainer.className = `account-role-badge ${roleClass}`;
 			roleContainer.textContent = roleBadge;
 		}
+
+		if (nameContainer) {
+			const roleHtml = roleContainer ? roleContainer.outerHTML : "";
+			nameContainer.innerHTML = `${user?.displayName || "Користувач"} ${roleHtml}`;
+		}
+		if (emailContainer) emailContainer.textContent = user?.email || "local@geneo.app";
 
 		// Підсвітка активної вкладки
 		const tabs = this.modal.querySelectorAll(".account-tab-btn");
@@ -176,14 +198,46 @@ export class AccountModalManager {
 		const isAuth = this.auth.isAuthenticated;
 		return `
 			<div class="account-profile-section">
+				<!-- Картка редагування профілю -->
+				<div class="account-profile-card">
+					<h4 class="profile-card-title"><i class="ri-user-settings-line"></i> Особисті дані дослідника</h4>
+					<p class="text-sm text-muted">Вкажіть ваше ім'я та прізвище для відображення в системі та на генеалогічних деревах.</p>
+
+					<div class="profile-name-form-group">
+						<label for="input-account-display-name">Повне ім'я та прізвище:</label>
+						<div class="profile-name-input-wrap">
+							<input type="text" id="input-account-display-name" class="form-input" value="${user?.displayName || ""}" placeholder="Наприклад: Іван Селіванов" />
+							<button id="btn-save-display-name" type="button" class="btn btn-primary">
+								<i class="ri-check-line"></i> Зберегти
+							</button>
+						</div>
+						<div id="name-save-feedback" class="name-save-feedback hidden"></div>
+					</div>
+
+					<div class="profile-avatar-actions">
+						<label for="input-account-avatar-file" class="btn btn-secondary btn-sm" style="cursor: pointer;">
+							<i class="ri-image-edit-line"></i> ${user?.avatar ? "Змінити фото аватарки" : "Завантажити фото аватарки"}
+						</label>
+						${
+							user?.avatar
+								? `<button id="btn-remove-avatar" type="button" class="btn btn-ghost btn-sm text-danger"><i class="ri-delete-bin-line"></i> Видалити фото</button>`
+								: ""
+						}
+					</div>
+				</div>
+
 				<div class="account-info-grid">
 					<div class="info-row">
-						<span class="info-label">Повне ім'я:</span>
-						<span class="info-value font-medium">${user?.displayName || "Не вказано"}</span>
+						<span class="info-label">Повне ім'я в системі:</span>
+						<span class="info-value font-medium" id="info-profile-display-name">${user?.displayName || "Не вказано"}</span>
 					</div>
 					<div class="info-row">
 						<span class="info-label">Електронна пошта:</span>
 						<span class="info-value">${user?.email || "Локальне сховище"}</span>
+					</div>
+					<div class="info-row">
+						<span class="info-label">Роль у системі:</span>
+						<span class="info-value font-medium">${user?.isMainAdmin ? "👑 Головний адміністратор" : user?.role === "owner" ? "🌳 Власник дерева" : "👥 Гість"}</span>
 					</div>
 					<div class="info-row">
 						<span class="info-label">Статус сесії:</span>
@@ -326,6 +380,13 @@ export class AccountModalManager {
 					</div>
 				</div>
 
+				<div class="drive-explainer-banner">
+					<i class="ri-lightbulb-line"></i>
+					<div>
+						<strong>Навіщо ця вкладка?</strong> Ваше первинне родинне дерево вже підключене до бази даних системи. Підключення особистого Google Диску необхідне в концепції <em>BYOS (Bring Your Own Storage)</em>, якщо ви або ваші користувачі створюєте <strong>нове окреме дерево</strong> і бажаєте зберігати важкі архівні фото та скани на власному безкоштовному Google Диску (15 ГБ), не навантажуючи сервер проєкту.
+					</div>
+				</div>
+
 				<div class="drive-structure-preview">
 					<h4>Автоматична структура тек Geneo:</h4>
 					<pre class="folder-tree-view">
@@ -361,6 +422,120 @@ export class AccountModalManager {
 			logoutBtn.onclick = () => {
 				if (confirm("Ви дійсно бажаєте вийти з облікового запису?")) {
 					this.auth.logout();
+				}
+			};
+		}
+
+		// Збереження імені
+		const saveNameBtn = this.modal.querySelector("#btn-save-display-name");
+		const nameInput = this.modal.querySelector("#input-account-display-name");
+		const feedbackEl = this.modal.querySelector("#name-save-feedback");
+
+		const handleSaveName = async () => {
+			if (!nameInput) return;
+			const newName = nameInput.value.trim();
+			if (!newName) {
+				if (feedbackEl) {
+					feedbackEl.className = "name-save-feedback error";
+					feedbackEl.textContent = "Будь ласка, вкажіть ваше ім'я.";
+					feedbackEl.classList.remove("hidden");
+				}
+				return;
+			}
+			if (saveNameBtn) {
+				saveNameBtn.disabled = true;
+				saveNameBtn.innerHTML = `<i class="ri-loader-4-line spin"></i> Збереження...`;
+			}
+			try {
+				await this.auth.updateProfile({ displayName: newName });
+				if (feedbackEl) {
+					feedbackEl.className = "name-save-feedback success";
+					feedbackEl.textContent = "✅ Ім'я успішно збережено!";
+					feedbackEl.classList.remove("hidden");
+				}
+				const infoNameEl = this.modal.querySelector("#info-profile-display-name");
+				if (infoNameEl) infoNameEl.textContent = newName;
+				this._syncAccountButton();
+				this.render();
+			} catch (err) {
+				if (feedbackEl) {
+					feedbackEl.className = "name-save-feedback error";
+					feedbackEl.textContent = "Помилка збереження імені.";
+					feedbackEl.classList.remove("hidden");
+				}
+			} finally {
+				if (saveNameBtn) {
+					saveNameBtn.disabled = false;
+					saveNameBtn.innerHTML = `<i class="ri-check-line"></i> Зберегти`;
+				}
+			}
+		};
+
+		if (saveNameBtn) saveNameBtn.onclick = handleSaveName;
+		if (nameInput) {
+			nameInput.onkeydown = (e) => {
+				if (e.key === "Enter") {
+					e.preventDefault();
+					handleSaveName();
+				}
+			};
+		}
+
+		// Завантаження фото аватарки
+		const avatarInput = this.modal.querySelector("#input-account-avatar-file");
+		if (avatarInput) {
+			avatarInput.onchange = (e) => {
+				const file = e.target.files?.[0];
+				if (!file) return;
+
+				if (!file.type.startsWith("image/")) {
+					alert("Будь ласка, оберіть файл зображення (JPG, PNG, WebP тощо).");
+					return;
+				}
+
+				const reader = new FileReader();
+				reader.onload = (loadEvt) => {
+					const img = new Image();
+					img.onload = async () => {
+						const canvas = document.createElement("canvas");
+						const maxDim = 256;
+						let width = img.width;
+						let height = img.height;
+						if (width > height) {
+							if (width > maxDim) {
+								height = Math.round((height * maxDim) / width);
+								width = maxDim;
+							}
+						} else {
+							if (height > maxDim) {
+								width = Math.round((width * maxDim) / height);
+								height = maxDim;
+							}
+						}
+						canvas.width = width;
+						canvas.height = height;
+						const ctx = canvas.getContext("2d");
+						ctx.drawImage(img, 0, 0, width, height);
+						const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+
+						await this.auth.updateProfile({ avatar: dataUrl });
+						this._syncAccountButton();
+						this.render();
+					};
+					img.src = loadEvt.target.result;
+				};
+				reader.readAsDataURL(file);
+			};
+		}
+
+		// Видалення аватарки
+		const removeAvatarBtn = this.modal.querySelector("#btn-remove-avatar");
+		if (removeAvatarBtn) {
+			removeAvatarBtn.onclick = async () => {
+				if (confirm("Видалити фото аватарки та повернути текстові ініціали?")) {
+					await this.auth.updateProfile({ avatar: "" });
+					this._syncAccountButton();
+					this.render();
 				}
 			};
 		}

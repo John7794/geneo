@@ -84,6 +84,13 @@ export class GoogleDriveModalManager {
 
 		body.innerHTML = `
 			<div class="gdrive-container">
+				<div class="drive-explainer-banner">
+					<i class="ri-lightbulb-line"></i>
+					<div>
+						<strong>Навіщо це налаштування:</strong> Ваше первинне дерево вже підключене до бази даних системи. Підключення Google Диску призначене для завантаження <em>нових окремих дерев (концепція BYOS)</em>, щоб зберігати фото та скани на особистому Google Диску (15 ГБ безкоштовно) без навантаження на системний сервер.
+					</div>
+				</div>
+
 				<!-- СТАТУС ПІДКЛЮЧЕННЯ -->
 				<div class="gdrive-status-card ${isConnected ? "connected" : "disconnected"}">
 					<div class="status-card-header">
@@ -218,7 +225,7 @@ export class GoogleDriveModalManager {
 									<option value="military">Військовий документ (records/scans/military/)</option>
 								</select>
 							</div>
-							<div class="form-group" style="max-width: 130px;">
+							<div class="form-group">
 								<label for="media-entity-id">ID персони / сім'ї:</label>
 								<input type="text" id="media-entity-id" class="form-input" placeholder="Напр. 1" required />
 							</div>
