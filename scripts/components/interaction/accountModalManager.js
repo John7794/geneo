@@ -34,6 +34,14 @@ export class AccountModalManager {
 			this.closeBtn.addEventListener("click", () => this.close());
 		}
 
+		// Делегування кліків для всіх кнопок кабінету у меню та інтерфейсі
+		document.addEventListener("click", (e) => {
+			if (e.target.closest("#btn-account-menu, #btn-user-account, .js-open-account")) {
+				e.preventDefault();
+				this.open();
+			}
+		});
+
 		if (this.modal) {
 			this.modal.addEventListener("click", (e) => {
 				if (e.target === this.modal) this.close();
@@ -69,20 +77,27 @@ export class AccountModalManager {
 		if (nameEl) {
 			nameEl.textContent = user?.displayName || (this.auth.isAuthenticated ? "Мій профіль" : "Увійти");
 		}
+
+		const menuBtn = document.getElementById("btn-account-menu");
+		if (menuBtn) {
+			menuBtn.title = user ? `${user.displayName || user.email} (Особистий кабінет)` : "Особистий кабінет";
+		}
 	}
 
 	isOpen() {
-		return this.modal && !this.modal.classList.contains("hidden");
+		return this.modal && this.modal.classList.contains("show") && !this.modal.classList.contains("hidden");
 	}
 
 	open() {
 		if (!this.modal) return;
 		this.modal.classList.remove("hidden");
+		this.modal.classList.add("show");
 		this.render();
 	}
 
 	close() {
 		if (!this.modal) return;
+		this.modal.classList.remove("show");
 		this.modal.classList.add("hidden");
 	}
 

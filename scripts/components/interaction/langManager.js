@@ -67,14 +67,26 @@ export class LangManager {
 		} else {
 			this.isOpen = true;
 
-			// 🔥 ПАТТЕРН "ПОРТАЛ" (Вирішує баг зі зсувом меню)
-			// Якщо це мобільний телефон (< 768px), переміщуємо меню прямо в body
+			// Портал прямо в body для усунення внутрішнього скролу в панелі інструментів
+			document.body.appendChild(this.menu);
+
 			if (window.matchMedia("(max-width: 768px)").matches) {
-				document.body.appendChild(this.menu);
-			}
-			// Якщо це ПК, повертаємо меню назад до кнопки (якщо воно було переміщене)
-			else if (this.menuParent && this.menu.parentElement !== this.menuParent) {
-				this.menuParent.appendChild(this.menu);
+				// Мобільна розмітка обробляється через @media в lang-menu.css
+				this.menu.style.position = "";
+				this.menu.style.top = "";
+				this.menu.style.right = "";
+				this.menu.style.left = "";
+				this.menu.style.bottom = "";
+				this.menu.style.zIndex = "";
+			} else if (this.btnToggle) {
+				// Десктоп: фіксоване позиціонування ліворуч від кнопки
+				const rect = this.btnToggle.getBoundingClientRect();
+				this.menu.style.position = "fixed";
+				this.menu.style.top = `${rect.top}px`;
+				this.menu.style.right = `${window.innerWidth - rect.left + 12}px`;
+				this.menu.style.left = "auto";
+				this.menu.style.bottom = "auto";
+				this.menu.style.zIndex = "10020";
 			}
 
 			this.menu.classList.remove(UI_CLASSES.hidden || "hidden");
@@ -109,6 +121,12 @@ export class LangManager {
 				if (this.menuParent && this.menu.parentElement !== this.menuParent) {
 					this.menuParent.appendChild(this.menu);
 				}
+				this.menu.style.position = "";
+				this.menu.style.top = "";
+				this.menu.style.right = "";
+				this.menu.style.left = "";
+				this.menu.style.bottom = "";
+				this.menu.style.zIndex = "";
 			}
 		}, 150);
 	}

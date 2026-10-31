@@ -109,18 +109,23 @@
     <main class="app-wrapper">
 
 
+        <!-- Хлібні крихти (чиста навігація по родоводній лінії) -->
         <div id="breadcrumbs-container" class="breadcrumbs-wrapper hidden">
-            <div id="active-tree-pill" class="active-tree-pill js-open-workspaces" title="Керування родинними деревами та просторами" role="button" tabindex="0">
+            <nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
+        </div>
+
+        <!-- Приховані елементи сумісності для стану робочого простору та користувача -->
+        <div style="display: none;" aria-hidden="true">
+            <div id="active-tree-pill" class="active-tree-pill js-open-workspaces">
                 <i class="ri-git-repository-line tree-pill-icon"></i>
-                <span class="tree-pill-name">Родовід Селіванових</span>
+                <span class="tree-pill-name">Родовід</span>
                 <span class="tree-pill-badge badge-guest">Гість</span>
                 <i class="ri-arrow-down-s-line tree-pill-arrow"></i>
             </div>
-            <div id="btn-user-account" class="account-pill js-open-account" title="Особистий кабінет користувача" role="button" tabindex="0">
+            <div id="btn-user-account" class="account-pill js-open-account">
                 <div class="account-pill-avatar">Г</div>
                 <span class="account-pill-name">Мій кабінет</span>
             </div>
-            <nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
         </div>
 
         <!-- Головна панель керування (завжди видима під панеллю хлібних крихт) -->

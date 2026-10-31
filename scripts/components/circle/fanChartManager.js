@@ -160,6 +160,7 @@ export class FanChartManager {
 		this.canvas.appendChild(svg);
 		this.svgElement = svg;
 		this.viewportGroup = svg.querySelector("#fan-viewport");
+		this._updateSelectedOverlay(this.selectedSosa);
 	}
 
 	/**
@@ -590,14 +591,28 @@ export class FanChartManager {
 		const overlay = this.canvas?.querySelector("#fan-selected-overlay");
 		if (!overlay) return;
 		overlay.innerHTML = "";
-		if (!sosa || sosa === 1) return;
+		if (!sosa) return;
+
+		const svgNS = "http://www.w3.org/2000/svg";
+
+		if (Number(sosa) === 1) {
+			const probandCircle = this.canvas?.querySelector(".fan-proband-circle");
+			if (probandCircle) {
+				const circle = document.createElementNS(svgNS, "circle");
+				circle.setAttribute("cx", probandCircle.getAttribute("cx") || "550");
+				circle.setAttribute("cy", probandCircle.getAttribute("cy") || "550");
+				circle.setAttribute("r", probandCircle.getAttribute("r") || "75");
+				circle.setAttribute("class", "fan-selected-outline fan-selected-outline--proband");
+				overlay.appendChild(circle);
+			}
+			return;
+		}
 
 		const sectorEl = this.canvas?.querySelector(`.fan-sector[data-sosa="${sosa}"]`);
 		const shape = sectorEl?.querySelector(".fan-sector-shape");
 		if (shape) {
 			const d = shape.getAttribute("d");
 			if (d) {
-				const svgNS = "http://www.w3.org/2000/svg";
 				const path = document.createElementNS(svgNS, "path");
 				path.setAttribute("d", d);
 				path.setAttribute("class", "fan-selected-outline");

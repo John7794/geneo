@@ -151,6 +151,7 @@
 
 .secondary-tools-group {
 	box-shadow: var(--shadow-lg);
+	overflow: visible; /* Дозволяє випадаючим елементам виходити за межі без появи скролбару */
 }
 
 #btn-view-toggle.active {

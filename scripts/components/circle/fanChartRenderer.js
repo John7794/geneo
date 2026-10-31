@@ -266,6 +266,32 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 	selectedOverlay.setAttribute("pointer-events", "none");
 	viewportGroup.appendChild(selectedOverlay);
 
+	// Якщо вже вибрано сектор, одразу малюємо його контур на верхньому шарі
+	if (selectedSosa) {
+		const selSosa = Number(selectedSosa);
+		if (selSosa === 1) {
+			const circle = document.createElementNS(svgNS, "circle");
+			circle.setAttribute("cx", String(cx));
+			circle.setAttribute("cy", String(cy));
+			circle.setAttribute("r", String(ringRadii[0]?.out || 75));
+			circle.setAttribute("class", "fan-selected-outline fan-selected-outline--proband");
+			selectedOverlay.appendChild(circle);
+		} else {
+			for (let g = 0; g < generations.length; g++) {
+				const s = generations[g]?.sectors?.find((item) => item.sosa === selSosa);
+				if (s) {
+					const rInfo = ringRadii[s.generation] || ringRadii[ringRadii.length - 1];
+					const pathD = buildAnnularPath(cx, cy, rInfo.in, rInfo.out, s.angles.start, s.angles.end);
+					const path = document.createElementNS(svgNS, "path");
+					path.setAttribute("d", pathD);
+					path.setAttribute("class", "fan-selected-outline");
+					selectedOverlay.appendChild(path);
+					break;
+				}
+			}
+		}
+	}
+
 	// Верхній шар для підсвічування при наведенні (hover overlay)
 	// Йде поверх решти сегментів кола, усуваючи будь-яке викривлення
 	const hoverOverlay = document.createElementNS(svgNS, "g");

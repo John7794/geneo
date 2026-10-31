@@ -80,11 +80,17 @@ export class WelcomeModalManager {
 	}
 
 	open() {
-		if (this.modal) this.modal.classList.remove("hidden");
+		if (this.modal) {
+			this.modal.classList.remove("hidden");
+			this.modal.classList.add("show");
+		}
 	}
 
 	close() {
-		if (this.modal) this.modal.classList.add("hidden");
+		if (this.modal) {
+			this.modal.classList.remove("show");
+			this.modal.classList.add("hidden");
+		}
 	}
 
 	_saveDismissState(dontShowAgain) {

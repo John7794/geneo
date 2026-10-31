@@ -27,7 +27,7 @@ export class GoogleDriveModalManager {
 		});
 
 		document.addEventListener("click", (e) => {
-			if (e.target.closest(".js-open-gdrive")) {
+			if (e.target.closest("#btn-gdrive, .js-open-gdrive")) {
 				e.preventDefault();
 				this.open();
 			}
@@ -51,17 +51,19 @@ export class GoogleDriveModalManager {
 	}
 
 	isOpen() {
-		return this.modal && !this.modal.classList.contains("hidden");
+		return this.modal && this.modal.classList.contains("show") && !this.modal.classList.contains("hidden");
 	}
 
 	async open() {
 		if (!this.modal) return;
 		this.modal.classList.remove("hidden");
+		this.modal.classList.add("show");
 		await this.render();
 	}
 
 	close() {
 		if (!this.modal) return;
+		this.modal.classList.remove("show");
 		this.modal.classList.add("hidden");
 	}
 

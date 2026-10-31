@@ -400,13 +400,21 @@
 .fan-selected-outline {
 	fill: none;
 	stroke: #ffffff;
-	stroke-width: 2.5px;
+	stroke-width: 3px;
+	stroke-linecap: round;
+	stroke-linejoin: round;
 	pointer-events: none;
 	vector-effect: non-scaling-stroke;
+	filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.45));
 }
 
 :root:not(.theme-dark) .fan-selected-outline {
 	stroke: #0f172a;
+	filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.35));
+}
+
+.fan-selected-outline--proband {
+	stroke-width: 3.5px;
 }
 
 /* ==========================================================================
