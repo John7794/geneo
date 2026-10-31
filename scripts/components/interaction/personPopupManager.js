@@ -641,17 +641,28 @@ export class PersonPopupManager {
 		const items = matches
 			.map((m) => {
 				const cand = m.person;
-				const name = cand.fullName || cand.name || `ID: ${cand.id}`;
+				const name = m.fullName || cand.fullName || cand.name || `ID: ${cand.id}`;
 				const badgeClass = m.confidence === "high" ? "badge-high" : "badge-medium";
 				const reasonsStr = m.reasons.join(" • ");
 
+				const rawB =
+					cand.birth_year ||
+					cand.raw?.birth_year ||
+					cand.raw?.fam_year ||
+					cand.birthDate ||
+					cand.dates?.birth ||
+					"";
+				const yearMatch = String(rawB).match(/\b(1[5-9]\d{2}|20\d{2})\b/);
+				const bYearStr = yearMatch ? `р.н. ${yearMatch[0]}` : "";
+				const metaParts = [bYearStr, `ID: ${cand.id}`].filter(Boolean).join(" • ");
+
 				return `
-					<div class="popup-duplicate-item js-go-profile" data-id="${cand.id}" role="button" tabindex="0" title="Перейти до потенційного дубліката">
+					<div class="popup-duplicate-item js-go-profile" data-id="${cand.id}" role="button" tabindex="0" title="Перейти до потенційного дубліката: ${escapeHtml(name)} (ID: ${cand.id})">
 						<div class="dup-item-main">
-							<span class="dup-item-name">${name}</span>
+							<span class="dup-item-name">${escapeHtml(name)} ${metaParts ? `<small class="dup-item-meta">(${escapeHtml(metaParts)})</small>` : ""}</span>
 							<span class="dup-confidence-badge ${badgeClass}">${m.score}% схожість</span>
 						</div>
-						<div class="dup-item-reasons">${reasonsStr}</div>
+						<div class="dup-item-reasons">${escapeHtml(reasonsStr)}</div>
 					</div>
 				`;
 			})

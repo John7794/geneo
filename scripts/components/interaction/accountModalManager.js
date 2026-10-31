@@ -991,13 +991,13 @@ export class AccountModalManager {
 						<div class="audit-compare-grid">
 							<div class="audit-person-box">
 								<span class="box-role">Особа 1 (ID: ${item.personA.id})</span>
-								<strong>${item.personA.name || item.personA.fullName}</strong>
+								<strong>${item.personAName || item.personA.fullName || item.personA.name}</strong>
 								<span class="box-meta">${item.personA.birthDate || item.personA.dates?.birth || "Рік народження невідомий"}</span>
 							</div>
 							<div class="audit-compare-arrow"><i class="ri-arrow-left-right-line"></i></div>
 							<div class="audit-person-box">
 								<span class="box-role">Особа 2 (ID: ${item.personB.id})</span>
-								<strong>${item.personB.name || item.personB.fullName}</strong>
+								<strong>${item.personBName || item.personB.fullName || item.personB.name}</strong>
 								<span class="box-meta">${item.personB.birthDate || item.personB.dates?.birth || "Рік народження невідомий"}</span>
 							</div>
 						</div>

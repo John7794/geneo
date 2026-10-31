@@ -127,6 +127,8 @@ export class TreeAuditService {
 		const dupPairs = DuplicateDetectorService.findAllDuplicatePairs(engine);
 		for (const match of dupPairs) {
 			const issueId = `dup_${match.pairKey}`;
+			const nameA = match.personAName || match.personA.fullName || match.personA.name;
+			const nameB = match.personBName || match.personB.fullName || match.personB.name;
 			duplicates.push({
 				id: issueId,
 				type: "duplicate",
@@ -137,9 +139,11 @@ export class TreeAuditService {
 				person: match.personA,
 				personA: match.personA,
 				personB: match.personB,
+				personAName: nameA,
+				personBName: nameB,
 				score: match.score,
 				confidence: match.confidence,
-				description: `Можливий дублікат: «${match.personA.name || match.personA.fullName}» та «${match.personB.name || match.personB.fullName}». Схожість ${match.score}%.`,
+				description: `Можливий дублікат: «${nameA}» та «${nameB}». Схожість ${match.score}%.`,
 				reasons: match.reasons,
 			});
 		}

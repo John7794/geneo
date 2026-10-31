@@ -440,6 +440,13 @@
 	color: var(--color-text-main);
 }
 
+.dup-item-meta {
+	font-size: 0.8rem;
+	font-weight: 400;
+	color: var(--color-text-muted, #64748b);
+	margin-left: 4px;
+}
+
 .dup-confidence-badge {
 	font-size: 11px;
 	font-weight: 700;
