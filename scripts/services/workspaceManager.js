@@ -184,7 +184,22 @@ export class WorkspaceManager {
 		this.workspaces.push(newWs);
 		this._persistMeta();
 
-		return newWs;
+		return { ...newWs, dbData };
+	}
+
+	/**
+	 * Отримати повну базу даних (31 таблицю) для будь-якого дерева
+	 */
+	async getWorkspaceDbData(workspaceId) {
+		const target = this.workspaces.find((w) => w.id === workspaceId);
+		if (!target) return null;
+		if (target.type === "bundled") {
+			return this.engine?.db || null;
+		}
+		if (typeof localforage !== "undefined") {
+			return await localforage.getItem(`${STORAGE_KEYS.WS_DB_PREFIX}${workspaceId}`);
+		}
+		return null;
 	}
 
 	/**

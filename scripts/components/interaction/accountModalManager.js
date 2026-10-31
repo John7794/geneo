@@ -4,10 +4,12 @@
  * Керування інтерфейсом Особистого кабінету користувача
  */
 export class AccountModalManager {
-	constructor(authManager, workspaceManager, gedcomManager) {
+	constructor(authManager, workspaceManager, gedcomManager, driveService = null, driveModalManager = null) {
 		this.auth = authManager;
 		this.workspaceManager = workspaceManager;
 		this.gedcomManager = gedcomManager;
+		this.drive = driveService;
+		this.driveModalManager = driveModalManager;
 
 		this.modal = document.getElementById("account-modal");
 		this.accountBtn = document.getElementById("btn-user-account");
@@ -296,6 +298,7 @@ export class AccountModalManager {
 	}
 
 	_renderDriveTab(user) {
+		const isDriveConnected = this.drive ? this.drive.isConnected() : !!user?.connectedDrive?.connected;
 		return `
 			<div class="account-drive-section">
 				<div class="drive-header-card">
@@ -326,11 +329,11 @@ export class AccountModalManager {
 
 				<div class="drive-connection-status">
 					<div class="status-indicator">
-						<span class="status-dot ${user?.connectedDrive?.connected ? "green" : "gray"}"></span>
-						<span>Статус: <strong>${user?.connectedDrive?.connected ? "Підключено до Google Диску" : "Локальне сховище браузера (IndexedDB)"}</strong></span>
+						<span class="status-dot ${isDriveConnected ? "green" : "gray"}"></span>
+						<span>Статус: <strong>${isDriveConnected ? "Підключено до Google Диску" : "Локальне сховище браузера (IndexedDB)"}</strong></span>
 					</div>
 					<button id="btn-connect-gdrive" class="btn btn-secondary">
-						<i class="ri-google-fill"></i> ${user?.connectedDrive?.connected ? "Налаштування Google Диску" : "Підключити мій Google Диск"}
+						<i class="ri-google-fill"></i> ${isDriveConnected ? "Керування Google Диском" : "Підключити мій Google Диск"}
 					</button>
 				</div>
 			</div>
@@ -477,13 +480,18 @@ export class AccountModalManager {
 		}
 	}
 
+	setDriveModalManager(driveModalManager) {
+		this.driveModalManager = driveModalManager;
+	}
+
 	_bindDriveEvents() {
 		const connectBtn = this.modal.querySelector("#btn-connect-gdrive");
 		if (connectBtn) {
 			connectBtn.onclick = () => {
-				alert(
-					"Інтеграція з Google Диском (Крок 3): на наступному етапі ви зможете підключити свій Google OAuth та автоматично розвантажувати дані у власну папку Geneo!",
-				);
+				this.close();
+				if (this.driveModalManager) {
+					this.driveModalManager.open();
+				}
 			};
 		}
 	}

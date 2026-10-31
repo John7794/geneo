@@ -1,0 +1,322 @@
+/* ./css/components/interaction/drive.css */
+
+.gdrive-container {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+/* Картка статусу підключення */
+.gdrive-status-card {
+	background: var(--color-bg-card, #ffffff);
+	border: 1px solid var(--color-border);
+	border-radius: 14px;
+	padding: 1.25rem;
+	transition: all 0.2s ease;
+}
+
+.gdrive-status-card.connected {
+	border-color: #86efac;
+	background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.status-card-header {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.gdrive-logo-badge {
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: #ffffff;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	color: #16a34a;
+	border: 1px solid var(--color-border);
+	flex-shrink: 0;
+}
+
+.status-card-info {
+	flex: 1;
+}
+
+.status-card-info h3 {
+	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--color-text-main);
+}
+
+.status-card-info p {
+	margin: 3px 0 0 0;
+	font-size: 0.85rem;
+	color: var(--color-text-muted);
+}
+
+/* Квота пам'яті */
+.gdrive-quota-box {
+	margin-top: 1rem;
+	padding-top: 1rem;
+	border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.quota-meta-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 0.85rem;
+	color: var(--color-text-muted);
+	margin-bottom: 6px;
+}
+
+.quota-pct {
+	font-weight: 700;
+	color: var(--color-text-main);
+}
+
+.quota-bar-wrapper {
+	width: 100%;
+	height: 8px;
+	background: #e2e8f0;
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.quota-bar-fill {
+	height: 100%;
+	background: #22c55e;
+	border-radius: 10px;
+	transition: width 0.4s ease;
+}
+
+.quota-bar-fill.warning {
+	background: #ef4444;
+}
+
+.quota-warning-badge {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: #dc2626;
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	padding: 6px 10px;
+	border-radius: 6px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	margin-top: 8px;
+}
+
+/* Налаштування та підказки */
+.gdrive-setup-hint {
+	margin-top: 1rem;
+	padding-top: 0.75rem;
+	border-top: 1px dashed var(--color-border);
+}
+
+.advanced-settings-toggle summary {
+	font-size: 0.85rem;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	user-select: none;
+	font-weight: 500;
+}
+
+.custom-client-box {
+	margin-top: 8px;
+	padding: 10px;
+	background: var(--color-bg-subtle, #f8fafc);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+}
+
+.flex-row {
+	display: flex;
+	align-items: center;
+}
+
+/* Секції дій */
+.gdrive-section-card {
+	background: var(--color-bg-card, #ffffff);
+	border: 1px solid var(--color-border);
+	border-radius: 14px;
+	padding: 1.25rem;
+}
+
+.section-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.section-card-header h4,
+.gdrive-section-card h4 {
+	margin: 0;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--color-text-main);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Інтерактивна карта папок */
+.gdrive-tree-preview {
+	background: #0f172a;
+	color: #f8fafc;
+	border-radius: 10px;
+	padding: 12px 16px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.82rem;
+	line-height: 1.6;
+	overflow-x: auto;
+	margin-top: 10px;
+}
+
+.folder-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.folder-row.indent-1 {
+	padding-left: 18px;
+}
+
+.folder-row.indent-2 {
+	padding-left: 36px;
+}
+
+.folder-row.indent-3 {
+	padding-left: 54px;
+}
+
+.folder-row i {
+	color: #60a5fa;
+	font-size: 14px;
+}
+
+/* Прогрес-бар */
+.progress-box {
+	margin-top: 10px;
+	padding: 10px 12px;
+	background: var(--color-bg-subtle, #f8fafc);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+}
+
+.progress-bar {
+	width: 100%;
+	height: 6px;
+	background: #e2e8f0;
+	border-radius: 6px;
+	overflow: hidden;
+	margin-top: 6px;
+}
+
+.progress-fill {
+	height: 100%;
+	background: var(--color-primary, #2563eb);
+	border-radius: 6px;
+	transition: width 0.2s ease;
+	width: 0%;
+}
+
+/* Зона Drag & Drop */
+.gdrive-upload-form {
+	margin-top: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.form-grid-row {
+	display: flex;
+	gap: 10px;
+}
+
+.drop-zone-wrapper {
+	position: relative;
+}
+
+.hidden-file-input {
+	display: none;
+}
+
+.drop-zone {
+	border: 2px dashed var(--color-border);
+	border-radius: 12px;
+	padding: 1.5rem 1rem;
+	text-align: center;
+	cursor: pointer;
+	background: var(--color-bg-subtle, #f8fafc);
+	transition: all 0.15s ease;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-hover {
+	border-color: var(--color-primary);
+	background: rgba(37, 99, 235, 0.04);
+}
+
+.drop-icon {
+	font-size: 28px;
+	color: var(--color-primary);
+	margin-bottom: 6px;
+	display: inline-block;
+}
+
+.drop-zone p {
+	margin: 0;
+	font-size: 0.9rem;
+	font-weight: 500;
+	color: var(--color-text-main);
+}
+
+.drop-zone p span {
+	color: var(--color-primary);
+	text-decoration: underline;
+}
+
+.selected-name {
+	display: block;
+	margin-top: 6px;
+	font-weight: 600;
+	color: #16a34a;
+}
+
+/* Повідомлення про успіх */
+.upload-success-alert {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	background: #f0fdf4;
+	border: 1px solid #bbf7d0;
+	padding: 12px;
+	border-radius: 8px;
+	margin-top: 12px;
+	color: #166534;
+	font-size: 0.875rem;
+}
+
+.upload-success-alert i {
+	font-size: 20px;
+	color: #22c55e;
+	flex-shrink: 0;
+}
+
+.upload-success-alert p {
+	margin: 2px 0 6px 0;
+}
+
+.drive-link {
+	color: var(--color-primary);
+	font-weight: 600;
+	text-decoration: underline;
+}

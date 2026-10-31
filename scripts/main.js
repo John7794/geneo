@@ -32,6 +32,8 @@ import { WorkspaceModalManager } from "./components/interaction/workspaceModalMa
 import { AuthManager } from "./services/authManager.js";
 import { AccountModalManager } from "./components/interaction/accountModalManager.js";
 import { WelcomeModalManager } from "./components/interaction/welcomeModalManager.js";
+import { GoogleDriveService } from "./services/googleDriveService.js";
+import { GoogleDriveModalManager } from "./components/interaction/googleDriveModalManager.js";
 
 class App {
 	constructor() {
@@ -205,9 +207,12 @@ class App {
 		this.managers.theme = new ThemeManager();
 		this.managers.share = new ShareManager(this);
 		this.managers.ai = new AIManager();
-		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager);
+		this.driveService = new GoogleDriveService();
+		this.managers.googleDrive = new GoogleDriveModalManager(this.driveService, this.workspaceManager);
+
+		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager, this.driveService);
 		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
-		this.managers.account = new AccountModalManager(this.authManager, this.workspaceManager, this.managers.gedcom);
+		this.managers.account = new AccountModalManager(this.authManager, this.workspaceManager, this.managers.gedcom, this.driveService, this.managers.googleDrive);
 		this.managers.welcome = new WelcomeModalManager(this.managers.gedcom, this.managers.account);
 		this.managers.welcome.checkFirstRun();
 

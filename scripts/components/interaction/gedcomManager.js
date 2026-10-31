@@ -6,9 +6,10 @@ import { parseGedcom, exportGeneoToGedcom, convertGedcomToGeneo } from "../../se
  * Менеджер модального вікна GEDCOM (Імпорт та Експорт генеалогічних даних)
  */
 export class GedcomManager {
-	constructor(engine, workspaceManager = null) {
+	constructor(engine, workspaceManager = null, driveService = null) {
 		this.engine = engine;
 		this.workspaceManager = workspaceManager;
+		this.driveService = driveService;
 		this.overlay = document.getElementById("gedcom-overlay");
 		this.btnOpen = document.getElementById("btn-gedcom");
 		this.currentParsedGedcom = null;
@@ -20,6 +21,10 @@ export class GedcomManager {
 
 	setWorkspaceManager(wsManager) {
 		this.workspaceManager = wsManager;
+	}
+
+	setDriveService(driveService) {
+		this.driveService = driveService;
 	}
 
 	_init() {
@@ -337,6 +342,19 @@ export class GedcomManager {
 							<input type="text" id="ws-new-tree-name" value="${escapeHtml(defaultTreeName)}" style="width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 14px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-card); color: var(--color-text-main);" />
 						</div>
 
+						${
+							this.driveService && this.driveService.isConnected()
+								? `
+							<div style="margin-bottom: 14px; display: flex; align-items: center; gap: 8px; font-size: 13px; background: rgba(34, 197, 94, 0.08); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
+								<input type="checkbox" id="chk-gedcom-sync-drive" checked style="cursor: pointer;" />
+								<label for="chk-gedcom-sync-drive" style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; color: var(--color-text-main);">
+									<i class="ri-google-fill" style="color: #16a34a;"></i> Синхронізувати копію на мій Google Диск (Geneo/db/uk/)
+								</label>
+							</div>
+						`
+								: ""
+						}
+
 						<button id="btn-save-as-workspace" class="btn btn-primary w-full" style="padding: 12px; font-size: 15px; font-weight: 600; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
 							<i class="ri-rocket-line"></i> Відкрити це дерево в Geneo
 						</button>
@@ -370,6 +388,16 @@ export class GedcomManager {
 									familiesCount: converted.stats.familiesCount,
 									dbData: converted,
 								});
+
+								const chkDrive = resultDiv.querySelector("#chk-gedcom-sync-drive");
+								if (chkDrive?.checked && this.driveService?.isConnected()) {
+									try {
+										btnOpenTree.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Синхронізація з Google Диском...`;
+										await this.driveService.syncWorkspaceDatabaseToDrive(newWs);
+									} catch (gErr) {
+										console.warn("Помилка синхронізації з Google Диском:", gErr);
+									}
+								}
 
 								this.close();
 								this.workspaceManager.switchWorkspace(newWs.id);
