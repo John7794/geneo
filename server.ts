@@ -858,8 +858,15 @@ app.get("/login", (req, res) => {
       <div class="auth-card">
         <div class="auth-header">
           <div class="auth-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg viewBox="0 0 256 256" fill="none" style="width:32px;height:32px;">
+              <path d="M128 64 V96 H64 V128 M128 96 H192 V128 M64 128 V160 H32 V192 M64 160 H96 V192 M192 128 V160 H160 V192 M192 160 H224 V192" stroke="#2563eb" stroke-width="14" stroke-linejoin="round"/>
+              <circle cx="128" cy="64" r="24" fill="#2563eb"/>
+              <circle cx="64" cy="128" r="24" fill="#2563eb"/>
+              <circle cx="192" cy="128" r="24" fill="#2563eb"/>
+              <circle cx="32" cy="192" r="18" fill="#3b82f6"/>
+              <circle cx="96" cy="192" r="18" fill="#3b82f6"/>
+              <circle cx="160" cy="192" r="18" fill="#3b82f6"/>
+              <circle cx="224" cy="192" r="18" fill="#3b82f6"/>
             </svg>
           </div>
           <h1>Geneo</h1>
@@ -989,7 +996,7 @@ app.get("/login", (req, res) => {
               showError(data.error || 'Помилка входу. Перевірте email та пароль.');
             }
           } catch (err) {
-            showError('Помилка з\'єднання з сервером.');
+            showError("Помилка з'єднання з сервером.");
           }
         };
 
@@ -1022,7 +1029,7 @@ app.get("/login", (req, res) => {
               showError(data.error || 'Помилка реєстрації.');
             }
           } catch (err) {
-            showError('Помилка з\'єднання з сервером.');
+            showError("Помилка з'єднання з сервером.");
           }
         };
 
