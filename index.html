@@ -110,19 +110,22 @@
             <nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
         </div>
 
-        <button id="mobile-menu-btn" class="mobile-menu-toggle" aria-label="Меню">
-            <i class="ri-menu-line"></i>
-        </button>
-
-        <div class="top-bar-controls">
+        <!-- Головна панель керування (завжди видима під панеллю хлібних крихт) -->
+        <div class="top-bar-controls" id="main-dock">
             <div class="control-group unified-panel">
+                <button id="mobile-menu-btn" class="btn btn-icon mobile-menu-toggle" title="Додаткові інструменти" aria-label="Меню інструментів" aria-expanded="false">
+                    <i class="ri-menu-line"></i>
+                    <span id="events-badge-dock" class="badge-dot badge-dot--tr hidden"></span>
+                </button>
+
+                <hr class="panel-divider" />
 
                 <button id="btn-home" class="btn btn-icon" title="На головну" aria-label="На головну" data-i18n-title="ui.home">
                     <i class="ri-home-4-line"></i>
                 </button>
 
-                <button id="btn-share" class="btn btn-icon js-open-share" style="display: none;" title="Поділитися" aria-label="Поділитися" data-i18n-title="ui.share">
-                    <i class="ri-share-line"></i>
+                <button id="btn-view-toggle" class="btn btn-icon js-view-toggle" title="Коло роду" aria-label="Перемкнути вигляд: Коло роду" data-i18n-title="ui.viewCircle">
+                    <i class="ri-pie-chart-2-line"></i>
                 </button>
 
                 <button id="btn-search" class="btn btn-icon js-open-search" title="Пошук" aria-label="Пошук" data-i18n-title="ui.searchTitle">
@@ -133,14 +136,15 @@
                     <i class="ri-git-branch-line"></i>
                 </button>
 
-                <button id="btn-view-toggle" class="btn btn-icon js-view-toggle" title="Коло роду" aria-label="Перемкнути вигляд: Коло роду" data-i18n-title="ui.viewCircle">
-                    <i class="ri-pie-chart-2-line"></i>
+                <button id="btn-share" class="btn btn-icon js-open-share" style="display: none;" title="Поділитися" aria-label="Поділитися" data-i18n-title="ui.share">
+                    <i class="ri-share-line"></i>
                 </button>
+            </div>
+        </div>
 
-                <hr class="panel-divider" />
-
-
-
+        <!-- Випадаюче меню додаткових інструментів -->
+        <div id="secondary-menu-panel" class="secondary-menu-panel">
+            <div class="control-group unified-panel secondary-tools-group">
                 <button id="btn-ai" class="btn btn-icon js-open-ai" title="AI Асистент" aria-label="AI Асистент">
                     <i class="ri-robot-2-line"></i>
                 </button>
@@ -155,6 +159,7 @@
                     <span id="events-badge" class="badge-dot badge-dot--tr hidden"></span>
                 </button>
 
+                <hr class="panel-divider" />
 
                 <button id="theme-toggle" class="btn btn-icon" title="Перемкнути тему" aria-label="Перемкнути тему" data-i18n-title="ui.themeTitle">
                     <i class="ri-moon-line"></i>
@@ -171,11 +176,6 @@
                         </button>
                     </div>
                 </div>
-
-
-                
-
-
             </div>
         </div>
 

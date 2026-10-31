@@ -133,7 +133,8 @@
 
 	/* Контейнер інструментів (Speed Dial меню). Підвищена специфічність. */
 	#tree-view .top-bar-controls,
-	.app-wrapper .top-bar-controls {
+	.app-wrapper .top-bar-controls,
+	.secondary-menu-panel {
 		position: fixed;
 		bottom: 96px;
 		right: var(--spacing-md);
@@ -164,7 +165,8 @@
 
 	/* Стан відкритого меню */
 	#tree-view .top-bar-controls.is-open,
-	.app-wrapper .top-bar-controls.is-open {
+	.app-wrapper .top-bar-controls.is-open,
+	.secondary-menu-panel.is-open {
 		opacity: 1;
 		visibility: visible;
 		transform: translateY(0) scale(1);
@@ -174,7 +176,8 @@
 
 	/* Пропорційне збільшення ширини кнопок у плаваючому меню */
 	#tree-view .top-bar-controls button,
-	.app-wrapper .top-bar-controls button {
+	.app-wrapper .top-bar-controls button,
+	.secondary-menu-panel button {
 		width: 48px !important; /* Утвердити розмір */
 		height: 48px !important; /* Зробили квадратними (width = height) */
 		border-radius: var(--radius-sm) !important; /* Квадратні з заокругленими кутами */
@@ -183,7 +186,8 @@
 	}
 
 	#tree-view .top-bar-controls .control-group,
-	.app-wrapper .top-bar-controls .control-group {
+	.app-wrapper .top-bar-controls .control-group,
+	.secondary-menu-panel .control-group {
 		display: flex;
 		flex-direction: column;
 		margin: 0;
