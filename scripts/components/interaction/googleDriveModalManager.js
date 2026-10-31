@@ -225,12 +225,14 @@ export class GoogleDriveModalManager {
 						</div>
 
 						<div class="drop-zone-wrapper">
-							<input type="file" id="media-file-input" class="hidden-file-input" accept="image/*,application/pdf" required />
+							<input type="file" id="media-file-input" class="hidden-file-input" accept="image/*,application/pdf" multiple />
 							<div id="drop-zone" class="drop-zone">
 								<i class="ri-upload-2-line drop-icon"></i>
-								<p>Перетягніть файл сюди або <span>оберіть на комп'ютері</span></p>
-								<span id="selected-file-name" class="selected-name text-sm text-muted"></span>
+								<p>Перетягніть файли сюди або <span>оберіть на комп'ютері</span></p>
+								<span class="text-xs text-muted" style="display: block; margin-top: 3px;">(підтримується пакетне завантаження до 10 файлів)</span>
+								<span id="selected-file-name" class="selected-name text-sm"></span>
 							</div>
+							<div id="selected-files-list" class="selected-files-list hidden"></div>
 						</div>
 
 						<button type="submit" id="btn-do-upload-media" class="btn btn-primary w-full" ${!isConnected ? "disabled" : ""}>
@@ -365,17 +367,52 @@ export class GoogleDriveModalManager {
 			};
 		}
 
-		// Завантаження медіа
+		// Завантаження медіа (пакетне завантаження до 10 файлів)
 		const dropZone = this.modal.querySelector("#drop-zone");
 		const fileInput = this.modal.querySelector("#media-file-input");
 		const fileNameEl = this.modal.querySelector("#selected-file-name");
+		const filesListEl = this.modal.querySelector("#selected-files-list");
+		const MAX_FILES = 10;
+		let chosenFiles = [];
+
+		const updateFileListDisplay = (files) => {
+			const arr = Array.from(files || []);
+			if (arr.length > MAX_FILES) {
+				alert(`Дозволено завантажувати не більше ${MAX_FILES} файлів за один раз. Обрано перші ${MAX_FILES}.`);
+				chosenFiles = arr.slice(0, MAX_FILES);
+			} else {
+				chosenFiles = arr;
+			}
+
+			if (!chosenFiles.length) {
+				fileNameEl.innerText = "";
+				if (filesListEl) {
+					filesListEl.innerHTML = "";
+					filesListEl.classList.add("hidden");
+				}
+				return;
+			}
+
+			const totalSizeMB = (chosenFiles.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024)).toFixed(2);
+			fileNameEl.innerText = `Обрано файлів: ${chosenFiles.length} (загалом ${totalSizeMB} MB)`;
+
+			if (filesListEl) {
+				filesListEl.classList.remove("hidden");
+				filesListEl.innerHTML = chosenFiles
+					.map((f, i) => `
+						<div class="selected-file-chip">
+							<span class="chip-name"><i class="ri-file-line"></i> ${i + 1}. ${f.name}</span>
+							<span class="chip-size">${(f.size / 1024).toFixed(1)} KB</span>
+						</div>
+					`)
+					.join("");
+			}
+		};
 
 		if (dropZone && fileInput) {
 			dropZone.onclick = () => fileInput.click();
 			fileInput.onchange = () => {
-				if (fileInput.files?.[0]) {
-					fileNameEl.innerText = `Обрано: ${fileInput.files[0].name} (${(fileInput.files[0].size / 1024).toFixed(1)} KB)`;
-				}
+				updateFileListDisplay(fileInput.files);
 			};
 
 			dropZone.ondragover = (e) => {
@@ -386,9 +423,8 @@ export class GoogleDriveModalManager {
 			dropZone.ondrop = (e) => {
 				e.preventDefault();
 				dropZone.classList.remove("drag-hover");
-				if (e.dataTransfer.files?.[0]) {
-					fileInput.files = e.dataTransfer.files;
-					fileNameEl.innerText = `Обрано: ${fileInput.files[0].name} (${(fileInput.files[0].size / 1024).toFixed(1)} KB)`;
+				if (e.dataTransfer.files?.length) {
+					updateFileListDisplay(e.dataTransfer.files);
 				}
 			};
 		}
@@ -397,9 +433,8 @@ export class GoogleDriveModalManager {
 		if (uploadForm) {
 			uploadForm.onsubmit = async (e) => {
 				e.preventDefault();
-				const file = fileInput?.files?.[0];
-				if (!file) {
-					alert("Будь ласка, оберіть файл для завантаження.");
+				if (!chosenFiles.length) {
+					alert("Будь ласка, оберіть файли для завантаження.");
 					return;
 				}
 
@@ -410,30 +445,54 @@ export class GoogleDriveModalManager {
 
 				try {
 					btnSubmit.disabled = true;
-					btnSubmit.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Завантаження на Google Диск...`;
+					const uploadedResults = [];
 
-					const res = await this.drive.uploadMedia({
-						file,
-						category,
-						entityId,
-					});
+					for (let i = 0; i < chosenFiles.length; i++) {
+						const file = chosenFiles[i];
+						btnSubmit.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Завантаження ${i + 1} з ${chosenFiles.length}: ${file.name}...`;
+
+						let customName = "";
+						if (category === "portrait") {
+							const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+							customName = i === 0 ? `${entityId}.${ext}` : `${entityId}_${i + 1}.${ext}`;
+						}
+
+						const res = await this.drive.uploadMedia({
+							file,
+							category,
+							entityId,
+							customName,
+						});
+						uploadedResults.push(res);
+					}
 
 					if (resultBox) {
 						resultBox.classList.remove("hidden");
 						resultBox.innerHTML = `
 							<div class="upload-success-alert">
 								<i class="ri-checkbox-circle-line"></i>
-								<div>
-									<strong>Файл успішно завантажено!</strong>
-									<p>Назва: <code>${res.name}</code></p>
-									${res.webViewLink ? `<a href="${res.webViewLink}" target="_blank" class="drive-link">Відкрити файл на Google Диску ↗</a>` : ""}
+								<div style="flex: 1;">
+									<strong>Успішно завантажено (${uploadedResults.length} ${uploadedResults.length === 1 ? "файл" : "файлів"})!</strong>
+									<div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+										${uploadedResults.map((r) => `
+											<div>
+												<code>${r.name}</code>
+												${r.webViewLink ? `<a href="${r.webViewLink}" target="_blank" class="drive-link" style="margin-left: 8px;">Відкрити ↗</a>` : ""}
+											</div>
+										`).join("")}
+									</div>
 								</div>
 							</div>
 						`;
 					}
 
 					uploadForm.reset();
+					chosenFiles = [];
 					fileNameEl.innerText = "";
+					if (filesListEl) {
+						filesListEl.innerHTML = "";
+						filesListEl.classList.add("hidden");
+					}
 				} catch (err) {
 					alert("Помилка завантаження файлу: " + err.message);
 				} finally {

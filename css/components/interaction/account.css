@@ -224,10 +224,23 @@
 .account-logout-btn {
 	color: #dc2626 !important;
 	border-color: #fecaca !important;
+	background: transparent;
+	transition: all 0.2s ease;
 }
 
 .account-logout-btn:hover {
 	background-color: #fef2f2 !important;
+}
+
+:root.theme-dark .account-logout-btn {
+	color: #f87171 !important;
+	border-color: rgba(248, 113, 113, 0.35) !important;
+	background: rgba(248, 113, 113, 0.08) !important;
+}
+
+:root.theme-dark .account-logout-btn:hover {
+	background-color: rgba(248, 113, 113, 0.2) !important;
+	border-color: #f87171 !important;
 }
 
 /* Вкладка Дерева */
@@ -330,6 +343,12 @@
 	margin: 1rem 0;
 }
 
+:root.theme-dark .restricted-notice {
+	background: rgba(180, 83, 9, 0.2);
+	border-color: rgba(245, 158, 11, 0.35);
+	color: #fde68a;
+}
+
 .restricted-action {
 	margin-top: 1.5rem;
 	background: var(--color-bg-subtle, #f8fafc);
@@ -414,6 +433,11 @@
 	color: #475569;
 }
 
+:root.theme-dark .user-role-tag {
+	background: #334155;
+	color: #cbd5e1;
+}
+
 .btn-revoke-share {
 	background: transparent;
 	border: none;
@@ -428,6 +452,10 @@
 	background: #fee2e2;
 }
 
+:root.theme-dark .btn-revoke-share:hover {
+	background: rgba(239, 68, 68, 0.2);
+}
+
 /* Вкладка Google Диск */
 .drive-header-card {
 	display: flex;
@@ -438,6 +466,11 @@
 	padding: 1.25rem;
 	border-radius: 12px;
 	margin-bottom: 1.25rem;
+}
+
+:root.theme-dark .drive-header-card {
+	background: rgba(22, 101, 52, 0.25);
+	border-color: rgba(74, 222, 128, 0.35);
 }
 
 .drive-icon-box {
@@ -452,10 +485,18 @@
 	color: #166534;
 }
 
+:root.theme-dark .drive-header-text h3 {
+	color: #86efac;
+}
+
 .drive-header-text p {
 	margin: 2px 0 0 0;
 	font-size: 0.85rem;
 	color: #15803d;
+}
+
+:root.theme-dark .drive-header-text p {
+	color: #bbf7d0;
 }
 
 .folder-tree-view {

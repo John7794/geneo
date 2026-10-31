@@ -221,6 +221,17 @@ class App {
 			el.addEventListener("click", () => this.managers.account.open());
 		});
 
+		// Делегування кнопки поділитися до вкладки шерингу в кабінеті
+		document.addEventListener("click", (e) => {
+			if (e.target.closest(".js-open-share")) {
+				e.preventDefault();
+				if (this.managers.account) {
+					this.managers.account.open();
+					this.managers.account.switchTab("sharing");
+				}
+			}
+		});
+
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();
 		this.managers.update = new UpdateManager(this);

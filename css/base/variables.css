@@ -34,6 +34,8 @@
 
 	/* Фонові під-відтінки */
 	--color-bg-sub: #f9fafb;
+	--color-bg-subtle: #f8fafc;
+	--color-bg-input: #ffffff;
 	--color-bg-muted: #f3f4f6;
 
 	/* Бейджі статусів (профіль) */
@@ -160,15 +162,17 @@
 	--color-text-muted: #9ca3af;
 	--color-text-meta: #9ca3af;
 
-	--color-bg-body: #111827;
-	--color-bg-card: #1f2937;
-	--color-bg-hover: #374151;
-	--color-bg-sub: #1f2937;
-	--color-bg-muted: #374151;
+	--color-bg-body: #0b0f19;
+	--color-bg-card: #151d2f;
+	--color-bg-hover: #1e293b;
+	--color-bg-sub: #151d2f;
+	--color-bg-subtle: #192237;
+	--color-bg-input: #0f172a;
+	--color-bg-muted: #1e293b;
 
-	--color-border: #374151;
-	--color-border-light: #1f2937;
-	--color-border-hover: #4b5563;
+	--color-border: #26334d;
+	--color-border-light: #192237;
+	--color-border-hover: #3b82f6;
 
 	/* Бейджі статусів (профіль) для темної теми */
 	--c-success-bg: #064e3b;

@@ -20,6 +20,11 @@
 	background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
 }
 
+:root.theme-dark .gdrive-status-card.connected {
+	border-color: rgba(74, 222, 128, 0.4);
+	background: linear-gradient(180deg, rgba(22, 101, 52, 0.3) 0%, rgba(21, 29, 47, 0.8) 100%);
+}
+
 .status-card-header {
 	display: flex;
 	align-items: center;
@@ -39,6 +44,11 @@
 	color: #16a34a;
 	border: 1px solid var(--color-border);
 	flex-shrink: 0;
+}
+
+:root.theme-dark .gdrive-logo-badge {
+	background: #192237;
+	border-color: var(--color-border);
 }
 
 .status-card-info {
@@ -228,6 +238,34 @@
 	width: 0%;
 }
 
+/* Форма та поля введення */
+.form-input,
+select.form-input,
+input.form-input {
+	background-color: var(--color-bg-input, #ffffff);
+	color: var(--color-text-main);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	padding: 9px 12px;
+	font-size: 0.9rem;
+	width: 100%;
+	box-sizing: border-box;
+	outline: none;
+	transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.form-input:focus,
+select.form-input:focus,
+input.form-input:focus {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+select.form-input option {
+	background-color: var(--color-bg-card, #ffffff);
+	color: var(--color-text-main);
+}
+
 /* Зона Drag & Drop */
 .gdrive-upload-form {
 	margin-top: 12px;
@@ -262,7 +300,7 @@
 .drop-zone:hover,
 .drop-zone.drag-hover {
 	border-color: var(--color-primary);
-	background: rgba(37, 99, 235, 0.04);
+	background: rgba(37, 99, 235, 0.08);
 }
 
 .drop-icon {
@@ -288,7 +326,44 @@
 	display: block;
 	margin-top: 6px;
 	font-weight: 600;
-	color: #16a34a;
+	color: var(--color-primary);
+}
+
+/* Список обраних файлів для пакетного завантаження */
+.selected-files-list {
+	margin-top: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 140px;
+	overflow-y: auto;
+}
+
+.selected-file-chip {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: var(--color-bg-subtle, #f8fafc);
+	border: 1px solid var(--color-border);
+	border-radius: 6px;
+	padding: 5px 10px;
+	font-size: 0.8rem;
+	color: var(--color-text-main);
+}
+
+.selected-file-chip .chip-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 75%;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.selected-file-chip .chip-size {
+	color: var(--color-text-muted);
+	font-size: 0.75rem;
 }
 
 /* Повідомлення про успіх */
@@ -303,6 +378,12 @@
 	margin-top: 12px;
 	color: #166534;
 	font-size: 0.875rem;
+}
+
+:root.theme-dark .upload-success-alert {
+	background: rgba(22, 101, 52, 0.25);
+	border-color: rgba(74, 222, 128, 0.35);
+	color: #86efac;
 }
 
 .upload-success-alert i {
