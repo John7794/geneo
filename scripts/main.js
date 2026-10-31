@@ -163,6 +163,7 @@ class App {
 		);
 		this.managers.analytics = new AnalyticsManager(this.engine);
 		this.managers.fanChart = new FanChartManager(this.engine, {
+			getRootId: () => this.rootPersonId,
 			onNavigateToProfile: (id) => this.navigateToId(id, false, "profile"),
 			onCenterOnPerson: (id) => this.navigateToId(id, false, window.matchMedia("(max-width: 768px)").matches ? "tree" : "circle"),
 		});

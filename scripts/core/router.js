@@ -613,7 +613,9 @@ export class AppRouter {
 		this._setUIVisibility("circle");
 		const fanChartViewEl = document.getElementById("fan-chart-view");
 		if (this.app.managers.fanChart) {
-			const lineageMode = this.app.managers.lineage?.mode || "all";
+			const rootId = String(this.app.rootPersonId || "1").trim();
+			const isFirstProband = String(id).trim() === rootId || String(id).trim() === "1";
+			const lineageMode = isFirstProband ? (this.app.managers.lineage?.mode || "all") : "all";
 			this.app.managers.fanChart.render(id, lineageMode);
 			requestAnimationFrame(() => {
 				if (fanChartViewEl) fanChartViewEl.style.opacity = "1";

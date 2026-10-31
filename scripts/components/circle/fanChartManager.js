@@ -111,6 +111,23 @@ export class FanChartManager {
 	}
 
 	/**
+	 * Отримує дійсний режим лінії роду:
+	 * Конкретна гілка (lineageMode) стосується ТІЛЬКИ першого пробанда (індекс 1 / rootId).
+	 * Для всіх інших осіб/пробандів завжди повертається "all", щоб відображалося повне коло їхніх предків.
+	 */
+	_getEffectiveLineageMode() {
+		const rootId = String(
+			this.callbacks?.getRootId?.() ||
+			this.callbacks?.rootPersonId ||
+			this.rootPersonId ||
+			"1"
+		).trim();
+		const currentId = String(this.currentPersonId || "").trim();
+		const isFirstProband = currentId === rootId || currentId === "1";
+		return isFirstProband ? (this.lineageMode || "all") : "all";
+	}
+
+	/**
 	 * Встановлює режим роду та оновлює відображення кола
 	 * @param {string} mode 
 	 */
@@ -133,8 +150,11 @@ export class FanChartManager {
 			this.lineageMode = lineageMode;
 		}
 
+		// Конкретна гілка стосується тільки першого пробанда (індекс 1)
+		const effectiveMode = this._getEffectiveLineageMode();
+
 		// Розрахунок предків до 7 поколінь (8 поколінь сумарно) з урахуванням режиму роду
-		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 6, this.lineageMode || "all");
+		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 6, effectiveMode);
 
 		this._renderRings();
 		this._renderNavPills();
@@ -183,7 +203,8 @@ export class FanChartManager {
 			if (!genData || genData.knownCount === 0) continue;
 
 			const isGenActive = !isAllActive && (this.activeGens.has(String(g)) || this.activeGens.has(g));
-			const label = genData.label || getGenerationRibbonLabel(g, this.lineageMode || "all");
+			const effectiveMode = this._getEffectiveLineageMode();
+			const label = genData.label || getGenerationRibbonLabel(g, effectiveMode);
 
 			html += `
 				<button class="fan-nav-pill ${isGenActive ? "active" : ""}" data-gen="${g}">
