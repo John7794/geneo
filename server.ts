@@ -1413,6 +1413,24 @@ app.post("/api/user/profile", async (req, res) => {
   });
 });
 
+// ВИДАЛЕННЯ КАБІНЕТУ КОРИСТУВАЧА
+app.post("/api/user/delete-account", async (req, res) => {
+  const email = getAuthenticatedUser(req);
+  if (email) {
+    try {
+      const users = readLocalUsers();
+      if (users[email]) {
+        delete users[email];
+        writeLocalUsers(users);
+      }
+    } catch (e) {}
+  }
+  res.clearCookie("auth_session", { path: "/", sameSite: "none", secure: true });
+  res.clearCookie("auth_email", { path: "/", sameSite: "none", secure: true });
+  res.clearCookie("auth_email_client", { path: "/", sameSite: "none", secure: true });
+  res.json({ success: true, message: "Кабінет успішно видалено." });
+});
+
 app.post("/api/invite", async (req, res) => {
   if (!(await checkCanShare(req))) {
     return res.status(403).json({ error: "Немає прав для запрошення користувачів." });

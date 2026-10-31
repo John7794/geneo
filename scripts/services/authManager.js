@@ -132,6 +132,27 @@ export class AuthManager {
 	}
 
 	/**
+	 * Видалення особистого кабінету користувача
+	 */
+	async deleteAccount() {
+		try {
+			const token = localStorage.getItem(this._storageKeyToken);
+			const headers = {};
+			if (token) headers["Authorization"] = `Bearer ${token}`;
+			await fetch("/api/user/delete-account", { method: "POST", headers });
+		} catch (e) {
+			console.warn("Помилка запиту видалення кабінету:", e);
+		}
+
+		localStorage.removeItem(this._storageKeyToken);
+		localStorage.removeItem(this._storageKeyUser);
+		this.user = null;
+		this.isAuthenticated = false;
+
+		window.location.href = "/login";
+	}
+
+	/**
 	 * Отримати дані користувача
 	 */
 	getUser() {

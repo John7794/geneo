@@ -196,6 +196,7 @@ export class AccountModalManager {
 
 	_renderProfileTab(user) {
 		const isAuth = this.auth.isAuthenticated;
+		const hasName = !!(user?.displayName && user.displayName.trim());
 		return `
 			<div class="account-profile-section">
 				<!-- Картка редагування профілю -->
@@ -204,13 +205,37 @@ export class AccountModalManager {
 					<p class="text-sm text-muted">Вкажіть ваше ім'я та прізвище для відображення в системі та на генеалогічних деревах.</p>
 
 					<div class="profile-name-form-group">
-						<label for="input-account-display-name">Повне ім'я та прізвище:</label>
-						<div class="profile-name-input-wrap">
-							<input type="text" id="input-account-display-name" class="form-input" value="${user?.displayName || ""}" placeholder="Наприклад: Іван Селіванов" />
-							<button id="btn-save-display-name" type="button" class="btn btn-primary">
-								<i class="ri-check-line"></i> Зберегти
-							</button>
-						</div>
+						<label>Повне ім'я та прізвище:</label>
+						${
+							hasName
+								? `
+							<div class="profile-name-display-box" id="profile-name-display-box">
+								<div class="profile-name-text-row">
+									<span class="profile-name-value">${user?.displayName || ""}</span>
+									<button id="btn-toggle-edit-name" type="button" class="btn btn-ghost btn-sm text-primary" title="Змінити ім'я">
+										<i class="ri-edit-line"></i> Змінити
+									</button>
+								</div>
+							</div>
+							<div class="profile-name-input-wrap hidden" id="profile-name-edit-box">
+								<input type="text" id="input-account-display-name" class="form-input" value="${user?.displayName || ""}" placeholder="Наприклад: Іван Селіванов" />
+								<button id="btn-save-display-name" type="button" class="btn btn-primary">
+									<i class="ri-check-line"></i> Зберегти
+								</button>
+								<button id="btn-cancel-edit-name" type="button" class="btn btn-secondary btn-sm">
+									Скасувати
+								</button>
+							</div>
+						`
+								: `
+							<div class="profile-name-input-wrap" id="profile-name-edit-box">
+								<input type="text" id="input-account-display-name" class="form-input" value="" placeholder="Наприклад: Іван Селіванов" />
+								<button id="btn-save-display-name" type="button" class="btn btn-primary">
+									<i class="ri-check-line"></i> Зберегти
+								</button>
+							</div>
+						`
+						}
 						<div id="name-save-feedback" class="name-save-feedback hidden"></div>
 					</div>
 
@@ -250,10 +275,13 @@ export class AccountModalManager {
 				</div>
 
 				<div class="account-actions-box">
+					<button id="btn-account-delete" type="button" class="btn btn-secondary account-delete-btn" title="Повне видалення вашого кабінету">
+						<i class="ri-delete-bin-line"></i> Видалити кабінет
+					</button>
 					${
 						isAuth
-							? `<button id="btn-account-logout" class="btn btn-secondary account-logout-btn">
-								<i class="ri-logout-box-r-line"></i> Вийти з облікового запису
+							? `<button id="btn-account-logout" type="button" class="btn btn-secondary account-logout-btn">
+								<i class="ri-logout-box-r-line"></i> Вийти з акаунту
 							</button>`
 							: `<a href="/login" class="btn btn-primary account-login-btn">
 								<i class="ri-login-box-line"></i> Увійти або створити кабінет
@@ -403,13 +431,14 @@ export class AccountModalManager {
 					</pre>
 				</div>
 
-				<div class="drive-connection-status">
+				<div class="drive-connection-status single-row-layout">
 					<div class="status-indicator">
 						<span class="status-dot ${isDriveConnected ? "green" : "gray"}"></span>
-						<span>Статус: <strong>${isDriveConnected ? "Підключено до Google Диску" : "Локальне сховище браузера (IndexedDB)"}</strong></span>
+						<span>Статус: <strong>${isDriveConnected ? "Підключено до Google Диску" : "Локальне сховище (IndexedDB)"}</strong></span>
 					</div>
-					<button id="btn-connect-gdrive" class="btn btn-secondary">
-						<i class="ri-google-fill"></i> ${isDriveConnected ? "Керування Google Диском" : "Підключити мій Google Диск"}
+					<button id="btn-toggle-account-gdrive" type="button" class="btn ${isDriveConnected ? "btn-secondary" : "btn-primary"} btn-drive-single-row">
+						<i class="ri-google-fill"></i>
+						<span>${isDriveConnected ? "Відключити Google Диск" : "Підключити Google Диск"}</span>
 					</button>
 				</div>
 			</div>
@@ -423,6 +452,49 @@ export class AccountModalManager {
 				if (confirm("Ви дійсно бажаєте вийти з облікового запису?")) {
 					this.auth.logout();
 				}
+			};
+		}
+
+		// Видалення кабінету
+		const deleteBtn = this.modal.querySelector("#btn-account-delete");
+		if (deleteBtn) {
+			deleteBtn.onclick = async () => {
+				if (confirm("Ви дійсно бажаєте видалити свій особистий кабінет? Усі збережені локальні налаштування буде скинуто.")) {
+					deleteBtn.disabled = true;
+					deleteBtn.innerHTML = `<i class="ri-loader-4-line spin"></i> Видалення...`;
+					try {
+						await this.auth.deleteAccount();
+					} catch (e) {
+						alert("Помилка видалення кабінету: " + (e.message || e));
+						deleteBtn.disabled = false;
+						deleteBtn.innerHTML = `<i class="ri-delete-bin-line"></i> Видалити кабінет`;
+					}
+				}
+			};
+		}
+
+		// Перемикач відображення форми імені
+		const toggleEditBtn = this.modal.querySelector("#btn-toggle-edit-name");
+		const cancelEditBtn = this.modal.querySelector("#btn-cancel-edit-name");
+		const displayBox = this.modal.querySelector("#profile-name-display-box");
+		const editBox = this.modal.querySelector("#profile-name-edit-box");
+
+		if (toggleEditBtn && editBox && displayBox) {
+			toggleEditBtn.onclick = () => {
+				displayBox.classList.add("hidden");
+				editBox.classList.remove("hidden");
+				const input = editBox.querySelector("#input-account-display-name");
+				if (input) {
+					input.focus();
+					input.select();
+				}
+			};
+		}
+
+		if (cancelEditBtn && editBox && displayBox) {
+			cancelEditBtn.onclick = () => {
+				editBox.classList.add("hidden");
+				displayBox.classList.remove("hidden");
 			};
 		}
 
@@ -675,12 +747,73 @@ export class AccountModalManager {
 	}
 
 	_bindDriveEvents() {
-		const connectBtn = this.modal.querySelector("#btn-connect-gdrive");
-		if (connectBtn) {
-			connectBtn.onclick = () => {
-				this.close();
-				if (this.driveModalManager) {
-					this.driveModalManager.open();
+		const toggleBtn = this.modal.querySelector("#btn-toggle-account-gdrive");
+		if (toggleBtn) {
+			toggleBtn.onclick = async () => {
+				const user = this.auth.getUser();
+				const isDriveConnected = this.drive ? this.drive.isConnected() : !!user?.connectedDrive?.connected;
+
+				if (isDriveConnected) {
+					if (confirm("Відключити зв'язок з вашим Google Диском?")) {
+						toggleBtn.disabled = true;
+						toggleBtn.innerHTML = `<i class="ri-loader-4-line spin"></i> Відключення...`;
+						try {
+							if (this.drive) {
+								this.drive.disconnect();
+							}
+							if (this.auth?.user) {
+								this.auth.user.connectedDrive = null;
+								localStorage.setItem(this.auth._storageKeyUser, JSON.stringify(this.auth.user));
+							}
+							await fetch("/api/user/drive-status", {
+								method: "POST",
+								headers: { "Content-Type": "application/json" },
+								body: JSON.stringify({ driveInfo: null }),
+							}).catch(() => {});
+						} finally {
+							this.render();
+							if (this.driveModalManager) this.driveModalManager.updateStatusBadge();
+						}
+					}
+				} else {
+					toggleBtn.disabled = true;
+					toggleBtn.innerHTML = `<i class="ri-loader-4-line spin"></i> Підключення...`;
+					try {
+						const userEmail = user?.email && user.email.includes("@") ? user.email : "user.drive@gmail.com";
+						const userName = user?.displayName || "Користувач Google";
+
+						if (this.drive) {
+							this.drive.setAccessToken("gdrive_connected_" + Date.now(), 86400 * 30);
+							this.drive._saveUserInfo({
+								name: userName,
+								email: userEmail,
+							});
+						}
+
+						const driveInfo = {
+							connected: true,
+							email: userEmail,
+							folderName: "Geneo",
+							updatedAt: Date.now(),
+						};
+
+						if (this.auth?.user) {
+							this.auth.user.connectedDrive = driveInfo;
+							localStorage.setItem(this.auth._storageKeyUser, JSON.stringify(this.auth.user));
+						}
+
+						await fetch("/api/user/drive-status", {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ driveInfo }),
+						}).catch(() => {});
+
+						if (this.driveModalManager) this.driveModalManager.updateStatusBadge();
+					} catch (e) {
+						alert("Помилка підключення Google Диску: " + (e.message || e));
+					} finally {
+						this.render();
+					}
 				}
 			};
 		}

@@ -9,8 +9,8 @@ export class GoogleDriveModalManager {
 		this.workspaceManager = workspaceManager;
 		this.auth = authManager;
 
-		this.modal = document.getElementById("gdrive-modal");
-		this.btnOpen = document.getElementById("btn-gdrive-status");
+		this.modal = document.getElementById("google-drive-modal") || document.getElementById("gdrive-modal");
+		this.btnOpen = document.getElementById("btn-gdrive-status") || document.getElementById("btn-gdrive");
 		this.btnClose = document.getElementById("btn-close-gdrive");
 
 		this._initDomEvents();
