@@ -162,8 +162,8 @@ export class GoogleDriveModalManager {
 
 					<div class="gdrive-tree-preview">
 						<div class="folder-row root"><i class="ri-folder-fill"></i> <strong>Geneo/</strong> ${folderMap ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>db/</strong> (Таблиці)</div>
-						<div class="folder-row indent-2"><i class="ri-folder-line"></i> uk/ (31 таблиця CSV) ${folderMap?.dbUk ? "✅" : "⚪"}</div>
+						<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>db/</strong> (База даних)</div>
+						<div class="folder-row indent-2"><i class="ri-file-excel-2-line"></i> Geneo_DB (Таблиця з 31 вкладкою) ${folderMap?.dbUk || folderMap?.db ? "✅" : "⚪"}</div>
 						<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>records/</strong> (Архівні матеріали)</div>
 						<div class="folder-row indent-2"><i class="ri-folder-line"></i> portraits/ (Портрети осіб) ${folderMap?.portraits ? "✅" : "⚪"}</div>
 						<div class="folder-row indent-2"><i class="ri-folder-line"></i> family_photos/ (Сімейні фото по ID) ${folderMap?.familyPhotos ? "✅" : "⚪"}</div>
@@ -189,7 +189,7 @@ export class GoogleDriveModalManager {
 						</button>
 					</div>
 					<p class="text-sm text-muted">
-						Дерево: <strong>«${activeWs?.name || "Поточне дерево"}»</strong>. Всі 31 таблиця будуть перетворені на CSV і записані в папку <code>Geneo/db/uk/</code> на вашому Диску.
+						Дерево: <strong>«${activeWs?.name || "Поточне дерево"}»</strong>. Всі 31 таблиця родоводу будуть збережені та синхронізовані в папку <code>Geneo/db/</code> на вашому Диску.
 					</p>
 					<div id="sync-progress-container" class="progress-box hidden">
 						<p id="sync-progress-text" class="text-sm"></p>

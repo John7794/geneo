@@ -373,7 +373,7 @@ export class AccountModalManager {
 					<form id="account-share-form" class="share-inline-form">
 						<div class="form-inputs-row">
 							<input type="email" id="share-input-email" placeholder="Email родича..." required class="form-input" />
-							<select id="share-input-role" class="form-input" style="max-width: 170px;">
+							<select id="share-input-role" class="form-input" style="min-width: 170px; max-width: 185px;">
 								<option value="viewer">Тільки перегляд</option>
 								<option value="editor">Редактор</option>
 							</select>
@@ -419,7 +419,7 @@ export class AccountModalManager {
 					<h4>Автоматична структура тек Geneo:</h4>
 					<pre class="folder-tree-view">
 📁 Geneo/
-   ├── 📂 db/                      (31 таблиця баз даних)
+   ├── 📂 db/                      (Єдина Google Таблиця з 31 вкладкою)
    └── 📂 records/                 (Архівні фото та документи)
        ├── 📂 family_photos/       (Сімейні фотографії)
        ├── 📂 portraits/           (Портрети персон)

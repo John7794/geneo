@@ -291,6 +291,22 @@ input[type="file"].hidden-file-input {
 	color: var(--color-text-main, #f8fafc);
 }
 
+select.form-input {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	padding-right: 36px !important;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' fill='%2364748b'%3E%3Cpath d='M12 15L7 10H17L12 15Z'%3E%3C/path%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: calc(100% - 12px) center;
+	background-size: 16px 16px;
+	cursor: pointer;
+}
+
+:root.theme-dark select.form-input {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16' fill='%2394a3b8'%3E%3Cpath d='M12 15L7 10H17L12 15Z'%3E%3C/path%3E%3C/svg%3E");
+}
+
 :root.theme-dark select.form-input option {
 	background-color: #1e293b;
 	color: #f8fafc;
