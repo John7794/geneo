@@ -17,8 +17,18 @@ export class GedcomManager {
 
 	_init() {
 		if (this.btnOpen) {
-			this.btnOpen.addEventListener("click", () => this.open());
+			this.btnOpen.addEventListener("click", (e) => {
+				e.preventDefault();
+				this.open();
+			});
 		}
+
+		document.addEventListener("click", (e) => {
+			if (e.target.closest("#btn-gedcom, .js-open-gedcom")) {
+				e.preventDefault();
+				this.open();
+			}
+		});
 
 		if (this.overlay) {
 			const closeBtn = this.overlay.querySelector(".js-close-popup");
@@ -39,6 +49,9 @@ export class GedcomManager {
 	open() {
 		if (this.overlay) {
 			this.overlay.classList.remove("hidden");
+			this.overlay.classList.add("show");
+			this.overlay.classList.add("open");
+			this.overlay.setAttribute("aria-hidden", "false");
 			this._updateExportStats();
 		}
 	}
@@ -46,6 +59,9 @@ export class GedcomManager {
 	close() {
 		if (this.overlay) {
 			this.overlay.classList.add("hidden");
+			this.overlay.classList.remove("show");
+			this.overlay.classList.remove("open");
+			this.overlay.setAttribute("aria-hidden", "true");
 		}
 	}
 
@@ -56,10 +72,16 @@ export class GedcomManager {
 
 		tabs.forEach((tab) => {
 			tab.addEventListener("click", () => {
-				tabs.forEach((t) => t.classList.remove("active"));
+				tabs.forEach((t) => {
+					t.classList.remove("active");
+					t.style.borderBottom = "2px solid transparent";
+					t.style.color = "var(--color-text-muted)";
+				});
 				panels.forEach((p) => p.classList.add("hidden"));
 
 				tab.classList.add("active");
+				tab.style.borderBottom = "2px solid var(--color-primary)";
+				tab.style.color = "var(--color-text-main)";
 				const targetId = tab.getAttribute("data-target");
 				const targetPanel = this.overlay.querySelector(targetId);
 				if (targetPanel) targetPanel.classList.remove("hidden");
@@ -124,12 +146,22 @@ export class GedcomManager {
 	_setupImport() {
 		const dropZone = this.overlay?.querySelector("#gedcom-drop-zone");
 		const fileInput = this.overlay?.querySelector("#gedcom-file-input");
-		const previewContainer = this.overlay?.querySelector("#gedcom-import-preview");
-		const btnConvert = this.overlay?.querySelector("#btn-do-gedcom-convert");
+		const btnSelect = this.overlay?.querySelector("#btn-select-gedcom-file");
 
 		if (!dropZone || !fileInput) return;
 
-		dropZone.addEventListener("click", () => fileInput.click());
+		if (btnSelect) {
+			btnSelect.addEventListener("click", (e) => {
+				e.stopPropagation();
+				fileInput.click();
+			});
+		}
+
+		dropZone.addEventListener("click", (e) => {
+			if (e.target !== btnSelect) {
+				fileInput.click();
+			}
+		});
 
 		dropZone.addEventListener("dragover", (e) => {
 			e.preventDefault();
@@ -153,12 +185,6 @@ export class GedcomManager {
 				this._handleFile(e.target.files[0]);
 			}
 		});
-
-		if (btnConvert) {
-			btnConvert.addEventListener("click", () => {
-				this._executeConversion();
-			});
-		}
 	}
 
 	_handleFile(file) {
@@ -238,7 +264,7 @@ export class GedcomManager {
 
 			<div id="gedcom-conversion-result" class="hidden"></div>
 
-			<button id="btn-do-gedcom-convert" class="btn btn-primary w-full" style="padding: 10px; font-size: 14px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+			<button id="btn-do-gedcom-convert" class="btn btn-primary w-full" style="padding: 10px; font-size: 14px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
 				<i class="ri-refresh-line"></i> Сконвертувати в таблиці Geneo
 			</button>
 		`;
@@ -293,7 +319,7 @@ export class GedcomManager {
 							</ul>
 						</div>
 						<div style="display: flex; gap: 8px;">
-							<button id="btn-download-converted-csv" class="btn btn-outline w-full" style="padding: 8px; font-size: 13px; border-radius: 8px;">
+							<button id="btn-download-converted-csv" class="btn btn-outline w-full" style="padding: 8px; font-size: 13px; border-radius: 8px; cursor: pointer;">
 								<i class="ri-file-download-line"></i> Завантажити таблиці CSV
 							</button>
 						</div>
@@ -302,7 +328,7 @@ export class GedcomManager {
 					const btnDl = resultDiv.querySelector("#btn-download-converted-csv");
 					if (btnDl && typeof Papa !== "undefined") {
 						btnDl.addEventListener("click", () => {
-							// Завантажуємо families.csv та familyChildren.csv
+							// Завантажуємо families.csv
 							const famCsv = Papa.unparse(converted.families);
 							const blob = new Blob([famCsv], { type: "text/csv;charset=utf-8" });
 							const url = URL.createObjectURL(blob);

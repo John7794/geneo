@@ -87,10 +87,9 @@
 	padding: 0 var(--spacing-md);
 }
 
-/* Приховування мобільного контейнера та кнопки FAB на десктопах */
+/* Приховування мобільного контейнера на десктопах */
 @media (min-width: 768px) {
-	.tree-mobile-container,
-	.mobile-menu-toggle {
+	.tree-mobile-container {
 		display: none;
 	}
 }

@@ -80,6 +80,7 @@ export class MobileMenuManager {
 	}
 
 	_handlePanelClick(e) {
+		if (e.target.closest(".lang-menu-wrapper")) return;
 		const toolBtn = e.target.closest(".tool-btn, button");
 		if (toolBtn) {
 			this.close();

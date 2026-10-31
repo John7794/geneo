@@ -55,15 +55,63 @@
    ПАНЕЛЬ ІНСТРУМЕНТІВ (Top Bar Controls)
    ========================================== */
 
-/* Плаваюча панель інструментів */
+/* Кнопка виклику меню-бургера */
+.mobile-menu-toggle {
+	display: flex;
+	position: fixed;
+	top: 16px;
+	right: var(--spacing-md);
+	width: 44px;
+	height: 44px;
+	border-radius: var(--radius-lg);
+	background-color: var(--color-bg-card);
+	color: var(--color-text-main);
+	border: 1px solid var(--color-border);
+	box-shadow: var(--shadow-md);
+	z-index: 1015;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	font-size: 20px;
+	transition: background-color var(--transition-base), color var(--transition-base), transform var(--transition-base);
+}
+
+.mobile-menu-toggle:hover {
+	background-color: var(--color-bg-hover);
+	color: var(--color-primary);
+}
+
+.mobile-menu-toggle:active {
+	transform: scale(0.92);
+}
+
+/* Плаваюча панель інструментів (меню-бургер) */
 .top-bar-controls {
 	position: fixed;
-	top: 130px; /* Опускаємо панель, щоб не перекривала інші заголовки */
+	top: 68px;
 	right: var(--spacing-md);
-	z-index: 1010; /* Ставимо вище за крихти (у яких 1000) */
+	z-index: 1014;
 	display: flex;
-	flex-direction: column; /* Робимо панель вертикальною */
-	gap: var(--spacing-md); /* Відстань між групами кнопок */
+	flex-direction: column;
+	gap: var(--spacing-xs);
+
+	/* Початковий стан: згорнуто у бургер */
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transform: translateY(-10px) scale(0.95);
+	transform-origin: top right;
+	transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+	            transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+	            visibility 0.22s;
+}
+
+/* Відкритий стан меню після кліку на бургер */
+.top-bar-controls.is-open {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transform: translateY(0) scale(1);
 }
 
 /* Окремий острівець для функціональної групи */
@@ -71,15 +119,19 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	width: 44px; /* Збільшено ширину з 44px для кращої ергономіки */
+	width: 44px;
 	box-sizing: border-box;
 	gap: var(--spacing-xs);
 	background-color: var(--color-bg-card);
-	padding: var(--spacing-xs) 0; /* Збільшено вертикальні відступи */
+	padding: var(--spacing-xs) 0;
 	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-md);
+	box-shadow: var(--shadow-lg);
 	border: 1px solid var(--color-border);
 	z-index: 999999;
+	max-height: calc(100vh - 85px);
+	overflow-y: auto;
+	overflow-x: hidden;
+	scrollbar-width: thin;
 }
 
 #btn-view-toggle.active {
