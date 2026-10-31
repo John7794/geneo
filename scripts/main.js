@@ -27,6 +27,8 @@ import { UpdateManager } from "./components/interaction/updateManager.js";
 import { GlobalModalInterceptor } from "./core/globalModalInterceptor.js";
 import { AIManager } from "./components/interaction/aiManager.js";
 import { GedcomManager } from "./components/interaction/gedcomManager.js";
+import { WorkspaceManager } from "./services/workspaceManager.js";
+import { WorkspaceModalManager } from "./components/interaction/workspaceModalManager.js";
 
 class App {
 	constructor() {
@@ -76,7 +78,21 @@ class App {
 				console.warn("⚠️ Could not fetch user config, using defaults", e);
 			}
 
-			this.engine = await fetchAllData(userConfig);
+			this.workspaceManager = new WorkspaceManager();
+			const activeWs = await this.workspaceManager.init(userConfig);
+
+			if (activeWs && activeWs.probandId) {
+				this.rootPersonId = activeWs.probandId;
+				userConfig.rootPerson = activeWs.probandId;
+			}
+
+			this.engine = await this.workspaceManager.loadActiveEngine(userConfig);
+
+			// Контроль прав шерингу: ТІЛЬКИ власник має право ділитися деревом!
+			const btnShare = document.getElementById("btn-share");
+			if (btnShare) {
+				btnShare.style.display = this.workspaceManager.canShareCurrentWorkspace() ? "" : "none";
+			}
 
 			if (!this.engine) throw new Error("Engine is null");
 
@@ -176,7 +192,8 @@ class App {
 		this.managers.theme = new ThemeManager();
 		this.managers.share = new ShareManager(this);
 		this.managers.ai = new AIManager();
-		this.managers.gedcom = new GedcomManager(this.engine);
+		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager);
+		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();

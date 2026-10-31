@@ -46,6 +46,7 @@
 <link rel="stylesheet" href="/css/components/interaction/onboarding.css" />
 <link rel="stylesheet" href="/css/components/interaction/popup.css" />
 <link rel="stylesheet" href="/css/components/interaction/relationship.css" />
+<link rel="stylesheet" href="/css/components/interaction/workspaces.css" />
 <link rel="stylesheet" href="/css/components/interaction/search.css" />
 <link rel="stylesheet" href="/css/components/interaction/zoom.css" />
 <link rel="stylesheet" href="/css/components/circle/fan-chart.css" />
@@ -107,6 +108,12 @@
 
 
         <div id="breadcrumbs-container" class="breadcrumbs-wrapper hidden">
+            <div id="active-tree-pill" class="active-tree-pill js-open-workspaces" title="Керування родинними деревами та просторами" role="button" tabindex="0">
+                <i class="ri-git-repository-line tree-pill-icon"></i>
+                <span class="tree-pill-name">Родовід Селіванових</span>
+                <span class="tree-pill-badge badge-guest">Гість</span>
+                <i class="ri-arrow-down-s-line tree-pill-arrow"></i>
+            </div>
             <nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
         </div>
 
@@ -145,6 +152,9 @@
         <!-- Випадаюче меню додаткових інструментів -->
         <div id="secondary-menu-panel" class="secondary-menu-panel">
             <div class="control-group unified-panel secondary-tools-group">
+                <button id="btn-workspaces" class="btn btn-icon js-open-workspaces" title="Дерева та простори" aria-label="Дерева та простори">
+                    <i class="ri-folder-user-line"></i>
+                </button>
                 <button id="btn-ai" class="btn btn-icon js-open-ai" title="AI Асистент" aria-label="AI Асистент">
                     <i class="ri-robot-2-line"></i>
                 </button>
@@ -657,6 +667,37 @@
                     <input type="file" id="gedcom-file-input" accept=".ged,.gedcom" style="display: none;" />
                     <div id="gedcom-import-preview" class="hidden"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Workspaces Modal -->
+    <div id="workspaces-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="workspaces-modal-title">
+        <div class="popup-container" style="width: 90%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; background: var(--color-bg-card); border-radius: 16px; border: 1px solid var(--color-border); box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div class="popup-close-pos">
+                <button class="modal-close js-close-popup" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="popup-header" style="padding: 20px 24px; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h2 id="workspaces-modal-title" class="popup-title" style="margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ri-folder-user-line" style="color: var(--color-primary);"></i> Родинні дерева та простори
+                    </h2>
+                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--color-text-muted);">
+                        Перемикайтеся між родинами або додавайте власні файли GEDCOM
+                    </p>
+                </div>
+            </div>
+            <div class="popup-body" style="padding: 20px 24px; overflow-y: auto; flex: 1;">
+                <div id="workspaces-list" class="workspaces-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+            <div class="popup-footer" style="padding: 16px 24px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-bg-body); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                <div style="font-size: 12px; color: var(--color-text-muted); display: flex; align-items: center; gap: 6px;">
+                    <i class="ri-shield-check-line" style="color: var(--color-primary);"></i> Локальні дані ізольовані
+                </div>
+                <button id="btn-ws-new-gedcom" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <i class="ri-upload-cloud-line"></i> Імпортувати нове дерево (GEDCOM)
+                </button>
             </div>
         </div>
     </div>

@@ -6,13 +6,20 @@ import { parseGedcom, exportGeneoToGedcom, convertGedcomToGeneo } from "../../se
  * Менеджер модального вікна GEDCOM (Імпорт та Експорт генеалогічних даних)
  */
 export class GedcomManager {
-	constructor(engine) {
+	constructor(engine, workspaceManager = null) {
 		this.engine = engine;
+		this.workspaceManager = workspaceManager;
 		this.overlay = document.getElementById("gedcom-overlay");
 		this.btnOpen = document.getElementById("btn-gedcom");
 		this.currentParsedGedcom = null;
+		this.currentFileName = "";
+		this.currentFileSize = 0;
 
 		this._init();
+	}
+
+	setWorkspaceManager(wsManager) {
+		this.workspaceManager = wsManager;
 	}
 
 	_init() {
@@ -48,19 +55,17 @@ export class GedcomManager {
 
 	open() {
 		if (this.overlay) {
+			this._updateExportStats();
 			this.overlay.classList.remove("hidden");
 			this.overlay.classList.add("show");
-			this.overlay.classList.add("open");
 			this.overlay.setAttribute("aria-hidden", "false");
-			this._updateExportStats();
 		}
 	}
 
 	close() {
 		if (this.overlay) {
-			this.overlay.classList.add("hidden");
 			this.overlay.classList.remove("show");
-			this.overlay.classList.remove("open");
+			this.overlay.classList.add("hidden");
 			this.overlay.setAttribute("aria-hidden", "true");
 		}
 	}
@@ -193,6 +198,9 @@ export class GedcomManager {
 			return;
 		}
 
+		this.currentFileName = file.name;
+		this.currentFileSize = file.size;
+
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			try {
@@ -254,7 +262,7 @@ export class GedcomManager {
 				<label style="font-size: 13px; font-weight: 600; color: var(--color-text-main); margin-bottom: 8px; display: block;">Стратегія конвертації:</label>
 				<div style="display: flex; gap: 12px; flex-wrap: wrap;">
 					<label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--color-text-main);">
-						<input type="radio" name="gedcom-strategy" value="replace" checked /> Створити нову чисту базу
+						<input type="radio" name="gedcom-strategy" value="replace" checked /> Створити чисту базу в новому дереві
 					</label>
 					<label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--color-text-main);">
 						<input type="radio" name="gedcom-strategy" value="merge" /> Об'єднати з наявною базою
@@ -303,6 +311,11 @@ export class GedcomManager {
 				const db = this.engine?.db || {};
 				const converted = convertGedcomToGeneo(this.currentParsedGedcom, db, { strategy });
 
+				const firstIndi = this.currentParsedGedcom?.individuals?.[0];
+				const probandName = firstIndi?.primaryName?.fullName || "Пробанд";
+				const rawBaseName = this.currentFileName.replace(/\.(ged|gedcom)$/i, "");
+				const defaultTreeName = `Родовід: ${probandName !== "Не визначено" ? probandName : rawBaseName}`;
+
 				if (btnConvert) btnConvert.style.display = "none";
 				if (resultDiv) {
 					resultDiv.classList.remove("hidden");
@@ -318,6 +331,16 @@ export class GedcomManager {
 								<li>Населених пунктів: <strong>${converted.stats.placesCount}</strong> (places.csv)</li>
 							</ul>
 						</div>
+
+						<div style="background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+							<label style="display: block; font-size: 12px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 6px;">Назва нового дерева (простору):</label>
+							<input type="text" id="ws-new-tree-name" value="${escapeHtml(defaultTreeName)}" style="width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 14px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-card); color: var(--color-text-main);" />
+						</div>
+
+						<button id="btn-save-as-workspace" class="btn btn-primary w-full" style="padding: 12px; font-size: 15px; font-weight: 600; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+							<i class="ri-rocket-line"></i> Відкрити це дерево в Geneo
+						</button>
+
 						<div style="display: flex; gap: 8px;">
 							<button id="btn-download-converted-csv" class="btn btn-outline w-full" style="padding: 8px; font-size: 13px; border-radius: 8px; cursor: pointer;">
 								<i class="ri-file-download-line"></i> Завантажити таблиці CSV
@@ -325,10 +348,43 @@ export class GedcomManager {
 						</div>
 					`;
 
+					const btnOpenTree = resultDiv.querySelector("#btn-save-as-workspace");
+					if (btnOpenTree) {
+						btnOpenTree.addEventListener("click", async () => {
+							if (!this.workspaceManager) {
+								alert("Менеджер просторів не підключено.");
+								return;
+							}
+							try {
+								btnOpenTree.disabled = true;
+								btnOpenTree.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Створення ізольованого дерева...`;
+
+								const nameInput = resultDiv.querySelector("#ws-new-tree-name");
+								const finalName = nameInput ? nameInput.value.trim() : defaultTreeName;
+
+								const newWs = await this.workspaceManager.createLocalWorkspace({
+									name: finalName,
+									probandId: firstIndi ? firstIndi.id : "1",
+									probandName: probandName,
+									personsCount: converted.stats.personsCount,
+									familiesCount: converted.stats.familiesCount,
+									dbData: converted,
+								});
+
+								this.close();
+								this.workspaceManager.switchWorkspace(newWs.id);
+							} catch (wsErr) {
+								console.error("Помилка збереження простору:", wsErr);
+								alert("Не вдалося зберегти дерево: " + wsErr.message);
+								btnOpenTree.disabled = false;
+								btnOpenTree.innerHTML = `<i class="ri-rocket-line"></i> Відкрити це дерево в Geneo`;
+							}
+						});
+					}
+
 					const btnDl = resultDiv.querySelector("#btn-download-converted-csv");
 					if (btnDl && typeof Papa !== "undefined") {
 						btnDl.addEventListener("click", () => {
-							// Завантажуємо families.csv
 							const famCsv = Papa.unparse(converted.families);
 							const blob = new Blob([famCsv], { type: "text/csv;charset=utf-8" });
 							const url = URL.createObjectURL(blob);
@@ -350,4 +406,14 @@ export class GedcomManager {
 			}
 		}, 100);
 	}
+}
+
+function escapeHtml(str) {
+	if (!str) return "";
+	return String(str)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }
