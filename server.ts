@@ -84,6 +84,7 @@ let isRestoring = false;
 
 // Відновлення синхронізованих даних із Firestore
 async function restoreSyncedDataFromFirestore() {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT) return;
   try {
     const snap = await fdb.collection("synced_sheets").get();
     if (snap.empty) {
@@ -126,6 +127,7 @@ async function restoreSyncedDataFromFirestore() {
 restoreSyncedDataFromFirestore();
 
 async function ensureLatestDataFromFirestore(force = false) {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT) return;
   const now = Date.now();
   if (!force && (now - lastFirestoreCheckTime < 5000 || isRestoring)) {
     return;
@@ -348,6 +350,124 @@ function verifySessionToken(token: string): string | null {
   return null;
 }
 
+// ----------------- USER AUTHENTICATION & STORE (STEP 2) -----------------
+export interface StoredUser {
+  id: string;
+  email: string;
+  displayName: string;
+  passwordHash?: string;
+  salt?: string;
+  authProvider: "password" | "google" | "guest";
+  role: "admin" | "owner" | "guest";
+  createdAt: number;
+  lastLoginAt: number;
+  workspaces?: string[];
+  connectedDrive?: {
+    connected: boolean;
+    email?: string;
+    folderId?: string;
+    folderName?: string;
+    updatedAt?: number;
+  } | null;
+}
+
+function hashPassword(password: string, salt?: string): { hash: string; salt: string } {
+  const actualSalt = salt || crypto.randomBytes(16).toString("hex");
+  const hash = crypto.pbkdf2Sync(password, actualSalt, 100000, 64, "sha512").toString("hex");
+  return { hash, salt: actualSalt };
+}
+
+function verifyPassword(password: string, hash: string, salt: string): boolean {
+  try {
+    const check = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+    const checkBuf = Buffer.from(check);
+    const hashBuf = Buffer.from(hash);
+    if (checkBuf.length !== hashBuf.length) return false;
+    return crypto.timingSafeEqual(checkBuf, hashBuf);
+  } catch (e) {
+    return false;
+  }
+}
+
+const LOCAL_USERS_FILE = path.join(ACTIVE_DATA_DIR, "users_store.json");
+
+function readLocalUsers(): Record<string, StoredUser> {
+  try {
+    if (fs.existsSync(LOCAL_USERS_FILE)) {
+      return JSON.parse(fs.readFileSync(LOCAL_USERS_FILE, "utf8"));
+    }
+  } catch (e) {}
+  return {};
+}
+
+function writeLocalUsers(users: Record<string, StoredUser>) {
+  try {
+    fs.mkdirSync(path.dirname(LOCAL_USERS_FILE), { recursive: true });
+    fs.writeFileSync(LOCAL_USERS_FILE, JSON.stringify(users, null, 2), "utf8");
+  } catch (e) {
+    console.warn("Could not write local users file:", e);
+  }
+}
+
+async function findUserByEmail(email: string): Promise<StoredUser | null> {
+  const cleanEmail = email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+  if (!cleanEmail) return null;
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      const snap = await fdb.collection("users").where("email", "==", cleanEmail).limit(1).get();
+      if (!snap.empty) {
+        const doc = snap.docs[0];
+        return { id: doc.id, ...doc.data() } as StoredUser;
+      }
+    } catch (e) {
+      // Fallback to local
+    }
+  }
+
+  const local = readLocalUsers();
+  return local[cleanEmail] || null;
+}
+
+async function saveUser(user: StoredUser): Promise<void> {
+  const cleanEmail = user.email.toLowerCase().trim().replace(/[\r\n\s]/g, "");
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      await fdb.collection("users").doc(cleanEmail).set(user, { merge: true });
+    } catch (e) {
+      // Fallback to local
+    }
+  }
+  const local = readLocalUsers();
+  local[cleanEmail] = { ...local[cleanEmail], ...user };
+  writeLocalUsers(local);
+}
+
+function setAuthSessionCookies(res: express.Response, email: string, token: string) {
+  res.cookie("auth_session", token, {
+    httpOnly: true,
+    path: "/",
+    sameSite: "none",
+    secure: true,
+    partitioned: true,
+  });
+  res.cookie("auth_email", email, {
+    httpOnly: true,
+    path: "/",
+    sameSite: "none",
+    secure: true,
+    partitioned: true,
+  });
+  res.cookie("auth_email_client", email, {
+    httpOnly: false,
+    path: "/",
+    sameSite: "none",
+    secure: true,
+    partitioned: true,
+  });
+}
+// ------------------------------------------------------------------------
+
 function getAuthenticatedUser(req: express.Request): string | null {
   if (req.headers.authorization) {
     const parts = req.headers.authorization.split(" ");
@@ -391,14 +511,16 @@ async function checkCanShare(req: express.Request): Promise<boolean> {
   if (!user) return false;
   if (adminEmailsList.some(a => a.includes(user) || user.includes(a))) return true;
 
-  try {
-    const snap = await fdb.collection("shares").where("email", "==", user).get();
-    if (!snap.empty) {
-      const shareData = snap.docs[0].data();
-      return !!shareData.canShare;
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      const snap = await fdb.collection("shares").where("email", "==", user).get();
+      if (!snap.empty) {
+        const shareData = snap.docs[0].data();
+        return !!shareData.canShare;
+      }
+    } catch (e) {
+      console.error("checkCanShare error:", e);
     }
-  } catch (e) {
-    console.error("checkCanShare error:", e);
   }
   return false;
 }
@@ -529,33 +651,263 @@ app.post("/api/sync-data", async (req, res) => {
 app.get("/login", (req, res) => {
   res.send(`
     <!DOCTYPE html>
-    <html>
+    <html lang="uk">
     <head>
-      <title>Вхід - Закритий доступ</title>
+      <title>Geneo — Вхід до системи</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
       <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; font-family: sans-serif; margin: 0; }
-        .login-box { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h1 { margin-top: 0; color: #333; }
-        p { color: #666; margin-bottom: 20px; }
-        input, button { width: 100%; padding: 12px; margin-top: 10px; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
-        button { background: #007BFF; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0056b3; }
+        :root {
+          --primary: #2563eb;
+          --primary-hover: #1d4ed8;
+          --bg: #f8fafc;
+          --card-bg: #ffffff;
+          --text: #0f172a;
+          --text-muted: #64748b;
+          --border: #e2e8f0;
+          --danger: #ef4444;
+          --radius: 12px;
+        }
+        * { box-sizing: border-box; }
+        body {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          margin: 0;
+          padding: 1.5rem;
+          color: var(--text);
+        }
+        .auth-card {
+          background: var(--card-bg);
+          padding: 2.25rem;
+          border-radius: var(--radius);
+          box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+          width: 100%;
+          max-width: 420px;
+          border: 1px solid var(--border);
+        }
+        .auth-header {
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+        .auth-logo {
+          width: 48px;
+          height: 48px;
+          background: #eff6ff;
+          color: var(--primary);
+          border-radius: 50%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 0.75rem;
+        }
+        .auth-logo svg {
+          width: 28px;
+          height: 28px;
+        }
+        .auth-header h1 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin: 0 0 0.35rem 0;
+          color: var(--text);
+        }
+        .auth-header p {
+          color: var(--text-muted);
+          font-size: 0.875rem;
+          margin: 0;
+        }
+        .auth-tabs {
+          display: flex;
+          background: #f1f5f9;
+          padding: 4px;
+          border-radius: 8px;
+          margin-bottom: 1.5rem;
+        }
+        .auth-tab {
+          flex: 1;
+          padding: 8px;
+          text-align: center;
+          font-size: 0.875rem;
+          font-weight: 600;
+          border-radius: 6px;
+          cursor: pointer;
+          border: none;
+          background: transparent;
+          color: var(--text-muted);
+          transition: all 0.18s ease;
+        }
+        .auth-tab.active {
+          background: white;
+          color: var(--primary);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .form-group {
+          margin-bottom: 1rem;
+          text-align: left;
+        }
+        .form-group label {
+          display: block;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--text);
+          margin-bottom: 0.35rem;
+        }
+        .form-input {
+          width: 100%;
+          padding: 10px 12px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          font-size: 0.9375rem;
+          outline: none;
+          transition: border-color 0.15s;
+        }
+        .form-input:focus {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .btn-submit {
+          width: 100%;
+          padding: 11px;
+          background: var(--primary);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.9375rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.15s;
+          margin-top: 0.5rem;
+        }
+        .btn-submit:hover {
+          background: var(--primary-hover);
+        }
+        .divider {
+          display: flex;
+          align-items: center;
+          text-align: center;
+          margin: 1.25rem 0;
+          color: var(--text-muted);
+          font-size: 0.8125rem;
+        }
+        .divider::before, .divider::after {
+          content: '';
+          flex: 1;
+          border-bottom: 1px solid var(--border);
+        }
+        .divider span {
+          padding: 0 10px;
+        }
+        .btn-google {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 10px;
+          background: white;
+          color: var(--text);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          font-size: 0.9375rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.15s, border-color 0.15s;
+        }
+        .btn-google:hover {
+          background: #f8fafc;
+          border-color: #cbd5e1;
+        }
+        .btn-guest {
+          display: block;
+          text-align: center;
+          margin-top: 1.25rem;
+          color: var(--text-muted);
+          font-size: 0.875rem;
+          text-decoration: none;
+          font-weight: 500;
+        }
+        .btn-guest:hover {
+          color: var(--primary);
+          text-decoration: underline;
+        }
+        .error-message {
+          margin-top: 1rem;
+          padding: 10px 12px;
+          border-radius: 8px;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: var(--danger);
+          font-size: 0.875rem;
+          text-align: center;
+          display: none;
+        }
+        .form-panel {
+          display: none;
+        }
+        .form-panel.active {
+          display: block;
+        }
       </style>
     </head>
     <body>
-      <div class="login-box">
-        <h1>Вхід в Архів</h1>
-        <p>Цей сайт працює в приватному режимі.<br>Доступ надається лише авторизованим користувачам.</p>
-        <form id="loginForm">
-          <input type="text" id="emailOrPhone" placeholder="Email або номер телефону" required />
-          <button type="submit">Отримати доступ</button>
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1>Geneo</h1>
+          <p>Особистий кабінет дослідника родоводу</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" id="tab-login">Вхід</button>
+          <button type="button" class="auth-tab" id="tab-register">Реєстрація</button>
+        </div>
+
+        <!-- ФОРМА ВХОДУ -->
+        <form id="form-login" class="form-panel active">
+          <div class="form-group">
+            <label for="login-email">Електронна пошта (Email)</label>
+            <input type="email" id="login-email" class="form-input" placeholder="name@example.com" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Пароль</label>
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="btn-submit">Увійти в кабінет</button>
         </form>
-        
-        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;" />
-        <button id="googleLoginBtn" type="button" style="background: white; color: #757575; border: 1px solid #ddd; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; padding: 10px; font-weight: 500;">
-          <svg style="width:20px;height:20px;margin-right:10px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- ФОРМА РЕЄСТРАЦІЇ -->
+        <form id="form-register" class="form-panel">
+          <div class="form-group">
+            <label for="reg-name">Ваше ім'я та прізвище</label>
+            <input type="text" id="reg-name" class="form-input" placeholder="Іван Селіванов" required autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Електронна пошта (Email)</label>
+            <input type="email" id="reg-email" class="form-input" placeholder="name@example.com" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Пароль (від 6 символів)</label>
+            <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required minlength="6" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label for="reg-password-confirm">Підтвердження пароля</label>
+            <input type="password" id="reg-password-confirm" class="form-input" placeholder="••••••••" required minlength="6" autocomplete="new-password" />
+          </div>
+          <button type="submit" class="btn-submit">Створити акаунт</button>
+        </form>
+
+        <div class="divider"><span>або</span></div>
+
+        <button id="googleLoginBtn" type="button" class="btn-google">
+          <svg style="width:18px;height:18px;" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -564,8 +916,11 @@ app.get("/login", (req, res) => {
           Увійти через Google
         </button>
 
-        <div id="error" style="color: red; margin-top: 15px; font-weight: bold;"></div>
+        <a href="/?guest=true" class="btn-guest">← Дослідити дерево як гість</a>
+
+        <div id="auth-error" class="error-message"></div>
       </div>
+
       <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
@@ -580,7 +935,99 @@ app.get("/login", (req, res) => {
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const formLogin = document.getElementById('form-login');
+        const formRegister = document.getElementById('form-register');
+        const errorDiv = document.getElementById('auth-error');
+
+        function showError(msg) {
+          errorDiv.innerText = msg;
+          errorDiv.style.display = 'block';
+        }
+        function hideError() {
+          errorDiv.style.display = 'none';
+          errorDiv.innerText = '';
+        }
+
+        tabLogin.onclick = () => {
+          tabLogin.classList.add('active');
+          tabRegister.classList.remove('active');
+          formLogin.classList.add('active');
+          formRegister.classList.remove('active');
+          hideError();
+        };
+
+        tabRegister.onclick = () => {
+          tabRegister.classList.add('active');
+          tabLogin.classList.remove('active');
+          formRegister.classList.add('active');
+          formLogin.classList.remove('active');
+          hideError();
+        };
+
+        // Вхід з паролем
+        formLogin.onsubmit = async (e) => {
+          e.preventDefault();
+          hideError();
+          const email = document.getElementById('login-email').value;
+          const password = document.getElementById('login-password').value;
+
+          try {
+            const res = await fetch('/api/auth-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              if (data.token) localStorage.setItem('auth_token', data.token);
+              if (data.user) localStorage.setItem('geneo_user', JSON.stringify(data.user));
+              window.location.href = '/?t=' + Date.now();
+            } else {
+              showError(data.error || 'Помилка входу. Перевірте email та пароль.');
+            }
+          } catch (err) {
+            showError('Помилка з\'єднання з сервером.');
+          }
+        };
+
+        // Реєстрація
+        formRegister.onsubmit = async (e) => {
+          e.preventDefault();
+          hideError();
+          const name = document.getElementById('reg-name').value;
+          const email = document.getElementById('reg-email').value;
+          const password = document.getElementById('reg-password').value;
+          const confirm = document.getElementById('reg-password-confirm').value;
+
+          if (password !== confirm) {
+            showError('Паролі не співпадають.');
+            return;
+          }
+
+          try {
+            const res = await fetch('/api/auth-register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ displayName: name, email, password })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              if (data.token) localStorage.setItem('auth_token', data.token);
+              if (data.user) localStorage.setItem('geneo_user', JSON.stringify(data.user));
+              window.location.href = '/?t=' + Date.now();
+            } else {
+              showError(data.error || 'Помилка реєстрації.');
+            }
+          } catch (err) {
+            showError('Помилка з\'єднання з сервером.');
+          }
+        };
+
+        // Google OAuth
         document.getElementById('googleLoginBtn').onclick = async () => {
+          hideError();
           try {
             const result = await signInWithPopup(auth, provider);
             const email = result.user.email;
@@ -589,41 +1036,22 @@ app.get("/login", (req, res) => {
             const res = await fetch('/api/auth-login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ emailOrPhone: email, idToken })
+              body: JSON.stringify({ idToken })
             });
             
-            if (res.ok) {
-              const data = await res.json();
+            const data = await res.json();
+            if (res.ok && data.success) {
               if (data.token) localStorage.setItem('auth_token', data.token);
+              if (data.user) localStorage.setItem('geneo_user', JSON.stringify(data.user));
               window.location.href = '/?t=' + Date.now();
             } else {
-              const data = await res.json().catch(() => ({}));
-              document.getElementById('error').innerText = data.error || 'Доступ заборонено або вас немає в списку запрошених.';
+              showError(data.error || 'Доступ заборонено.');
               auth.signOut();
             }
           } catch (error) {
-            console.error(error);
             if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/cancelled-popup-request") {
-              document.getElementById('error').innerText = 'Помилка авторизації через Google.';
+              showError('Помилка авторизації через Google.');
             }
-          }
-        };
-
-        document.getElementById('loginForm').onsubmit = async (e) => {
-          e.preventDefault();
-          const val = document.getElementById('emailOrPhone').value;
-          const res = await fetch('/api/auth-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emailOrPhone: val })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.token) localStorage.setItem('auth_token', data.token);
-            window.location.href = '/?t=' + Date.now();
-          } else {
-            const data = await res.json().catch(() => ({}));
-            document.getElementById('error').innerText = data.error || 'Доступ заборонено або вас немає в списку запрошених.';
           }
         };
       </script>
@@ -636,7 +1064,6 @@ const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyASdK-k9JaA4FcjVk
 
 async function verifyGoogleIdToken(idToken: string): Promise<string | null> {
   try {
-    // 1. Офіційний Firebase Identity Toolkit REST API
     const res = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
       {
@@ -653,7 +1080,6 @@ async function verifyGoogleIdToken(idToken: string): Promise<string | null> {
       }
     }
 
-    // 2. Резервна перевірка через Google OAuth2 tokeninfo
     const oauthRes = await fetch(
       `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
     );
@@ -669,99 +1095,264 @@ async function verifyGoogleIdToken(idToken: string): Promise<string | null> {
   return null;
 }
 
-app.post("/api/auth-login", async (req, res) => {
-  const emailOrPhone = req.body.emailOrPhone || "";
-  const idToken = req.body.idToken || "";
+// РЕЄСТРАЦІЯ НОВОГО КОРИСТУВАЧА (Email + Пароль)
+app.post("/api/auth-register", async (req, res) => {
+  const { email, password, displayName } = req.body || {};
+  const cleanEmail = (email && typeof email === "string") ? email.toLowerCase().trim().replace(/[\r\n\s]/g, "") : "";
+  const cleanPass = (password && typeof password === "string") ? password : "";
+  const name = (displayName && typeof displayName === "string" && displayName.trim()) ? displayName.trim() : cleanEmail.split("@")[0];
 
-  let verifiedEmail: string | null = null;
+  if (!cleanEmail || !cleanEmail.includes("@")) {
+    return res.status(400).json({ error: "Вкажіть коректну адресу електронної пошти (Email)." });
+  }
+  if (!cleanPass || cleanPass.length < 6) {
+    return res.status(400).json({ error: "Пароль повинен містити щонайменше 6 символів." });
+  }
+
+  const existing = await findUserByEmail(cleanEmail);
+  if (existing) {
+    return res.status(409).json({ error: "Обліковий запис із цим Email вже існує. Будь ласка, увійдіть." });
+  }
+
+  const { hash, salt } = hashPassword(cleanPass);
+  const isAdmin = adminEmailsList.some((a) => a.includes(cleanEmail) || cleanEmail.includes(a));
+  const role: "admin" | "owner" = isAdmin ? "admin" : "owner";
+
+  const newUser: StoredUser = {
+    id: cleanEmail,
+    email: cleanEmail,
+    displayName: name,
+    passwordHash: hash,
+    salt: salt,
+    authProvider: "password",
+    role: role,
+    createdAt: Date.now(),
+    lastLoginAt: Date.now(),
+    workspaces: [],
+    connectedDrive: null,
+  };
+
+  await saveUser(newUser);
+
+  const sessionToken = createSessionToken(cleanEmail);
+  setAuthSessionCookies(res, cleanEmail, sessionToken);
+
+  return res.json({
+    success: true,
+    token: sessionToken,
+    user: {
+      email: cleanEmail,
+      displayName: name,
+      role: role,
+      isMainAdmin: isAdmin,
+    },
+  });
+});
+
+// АВТОРИЗАЦІЯ (Логін + Пароль, Google OAuth, або гостьовий телефон/email)
+app.post("/api/auth-login", async (req, res) => {
+  const { email, password, emailOrPhone, idToken } = req.body || {};
+
+  let targetEmail = "";
+  let isGoogleAuth = false;
 
   if (idToken) {
-    verifiedEmail = await verifyGoogleIdToken(idToken);
+    const verifiedEmail = await verifyGoogleIdToken(idToken);
     if (!verifiedEmail) {
       return res.status(401).json({ error: "Недійсний токен авторизації Google." });
     }
+    targetEmail = verifiedEmail;
+    isGoogleAuth = true;
+  } else if (email && password) {
+    targetEmail = String(email).toLowerCase().trim().replace(/[\r\n\s]/g, "");
+  } else if (emailOrPhone) {
+    targetEmail = String(emailOrPhone).toLowerCase().trim().replace(/[\r\n\s]/g, "");
   }
 
-  const cleanAuth = (emailOrPhone && typeof emailOrPhone === "string")
-    ? emailOrPhone.toLowerCase().trim().replace(/[\r\n\s]/g, "")
-    : "";
+  if (!targetEmail) {
+    return res.status(400).json({ error: "Вкажіть email та пароль або скористайтеся входом через Google." });
+  }
 
-  // Перевірка на адміністратора (якщо cleanAuth або verifiedEmail є в списку адмінів)
-  const isInputAdmin = cleanAuth && adminEmailsList.some(a => a.includes(cleanAuth) || cleanAuth.includes(a));
-  const isVerifiedAdmin = verifiedEmail && adminEmailsList.some(a => a.includes(verifiedEmail) || verifiedEmail.includes(a));
+  const isAdmin = adminEmailsList.some((a) => a.includes(targetEmail) || targetEmail.includes(a));
+  let user = await findUserByEmail(targetEmail);
 
-  if (isInputAdmin || isVerifiedAdmin) {
-    if (!verifiedEmail) {
-      return res.status(403).json({ 
-        error: "Для входу в обліковий запис адміністратора обов'язкова авторизація через кнопку 'Увійти через Google'." 
-      });
+  if (isGoogleAuth) {
+    if (!user) {
+      user = {
+        id: targetEmail,
+        email: targetEmail,
+        displayName: targetEmail.split("@")[0],
+        authProvider: "google",
+        role: isAdmin ? "admin" : "owner",
+        createdAt: Date.now(),
+        lastLoginAt: Date.now(),
+        workspaces: [],
+        connectedDrive: null,
+      };
+    } else {
+      user.lastLoginAt = Date.now();
+    }
+    await saveUser(user);
+
+    const sessionToken = createSessionToken(targetEmail);
+    setAuthSessionCookies(res, targetEmail, sessionToken);
+
+    return res.json({
+      success: true,
+      token: sessionToken,
+      user: {
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role,
+        isMainAdmin: isAdmin,
+      },
+    });
+  }
+
+  // Вхід за паролем
+  if (password) {
+    if (!user) {
+      if (isAdmin) {
+        // Перша ініціалізація пароля для адміністратора
+        const { hash, salt } = hashPassword(password);
+        user = {
+          id: targetEmail,
+          email: targetEmail,
+          displayName: "Адміністратор",
+          passwordHash: hash,
+          salt: salt,
+          authProvider: "password",
+          role: "admin",
+          createdAt: Date.now(),
+          lastLoginAt: Date.now(),
+          workspaces: [],
+          connectedDrive: null,
+        };
+        await saveUser(user);
+      } else {
+        return res.status(401).json({ error: "Користувача з такою електронною поштою не знайдено. Будь ласка, зареєструйтесь." });
+      }
+    } else {
+      if (user.passwordHash && user.salt) {
+        const isValid = verifyPassword(password, user.passwordHash, user.salt);
+        if (!isValid) {
+          return res.status(401).json({ error: "Невірний пароль. Спробуйте ще раз." });
+        }
+      } else if (user.authProvider === "google") {
+        return res.status(403).json({ error: "Цей обліковий запис зареєстровано через Google. Будь ласка, скористайтеся кнопкою 'Увійти через Google'." });
+      }
+      user.lastLoginAt = Date.now();
+      await saveUser(user);
     }
 
-    const adminEmail = verifiedEmail;
-    const sessionToken = createSessionToken(adminEmail);
-    res.cookie("auth_session", sessionToken, {
-      httpOnly: true,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
+    const sessionToken = createSessionToken(targetEmail);
+    setAuthSessionCookies(res, targetEmail, sessionToken);
+
+    return res.json({
+      success: true,
+      token: sessionToken,
+      user: {
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role,
+        isMainAdmin: isAdmin,
+      },
     });
-    res.cookie("auth_email", adminEmail, {
-      httpOnly: true,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
-    });
-    res.cookie("auth_email_client", adminEmail, {
-      httpOnly: false,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
-    });
-    return res.json({ success: true, token: sessionToken });
   }
 
-  // Якщо це звичайний користувач (гість):
-  const targetEmailOrPhone = verifiedEmail || cleanAuth;
-  if (!targetEmailOrPhone) {
-    return res.status(401).json({ error: "Вкажіть email або номер телефону." });
-  }
-
+  // Гостьовий вхід без пароля (зворотна сумісність)
   try {
-    const snap = await fdb.collection("shares").where("email", "==", targetEmailOrPhone).get();
-    if (snap.empty && process.env.NODE_ENV === "production") {
+    const snap = await fdb.collection("shares").where("email", "==", targetEmail).get();
+    if (snap.empty && process.env.NODE_ENV === "production" && !isAdmin) {
       return res.status(403).json({ error: "Доступ заборонено. Вас немає у списку запрошених гостей." });
     }
 
-    const sessionToken = createSessionToken(targetEmailOrPhone);
-    res.cookie("auth_session", sessionToken, {
-      httpOnly: true,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
+    const sessionToken = createSessionToken(targetEmail);
+    setAuthSessionCookies(res, targetEmail, sessionToken);
+
+    return res.json({
+      success: true,
+      token: sessionToken,
+      user: {
+        email: targetEmail,
+        displayName: targetEmail.split("@")[0],
+        role: isAdmin ? "admin" : "guest",
+        isMainAdmin: isAdmin,
+      },
     });
-    res.cookie("auth_email", targetEmailOrPhone, {
-      httpOnly: true,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
-    });
-    res.cookie("auth_email_client", targetEmailOrPhone, {
-      httpOnly: false,
-      path: "/",
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
-    });
-    return res.json({ success: true, token: sessionToken });
   } catch (err: any) {
-    console.error("Помилка перевірки доступу у Firestore:", err);
     return res.status(500).json({ error: "Помилка перевірки доступу" });
   }
+});
+
+// ВИХІД З СИСТЕМИ (Logout)
+app.post("/api/auth-logout", (req, res) => {
+  res.clearCookie("auth_session", { path: "/", sameSite: "none", secure: true });
+  res.clearCookie("auth_email", { path: "/", sameSite: "none", secure: true });
+  res.clearCookie("auth_email_client", { path: "/", sameSite: "none", secure: true });
+  res.json({ success: true, message: "Ви успішно вийшли з системи." });
+});
+
+// ДАНІ ПОТОЧНОЇ СЕСІЇ КОРИСТУВАЧА
+app.get("/api/auth-me", async (req, res) => {
+  const email = getAuthenticatedUser(req);
+  if (!email) {
+    if (process.env.NODE_ENV !== "production") {
+      return res.json({
+        authenticated: true,
+        user: {
+          email: "dev-user@geneo.app",
+          displayName: "Розробник (Локальний)",
+          role: "admin",
+          isMainAdmin: true,
+          canShare: true,
+          canSync: true,
+          connectedDrive: null,
+          workspaces: [],
+        },
+      });
+    }
+    return res.json({ authenticated: false, user: null });
+  }
+
+  const isAdmin = adminEmailsList.some((a) => a.includes(email) || email.includes(a));
+  const user = await findUserByEmail(email);
+
+  res.json({
+    authenticated: true,
+    user: {
+      email: email,
+      displayName: user?.displayName || email.split("@")[0],
+      role: user?.role || (isAdmin ? "admin" : "owner"),
+      isMainAdmin: isAdmin,
+      canShare: isAdmin || user?.role === "admin" || user?.role === "owner",
+      canSync: isAdmin,
+      connectedDrive: user?.connectedDrive || null,
+      workspaces: user?.workspaces || [],
+    },
+  });
+});
+
+// ОНОВЛЕННЯ СТАТУСУ GOOGLE DRIVE
+app.post("/api/user/drive-status", async (req, res) => {
+  const email = getAuthenticatedUser(req);
+  if (!email) return res.status(401).json({ error: "Не авторизовано." });
+
+  const driveInfo = req.body.driveInfo || null;
+  const user = (await findUserByEmail(email)) || {
+    id: email,
+    email: email,
+    displayName: email.split("@")[0],
+    authProvider: "google" as const,
+    role: "owner" as const,
+    createdAt: Date.now(),
+    lastLoginAt: Date.now(),
+  };
+
+  user.connectedDrive = driveInfo;
+  await saveUser(user);
+
+  res.json({ success: true, driveInfo });
 });
 
 app.post("/api/invite", async (req, res) => {
@@ -806,40 +1397,86 @@ app.get("/api/shares", async (req, res) => {
     return res.status(403).json({ error: "Немає прав для перегляду списку доступів." });
   }
 
-  try {
-    const snap = await fdb.collection("shares").get();
-    const shares = snap.docs.map((doc) => ({ id: doc.id, email: doc.data().email || doc.data().value, ...doc.data() }));
-    res.json(shares);
-  } catch (e) {
-    res.json([]);
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      const snap = await fdb.collection("shares").get();
+      const shares = snap.docs.map((doc) => ({ id: doc.id, email: doc.data().email || doc.data().value, ...doc.data() }));
+      return res.json(shares);
+    } catch (e) {}
   }
+  return res.json([]);
 });
 
 app.get("/api/config", async (req, res) => {
   const user = getAuthenticatedUser(req);
   if (user) {
-    if (adminEmailsList.some(a => a.includes(user) || user.includes(a))) {
-      res.json({ canShare: true, canSync: true, isMainAdmin: true });
+    const isMainAdmin = adminEmailsList.some(a => a.includes(user) || user.includes(a));
+    const userProfile = await findUserByEmail(user);
+
+    if (isMainAdmin) {
+      res.json({
+        authenticated: true,
+        canShare: true,
+        canSync: true,
+        isMainAdmin: true,
+        user: {
+          email: user,
+          displayName: userProfile?.displayName || user.split("@")[0],
+          role: "admin",
+        },
+      });
       return;
     }
 
-    try {
-      const snap = await fdb.collection("shares").where("email", "==", user).get();
-      if (!snap.empty) {
-        const shareData = snap.docs[0].data();
-        res.json({ 
-          canShare: !!shareData.canShare, 
-          canSync: !!shareData.canSync, 
-          isMainAdmin: false,
-          hiddenProfiles: shareData.hiddenProfiles || []
-        });
-        return;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        const snap = await fdb.collection("shares").where("email", "==", user).get();
+        if (!snap.empty) {
+          const shareData = snap.docs[0].data();
+          res.json({ 
+            authenticated: true,
+            canShare: !!shareData.canShare, 
+            canSync: !!shareData.canSync, 
+            isMainAdmin: false,
+            hiddenProfiles: shareData.hiddenProfiles || [],
+            user: {
+              email: user,
+              displayName: userProfile?.displayName || user.split("@")[0],
+              role: userProfile?.role || "guest",
+            },
+          });
+          return;
+        }
+      } catch (e) {
+        console.error("Firebase shares query error:", e);
       }
-    } catch (e) {
-      console.error("Firebase shares query error:", e);
     }
+
+    // Default registered owner user
+    res.json({
+      authenticated: true,
+      canShare: true, // Власник своїх дерев
+      canSync: false,
+      isMainAdmin: false,
+      user: {
+        email: user,
+        displayName: userProfile?.displayName || user.split("@")[0],
+        role: userProfile?.role || "owner",
+      },
+    });
+    return;
   } else if (process.env.NODE_ENV !== "production") {
-    res.json({ canShare: true, canSync: true, isMainAdmin: true });
+    res.json({
+      authenticated: true,
+      canShare: true,
+      canSync: true,
+      isMainAdmin: true,
+      user: {
+        email: "dev-user@geneo.app",
+        displayName: "Розробник (Локальний)",
+        role: "admin",
+      },
+    });
     return;
   }
   res.status(401).json({ error: "Unauthorized" });
@@ -961,6 +1598,8 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}

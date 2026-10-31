@@ -6,3 +6,5 @@ coverage/
 *.log
 .env*
 !.env.example
+*.ged
+data/users_store.json

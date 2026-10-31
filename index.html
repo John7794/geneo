@@ -47,6 +47,7 @@
 <link rel="stylesheet" href="/css/components/interaction/popup.css" />
 <link rel="stylesheet" href="/css/components/interaction/relationship.css" />
 <link rel="stylesheet" href="/css/components/interaction/workspaces.css" />
+<link rel="stylesheet" href="/css/components/interaction/account.css" />
 <link rel="stylesheet" href="/css/components/interaction/search.css" />
 <link rel="stylesheet" href="/css/components/interaction/zoom.css" />
 <link rel="stylesheet" href="/css/components/circle/fan-chart.css" />
@@ -114,6 +115,10 @@
                 <span class="tree-pill-badge badge-guest">Гість</span>
                 <i class="ri-arrow-down-s-line tree-pill-arrow"></i>
             </div>
+            <div id="btn-user-account" class="account-pill js-open-account" title="Особистий кабінет користувача" role="button" tabindex="0">
+                <div class="account-pill-avatar">Г</div>
+                <span class="account-pill-name">Мій кабінет</span>
+            </div>
             <nav class="breadcrumbs__list" id="breadcrumbs-list"></nav>
         </div>
 
@@ -152,6 +157,9 @@
         <!-- Випадаюче меню додаткових інструментів -->
         <div id="secondary-menu-panel" class="secondary-menu-panel">
             <div class="control-group unified-panel secondary-tools-group">
+                <button id="btn-account-menu" class="btn btn-icon js-open-account" title="Особистий кабінет" aria-label="Особистий кабінет">
+                    <i class="ri-user-settings-line"></i>
+                </button>
                 <button id="btn-workspaces" class="btn btn-icon js-open-workspaces" title="Дерева та простори" aria-label="Дерева та простори">
                     <i class="ri-folder-user-line"></i>
                 </button>
@@ -698,6 +706,83 @@
                 <button id="btn-ws-new-gedcom" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
                     <i class="ri-upload-cloud-line"></i> Імпортувати нове дерево (GEDCOM)
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Особистий кабінет користувача (Account Modal) -->
+    <div id="account-modal" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="account-modal-name">
+        <div class="account-modal-container">
+            <div class="account-modal-header">
+                <div class="account-user-badge-header">
+                    <div id="account-modal-avatar" class="account-large-avatar">Г</div>
+                    <div class="account-user-meta">
+                        <h3 id="account-modal-name">Користувач <span id="account-modal-role" class="account-role-badge badge-owner">Власник</span></h3>
+                        <p id="account-modal-email">local@geneo.app</p>
+                    </div>
+                </div>
+                <button id="btn-close-account" class="modal-close js-close-popup" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="account-nav-tabs">
+                <button type="button" class="account-tab-btn active" data-tab="profile"><i class="ri-user-3-line"></i> Мій профіль</button>
+                <button type="button" class="account-tab-btn" data-tab="trees"><i class="ri-git-repository-line"></i> Мої дерева</button>
+                <button type="button" class="account-tab-btn" data-tab="sharing"><i class="ri-share-line"></i> Спільний доступ</button>
+                <button type="button" class="account-tab-btn" data-tab="drive"><i class="ri-google-fill"></i> Google Диск</button>
+            </div>
+            <div class="account-modal-body">
+                <div id="account-tab-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вітальний екран першого запуску (Welcome Modal) -->
+    <div id="welcome-modal" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+        <div class="welcome-modal-card">
+            <div class="popup-close-pos">
+                <button id="btn-close-welcome" class="modal-close js-close-popup" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="welcome-hero-icon">
+                <i class="ri-node-tree"></i>
+            </div>
+            <h2 id="welcome-title">Ласкаво просимо до Geneo!</h2>
+            <p class="welcome-subtitle">
+                Універсальна генеалогічна платформа для дослідження родинної історії, аналізу документів та інтерактивної візуалізації родоводу.
+            </p>
+
+            <div class="welcome-actions-list">
+                <div id="btn-welcome-gedcom" class="welcome-action-card featured" role="button" tabindex="0">
+                    <div class="welcome-card-icon"><i class="ri-file-upload-line"></i></div>
+                    <div class="welcome-card-text">
+                        <h4>Імпортувати власне дерево (GEDCOM)</h4>
+                        <p>Завантажте файл .ged з MyHeritage, FamilySearch чи Gramps у власне ізольоване сховище</p>
+                    </div>
+                    <div class="welcome-card-arrow"><i class="ri-arrow-right-s-line"></i></div>
+                </div>
+
+                <div id="btn-welcome-demo" class="welcome-action-card" role="button" tabindex="0">
+                    <div class="welcome-card-icon"><i class="ri-compass-3-line"></i></div>
+                    <div class="welcome-card-text">
+                        <h4>Дослідити дерево Селіванових</h4>
+                        <p>Ознайомтеся з можливостями платформи на прикладі бази з понад 2400 персон</p>
+                    </div>
+                    <div class="welcome-card-arrow"><i class="ri-arrow-right-s-line"></i></div>
+                </div>
+
+                <div id="btn-welcome-login" class="welcome-action-card" role="button" tabindex="0">
+                    <div class="welcome-card-icon"><i class="ri-user-shared-line"></i></div>
+                    <div class="welcome-card-text">
+                        <h4>Особистий кабінет та Google Диск</h4>
+                        <p>Увійдіть під своїм акаунтом або підключіть сховище Google для збереження медіа</p>
+                    </div>
+                    <div class="welcome-card-arrow"><i class="ri-arrow-right-s-line"></i></div>
+                </div>
+            </div>
+
+            <div class="welcome-footer-row">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="checkbox-welcome-dont-show" />
+                    <span>Більше не показувати це вікно при запуску</span>
+                </label>
             </div>
         </div>
     </div>

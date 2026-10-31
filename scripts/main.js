@@ -29,6 +29,9 @@ import { AIManager } from "./components/interaction/aiManager.js";
 import { GedcomManager } from "./components/interaction/gedcomManager.js";
 import { WorkspaceManager } from "./services/workspaceManager.js";
 import { WorkspaceModalManager } from "./components/interaction/workspaceModalManager.js";
+import { AuthManager } from "./services/authManager.js";
+import { AccountModalManager } from "./components/interaction/accountModalManager.js";
+import { WelcomeModalManager } from "./components/interaction/welcomeModalManager.js";
 
 class App {
 	constructor() {
@@ -51,8 +54,18 @@ class App {
 		const loader = document.getElementById("app-loader");
 		try {
 			if (i18n.init) await i18n.init();
+
+			this.authManager = new AuthManager();
+			const currentUser = await this.authManager.init();
 			
-			let userConfig = { rootPerson: APP_CONFIG.rootId || "1", hiddenProfiles: [], canShare: false, canSync: false, isMainAdmin: false };
+			let userConfig = { 
+				rootPerson: APP_CONFIG.rootId || "1", 
+				hiddenProfiles: [], 
+				canShare: false, 
+				canSync: false, 
+				isMainAdmin: this.authManager.isAdmin() 
+			};
+
 			try {
 				const configRes = await fetch('/api/config', { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') } });
 				if (configRes.ok) {
@@ -66,7 +79,7 @@ class App {
 					}
 					userConfig.canShare = configData.canShare || configData.isMainAdmin || false;
 					userConfig.canSync = configData.canSync || configData.isMainAdmin || false;
-					userConfig.isMainAdmin = configData.isMainAdmin || false;
+					userConfig.isMainAdmin = configData.isMainAdmin || this.authManager.isAdmin() || false;
 					window.userConfig = userConfig;
 
 					const btnShare = document.getElementById("btn-share");
@@ -194,6 +207,14 @@ class App {
 		this.managers.ai = new AIManager();
 		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager);
 		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
+		this.managers.account = new AccountModalManager(this.authManager, this.workspaceManager, this.managers.gedcom);
+		this.managers.welcome = new WelcomeModalManager(this.managers.gedcom, this.managers.account);
+		this.managers.welcome.checkFirstRun();
+
+		// Підключення додаткових кнопок виклику кабінету
+		document.querySelectorAll(".js-open-account").forEach((el) => {
+			el.addEventListener("click", () => this.managers.account.open());
+		});
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();
