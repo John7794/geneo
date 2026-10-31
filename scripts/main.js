@@ -212,13 +212,39 @@ class App {
 
 		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager, this.driveService);
 		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
-		this.managers.account = new AccountModalManager(this.authManager, this.workspaceManager, this.managers.gedcom, this.driveService, this.managers.googleDrive);
+		this.managers.account = new AccountModalManager(
+			this.authManager,
+			this.workspaceManager,
+			this.managers.gedcom,
+			this.driveService,
+			this.managers.googleDrive,
+			() => this.engine,
+			(personId) => {
+				this.managers.account?.close();
+				if (this.managers.personPopup && this.engine) {
+					const personData = findPersonDetails(personId, this.engine);
+					if (personData) this.managers.personPopup.open(personData);
+				}
+				this.navigateToId(personId);
+			}
+		);
 		this.managers.welcome = new WelcomeModalManager(this.managers.gedcom, this.managers.account);
 		this.managers.welcome.checkFirstRun();
 
 		// Підключення додаткових кнопок виклику кабінету
 		document.querySelectorAll(".js-open-account").forEach((el) => {
 			el.addEventListener("click", () => this.managers.account.open());
+		});
+
+		// Делегування кнопки перевірки дерева
+		document.addEventListener("click", (e) => {
+			if (e.target.closest(".js-open-audit")) {
+				e.preventDefault();
+				if (this.managers.account) {
+					this.managers.account.switchTab("audit");
+					this.managers.account.open();
+				}
+			}
 		});
 
 		// Делегування кнопки поділитися до вкладки шерингу в кабінеті
@@ -231,6 +257,11 @@ class App {
 				}
 			}
 		});
+
+		// Оновлюємо бейдж аудиту родоводу
+		setTimeout(() => {
+			this.managers.account?.updateAuditBadge();
+		}, 300);
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();

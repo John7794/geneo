@@ -621,6 +621,22 @@ export class GoogleDriveService {
 			folderId: this.folderMap.db,
 		});
 
+		// Автоматичне вивантаження Google Apps Script для автоматизації таблиць (BYOS)
+		try {
+			const scriptRes = await fetch("/google-apps-script/GeneoAutoSync.gs");
+			if (scriptRes.ok) {
+				const scriptContent = await scriptRes.text();
+				await this.uploadFile({
+					name: "GeneoAutoSync.gs",
+					mimeType: "text/plain;charset=utf-8",
+					content: scriptContent,
+					folderId: this.folderMap.db,
+				});
+			}
+		} catch (gsErr) {
+			console.warn("Не вдалося завантажити GeneoAutoSync.gs:", gsErr);
+		}
+
 		return meta;
 	}
 

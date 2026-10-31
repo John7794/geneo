@@ -177,6 +177,10 @@
                 <button id="btn-gdrive" class="btn btn-icon js-open-gdrive" title="Google Диск (BYOS)" aria-label="Google Диск">
                     <i class="ri-google-fill"></i>
                 </button>
+                <button id="btn-tree-audit" class="btn btn-icon js-open-audit" title="Перевірка дерева та дублікати" aria-label="Перевірка дерева">
+                    <i class="ri-shield-check-line"></i>
+                    <span id="audit-badge-secondary" class="badge-dot badge-dot--tr hidden"></span>
+                </button>
                 <button id="btn-events" class="btn btn-icon hidden" title="Цей день в історії" aria-label="Цей день в історії" data-i18n-title="events.historyTitle">
                     <i class="ri-calendar-event-line"></i>
                     <span id="events-badge" class="badge-dot badge-dot--tr hidden"></span>
@@ -737,6 +741,7 @@
                 <button type="button" class="account-tab-btn" data-tab="trees"><i class="ri-git-repository-line"></i> Мої дерева</button>
                 <button type="button" class="account-tab-btn" data-tab="sharing"><i class="ri-share-line"></i> Спільний доступ</button>
                 <button type="button" class="account-tab-btn" data-tab="drive"><i class="ri-google-fill"></i> Google Диск</button>
+                <button type="button" class="account-tab-btn" data-tab="audit"><i class="ri-shield-check-line"></i> Перевірка дерева <span id="audit-tab-badge" class="badge-count hidden">0</span></button>
             </div>
             <div class="account-modal-body">
                 <div id="account-tab-content"></div>

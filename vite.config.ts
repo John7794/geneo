@@ -24,6 +24,10 @@ export default defineConfig(() => {
           {
             src: 'css',
             dest: '.'
+          },
+          {
+            src: 'google-apps-script',
+            dest: '.'
           }
         ]
       })

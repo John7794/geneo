@@ -164,6 +164,7 @@ export class GoogleDriveModalManager {
 						<div class="folder-row root"><i class="ri-folder-fill"></i> <strong>Geneo/</strong> ${folderMap ? "✅" : "⚪"}</div>
 						<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>db/</strong> (База даних)</div>
 						<div class="folder-row indent-2"><i class="ri-file-excel-2-line"></i> Geneo_DB (Таблиця з 31 вкладкою) ${folderMap?.dbUk || folderMap?.db ? "✅" : "⚪"}</div>
+						<div class="folder-row indent-2"><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> GeneoAutoSync.gs (Автооновлення родин та зв'язків) ${folderMap?.dbUk || folderMap?.db ? "✅" : "⚪"}</div>
 						<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>records/</strong> (Архівні матеріали)</div>
 						<div class="folder-row indent-2"><i class="ri-folder-line"></i> portraits/ (Портрети осіб) ${folderMap?.portraits ? "✅" : "⚪"}</div>
 						<div class="folder-row indent-2"><i class="ri-folder-line"></i> family_photos/ (Сімейні фото по ID) ${folderMap?.familyPhotos ? "✅" : "⚪"}</div>
@@ -195,6 +196,24 @@ export class GoogleDriveModalManager {
 						<p id="sync-progress-text" class="text-sm"></p>
 						<div class="progress-bar"><div id="sync-progress-fill" class="progress-fill"></div></div>
 					</div>
+				</div>
+
+				<!-- GOOGLE APPS SCRIPT ДЛЯ СИНХРОНІЗАЦІЇ 31 ТАБЛИЦІ -->
+				<div class="gdrive-section-card">
+					<div class="section-card-header">
+						<h4><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script):</h4>
+						<div style="display: flex; gap: 8px;">
+							<button id="btn-copy-apps-script" class="btn btn-outline btn-sm">
+								<i class="ri-file-copy-line"></i> Скопіювати код скрипта
+							</button>
+							<a href="/google-apps-script/GeneoAutoSync.gs" download="GeneoAutoSync.gs" class="btn btn-outline btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+								<i class="ri-download-cloud-line"></i> Завантажити .gs
+							</a>
+						</div>
+					</div>
+					<p class="text-sm text-muted">
+						Встановіть цей скрипт у вашу Google Таблицю (<em>Розширення ➔ Apps Script</em>). Меню <strong>«🧬 Geneo»</strong> автоматично створює та оновлює записи у вкладках <code>families</code> і <code>familyChildren</code> при додаванні родичів, перевіряє хронологію та знаходить дублікати прямо в Google Таблицях!
+					</p>
 				</div>
 			</div>
 		`;
@@ -330,6 +349,29 @@ export class GoogleDriveModalManager {
 					alert("Помилка синхронізації: " + e.message);
 				} finally {
 					btnSyncDb.disabled = false;
+				}
+			};
+		}
+
+		// Скопіювати код Google Apps Script
+		const btnCopyScript = this.modal.querySelector("#btn-copy-apps-script");
+		if (btnCopyScript) {
+			btnCopyScript.onclick = async () => {
+				try {
+					btnCopyScript.disabled = true;
+					btnCopyScript.innerHTML = `<i class="ri-loader-4-line spin"></i> Отримання...`;
+					const res = await fetch("/google-apps-script/GeneoAutoSync.gs");
+					const code = await res.text();
+					await navigator.clipboard.writeText(code);
+					btnCopyScript.innerHTML = `<i class="ri-check-line"></i> Скопійовано!`;
+					setTimeout(() => {
+						btnCopyScript.disabled = false;
+						btnCopyScript.innerHTML = `<i class="ri-file-copy-line"></i> Скопіювати код скрипта`;
+					}, 2000);
+				} catch (err) {
+					alert("Помилка копіювання скрипта: " + err.message);
+					btnCopyScript.disabled = false;
+					btnCopyScript.innerHTML = `<i class="ri-file-copy-line"></i> Скопіювати код скрипта`;
 				}
 			};
 		}

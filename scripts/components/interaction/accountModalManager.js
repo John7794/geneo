@@ -1,21 +1,26 @@
 // ./scripts/components/interaction/accountModalManager.js
 
+import { TreeAuditService } from "../../services/treeAuditService.js";
+
 /**
  * Керування інтерфейсом Особистого кабінету користувача
  */
 export class AccountModalManager {
-	constructor(authManager, workspaceManager, gedcomManager, driveService = null, driveModalManager = null) {
+	constructor(authManager, workspaceManager, gedcomManager, driveService = null, driveModalManager = null, getEngine = null, onNavigatePerson = null) {
 		this.auth = authManager;
 		this.workspaceManager = workspaceManager;
 		this.gedcomManager = gedcomManager;
 		this.drive = driveService;
 		this.driveModalManager = driveModalManager;
+		this.getEngine = typeof getEngine === "function" ? getEngine : () => getEngine;
+		this.onNavigatePerson = onNavigatePerson;
 
 		this.modal = document.getElementById("account-modal");
 		this.accountBtn = document.getElementById("btn-user-account");
 		this.closeBtn = document.getElementById("btn-close-account");
 
-		this.currentTab = "profile"; // profile | trees | sharing | drive
+		this.currentTab = "profile"; // profile | trees | sharing | drive | audit
+		this.auditFilter = "all"; // all | duplicates | parentAnomalies | lifespanAnomalies | ignored
 
 		this._initDomEvents();
 		this._syncAccountButton();
@@ -104,6 +109,7 @@ export class AccountModalManager {
 		if (!this.modal) return;
 		this.modal.classList.remove("hidden");
 		this.modal.classList.add("show");
+		this.updateAuditBadge();
 		this.render();
 	}
 
@@ -190,6 +196,10 @@ export class AccountModalManager {
 			case "drive":
 				contentContainer.innerHTML = this._renderDriveTab(user);
 				this._bindDriveEvents();
+				break;
+			case "audit":
+				contentContainer.innerHTML = this._renderAuditTab();
+				this._bindAuditEvents();
 				break;
 		}
 	}
@@ -817,5 +827,274 @@ export class AccountModalManager {
 				}
 			};
 		}
+	}
+
+	updateAuditBadge() {
+		const engine = typeof this.getEngine === "function" ? this.getEngine() : null;
+		if (!engine) return;
+
+		const audit = TreeAuditService.runFullAudit(engine);
+		const tabBadge = this.modal?.querySelector("#audit-tab-badge") || document.getElementById("audit-tab-badge");
+		const secBadge = document.getElementById("audit-badge-secondary");
+
+		if (tabBadge) {
+			tabBadge.textContent = String(audit.totalActive);
+			if (audit.totalActive > 0) {
+				tabBadge.classList.remove("hidden");
+			} else {
+				tabBadge.classList.add("hidden");
+			}
+		}
+
+		if (secBadge) {
+			if (audit.totalActive > 0) {
+				secBadge.classList.remove("hidden");
+			} else {
+				secBadge.classList.add("hidden");
+			}
+		}
+	}
+
+	_renderAuditTab() {
+		const engine = typeof this.getEngine === "function" ? this.getEngine() : null;
+		const audit = TreeAuditService.runFullAudit(engine);
+
+		let itemsToShow = [];
+		switch (this.auditFilter) {
+			case "duplicates":
+				itemsToShow = audit.duplicates;
+				break;
+			case "parentAnomalies":
+				itemsToShow = audit.parentAnomalies;
+				break;
+			case "lifespanAnomalies":
+				itemsToShow = audit.lifespanAnomalies;
+				break;
+			case "ignored":
+				itemsToShow = audit.ignored;
+				break;
+			case "all":
+			default:
+				itemsToShow = audit.allActive;
+				break;
+		}
+
+		return `
+			<div class="account-audit-section">
+				<!-- СТАТИСТИЧНИЙ БАНЕР -->
+				<div class="audit-summary-banner ${audit.totalActive === 0 ? "healthy" : "attention"}">
+					<div class="audit-banner-icon">
+						<i class="${audit.totalActive === 0 ? "ri-shield-check-fill" : "ri-shield-alert-fill"}"></i>
+					</div>
+					<div class="audit-banner-info">
+						<h4>${audit.totalActive === 0 ? "Родовід цілісний! Аномалій не виявлено" : `Виявлено зауважень щодо якості даних: ${audit.totalActive}`}</h4>
+						<p>${
+							audit.totalActive === 0
+								? "Всі дати, вік батьків та родинні зв'язки узгоджені. Дублікатів не знайдено."
+								: "Автоматична діагностика виявила потенційні дублікати, невідповідності віку батьків або хронологічні розбіжності."
+						}</p>
+					</div>
+					<div class="audit-banner-actions">
+						<button id="btn-audit-rescan" class="btn btn-outline btn-sm" title="Пересканувати родовід">
+							<i class="ri-refresh-line"></i> Оновити аудит
+						</button>
+					</div>
+				</div>
+
+				<!-- ФІЛЬТРИ ЗА КАТЕГОРІЯМИ -->
+				<div class="audit-filters-bar">
+					<button type="button" class="audit-filter-pill ${this.auditFilter === "all" ? "active" : ""}" data-filter="all">
+						Всі активні <span class="pill-count">${audit.totalActive}</span>
+					</button>
+					<button type="button" class="audit-filter-pill ${this.auditFilter === "duplicates" ? "active" : ""}" data-filter="duplicates">
+						<i class="ri-user-shared-line"></i> Дублікати <span class="pill-count">${audit.duplicates.length}</span>
+					</button>
+					<button type="button" class="audit-filter-pill ${this.auditFilter === "parentAnomalies" ? "active" : ""}" data-filter="parentAnomalies">
+						<i class="ri-parent-line"></i> Вік батьків <span class="pill-count">${audit.parentAnomalies.length}</span>
+					</button>
+					<button type="button" class="audit-filter-pill ${this.auditFilter === "lifespanAnomalies" ? "active" : ""}" data-filter="lifespanAnomalies">
+						<i class="ri-time-line"></i> Хронологія & Вік <span class="pill-count">${audit.lifespanAnomalies.length}</span>
+					</button>
+					<button type="button" class="audit-filter-pill ${this.auditFilter === "ignored" ? "active" : ""}" data-filter="ignored">
+						<i class="ri-eye-off-line"></i> Відхилені <span class="pill-count">${audit.ignored.length}</span>
+					</button>
+				</div>
+
+				<!-- СПИСОК ЗАУВАЖЕНЬ -->
+				<div class="audit-cards-list">
+					${
+						itemsToShow.length === 0
+							? `
+						<div class="audit-empty-box">
+							<i class="ri-checkbox-circle-line"></i>
+							<p>У цій категорії зауважень не виявлено.</p>
+						</div>
+					`
+							: itemsToShow.map((item) => this._renderAuditCard(item)).join("")
+					}
+				</div>
+			</div>
+		`;
+	}
+
+	_renderAuditCard(item) {
+		const isIgnored = this.auditFilter === "ignored";
+		const isDup = item.type === "duplicate";
+
+		let badgeClass = "badge-info";
+		let badgeLabel = "Інформація";
+		let badgeIcon = "ri-information-line";
+
+		if (item.severity === "error") {
+			badgeClass = "badge-error";
+			badgeLabel = "Помилка";
+			badgeIcon = "ri-error-warning-fill";
+		} else if (item.severity === "warning") {
+			badgeClass = "badge-warning";
+			badgeLabel = "Попередження";
+			badgeIcon = "ri-alert-fill";
+		} else if (isDup) {
+			badgeClass = "badge-dup";
+			badgeLabel = `Потенційний дублікат (${item.score}% збіг)`;
+			badgeIcon = "ri-user-shared-fill";
+		}
+
+		return `
+			<div class="audit-card severity-${item.severity || "warning"}" id="audit-card-${item.id}">
+				<div class="audit-card-header">
+					<div class="audit-badge-wrap">
+						<span class="audit-badge ${badgeClass}"><i class="${badgeIcon}"></i> ${badgeLabel}</span>
+					</div>
+					<h5 class="audit-card-title">${item.title}</h5>
+				</div>
+				<div class="audit-card-body">
+					<p class="audit-desc">${item.description}</p>
+					${
+						isDup && item.personA && item.personB
+							? `
+						<div class="audit-compare-grid">
+							<div class="audit-person-box">
+								<span class="box-role">Особа 1 (ID: ${item.personA.id})</span>
+								<strong>${item.personA.name || item.personA.fullName}</strong>
+								<span class="box-meta">${item.personA.birthDate || item.personA.dates?.birth || "Рік народження невідомий"}</span>
+							</div>
+							<div class="audit-compare-arrow"><i class="ri-arrow-left-right-line"></i></div>
+							<div class="audit-person-box">
+								<span class="box-role">Особа 2 (ID: ${item.personB.id})</span>
+								<strong>${item.personB.name || item.personB.fullName}</strong>
+								<span class="box-meta">${item.personB.birthDate || item.personB.dates?.birth || "Рік народження невідомий"}</span>
+							</div>
+						</div>
+						${
+							item.reasons && item.reasons.length
+								? `
+							<div class="audit-reasons-wrap">
+								<span class="reasons-label">Ознаки збігу:</span>
+								<ul class="audit-reasons-list">
+									${item.reasons.map((r) => `<li><i class="ri-check-line"></i> ${r}</li>`).join("")}
+								</ul>
+							</div>
+						`
+								: ""
+						}
+					`
+							: ""
+					}
+				</div>
+				<div class="audit-card-actions">
+					${
+						!isIgnored
+							? `
+						<button type="button" class="btn btn-primary btn-sm js-audit-fix" data-id="${item.personId || item.person?.id || item.personA?.id}">
+							<i class="ri-search-eye-line"></i> Виправити / Переглянути
+						</button>
+						<button type="button" class="btn btn-ghost btn-sm text-muted js-audit-dismiss" data-issue-id="${item.id}" title="Відхилити та не показувати це зауваження">
+							<i class="ri-close-line"></i> Відхилити
+						</button>
+					`
+							: `
+						<button type="button" class="btn btn-outline btn-sm js-audit-restore" data-issue-id="${item.id}">
+							<i class="ri-restart-line"></i> Відновити зауваження
+						</button>
+					`
+					}
+				</div>
+			</div>
+		`;
+	}
+
+	_bindAuditEvents() {
+		// Перемикання фільтрів
+		const filterPills = this.modal.querySelectorAll(".audit-filter-pill");
+		filterPills.forEach((pill) => {
+			pill.onclick = () => {
+				const filter = pill.getAttribute("data-filter");
+				if (filter) {
+					this.auditFilter = filter;
+					this.render();
+				}
+			};
+		});
+
+		// Кнопка Пересканувати
+		const rescanBtn = this.modal.querySelector("#btn-audit-rescan");
+		if (rescanBtn) {
+			rescanBtn.onclick = () => {
+				rescanBtn.disabled = true;
+				rescanBtn.innerHTML = `<i class="ri-loader-4-line spin"></i> Оновлення...`;
+				setTimeout(() => {
+					this.updateAuditBadge();
+					this.render();
+				}, 200);
+			};
+		}
+
+		// Кнопка Виправити / Переглянути
+		const fixButtons = this.modal.querySelectorAll(".js-audit-fix");
+		fixButtons.forEach((btn) => {
+			btn.onclick = () => {
+				const targetId = btn.getAttribute("data-id");
+				if (targetId) {
+					this.close();
+					if (typeof this.onNavigatePerson === "function") {
+						this.onNavigatePerson(targetId);
+					}
+				}
+			};
+		});
+
+		// Кнопка Відхилити
+		const dismissButtons = this.modal.querySelectorAll(".js-audit-dismiss");
+		dismissButtons.forEach((btn) => {
+			btn.onclick = () => {
+				const issueId = btn.getAttribute("data-issue-id");
+				if (issueId) {
+					TreeAuditService.ignoreIssue(issueId);
+					this.updateAuditBadge();
+					const card = document.getElementById(`audit-card-${issueId}`);
+					if (card) {
+						card.style.transition = "all 0.25s ease";
+						card.style.opacity = "0";
+						card.style.transform = "scale(0.96)";
+						setTimeout(() => this.render(), 250);
+					} else {
+						this.render();
+					}
+				}
+			};
+		});
+
+		// Кнопка Відновити
+		const restoreButtons = this.modal.querySelectorAll(".js-audit-restore");
+		restoreButtons.forEach((btn) => {
+			btn.onclick = () => {
+				const issueId = btn.getAttribute("data-issue-id");
+				if (issueId) {
+					TreeAuditService.unignoreIssue(issueId);
+					this.updateAuditBadge();
+					this.render();
+				}
+			};
+		});
 	}
 }
