@@ -22,6 +22,10 @@ const DATABASES = {
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=1603507541&single=true&output=csv",
     "familyRoles.csv":
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=1655707936&single=true&output=csv",
+    "families.csv":
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=166395725&single=true&output=csv",
+    "familyChildren.csv":
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=818657483&single=true&output=csv",
     "events.csv":
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=1891330957&single=true&output=csv",
     "participants.csv":
@@ -99,11 +103,23 @@ export async function main() {
         console.log(`[Sync] Downloading ${lang}/${filename}...`);
         const cacheBustUrl =
           url + (url.includes("?") ? "&" : "?") + "_cb=" + Date.now();
-        const response = await fetch(cacheBustUrl, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`Failed to download ${url}: ${response.statusText}`);
+        let csvText = "";
+        try {
+          const response = await fetch(cacheBustUrl, { cache: "no-store" });
+          if (response.ok) csvText = await response.text();
+        } catch (e) {}
+        if (!csvText) {
+          const sheetNameMap = { "families.csv": "Families", "familyChildren.csv": "Family_Children" };
+          const sName = sheetNameMap[filename];
+          if (sName) {
+            console.log(`[Sync] Fetch returned 401/error for ${filename}. Syncing directly via gsheets CLI (${sName})...`);
+            const tempOut = path.join(langDir, filename);
+            execSync(`gsheets readonly export 1kKCIXB1qmw2367eqfYT8BYaL3ilRBjdSSaBfCXMChYg "${tempOut}" --sheet "${sName}" --format csv`, { stdio: "inherit" });
+            csvText = fs.readFileSync(tempOut, "utf8");
+          } else {
+            throw new Error(`Failed to download ${url}`);
+          }
         }
-        let csvText = await response.text();
 
         if (filename === "basic.csv") {
           csvText = csvText.replace(

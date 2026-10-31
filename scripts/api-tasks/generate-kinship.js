@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import Papa from "papaparse";
+import { buildFamilyRolesFromFamilies } from "../services/familyAdapter.js";
 
 function parseCSV(filePath) {
 	if (!fs.existsSync(filePath)) {
@@ -62,7 +63,26 @@ export async function main() {
 
 	try {
 		const basicRows = parseCSV(basicPath);
-		const rolesRows = parseCSV(rolesPath);
+		let rolesRows = [];
+		try { rolesRows = parseCSV(rolesPath); } catch (e) {}
+		const familiesPath = resolveCsv("db/uk/families.csv");
+		const familyChildrenPath = resolveCsv("db/uk/familyChildren.csv");
+		let familiesRows = [];
+		let familyChildrenRows = [];
+		try { familiesRows = parseCSV(familiesPath); } catch (e) {}
+		try { familyChildrenRows = parseCSV(familyChildrenPath); } catch (e) {}
+		if (familiesRows.length > 0 && familyChildrenRows.length > 0) {
+			const genRoles = buildFamilyRolesFromFamilies(familiesRows, familyChildrenRows);
+			console.log(`[Parser] Loaded ${familiesRows.length} families and ${familyChildrenRows.length} child links -> ${genRoles.length} synthetic roles.`);
+			if (rolesRows.length === 0) {
+				rolesRows = genRoles;
+			} else {
+				const existingPids = new Set(rolesRows.map((r) => String(r.person_id).trim()));
+				for (const gr of genRoles) {
+					if (!existingPids.has(String(gr.person_id).trim())) rolesRows.push(gr);
+				}
+			}
+		}
 		let familyListRows = [];
 		try { familyListRows = parseCSV(familyListPath); } catch (e) {}
 

@@ -13,6 +13,7 @@ import {
 } from "../utils/processorUtils.js";
 import { buildChurchIndexes } from "../utils/churchUtils.js";
 import { buildGeoIndexes } from "../utils/geoUtils.js";
+import { linkRelationshipsFromFamilies } from "./familyAdapter.js";
 
 export class FamilyEngine {
 	constructor(
@@ -29,6 +30,9 @@ export class FamilyEngine {
 
 		// 1. Завантаження (Parsers)
 		this.people = loadPeopleMap(basicData, familyListData);
+		if (Array.isArray(fullDb?.families) && Array.isArray(fullDb?.familyChildren)) {
+			linkRelationshipsFromFamilies(this.people, fullDb.families, fullDb.familyChildren);
+		}
 		linkRelationships(this.people, rolesData);
 
 		// 2. Індексація (Processors)

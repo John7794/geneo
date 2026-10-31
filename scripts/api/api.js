@@ -3,6 +3,7 @@
 import { i18n } from "../core/i18n.js";
 import { DATA_FILES } from "../core/dbSchema.js";
 import { FamilyEngine } from "../services/familyEngine.js";
+import { buildFamilyRolesFromFamilies } from "../services/familyAdapter.js";
 import { checkDataVersion, fetchCsv, fetchJson } from "./dataLoader.js";
 
 /**
@@ -92,12 +93,16 @@ export async function fetchAllData(userConfig = {}) {
 		}
 	})();
 
+	// Fallback/Synthesis for familyRoles
 	const [fileResults, kinshipData] = await Promise.all([
 		Promise.all(filePromises),
 		kinshipPromise,
 	]);
 
 	const db = Object.fromEntries(fileResults);
+	if ((!db.familyRoles || db.familyRoles.length === 0) && Array.isArray(db.families) && Array.isArray(db.familyChildren)) {
+		db.familyRoles = buildFamilyRolesFromFamilies(db.families, db.familyChildren);
+	}
 
 	// Фільтрація прихованих профілів
 	const hiddenProfiles = userConfig.hiddenProfiles || [];
