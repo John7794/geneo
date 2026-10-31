@@ -26,6 +26,7 @@ import { ShareManager } from "./components/interaction/shareManager.js";
 import { UpdateManager } from "./components/interaction/updateManager.js";
 import { GlobalModalInterceptor } from "./core/globalModalInterceptor.js";
 import { AIManager } from "./components/interaction/aiManager.js";
+import { GedcomManager } from "./components/interaction/gedcomManager.js";
 
 class App {
 	constructor() {
@@ -175,6 +176,7 @@ class App {
 		this.managers.theme = new ThemeManager();
 		this.managers.share = new ShareManager(this);
 		this.managers.ai = new AIManager();
+		this.managers.gedcom = new GedcomManager(this.engine);
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();

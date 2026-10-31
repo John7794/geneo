@@ -147,6 +147,9 @@
                 <button id="btn-analytics" class="btn btn-icon js-open-analytics" title="Аналітика" aria-label="Аналітика">
                     <i class="ri-bar-chart-2-line"></i>
                 </button>
+                <button id="btn-gedcom" class="btn btn-icon js-open-gedcom" title="GEDCOM (Імпорт / Експорт)" aria-label="GEDCOM">
+                    <i class="ri-file-transfer-line"></i>
+                </button>
                 <button id="btn-events" class="btn btn-icon hidden" title="Цей день в історії" aria-label="Цей день в історії" data-i18n-title="events.historyTitle">
                     <i class="ri-calendar-event-line"></i>
                     <span id="events-badge" class="badge-dot badge-dot--tr hidden"></span>
@@ -588,6 +591,72 @@
                 </div>
             </div>
         </div>
+
+
+    <!-- GEDCOM Modal -->
+    <div id="gedcom-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="gedcom-modal-title">
+        <div class="popup-container" style="width: 90%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; background: var(--color-bg-card); border-radius: 16px; border: 1px solid var(--color-border); box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div class="popup-close-pos">
+                <button class="modal-close js-close-popup" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="popup-header" style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; padding-right: 48px;">
+                <h2 id="gedcom-modal-title" class="popup-title" style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                    <i class="ri-file-transfer-line" style="color: var(--color-primary);"></i> GEDCOM (Імпорт та Експорт)
+                </h2>
+            </div>
+            <div style="display: flex; border-bottom: 1px solid var(--color-border); padding: 0 16px; background: var(--color-bg-body);">
+                <button class="gedcom-tab-btn active" data-target="#gedcom-tab-export" style="padding: 10px 16px; font-size: 14px; font-weight: 500; border: none; background: transparent; cursor: pointer; color: var(--color-text-main); border-bottom: 2px solid var(--color-primary);">
+                    <i class="ri-download-2-line"></i> Експорт у GEDCOM
+                </button>
+                <button class="gedcom-tab-btn" data-target="#gedcom-tab-import" style="padding: 10px 16px; font-size: 14px; font-weight: 500; border: none; background: transparent; cursor: pointer; color: var(--color-text-muted);">
+                    <i class="ri-upload-2-line"></i> Імпорт з GEDCOM
+                </button>
+            </div>
+            <div class="popup-body" style="padding: 20px; overflow-y: auto;">
+                <!-- Tab: Export -->
+                <div id="gedcom-tab-export" class="gedcom-tab-panel">
+                    <p style="margin-top: 0; font-size: 14px; color: var(--color-text-muted); line-height: 1.5;">
+                        Експортуйте все ваше генеалогічне дерево у стандартний файл <strong>GEDCOM 5.5.1 (.ged)</strong>. Цей файл сумісний з усіма популярними генеалогічними платформами (FamilySearch, MyHeritage, Ancestry, Gramps, Древо Жизни).
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0;">
+                        <div style="background: var(--color-bg-body); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); text-align: center;">
+                            <div style="font-size: 12px; color: var(--color-text-muted);">Осіб у дереві</div>
+                            <div id="gedcom-export-stat-persons" style="font-size: 20px; font-weight: 700; color: var(--color-primary); margin-top: 4px;">0</div>
+                        </div>
+                        <div style="background: var(--color-bg-body); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); text-align: center;">
+                            <div style="font-size: 12px; color: var(--color-text-muted);">Сімей</div>
+                            <div id="gedcom-export-stat-families" style="font-size: 20px; font-weight: 700; color: var(--color-primary); margin-top: 4px;">0</div>
+                        </div>
+                        <div style="background: var(--color-bg-body); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); text-align: center;">
+                            <div style="font-size: 12px; color: var(--color-text-muted);">Населених пунктів</div>
+                            <div id="gedcom-export-stat-places" style="font-size: 20px; font-weight: 700; color: var(--color-primary); margin-top: 4px;">0</div>
+                        </div>
+                    </div>
+                    <div style="background: var(--color-bg-body); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 20px; font-size: 12px; color: var(--color-text-muted); line-height: 1.5;">
+                        <i class="ri-information-line" style="color: var(--color-primary); margin-right: 4px;"></i>
+                        Файл кодується у <strong>UTF-8</strong> зі збереженням українських імен, по батькові, шлюбів та юліанських дат.
+                    </div>
+                    <button id="btn-do-gedcom-export" class="btn btn-primary w-full" style="padding: 12px; font-size: 15px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="ri-download-2-line"></i> Завантажити файл .ged
+                    </button>
+                </div>
+
+                <!-- Tab: Import -->
+                <div id="gedcom-tab-import" class="gedcom-tab-panel hidden">
+                    <p style="margin-top: 0; font-size: 14px; color: var(--color-text-muted); line-height: 1.5;">
+                        Завантажте файл <strong>.ged</strong> або <strong>.gedcom</strong> для конвертації у формат бази даних Geneo.
+                    </p>
+                    <div id="gedcom-drop-zone" style="border: 2px dashed var(--color-border); border-radius: 12px; padding: 32px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: var(--color-bg-body); margin-bottom: 16px;">
+                        <i class="ri-upload-cloud-2-line" style="font-size: 40px; color: var(--color-primary); margin-bottom: 8px; display: block;"></i>
+                        <div style="font-weight: 600; font-size: 15px; color: var(--color-text-main);">Перетягніть файл сюди або натисніть для вибору</div>
+                        <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px;">Підтримуються файли GEDCOM 5.5.1 та 7.0</div>
+                        <input type="file" id="gedcom-file-input" accept=".ged,.gedcom" style="display: none;" />
+                    </div>
+                    <div id="gedcom-import-preview" class="hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 
