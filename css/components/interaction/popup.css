@@ -390,3 +390,79 @@
 		color: var(--color-text-main);
 	}
 }
+
+/* ==========================================
+   Потенційні збіги та дублікати (Smart Matching)
+   ========================================== */
+.popup-duplicates-container {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+.popup-duplicate-item {
+	padding: 10px 12px;
+	background: var(--color-bg-subtle, #f8fafc);
+	border: 1px solid rgba(245, 158, 11, 0.3);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.18s ease;
+}
+
+.popup-duplicate-item:hover {
+	border-color: #f59e0b;
+	background: rgba(245, 158, 11, 0.08);
+	transform: translateX(3px);
+}
+
+:root.theme-dark .popup-duplicate-item {
+	background: rgba(245, 158, 11, 0.05);
+	border-color: rgba(245, 158, 11, 0.25);
+}
+
+:root.theme-dark .popup-duplicate-item:hover {
+	background: rgba(245, 158, 11, 0.15);
+	border-color: #f59e0b;
+}
+
+.dup-item-main {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 3px;
+}
+
+.dup-item-name {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--color-text-main);
+}
+
+.dup-confidence-badge {
+	font-size: 11px;
+	font-weight: 700;
+	padding: 2px 7px;
+	border-radius: 10px;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+
+.dup-confidence-badge.badge-high {
+	background: rgba(234, 88, 12, 0.15);
+	color: #ea580c;
+	border: 1px solid rgba(234, 88, 12, 0.3);
+}
+
+.dup-confidence-badge.badge-medium {
+	background: rgba(245, 158, 11, 0.15);
+	color: #d97706;
+	border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.dup-item-reasons {
+	font-size: 0.8rem;
+	color: var(--color-text-muted);
+	line-height: 1.35;
+}

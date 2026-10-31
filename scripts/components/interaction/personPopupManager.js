@@ -10,6 +10,7 @@ import {
 } from "../../utils/personUtils.js";
 import { convertJulianToGregorian } from "../../utils/dateUtils.js";
 import { escapeHtml } from "../../utils/helpers.js";
+import { DuplicateDetectorService } from "../../services/duplicateDetectorService.js";
 
 // ============================================================================
 // 1. UTILITY LAYER
@@ -409,8 +410,9 @@ export class PersonPopupManager {
 
 		// 🔥 Передача об'єкта ядра для розшифровки слагів
 		const relationsHTML = this.renderRelationships(p, engine);
+		const duplicatesHTML = this.renderPotentialDuplicates(p, engine);
 		const infoHTML = this.renderGeneralInfo(p);
-		const combinedBodyHTML = (relationsHTML + infoHTML).trim();
+		const combinedBodyHTML = (relationsHTML + duplicatesHTML + infoHTML).trim();
 
 		scrollSlot.innerHTML = combinedBodyHTML;
 		scrollSlot.style.display = combinedBodyHTML === "" ? "none" : "";
@@ -629,6 +631,44 @@ export class PersonPopupManager {
                 ${rows}
             </div>
         `;
+	}
+
+
+	renderPotentialDuplicates(p, engine) {
+		const matches = DuplicateDetectorService.findMatchesForPerson(p, engine, 2);
+		if (!matches || matches.length === 0) return "";
+
+		const items = matches
+			.map((m) => {
+				const cand = m.person;
+				const name = cand.fullName || cand.name || `ID: ${cand.id}`;
+				const badgeClass = m.confidence === "high" ? "badge-high" : "badge-medium";
+				const reasonsStr = m.reasons.join(" • ");
+
+				return `
+					<div class="popup-duplicate-item js-go-profile" data-id="${cand.id}" role="button" tabindex="0" title="Перейти до потенційного дубліката">
+						<div class="dup-item-main">
+							<span class="dup-item-name">${name}</span>
+							<span class="dup-confidence-badge ${badgeClass}">${m.score}% схожість</span>
+						</div>
+						<div class="dup-item-reasons">${reasonsStr}</div>
+					</div>
+				`;
+			})
+			.join("");
+
+		return `
+			<div class="${UI_CLASSES.popupBody} popup-body-spaced popup-duplicates-section">
+				<div class="popup-section-divider">
+					<div class="popup-divider-line"></div>
+					<span class="popup-divider-text">💡 Потенційні збіги (${matches.length})</span>
+					<div class="popup-divider-line"></div>
+				</div>
+				<div class="popup-duplicates-container">
+					${items}
+				</div>
+			</div>
+		`;
 	}
 
 	destroy() {
