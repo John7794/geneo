@@ -258,10 +258,16 @@ class App {
 			}
 		});
 
-		// Оновлюємо бейдж аудиту родоводу
-		setTimeout(() => {
-			this.managers.account?.updateAuditBadge();
-		}, 300);
+		// Фонове оновлення бейджа аудиту родоводу у вільний час процесора (Idle Callback)
+		if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+			window.requestIdleCallback(() => {
+				this.managers.account?.updateAuditBadge();
+			}, { timeout: 4000 });
+		} else {
+			setTimeout(() => {
+				this.managers.account?.updateAuditBadge();
+			}, 3000);
+		}
 
 		// 🔥 Виправлення ініціалізації мобільного меню
 		this.managers.mobileMenu = new MobileMenuManager();

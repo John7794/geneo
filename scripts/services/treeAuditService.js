@@ -3,8 +3,9 @@
 import { DuplicateDetectorService } from "./duplicateDetectorService.js";
 
 /**
- * Сервіс аудиту родинного дерева: виявлення потенційних дублікатів,
+ * Сервіс високопродуктивного аудиту родинного дерева: виявлення потенційних дублікатів,
  * невідповідностей віку батьків, надто довгого життя та хронологічних помилок.
+ * Оптимізовано для негайного відгуку UI (використовує O(N) індексацію та кешування).
  */
 
 const STORAGE_KEY_IGNORED = "geneo_ignored_audit_issues";
@@ -15,7 +16,16 @@ function extractYear(val) {
 	return match ? parseInt(match[0], 10) : null;
 }
 
+// Внутрішній кеш результатів аудиту для уникнення повторних розрахунків
+let _cachedRawAudit = null;
+let _cachedEngineRef = null;
+
 export class TreeAuditService {
+	static clearCache() {
+		_cachedRawAudit = null;
+		_cachedEngineRef = null;
+	}
+
 	static getIgnoredIds() {
 		try {
 			const raw = localStorage.getItem(STORAGE_KEY_IGNORED);
@@ -65,51 +75,79 @@ export class TreeAuditService {
 		}
 
 		const ignoredIds = new Set(this.getIgnoredIds());
+
+		// Якщо дерево не змінювалося, використовуємо збережені сирі зауваження
+		let rawIssues;
+		if (_cachedRawAudit && _cachedEngineRef === engine) {
+			rawIssues = _cachedRawAudit;
+		} else {
+			rawIssues = this._computeAudit(engine);
+			_cachedRawAudit = rawIssues;
+			_cachedEngineRef = engine;
+		}
+
 		const duplicates = [];
 		const parentAnomalies = [];
 		const lifespanAnomalies = [];
 		const ignored = [];
 
-		const peopleArr = Array.from(engine.people.values());
-		const seenDupPairs = new Set();
-
-		// 1. Пошук потенційних дублікатів (Smart Duplicates)
-		for (let i = 0; i < peopleArr.length; i++) {
-			const pA = peopleArr[i];
-			const matches = DuplicateDetectorService.findMatchesForPerson(pA, engine, 3);
-
-			for (const match of matches) {
-				const pB = match.person;
-				const pairKey = [String(pA.id), String(pB.id)].sort().join("___");
-				if (seenDupPairs.has(pairKey)) continue;
-				seenDupPairs.add(pairKey);
-
-				const issueId = `dup_${pairKey}`;
-				const item = {
-					id: issueId,
-					type: "duplicate",
-					category: "duplicates",
-					severity: "duplicate",
-					title: "Потенційний дублікат особи",
-					personId: pA.id,
-					person: pA,
-					personA: pA,
-					personB: pB,
-					score: match.score,
-					confidence: match.confidence,
-					description: `Можливий дублікат: «${pA.name || pA.fullName}» та «${pB.name || pB.fullName}». Схожість ${match.score}%.`,
-					reasons: match.reasons,
-				};
-
-				if (ignoredIds.has(issueId)) {
-					ignored.push(item);
-				} else {
-					duplicates.push(item);
-				}
-			}
+		for (const item of rawIssues.duplicates) {
+			if (ignoredIds.has(item.id)) ignored.push(item);
+			else duplicates.push(item);
 		}
 
-		// 2. Пошук хронологічних аномалій та невідповідностей віку батьків
+		for (const item of rawIssues.parentAnomalies) {
+			if (ignoredIds.has(item.id)) ignored.push(item);
+			else parentAnomalies.push(item);
+		}
+
+		for (const item of rawIssues.lifespanAnomalies) {
+			if (ignoredIds.has(item.id)) ignored.push(item);
+			else lifespanAnomalies.push(item);
+		}
+
+		const allActive = [...duplicates, ...parentAnomalies, ...lifespanAnomalies];
+
+		return {
+			duplicates,
+			parentAnomalies,
+			lifespanAnomalies,
+			ignored,
+			allActive,
+			totalActive: allActive.length,
+		};
+	}
+
+	static _computeAudit(engine) {
+		const duplicates = [];
+		const parentAnomalies = [];
+		const lifespanAnomalies = [];
+
+		// 1. Пошук потенційних дублікатів (швидкий індексований пошук за O(N))
+		const dupPairs = DuplicateDetectorService.findAllDuplicatePairs(engine);
+		for (const match of dupPairs) {
+			const issueId = `dup_${match.pairKey}`;
+			duplicates.push({
+				id: issueId,
+				type: "duplicate",
+				category: "duplicates",
+				severity: "duplicate",
+				title: "Потенційний дублікат особи",
+				personId: match.personA.id,
+				person: match.personA,
+				personA: match.personA,
+				personB: match.personB,
+				score: match.score,
+				confidence: match.confidence,
+				description: `Можливий дублікат: «${match.personA.name || match.personA.fullName}» та «${match.personB.name || match.personB.fullName}». Схожість ${match.score}%.`,
+				reasons: match.reasons,
+			});
+		}
+
+		// 2. Хронологічні аномалії та вік батьків
+		const peopleArr = Array.from(engine.people.values());
+		const currentYear = new Date().getFullYear();
+
 		for (const p of peopleArr) {
 			const pId = String(p.id).trim();
 			const pName = p.name || p.fullName || `ID: ${pId}`;
@@ -120,9 +158,8 @@ export class TreeAuditService {
 			// 2.1. Перевірка тривалості життя
 			if (bYear && dYear) {
 				if (dYear < bYear) {
-					const issueId = `life_death_before_birth_${pId}`;
-					const item = {
-						id: issueId,
+					lifespanAnomalies.push({
+						id: `life_death_before_birth_${pId}`,
 						type: "chronology",
 						category: "lifespanAnomalies",
 						severity: "error",
@@ -130,14 +167,11 @@ export class TreeAuditService {
 						person: p,
 						title: "Смерть раніше за народження",
 						description: `${pName}: зазначено рік смерті (${dYear}) раніше за рік народження (${bYear}).`,
-					};
-					if (ignoredIds.has(issueId)) ignored.push(item);
-					else lifespanAnomalies.push(item);
+					});
 				} else if (dYear - bYear > 115) {
 					const age = dYear - bYear;
-					const issueId = `life_longevity_${pId}`;
-					const item = {
-						id: issueId,
+					lifespanAnomalies.push({
+						id: `life_longevity_${pId}`,
 						type: "longevity",
 						category: "lifespanAnomalies",
 						severity: "warning",
@@ -145,16 +179,12 @@ export class TreeAuditService {
 						person: p,
 						title: "Надто довгий період життя",
 						description: `${pName}: розрахований вік життя становить ${age} років (${bYear}–${dYear}). Потребує перевірки першоджерел.`,
-					};
-					if (ignoredIds.has(issueId)) ignored.push(item);
-					else lifespanAnomalies.push(item);
+					});
 				}
 			} else if (bYear && !dYear) {
-				const currentYear = new Date().getFullYear();
 				if (currentYear - bYear > 120 && p.isAlive) {
-					const issueId = `life_alive_over_120_${pId}`;
-					const item = {
-						id: issueId,
+					lifespanAnomalies.push({
+						id: `life_alive_over_120_${pId}`,
 						type: "longevity",
 						category: "lifespanAnomalies",
 						severity: "warning",
@@ -162,9 +192,7 @@ export class TreeAuditService {
 						person: p,
 						title: "Статус «Живий» при віці понад 120 років",
 						description: `${pName} народився(-лась) у ${bYear} році (${currentYear - bYear} р. тому), проте не позначено як померлий(-ла).`,
-					};
-					if (ignoredIds.has(issueId)) ignored.push(item);
-					else lifespanAnomalies.push(item);
+					});
 				}
 			}
 
@@ -184,9 +212,8 @@ export class TreeAuditService {
 					const parentAgeAtBirth = bYear - parentBYear;
 
 					if (parentAgeAtBirth < 13) {
-						const issueId = `parent_too_young_${parentId}_${pId}`;
-						const item = {
-							id: issueId,
+						parentAnomalies.push({
+							id: `parent_too_young_${parentId}_${pId}`,
 							type: "parent_age",
 							category: "parentAnomalies",
 							severity: "error",
@@ -196,13 +223,10 @@ export class TreeAuditService {
 							relatedPerson: parent,
 							title: `Надто юний вік ${isMother ? "матері" : "батька"}`,
 							description: `${parentName} народив(-ла) дитину «${pName}» у віці ${parentAgeAtBirth} років (батько/мати: ${parentBYear} р.н., дитина: ${bYear} р.н.).`,
-						};
-						if (ignoredIds.has(issueId)) ignored.push(item);
-						else parentAnomalies.push(item);
+						});
 					} else if (isMother && parentAgeAtBirth > 53) {
-						const issueId = `mother_too_old_${parentId}_${pId}`;
-						const item = {
-							id: issueId,
+						parentAnomalies.push({
+							id: `mother_too_old_${parentId}_${pId}`,
 							type: "parent_age",
 							category: "parentAnomalies",
 							severity: "warning",
@@ -212,13 +236,10 @@ export class TreeAuditService {
 							relatedPerson: parent,
 							title: "Незвично поважний вік матері при пологах",
 							description: `Мати ${parentName} народила «${pName}» у віці ${parentAgeAtBirth} років (мати: ${parentBYear} р.н., дитина: ${bYear} р.н.).`,
-						};
-						if (ignoredIds.has(issueId)) ignored.push(item);
-						else parentAnomalies.push(item);
+						});
 					} else if (!isMother && parentAgeAtBirth > 85) {
-						const issueId = `father_too_old_${parentId}_${pId}`;
-						const item = {
-							id: issueId,
+						parentAnomalies.push({
+							id: `father_too_old_${parentId}_${pId}`,
 							type: "parent_age",
 							category: "parentAnomalies",
 							severity: "warning",
@@ -228,18 +249,15 @@ export class TreeAuditService {
 							relatedPerson: parent,
 							title: "Поважний вік батька при народженні дитини",
 							description: `Батько ${parentName} мав вік ${parentAgeAtBirth} років на момент народження дитини «${pName}».`,
-						};
-						if (ignoredIds.has(issueId)) ignored.push(item);
-						else parentAnomalies.push(item);
+						});
 					}
 				}
 
 				// Народження після смерті батька/матері
 				if (bYear && parentDYear) {
 					if (isMother && bYear > parentDYear) {
-						const issueId = `born_after_mother_death_${parentId}_${pId}`;
-						const item = {
-							id: issueId,
+						parentAnomalies.push({
+							id: `born_after_mother_death_${parentId}_${pId}`,
 							type: "chronology",
 							category: "parentAnomalies",
 							severity: "error",
@@ -249,13 +267,10 @@ export class TreeAuditService {
 							relatedPerson: parent,
 							title: "Народження після смерті матері",
 							description: `Дитина «${pName}» (${bYear} р.н.) народилася після року смерті матері ${parentName} (${parentDYear} р.с.).`,
-						};
-						if (ignoredIds.has(issueId)) ignored.push(item);
-						else parentAnomalies.push(item);
+						});
 					} else if (!isMother && bYear - parentDYear > 1) {
-						const issueId = `born_after_father_death_${parentId}_${pId}`;
-						const item = {
-							id: issueId,
+						parentAnomalies.push({
+							id: `born_after_father_death_${parentId}_${pId}`,
 							type: "chronology",
 							category: "parentAnomalies",
 							severity: "error",
@@ -265,23 +280,16 @@ export class TreeAuditService {
 							relatedPerson: parent,
 							title: "Народження значно пізніше за смерть батька",
 							description: `Дитина «${pName}» народилася у ${bYear} році, тоді як батько ${parentName} помер у ${parentDYear} році (різниця понад 1 рік).`,
-						};
-						if (ignoredIds.has(issueId)) ignored.push(item);
-						else parentAnomalies.push(item);
+						});
 					}
 				}
 			}
 		}
 
-		const allActive = [...duplicates, ...parentAnomalies, ...lifespanAnomalies];
-
 		return {
 			duplicates,
 			parentAnomalies,
 			lifespanAnomalies,
-			ignored,
-			allActive,
-			totalActive: allActive.length,
 		};
 	}
 }
