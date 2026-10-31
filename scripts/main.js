@@ -208,7 +208,7 @@ class App {
 		this.managers.share = new ShareManager(this);
 		this.managers.ai = new AIManager();
 		this.driveService = new GoogleDriveService();
-		this.managers.googleDrive = new GoogleDriveModalManager(this.driveService, this.workspaceManager);
+		this.managers.googleDrive = new GoogleDriveModalManager(this.driveService, this.workspaceManager, this.authManager);
 
 		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager, this.driveService);
 		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);

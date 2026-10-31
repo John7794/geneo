@@ -81,20 +81,25 @@ export class GoogleDriveModalManager {
 	async render() {
 		if (!this.modal) return;
 
-		const isConnected = this.drive ? this.drive.isConnected() : false;
-		const folderMap = this.drive ? this.drive.getFolderMap() : null;
-		const userInfo = this.drive ? this.drive.getUserInfo() : null;
-		const activeWs = this.workspaceManager.getActiveWorkspace();
-
-		let quota = null;
-		if (isConnected && this.drive) {
-			quota = await this.drive.getQuota();
-		}
-
 		const body = this.modal.querySelector("#gdrive-modal-content");
 		if (!body) return;
 
-		body.innerHTML = `
+		try {
+			const isConnected = this.drive ? this.drive.isConnected() : false;
+			const folderMap = this.drive?.getFolderMap ? this.drive.getFolderMap() : (this.drive?.folderMap || null);
+			const userInfo = this.drive?.getUserInfo ? this.drive.getUserInfo() : (this.drive?.userInfo || null);
+			const activeWs = this.workspaceManager?.getActiveWorkspace ? this.workspaceManager.getActiveWorkspace() : null;
+
+			let quota = null;
+			if (isConnected && this.drive?.getQuota) {
+				try {
+					quota = await this.drive.getQuota();
+				} catch (err) {
+					console.warn("Помилка отримання квоти:", err);
+				}
+			}
+
+			body.innerHTML = `
 			<div class="gdrive-container">
 				<div class="drive-explainer-banner">
 					<i class="ri-lightbulb-line"></i>
@@ -125,15 +130,15 @@ export class GoogleDriveModalManager {
 					</div>
 
 					${
-						isConnected && quota
+						isConnected && quota && typeof quota.usageBytes === "number"
 							? `
 						<div class="gdrive-quota-box">
 							<div class="quota-meta-row">
 								<span>Використано пам'яті: <strong>${(quota.usageBytes / (1024 * 1024 * 1024)).toFixed(2)} GB</strong> з ${(quota.limitBytes / (1024 * 1024 * 1024)).toFixed(1)} GB</span>
-								<span class="quota-pct">${quota.percentUsed}%</span>
+								<span class="quota-pct">${quota.percentUsed || 0}%</span>
 							</div>
 							<div class="quota-bar-wrapper">
-								<div class="quota-bar-fill ${quota.isLowSpace ? "warning" : ""}" style="width: ${Math.min(100, quota.percentUsed)}%;"></div>
+								<div class="quota-bar-fill ${quota.isLowSpace ? "warning" : ""}" style="width: ${Math.min(100, quota.percentUsed || 0)}%;"></div>
 							</div>
 							${
 								quota.isLowSpace
@@ -194,7 +199,16 @@ export class GoogleDriveModalManager {
 			</div>
 		`;
 
-		this._bindEvents();
+			this._bindEvents();
+		} catch (renderErr) {
+			console.error("Помилка рендерингу модалки Google Drive:", renderErr);
+			body.innerHTML = `
+				<div class="p-4 text-center text-danger">
+					<p>Виникла помилка під час завантаження інтерфейсу Google Диску.</p>
+					<button onclick="window.location.reload()" class="btn btn-secondary btn-sm">Перезавантажити сторінку</button>
+				</div>
+			`;
+		}
 	}
 
 	_bindEvents() {

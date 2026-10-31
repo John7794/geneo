@@ -52,6 +52,10 @@ export class GoogleDriveService {
 		} catch (e) {}
 	}
 
+	getFolderMap() {
+		return this.folderMap;
+	}
+
 	_loadUserInfo() {
 		try {
 			const raw = localStorage.getItem(STORAGE_KEYS.USER_INFO);
@@ -59,6 +63,10 @@ export class GoogleDriveService {
 		} catch (e) {
 			return null;
 		}
+	}
+
+	getUserInfo() {
+		return this.userInfo;
 	}
 
 	_saveUserInfo(info) {
