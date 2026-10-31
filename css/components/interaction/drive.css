@@ -231,3 +231,59 @@
 	flex-shrink: 0;
 	margin-top: 1px;
 }
+
+/* Кнопки інструментів скрипта */
+.script-tools-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.script-btn-group {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.script-btn-group .btn {
+	white-space: nowrap !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	padding: 7px 14px !important;
+	border-radius: 8px !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	cursor: pointer !important;
+	text-decoration: none !important;
+	transition: all 0.2s ease !important;
+}
+
+.script-btn-group .btn-outline {
+	background: var(--color-bg-card, #ffffff) !important;
+	border: 1px solid var(--color-border, #cbd5e1) !important;
+	color: var(--color-text-main, #1e293b) !important;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.script-btn-group .btn-outline:hover {
+	background: var(--color-bg-hover, #f1f5f9) !important;
+	border-color: var(--color-primary, #2563eb) !important;
+	color: var(--color-primary, #2563eb) !important;
+}
+
+.script-btn-group .btn-primary {
+	background: var(--color-primary, #2563eb) !important;
+	border: 1px solid var(--color-primary, #2563eb) !important;
+	color: #ffffff !important;
+	box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+.script-btn-group .btn-primary:hover {
+	background: var(--color-primary-hover, #1d4ed8) !important;
+	border-color: var(--color-primary-hover, #1d4ed8) !important;
+	color: #ffffff !important;
+}

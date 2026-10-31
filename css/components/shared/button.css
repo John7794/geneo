@@ -96,3 +96,48 @@
 .theme-dark .btn-open-tree:hover {
 	color: #fff;
 }
+
+/* Модифікатор: Контурна кнопка (Outline) */
+.btn-outline,
+.btn-secondary {
+	background-color: var(--color-bg-card, #ffffff);
+	color: var(--color-text-main, #0f172a);
+	border: 1px solid var(--color-border, #cbd5e1);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	font-weight: 500;
+	text-decoration: none !important;
+}
+
+.btn-outline:hover,
+.btn-secondary:hover {
+	background-color: var(--color-bg-hover, #f1f5f9);
+	border-color: var(--color-primary, #2563eb);
+	color: var(--color-primary, #2563eb);
+	text-decoration: none !important;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.btn-outline:active,
+.btn-secondary:active {
+	background-color: var(--color-bg-subtle, #e2e8f0);
+	transform: translateY(1px);
+}
+
+/* Розмірні модифікатори */
+.btn-sm {
+	padding: 0.35rem 0.75rem;
+	font-size: 0.8125rem;
+	border-radius: 6px;
+	gap: 6px;
+	line-height: 1.35;
+	white-space: nowrap;
+}
+
+.btn-xs {
+	padding: 0.2rem 0.5rem;
+	font-size: 0.75rem;
+	border-radius: 4px;
+	gap: 4px;
+	line-height: 1.25;
+	white-space: nowrap;
+}

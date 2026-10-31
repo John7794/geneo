@@ -21,6 +21,7 @@ export class AccountModalManager {
 
 		this.currentTab = "profile"; // profile | trees | sharing | drive | audit
 		this.auditFilter = "all"; // all | duplicates | parentAnomalies | lifespanAnomalies | ignored
+		this.auditPageLimit = 30;
 
 		this._initDomEvents();
 		this._syncAccountButton();
@@ -879,6 +880,10 @@ export class AccountModalManager {
 				break;
 		}
 
+		const totalAvailable = itemsToShow.length;
+		const sliced = itemsToShow.slice(0, this.auditPageLimit);
+		const hasMore = totalAvailable > this.auditPageLimit;
+
 		return `
 			<div class="account-audit-section">
 				<!-- СТАТИСТИЧНИЙ БАНЕР -->
@@ -923,14 +928,25 @@ export class AccountModalManager {
 				<!-- СПИСОК ЗАУВАЖЕНЬ -->
 				<div class="audit-cards-list">
 					${
-						itemsToShow.length === 0
+						sliced.length === 0
 							? `
 						<div class="audit-empty-box">
 							<i class="ri-checkbox-circle-line"></i>
 							<p>У цій категорії зауважень не виявлено.</p>
 						</div>
 					`
-							: itemsToShow.map((item) => this._renderAuditCard(item)).join("")
+							: sliced.map((item) => this._renderAuditCard(item)).join("")
+					}
+					${
+						hasMore
+							? `
+						<div class="audit-load-more-box" style="text-align: center; padding: 14px 0;">
+							<button type="button" id="btn-audit-load-more" class="btn btn-outline btn-sm" style="margin: 0 auto; display: inline-flex;">
+								<i class="ri-arrow-down-line"></i> Показати ще 30 зауважень (залишилось ${totalAvailable - this.auditPageLimit})
+							</button>
+						</div>
+					`
+							: ""
 					}
 				</div>
 			</div>
@@ -1004,19 +1020,31 @@ export class AccountModalManager {
 				<div class="audit-card-actions">
 					${
 						!isIgnored
-							? `
-						<button type="button" class="btn btn-primary btn-sm js-audit-fix" data-id="${item.personId || item.person?.id || item.personA?.id}">
-							<i class="ri-search-eye-line"></i> Виправити / Переглянути
-						</button>
-						<button type="button" class="btn btn-ghost btn-sm text-muted js-audit-dismiss" data-issue-id="${item.id}" title="Відхилити та не показувати це зауваження">
-							<i class="ri-close-line"></i> Відхилити
-						</button>
-					`
+							? isDup && item.personA && item.personB
+								? `
+								<button type="button" class="btn btn-primary btn-sm js-audit-fix" data-id="${item.personA.id}">
+									<i class="ri-search-eye-line"></i> Переглянути Отримувача 1
+								</button>
+								<button type="button" class="btn btn-outline btn-sm js-audit-fix" data-id="${item.personB.id}">
+									<i class="ri-search-eye-line"></i> Переглянути Отримувача 2
+								</button>
+								<button type="button" class="btn btn-ghost btn-sm text-muted js-audit-dismiss" data-issue-id="${item.id}" title="Відхилити та не показувати це зауваження">
+									<i class="ri-close-line"></i> Відхилити
+								</button>
+							`
+								: `
+								<button type="button" class="btn btn-primary btn-sm js-audit-fix" data-id="${item.personId || item.person?.id}">
+									<i class="ri-search-eye-line"></i> Виправити / Переглянути
+								</button>
+								<button type="button" class="btn btn-ghost btn-sm text-muted js-audit-dismiss" data-issue-id="${item.id}" title="Відхилити та не показувати це зауваження">
+									<i class="ri-close-line"></i> Відхилити
+								</button>
+							`
 							: `
-						<button type="button" class="btn btn-outline btn-sm js-audit-restore" data-issue-id="${item.id}">
-							<i class="ri-restart-line"></i> Відновити зауваження
-						</button>
-					`
+							<button type="button" class="btn btn-outline btn-sm js-audit-restore" data-issue-id="${item.id}">
+								<i class="ri-restart-line"></i> Відновити зауваження
+							</button>
+						`
 					}
 				</div>
 			</div>
@@ -1031,10 +1059,20 @@ export class AccountModalManager {
 				const filter = pill.getAttribute("data-filter");
 				if (filter) {
 					this.auditFilter = filter;
+					this.auditPageLimit = 30;
 					this.render();
 				}
 			};
 		});
+
+		// Кнопка Показати ще
+		const loadMoreBtn = this.modal.querySelector("#btn-audit-load-more");
+		if (loadMoreBtn) {
+			loadMoreBtn.onclick = () => {
+				this.auditPageLimit += 30;
+				this.render();
+			};
+		}
 
 		// Кнопка Пересканувати
 		const rescanBtn = this.modal.querySelector("#btn-audit-rescan");

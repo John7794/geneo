@@ -200,13 +200,13 @@ export class GoogleDriveModalManager {
 
 				<!-- GOOGLE APPS SCRIPT ДЛЯ СИНХРОНІЗАЦІЇ 31 ТАБЛИЦІ -->
 				<div class="gdrive-section-card">
-					<div class="section-card-header">
+					<div class="section-card-header script-tools-header">
 						<h4><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script):</h4>
-						<div style="display: flex; gap: 8px;">
-							<button id="btn-copy-apps-script" class="btn btn-outline btn-sm">
-								<i class="ri-file-copy-line"></i> Скопіювати код скрипта
+						<div class="script-btn-group">
+							<button id="btn-copy-apps-script" type="button" class="btn btn-outline btn-sm">
+								<i class="ri-file-copy-line"></i> Скопіювати код
 							</button>
-							<a href="/google-apps-script/GeneoAutoSync.gs" download="GeneoAutoSync.gs" class="btn btn-outline btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+							<a href="/google-apps-script/GeneoAutoSync.gs" download="GeneoAutoSync.gs" class="btn btn-primary btn-sm">
 								<i class="ri-download-cloud-line"></i> Завантажити .gs
 							</a>
 						</div>
