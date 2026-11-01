@@ -36,6 +36,8 @@ export class WorkspaceManager {
 	 */
 	async init(userConfig = {}) {
 		this.isMainAdmin = !!userConfig.isMainAdmin;
+		const userEmail = (userConfig.email || "").toLowerCase().trim();
+		this.isAuthorOwner = userEmail === "ivanselivanov771994@gmail.com" || !!userConfig.isAuthorOwner;
 		const hasAuthorTreeAccess = userConfig.hasAuthorTreeAccess !== false;
 
 		// Якщо доступ до дерева автора відкликано, негайно очищуємо локально кешовані таблиці та kinship
@@ -68,7 +70,7 @@ export class WorkspaceManager {
 		if (hasAuthorTreeAccess) {
 			const authorWs = {
 				...DEFAULT_AUTHOR_WORKSPACE,
-				isOwner: this.isMainAdmin, // Тільки головний адмін є власником дерева автора
+				isOwner: this.isAuthorOwner, // Тільки первинний автор (ivanselivanov771994@gmail.com) є власником дерева автора
 			};
 			this.workspaces = [authorWs, ...customList];
 		} else {
@@ -131,7 +133,7 @@ export class WorkspaceManager {
 	canShareCurrentWorkspace() {
 		if (!this.activeWorkspace) return false;
 		if (this.activeWorkspace.id === DEFAULT_AUTHOR_WORKSPACE_ID) {
-			return this.isMainAdmin;
+			return this.isAuthorOwner; // ТІЛЬКИ ivanselivanov771994@gmail.com
 		}
 		return !!this.activeWorkspace.isOwner;
 	}

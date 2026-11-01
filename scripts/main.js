@@ -86,15 +86,17 @@ class App {
 					if (configData.hiddenProfiles) {
 						userConfig.hiddenProfiles = configData.hiddenProfiles;
 					}
+					userConfig.email = currentUser?.email || "";
 					userConfig.canShare = configData.canShare || false;
 					userConfig.canSync = configData.canSync || false;
 					userConfig.isMainAdmin = !!(configData.isMainAdmin || this.authManager.isAdmin());
+					userConfig.isAuthorOwner = !!configData.isAuthorOwner || (currentUser?.email?.toLowerCase() === "ivanselivanov771994@gmail.com");
 					userConfig.hasAuthorTreeAccess = configData.hasAuthorTreeAccess !== false;
 					window.userConfig = userConfig;
 
 					const btnShare = document.getElementById("btn-share");
 					if (btnShare) {
-						btnShare.style.display = (userConfig.isMainAdmin || userConfig.canShare) ? "" : "none";
+						btnShare.style.display = userConfig.canShare ? "" : "none";
 					}
 				}
 			} catch(e) {

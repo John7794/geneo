@@ -359,7 +359,7 @@ export class AccountModalManager {
 										<span class="tree-card-title">${ws.name}</span>
 										${isActive ? `<span class="badge-active">Активне</span>` : ""}
 										<span class="tree-card-badge ${ws.isOwner ? "badge-owner" : "badge-guest"}">
-											${ws.isOwner ? "Власник" : "Гість"}
+											${ws.isOwner ? "Власник" : (ws.id === "bundled_author" ? "Спільний доступ" : "Гість")}
 										</span>
 									</div>
 									<div class="tree-card-meta">
@@ -398,11 +398,11 @@ export class AccountModalManager {
 					<div class="restricted-icon"><i class="ri-shield-keyhole-line"></i></div>
 					<h3>Спільний доступ обмежено</h3>
 					<p class="restricted-desc">
-						Ви переглядаєте дерево <strong>«${activeWs?.name || "Дерево автора"}»</strong> у режимі гостя.
+						Ви переглядаєте дерево <strong>«${activeWs?.name || "Родовід Селіванових"}»</strong> за наданим доступом.
 					</p>
 					<div class="restricted-notice">
 						<i class="ri-information-line"></i>
-						<span>Згідно з правилами безпеки платформи Geneo, надавати доступ іншим особам може виключно первинний Власник цього дерева.</span>
+						<span>Це дерево належить іншому обліковому запису (<strong>ivanselivanov771994@gmail.com</strong>). Згідно з правилами безпеки Geneo, надавати доступ іншим особам та переглядати список запрошених може виключно його первинний Власник.</span>
 					</div>
 					<div class="restricted-action">
 						<p>Бажаєте мати власне дерево, яким зможете ділитися з родичами?</p>

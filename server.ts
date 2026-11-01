@@ -13,6 +13,7 @@ import { initializeApp, getApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 // Ініціалізація конфігурації адміністратора
+const authorOwnerEmail = "ivanselivanov771994@gmail.com";
 const adminEmailsList = (process.env.ADMIN_EMAIL || "ivanselivanov771994@gmail.com,www.johnsel771994@gmail.com,johnsel771994@gmail.com")
   .split(",")
   .map((e) => e.trim().toLowerCase());
@@ -580,23 +581,8 @@ async function canAccessAuthorTree(req: express.Request): Promise<boolean> {
 async function checkCanShare(req: express.Request): Promise<boolean> {
   const user = getAuthenticatedUser(req);
   if (!user) return false;
-  if (adminEmailsList.some(a => a.includes(user) || user.includes(a))) return true;
-
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    try {
-      let snap = await fdb.collection("shares").where("email", "==", user).get();
-      if (snap.empty) {
-        snap = await fdb.collection("shares").where("value", "==", user).get();
-      }
-      if (!snap.empty) {
-        const shareData = snap.docs[0].data();
-        return !!shareData.canShare;
-      }
-    } catch (e) {
-      console.error("checkCanShare error:", e);
-    }
-  }
-  return false;
+  // ТІЛЬКИ первинний автор/власник дерева (ivanselivanov771994@gmail.com) має право керувати доступами до дерева автора!
+  return user.toLowerCase() === authorOwnerEmail.toLowerCase();
 }
 
 // In-memory rate limiting для AI консультанта
@@ -1399,7 +1385,9 @@ app.get("/api/auth-me", async (req, res) => {
     return res.json({ authenticated: false, user: null });
   }
 
-  const isAdmin = adminEmailsList.some((a) => a.includes(email) || email.includes(a));
+  const cleanEmail = email.toLowerCase().trim();
+  const isAuthorOwner = cleanEmail === authorOwnerEmail.toLowerCase();
+  const isAdmin = adminEmailsList.some((a) => a.includes(cleanEmail) || cleanEmail.includes(a));
   const user = await findUserByEmail(email);
 
   res.json({
@@ -1408,10 +1396,11 @@ app.get("/api/auth-me", async (req, res) => {
       email: email,
       displayName: user?.displayName || email.split("@")[0],
       avatar: user?.avatar || null,
-      role: user?.role || (isAdmin ? "admin" : "owner"),
+      role: isAuthorOwner ? "owner" : (isAdmin ? "admin" : "viewer"),
       isMainAdmin: isAdmin,
-      canShare: isAdmin || user?.role === "admin" || user?.role === "owner",
-      canSync: isAdmin,
+      isAuthorOwner: isAuthorOwner,
+      canShare: isAuthorOwner,
+      canSync: isAdmin || isAuthorOwner,
       connectedDrive: user?.connectedDrive || null,
       workspaces: user?.workspaces || [],
     },
@@ -1616,17 +1605,19 @@ app.get("/api/config", async (req, res) => {
     const isMainAdmin = adminEmailsList.some((a) => a.includes(user) || user.includes(a));
     const userProfile = await findUserByEmail(user);
 
+    const isAuthorOwner = user.toLowerCase() === authorOwnerEmail.toLowerCase();
     if (isMainAdmin) {
       res.json({
         authenticated: true,
-        canShare: true,
+        canShare: isAuthorOwner, // Тільки ivanselivanov771994@gmail.com може ділитися системним деревом!
         canSync: true,
         isMainAdmin: true,
+        isAuthorOwner: isAuthorOwner,
         hasAuthorTreeAccess: true,
         user: {
           email: user,
           displayName: userProfile?.displayName || user.split("@")[0],
-          role: "admin",
+          role: isAuthorOwner ? "owner" : "admin",
         },
       });
       return;
