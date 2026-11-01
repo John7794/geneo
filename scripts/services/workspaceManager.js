@@ -62,12 +62,18 @@ export class WorkspaceManager {
 			console.warn("Помилка читання geneo_workspaces_v1:", e);
 		}
 
+		let hiddenWorkspaces = [];
+		try {
+			const hiddenRaw = localStorage.getItem("geneo_hidden_workspaces");
+			if (hiddenRaw) hiddenWorkspaces = JSON.parse(hiddenRaw);
+		} catch (e) {}
+
 		const customList = Array.isArray(savedMeta)
-			? savedMeta.filter((w) => w && w.id && w.id !== DEFAULT_AUTHOR_WORKSPACE_ID)
+			? savedMeta.filter((w) => w && w.id && w.id !== DEFAULT_AUTHOR_WORKSPACE_ID && !hiddenWorkspaces.includes(w.id))
 			: [];
 
-		// Дерево автора додається ТІЛЬКИ якщо користувач має до нього доступ
-		if (hasAuthorTreeAccess) {
+		// Дерево автора додається ТІЛЬКИ якщо користувач має до нього доступ і не приховав його
+		if (hasAuthorTreeAccess && !hiddenWorkspaces.includes(DEFAULT_AUTHOR_WORKSPACE_ID)) {
 			const authorWs = {
 				...DEFAULT_AUTHOR_WORKSPACE,
 				isOwner: this.isAuthorOwner, // Тільки первинний автор (ivanselivanov771994@gmail.com) є власником дерева автора
@@ -331,17 +337,55 @@ export class WorkspaceManager {
 	}
 
 	/**
-	 * Видалення локального простору
+	 * Видалення / Відключення дерева з робочих просторів (без знищення файлів бази на диску/сервері)
 	 */
 	async deleteWorkspace(workspaceId) {
-		if (workspaceId === DEFAULT_AUTHOR_WORKSPACE_ID) {
-			alert("Основне дерево автора не можна видалити.");
+		const target = this.workspaces.find((w) => w.id === workspaceId);
+		if (!target) return false;
+
+		// Справжній первинний автор не може видалити власне системне дерево
+		if (workspaceId === DEFAULT_AUTHOR_WORKSPACE_ID && this.isAuthorOwner) {
+			alert("Основне системне дерево автора не можна видалити.");
 			return false;
 		}
 
+		// Якщо це чуже спільне дерево (гість покидає перегляд)
+		if (!target.isOwner) {
+			try {
+				await fetch("/api/shares/leave", {
+					method: "POST",
+					headers: {
+						Authorization: "Bearer " + (localStorage.getItem("auth_token") || ""),
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ workspaceId }),
+				});
+			} catch (e) {
+				console.warn("Помилка відправки запиту на вихід з шерингу:", e);
+			}
+
+			// Додаємо у список прихованих/відхилених просторів гостя
+			try {
+				const hiddenList = JSON.parse(localStorage.getItem("geneo_hidden_workspaces") || "[]");
+				if (!hiddenList.includes(workspaceId)) {
+					hiddenList.push(workspaceId);
+					localStorage.setItem("geneo_hidden_workspaces", JSON.stringify(hiddenList));
+				}
+			} catch (e) {}
+		}
+
+		// Очищуємо кешовану копію у локальному сховищі браузера
 		if (typeof localforage !== "undefined") {
 			try {
 				await localforage.removeItem(`${STORAGE_KEYS.WS_DB_PREFIX}${workspaceId}`);
+				if (workspaceId === DEFAULT_AUTHOR_WORKSPACE_ID) {
+					const keys = await localforage.keys();
+					for (const k of keys) {
+						if (k.includes("/data/db/") || k.startsWith("kinship_index_")) {
+							await localforage.removeItem(k);
+						}
+					}
+				}
 			} catch (e) {
 				console.warn("Помилка видалення бази з localforage:", e);
 			}
@@ -350,9 +394,20 @@ export class WorkspaceManager {
 		this.workspaces = this.workspaces.filter((w) => w.id !== workspaceId);
 		this._persistMeta();
 
-		// Якщо видалили активний простір, повертаємося на основне дерево
+		// Якщо видалили активний простір:
 		if (this.activeWorkspaceId === workspaceId) {
-			this.switchWorkspace(DEFAULT_AUTHOR_WORKSPACE_ID);
+			if (this.workspaces.length > 0) {
+				this.switchWorkspace(this.workspaces[0].id);
+			} else {
+				this.activeWorkspaceId = null;
+				this.activeWorkspace = null;
+				localStorage.removeItem(STORAGE_KEYS.ACTIVE_WS_ID);
+				const url = new URL(window.location.href);
+				url.searchParams.delete("ws");
+				url.searchParams.delete("id");
+				url.searchParams.delete("view");
+				window.location.href = url.toString();
+			}
 		}
 
 		return true;

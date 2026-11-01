@@ -562,7 +562,7 @@ async function canAccessAuthorTree(req: express.Request): Promise<boolean> {
   }
   // Перевірка у локальному файлі shares_store.json
   const localShares = readLocalShares();
-  if (Object.values(localShares).some((s) => s.email && s.email.toLowerCase() === user.toLowerCase())) {
+  if (Object.values(localShares).some((s) => s.email && s.email.toLowerCase() === user.toLowerCase() && s.status !== "left")) {
     return true;
   }
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -1580,6 +1580,46 @@ app.delete("/api/shares/:id", async (req, res) => {
   res.json({ success: true });
 });
 
+// Ендпоінт для гостя: добровільна відмова від перегляду чужого спільного дерева (Leave Shared Tree)
+app.post("/api/shares/leave", async (req, res) => {
+  const user = getAuthenticatedUser(req);
+  if (!user) {
+    return res.status(401).json({ error: "Необхідна авторизація." });
+  }
+
+  const cleanUser = user.toLowerCase().trim();
+  const localShares = readLocalShares();
+  let found = false;
+
+  for (const key of Object.keys(localShares)) {
+    if (localShares[key].email && localShares[key].email.toLowerCase() === cleanUser) {
+      localShares[key].status = "left";
+      localShares[key].leftAt = new Date().toISOString();
+      found = true;
+    }
+  }
+
+  if (found) {
+    writeLocalShares(localShares);
+  }
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      let snap = await fdb.collection("shares").where("email", "==", cleanUser).get();
+      if (snap.empty) {
+        snap = await fdb.collection("shares").where("value", "==", cleanUser).get();
+      }
+      for (const doc of snap.docs) {
+        await doc.ref.update({ status: "left", leftAt: new Date().toISOString() });
+      }
+    } catch (e: any) {
+      console.warn("Firestore share leave error:", e.message);
+    }
+  }
+
+  res.json({ success: true, message: "Ви успішно покинули спільне дерево." });
+});
+
 app.get("/api/shares", async (req, res) => {
   if (!(await checkCanShare(req))) {
     return res.status(403).json({ error: "Немає прав для перегляду списку доступів." });
@@ -1633,7 +1673,7 @@ app.get("/api/config", async (req, res) => {
 
     // Перевірка у локальному файлі shares_store.json
     const localSharesMap = readLocalShares();
-    const matchedShare = Object.values(localSharesMap).find((s) => s.email && s.email.toLowerCase() === cleanUser);
+    const matchedShare = Object.values(localSharesMap).find((s) => s.email && s.email.toLowerCase() === cleanUser && s.status !== "left");
     if (matchedShare) {
       hasShareAccess = true;
       hiddenProfiles = matchedShare.hiddenProfiles || [];
@@ -1647,8 +1687,11 @@ app.get("/api/config", async (req, res) => {
           snap = await fdb.collection("shares").where("value", "==", cleanUser).get();
         }
         if (!snap.empty) {
-          hasShareAccess = true;
-          hiddenProfiles = snap.docs[0].data()?.hiddenProfiles || [];
+          const docData = snap.docs[0].data();
+          if (docData?.status !== "left") {
+            hasShareAccess = true;
+            hiddenProfiles = docData?.hiddenProfiles || [];
+          }
         }
       } catch (e) {
         console.error("Firebase shares query error:", e);

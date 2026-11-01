@@ -806,8 +806,9 @@ export class AccountModalManager {
 									<i class="ri-mail-line"></i>
 									<span>${s.email}</span>
 									<span class="user-role-tag">${s.canShare ? "Редактор" : "Перегляд"}</span>
+									${s.status === "left" ? '<span class="user-role-tag" style="background: rgba(239, 68, 68, 0.12); color: #dc2626; border-color: rgba(239, 68, 68, 0.3);"><i class="ri-user-unfollow-line"></i> Покинув перегляд</span>' : ""}
 								</div>
-								<button class="btn-revoke-share" data-id="${s.id}" title="Відкликати доступ">
+								<button class="btn-revoke-share" data-id="${s.id}" title="Відкликати / Видалити доступ">
 									<i class="ri-delete-bin-line"></i>
 								</button>
 							</div>

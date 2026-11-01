@@ -157,9 +157,9 @@ export class WorkspaceModalManager {
 										<i class="ri-check-line"></i> Відкрити
 									   </button>`
 								}
-								${!isAuthor
-									? `<button class="btn btn-sm btn-icon btn-danger-ghost js-delete-ws" data-id="${ws.id}" title="Видалити дерево" aria-label="Видалити дерево">
-										<i class="ri-delete-bin-line"></i>
+								${(!isAuthor || !ws.isOwner)
+									? `<button class="btn btn-sm btn-icon btn-danger-ghost js-delete-ws" data-id="${ws.id}" data-is-owner="${!!ws.isOwner}" title="${ws.isOwner ? 'Відключити дерево' : 'Прибрати зі списку'}" aria-label="Видалити">
+										<i class="${ws.isOwner ? 'ri-delete-bin-line' : 'ri-user-unfollow-line'}"></i>
 									   </button>`
 									: ""
 								}
@@ -183,11 +183,22 @@ export class WorkspaceModalManager {
 			});
 		});
 
-		// Обробка видалення
+		// Обробка видалення / відключення зі списку
 		this.listContainer.querySelectorAll(".js-delete-ws").forEach((btn) => {
 			btn.addEventListener("click", async () => {
 				const id = btn.getAttribute("data-id");
-				if (id && confirm("Ви дійсно бажаєте видалити це локальне дерево зі свого сховища?")) {
+				const isOwner = btn.getAttribute("data-is-owner") === "true";
+				const ws = this.workspaceManager.getWorkspaces().find((w) => w.id === id);
+				const wsName = ws?.name || "це дерево";
+
+				let msg = "";
+				if (isOwner) {
+					msg = `Відключити дерево «${wsName}» зі списку робочих просторів?\n\nВаша оригінальна база даних (на Google Диску або у файлах) залишиться збереженою.`;
+				} else {
+					msg = `Прибрати спільне дерево «${wsName}» зі свого списку?\n\n• Дерево зникне з вашого списку доступних дерев.\n• База даних та файли власника залишаються повністю неушкодженими.\n• Власник дерева побачить статус, що ви покинули перегляд.`;
+				}
+
+				if (id && confirm(msg)) {
 					await this.workspaceManager.deleteWorkspace(id);
 					this.renderList();
 					this.updatePillText();
