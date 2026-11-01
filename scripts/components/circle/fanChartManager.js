@@ -112,19 +112,10 @@ export class FanChartManager {
 
 	/**
 	 * Отримує дійсний режим лінії роду:
-	 * Конкретна гілка (lineageMode) стосується ТІЛЬКИ першого пробанда (індекс 1 / rootId).
-	 * Для всіх інших осіб/пробандів завжди повертається "all", щоб відображалося повне коло їхніх предків.
+	 * Повертає обрану користувачем гілку роду (lineageMode), або "all" для повного кола.
 	 */
 	_getEffectiveLineageMode() {
-		const rootId = String(
-			this.callbacks?.getRootId?.() ||
-			this.callbacks?.rootPersonId ||
-			this.rootPersonId ||
-			"1"
-		).trim();
-		const currentId = String(this.currentPersonId || "").trim();
-		const isFirstProband = currentId === rootId || currentId === "1";
-		return isFirstProband ? (this.lineageMode || "all") : "all";
+		return this.lineageMode || "all";
 	}
 
 	/**

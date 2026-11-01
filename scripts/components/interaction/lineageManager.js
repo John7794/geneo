@@ -251,6 +251,18 @@ export class LineageManager {
 		return this.logic.mode;
 	}
 
+	updateRootId(newRootId) {
+		if (!newRootId) return;
+		this.rootId = String(newRootId).trim();
+		if (this.logic) {
+			this.logic.rootId = this.rootId;
+			this.logic.ahnentafelMap = this.logic._calculateExactAhnentafel();
+			this.logic.refreshQueue();
+		}
+		this._updateOptionIcons();
+		this._updateStats();
+	}
+
 	destroy() {
 		if (this.btnToggle)
 			this.btnToggle.removeEventListener("click", this._handleOpen);
