@@ -104,9 +104,10 @@ export class GedcomManager {
 		const statFamilies = this.overlay?.querySelector("#gedcom-export-stat-families");
 		const statPlaces = this.overlay?.querySelector("#gedcom-export-stat-places");
 
-		const db = this.engine?.db || {};
-		const pCount = (db.basic || []).length;
-		const fCount = (db.families || []).length;
+		const engine = this.engine || this.workspaceManager?.engine;
+		const db = engine?.db || {};
+		const pCount = (db.basic || engine?.people || []).length;
+		const fCount = (db.families || engine?.familyList || []).length;
 		const plCount = (db.places || []).length;
 
 		if (statPersons) statPersons.textContent = pCount.toLocaleString();
@@ -124,7 +125,8 @@ export class GedcomManager {
 				btnExport.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Формування файлу...`;
 
 				setTimeout(() => {
-					const db = this.engine?.db || {};
+					const engine = this.engine || this.workspaceManager?.engine;
+					const db = engine?.db || {};
 					const gedcomContent = exportGeneoToGedcom(db);
 
 					const blob = new Blob([gedcomContent], { type: "text/plain;charset=utf-8" });
@@ -230,7 +232,15 @@ export class GedcomManager {
 
 		const fileSizeKb = (fileSize / 1024).toFixed(1);
 		const firstIndi = parsed.individuals[0];
-		const probandName = firstIndi ? firstIndi.primaryName.fullName : "Не визначено";
+		const defaultProbandName = firstIndi ? firstIndi.primaryName?.fullName || firstIndi.id : "Не визначено";
+
+		const probandOptions = (parsed.individuals || [])
+			.map((ind, idx) => {
+				const fullName = ind.primaryName?.fullName || ind.id || `Особа ${idx + 1}`;
+				const bDate = ind.birth?.year || ind.birth?.rawDate || (ind.events?.find((e) => e.type === "BIRT")?.date?.year) || "";
+				return `<option value="${escapeHtml(ind.id)}" ${idx === 0 ? "selected" : ""}>${escapeHtml(fullName)}${bDate ? ` (${escapeHtml(bDate)})` : ""} [ID: ${escapeHtml(ind.id)}]</option>`;
+			})
+			.join("");
 
 		previewContainer.innerHTML = `
 			<div class="gedcom-preview-card" style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
@@ -258,8 +268,20 @@ export class GedcomManager {
 						<div style="font-weight: 600; font-size: 14px; color: var(--color-primary);">${parsed.stats.familiesCount.toLocaleString()}</div>
 					</div>
 				</div>
-				<div style="font-size: 13px; color: var(--color-text-main); background: var(--color-bg-body); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border);">
-					<strong>Перша особа (пробанд):</strong> ${probandName}
+
+				<div class="proband-select-card" style="background: var(--color-bg-body); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border);">
+					<label for="gedcom-proband-select" style="display: block; font-size: 13px; font-weight: 600; color: var(--color-text-main); margin-bottom: 6px;">
+						<i class="ri-user-star-line" style="color: var(--color-primary);"></i> Оберіть Пробанда (початкову особу дерева):
+					</label>
+					<div style="margin-bottom: 8px;">
+						<input type="text" id="gedcom-proband-search" placeholder="🔍 Введіть ім'я для швидкого фільтрування..." style="width: 100%; box-sizing: border-box; padding: 6px 10px; font-size: 13px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-card); color: var(--color-text-main);" />
+					</div>
+					<select id="gedcom-proband-select" class="form-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 13px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-card); color: var(--color-text-main);">
+						${probandOptions}
+					</select>
+					<p style="margin: 6px 0 0 0; font-size: 11px; color: var(--color-text-muted);">
+						Від цієї особи розгортатиметься віяло родоводу та обчислюватиметься спорідненість.
+					</p>
 				</div>
 			</div>
 
@@ -281,6 +303,25 @@ export class GedcomManager {
 				<i class="ri-refresh-line"></i> Сконвертувати в таблиці Geneo
 			</button>
 		`;
+
+		const searchInput = previewContainer.querySelector("#gedcom-proband-search");
+		const probandSelect = previewContainer.querySelector("#gedcom-proband-select");
+		if (searchInput && probandSelect) {
+			searchInput.addEventListener("input", (e) => {
+				const query = (e.target.value || "").toLowerCase().trim();
+				const options = probandSelect.querySelectorAll("option");
+				let firstVisible = null;
+				options.forEach((opt) => {
+					const text = opt.textContent.toLowerCase();
+					const match = !query || text.includes(query);
+					opt.hidden = !match;
+					if (match && !firstVisible) firstVisible = opt;
+				});
+				if (firstVisible && probandSelect.selectedOptions[0]?.hidden) {
+					firstVisible.selected = true;
+				}
+			});
+		}
 
 		const btnReset = previewContainer.querySelector(".js-reset-file");
 		if (btnReset) {
@@ -313,11 +354,17 @@ export class GedcomManager {
 
 		setTimeout(() => {
 			try {
-				const db = this.engine?.db || {};
+				const engine = this.engine || this.workspaceManager?.engine;
+				const db = engine?.db || {};
 				const converted = convertGedcomToGeneo(this.currentParsedGedcom, db, { strategy });
 
+				const probandSelect = this.overlay?.querySelector("#gedcom-proband-select");
+				const selectedProbandId = probandSelect ? probandSelect.value : (this.currentParsedGedcom?.individuals?.[0]?.id || "1");
+				const chosenIndiIdx = this.currentParsedGedcom?.individuals?.findIndex((i) => i.id === selectedProbandId);
 				const firstIndi = this.currentParsedGedcom?.individuals?.[0];
-				const probandName = firstIndi?.primaryName?.fullName || "Пробанд";
+				const chosenIndi = chosenIndiIdx >= 0 ? this.currentParsedGedcom.individuals[chosenIndiIdx] : firstIndi;
+				const probandName = chosenIndi?.primaryName?.fullName || "Пробанд";
+
 				const rawBaseName = this.currentFileName.replace(/\.(ged|gedcom)$/i, "");
 				const defaultTreeName = `Родовід: ${probandName !== "Не визначено" ? probandName : rawBaseName}`;
 
@@ -380,9 +427,14 @@ export class GedcomManager {
 								const nameInput = resultDiv.querySelector("#ws-new-tree-name");
 								const finalName = nameInput ? nameInput.value.trim() : defaultTreeName;
 
+								// Точний ID особи у basic.csv
+								const targetProbandId = (converted.basic && chosenIndiIdx >= 0 && converted.basic[chosenIndiIdx])
+									? converted.basic[chosenIndiIdx].person_id
+									: String(chosenIndi ? chosenIndi.id : "1").replace(/^@|@$/g, "").replace(/^I/i, "");
+
 								const newWs = await this.workspaceManager.createLocalWorkspace({
 									name: finalName,
-									probandId: firstIndi ? firstIndi.id : "1",
+									probandId: targetProbandId,
 									probandName: probandName,
 									personsCount: converted.stats.personsCount,
 									familiesCount: converted.stats.familiesCount,

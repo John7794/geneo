@@ -218,6 +218,8 @@ export class WorkspaceManager {
 		}
 
 		// 2. Створюємо метадані простору
+		const pCount = personsCount || (dbData.basic ? dbData.basic.length : 0);
+		const fCount = familiesCount || (dbData.families ? dbData.families.length : 0);
 		const newWs = {
 			id: newId,
 			name: cleanName,
@@ -225,8 +227,12 @@ export class WorkspaceManager {
 			isOwner: true, // Той, хто імпортував файл, є власником цього дерева
 			probandId: String(probandId || "1"),
 			probandName: probandName || "Пробанд",
-			personsCount: personsCount || (dbData.basic ? dbData.basic.length : 0),
-			familiesCount: familiesCount || (dbData.families ? dbData.families.length : 0),
+			personsCount: pCount,
+			familiesCount: fCount,
+			stats: {
+				persons: pCount,
+				families: fCount,
+			},
 			description: "Локальне дерево, завантажене з GEDCOM",
 			createdAt: Date.now(),
 		};
