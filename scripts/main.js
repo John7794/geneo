@@ -72,6 +72,8 @@ class App {
 				hiddenProfiles: [], 
 				canShare: false, 
 				canSync: false, 
+				email: currentUser?.email || "",
+				isAuthorOwner: (currentUser?.email || "").toLowerCase().trim() === "ivanselivanov771994@gmail.com",
 				isMainAdmin: this.authManager.isAdmin() 
 			};
 

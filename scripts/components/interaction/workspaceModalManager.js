@@ -61,6 +61,17 @@ export class WorkspaceModalManager {
 	updatePillText() {
 		if (!this.pillBtn || !this.workspaceManager) return;
 		const activeWs = this.workspaceManager.getActiveWorkspace();
+		if (!activeWs) {
+			const nameSpan = this.pillBtn.querySelector(".tree-pill-name");
+			if (nameSpan) nameSpan.textContent = "Не обрано";
+			const roleBadge = this.pillBtn.querySelector(".tree-pill-badge");
+			if (roleBadge) {
+				roleBadge.textContent = "—";
+				roleBadge.className = "tree-pill-badge badge-guest";
+			}
+			return;
+		}
+
 		const nameSpan = this.pillBtn.querySelector(".tree-pill-name");
 		if (nameSpan) {
 			nameSpan.textContent = activeWs.name || "Дерево";
@@ -79,7 +90,7 @@ export class WorkspaceModalManager {
 				roleBadge.textContent = "Власник";
 				roleBadge.className = "tree-pill-badge badge-owner";
 			} else {
-				roleBadge.textContent = "Гість";
+				roleBadge.textContent = activeWs.id === DEFAULT_AUTHOR_WORKSPACE_ID ? "Спільний доступ" : "Гість";
 				roleBadge.className = "tree-pill-badge badge-guest";
 			}
 		}
@@ -118,7 +129,7 @@ export class WorkspaceModalManager {
 
 		this.listContainer.innerHTML = workspaces
 			.map((ws) => {
-				const isActive = ws.id === activeWs.id;
+				const isActive = activeWs && ws.id === activeWs.id;
 				const isAuthor = ws.id === DEFAULT_AUTHOR_WORKSPACE_ID;
 				const pCount = ws.personsCount ? ws.personsCount.toLocaleString() : "2 417";
 				const fCount = ws.familiesCount ? ws.familiesCount.toLocaleString() : "1 606";

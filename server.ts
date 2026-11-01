@@ -555,7 +555,12 @@ async function canAccessAuthorTree(req: express.Request): Promise<boolean> {
   if (!user) {
     return false;
   }
-  if (adminEmailsList.some((a) => a.includes(user) || user.includes(a))) {
+  const cleanUser = user.toLowerCase().trim();
+  // Первинний власник дерева завжди має повний доступ
+  if (cleanUser === authorOwnerEmail.toLowerCase()) {
+    return true;
+  }
+  if (adminEmailsList.some((a) => a.includes(cleanUser) || cleanUser.includes(a))) {
     return true;
   }
   // Перевірка у локальному файлі shares_store.json
@@ -1602,22 +1607,42 @@ app.get("/api/shares", async (req, res) => {
 app.get("/api/config", async (req, res) => {
   const user = getAuthenticatedUser(req);
   if (user) {
-    const isMainAdmin = adminEmailsList.some((a) => a.includes(user) || user.includes(a));
+    const cleanUser = user.toLowerCase().trim();
+    const isAuthorOwner = cleanUser === authorOwnerEmail.toLowerCase();
+    const isMainAdmin = adminEmailsList.some((a) => a.includes(cleanUser) || cleanUser.includes(a));
     const userProfile = await findUserByEmail(user);
 
-    const isAuthorOwner = user.toLowerCase() === authorOwnerEmail.toLowerCase();
+    // 1. Якщо це первинний власник дерева автора (ivanselivanov771994@gmail.com)
+    if (isAuthorOwner) {
+      res.json({
+        authenticated: true,
+        canShare: true,
+        canSync: true,
+        isMainAdmin: true,
+        isAuthorOwner: true,
+        hasAuthorTreeAccess: true,
+        user: {
+          email: user,
+          displayName: userProfile?.displayName || "Іван Селіванов",
+          role: "owner",
+        },
+      });
+      return;
+    }
+
+    // 2. Якщо це системний адміністратор платформи
     if (isMainAdmin) {
       res.json({
         authenticated: true,
-        canShare: isAuthorOwner, // Тільки ivanselivanov771994@gmail.com може ділитися системним деревом!
+        canShare: false, // Тільки первинний автор ділиться системним деревом!
         canSync: true,
         isMainAdmin: true,
-        isAuthorOwner: isAuthorOwner,
+        isAuthorOwner: false,
         hasAuthorTreeAccess: true,
         user: {
           email: user,
           displayName: userProfile?.displayName || user.split("@")[0],
-          role: isAuthorOwner ? "owner" : "admin",
+          role: "admin",
         },
       });
       return;
