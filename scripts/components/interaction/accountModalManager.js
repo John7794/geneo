@@ -168,7 +168,10 @@ export class AccountModalManager {
 			if (user?.isMainAdmin || role === "admin") {
 				roleBadge = "Адміністратор";
 				roleClass = "badge-admin";
-			} else if (role === "guest") {
+			} else if (role === "editor") {
+				roleBadge = "Редактор";
+				roleClass = "badge-editor";
+			} else if (role === "guest" || role === "viewer") {
 				roleBadge = "Гість";
 				roleClass = "badge-guest";
 			}
@@ -290,7 +293,7 @@ export class AccountModalManager {
 					</div>
 					<div class="info-row">
 						<span class="info-label">Роль у системі:</span>
-						<span class="info-value font-medium">${user?.isMainAdmin ? "👑 Головний адміністратор" : user?.role === "owner" ? "🌳 Власник дерева" : "👥 Гість"}</span>
+						<span class="info-value font-medium">${user?.isMainAdmin ? "👑 Головний адміністратор" : user?.role === "owner" ? "🌳 Власник дерева" : user?.role === "editor" ? "✏️ Редактор" : "👥 Гість (Тільки перегляд)"}</span>
 					</div>
 					<div class="info-row">
 						<span class="info-label">Статус сесії:</span>
@@ -688,7 +691,10 @@ export class AccountModalManager {
 		if (addTreeBtn) {
 			addTreeBtn.onclick = () => {
 				this.close();
-				if (this.gedcomManager) this.gedcomManager.openModal();
+				if (this.gedcomManager) {
+					if (typeof this.gedcomManager.open === "function") this.gedcomManager.open();
+					else if (typeof this.gedcomManager.openModal === "function") this.gedcomManager.openModal();
+				}
 			};
 		}
 
@@ -723,7 +729,10 @@ export class AccountModalManager {
 			if (importOwnBtn) {
 				importOwnBtn.onclick = () => {
 					this.close();
-					if (this.gedcomManager) this.gedcomManager.openModal();
+					if (this.gedcomManager) {
+						if (typeof this.gedcomManager.open === "function") this.gedcomManager.open();
+						else if (typeof this.gedcomManager.openModal === "function") this.gedcomManager.openModal();
+					}
 				};
 			}
 			return;

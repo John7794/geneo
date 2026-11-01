@@ -67,6 +67,10 @@ export class GedcomManager {
 		}
 	}
 
+	openModal() {
+		this.open();
+	}
+
 	close() {
 		if (this.overlay) {
 			this.overlay.classList.remove("show");

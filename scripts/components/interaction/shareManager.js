@@ -60,9 +60,10 @@ export class ShareManager {
 		this.btnSubmit.disabled = true;
 		this.emailInput.disabled = true;
 
-		// Default permissions: no hidden profiles, cannot share or sync
+		// Permissions based on selected role
 		const hiddenProfiles = [];
-		const canShare = false;
+		const roleSelect = document.getElementById("share-role-select");
+		const canShare = roleSelect ? roleSelect.value === "editor" : false;
 		const canSync = false;
 
 		try {
@@ -158,7 +159,12 @@ export class ShareManager {
 			
 			listContainer.innerHTML = shares.map(share => `
 				<li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--color-border-light);">
-					<span style="font-size: 14px; color: var(--color-text-main);">${share.email}</span>
+					<span style="font-size: 14px; color: var(--color-text-main); display: flex; align-items: center; gap: 8px;">
+						<span>${share.email}</span>
+						<span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: ${share.canShare ? "rgba(37, 99, 235, 0.1)" : "rgba(100, 116, 139, 0.1)"}; color: ${share.canShare ? "#2563eb" : "#64748b"}; font-weight: 500;">
+							${share.canShare ? "Редактор" : "Перегляд"}
+						</span>
+					</span>
 					<button class="btn btn-icon js-revoke-share" data-id="${share.id}" style="color: var(--color-error); padding: 4px;" title="Скасувати доступ">
 						<i class="ri-delete-bin-line"></i>
 					</button>

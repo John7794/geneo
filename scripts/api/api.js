@@ -15,6 +15,9 @@ export async function fetchAllData(userConfig = {}) {
 	const lang = i18n.lang;
 
 	const version = await checkDataVersion();
+	if (version === "access_denied") {
+		return null;
+	}
 
 	// 1. Паралельне завантаження 29 CSV таблиць із вбудованим localforage-кешуванням
 	const filePromises = Object.entries(DATA_FILES).map(

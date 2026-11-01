@@ -1565,6 +1565,7 @@ app.get("/api/config", async (req, res) => {
         }
         if (!snap.empty) {
           const shareData = snap.docs[0].data();
+          const effectiveRole = shareData.canShare ? "editor" : "viewer";
           res.json({ 
             authenticated: true,
             canShare: !!shareData.canShare, 
@@ -1575,7 +1576,7 @@ app.get("/api/config", async (req, res) => {
             user: {
               email: user,
               displayName: userProfile?.displayName || user.split("@")[0],
-              role: userProfile?.role || "guest",
+              role: effectiveRole,
             },
           });
           return;

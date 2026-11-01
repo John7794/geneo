@@ -343,10 +343,15 @@
                 <div class="popup-body">
                     <div class="search-form" style="margin-bottom: 24px;">
                         <label style="display:block; margin-bottom: 8px; font-weight: 500;">Вкажіть email або телефон отримувача:</label>
-                        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg-body); width: 100%; box-sizing: border-box;">
+                        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-border-light); padding: 8px 12px; border-radius: var(--radius-md); background: var(--color-bg-body); width: 100%; box-sizing: border-box; margin-bottom: 12px;">
                             <i class="ri-user-add-line text-muted"></i>
                             <input type="text" id="share-email-input" placeholder="email@example.com або +380123456789" style="flex: 1; min-width: 0; width: 100%; border: none; background: transparent; outline: none; font-family: inherit; font-size: 16px; color: var(--color-text-main); padding: 0;" />
                         </div>
+                        <label style="display:block; margin-bottom: 6px; font-size: 13px; font-weight: 500;">Рівень доступу:</label>
+                        <select id="share-role-select" class="form-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 14px; border: 1px solid var(--color-border-light); border-radius: var(--radius-md); background: var(--color-bg-body); color: var(--color-text-main);">
+                            <option value="viewer">Тільки перегляд (Гість)</option>
+                            <option value="editor">Редактор (Внесення змін)</option>
+                        </select>
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
                         <button class="btn btn-outline" id="btn-cancel-share">Скасувати</button>
