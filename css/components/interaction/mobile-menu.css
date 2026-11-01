@@ -17,9 +17,7 @@ body.has-open-popup #mobile-menu-btn {
 	z-index: 20000 !important;
 }
 
-
-
-/* Модальне вікно мобільного меню */
+/* Модальне вікно меню інструментів */
 #mobile-menu-modal.popup-overlay {
 	overflow-y: auto;
 	-webkit-overflow-scrolling: touch;
@@ -32,8 +30,8 @@ body.has-open-popup #mobile-menu-btn {
 
 .mobile-menu-card {
 	background: var(--color-bg-card, #ffffff);
-	border-radius: 20px;
-	width: 100%;
+	border-radius: 18px;
+	width: 95%;
 	max-width: 440px;
 	max-height: calc(100dvh - 32px);
 	display: flex;
@@ -42,13 +40,13 @@ body.has-open-popup #mobile-menu-btn {
 	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
 	overflow: hidden;
 	margin: auto;
-	animation: mobileMenuSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+	animation: mobileMenuSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes mobileMenuSlideUp {
 	from {
 		opacity: 0;
-		transform: translateY(24px) scale(0.96);
+		transform: translateY(20px) scale(0.97);
 	}
 	to {
 		opacity: 1;
@@ -60,7 +58,7 @@ body.has-open-popup #mobile-menu-btn {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 1rem 1.25rem;
+	padding: 10px 18px;
 	background: var(--color-bg-subtle, #f8fafc);
 	border-bottom: 1px solid var(--color-border);
 	flex-shrink: 0;
@@ -69,66 +67,67 @@ body.has-open-popup #mobile-menu-btn {
 .mobile-menu-title-wrap {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 10px;
 }
 
 .mobile-menu-icon-hero {
-	width: 40px;
-	height: 40px;
-	border-radius: 10px;
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
 	background: linear-gradient(135deg, var(--color-primary, #2563eb) 0%, #1d4ed8 100%);
 	color: #ffffff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 22px;
-	box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
+	font-size: 18px;
+	box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
 }
 
 .mobile-menu-title {
 	margin: 0;
-	font-size: 1.15rem;
+	font-size: 1.05rem;
 	font-weight: 700;
 	color: var(--color-text-main);
-	line-height: 1.25;
+	line-height: 1.2;
 }
 
 .mobile-menu-subtitle {
-	margin: 2px 0 0 0;
-	font-size: 0.775rem;
+	margin: 1px 0 0 0;
+	font-size: 0.725rem;
 	color: var(--color-text-muted);
-	line-height: 1.25;
+	line-height: 1.2;
 }
 
 .mobile-menu-body {
-	padding: 1rem 1.25rem 1.5rem;
+	padding: 12px 16px 16px;
 	overflow-y: auto;
+	overflow-x: hidden;
 	-webkit-overflow-scrolling: touch;
 	display: flex;
 	flex-direction: column;
-	gap: 1.25rem;
+	gap: 10px;
 	scrollbar-width: thin;
 }
 
 .mobile-menu-section {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 5px;
 }
 
 .mobile-menu-section-title {
-	font-size: 11px;
+	font-size: 10px;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color: var(--color-text-muted);
-	padding: 0 4px;
+	padding: 0 2px;
 }
 
 .mobile-menu-grid {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 6px;
 }
 
 /* Пункт меню на всю ширину з відступами */
@@ -137,11 +136,12 @@ body.has-open-popup #mobile-menu-btn {
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
-	gap: 14px;
-	padding: 10px 14px;
+	gap: 10px;
+	padding: 7px 12px;
+	min-height: 46px;
 	background: var(--color-bg-card);
 	border: 1px solid var(--color-border);
-	border-radius: 12px;
+	border-radius: 10px;
 	cursor: pointer;
 	transition: all 0.15s ease;
 	text-align: left;
@@ -157,17 +157,17 @@ body.has-open-popup #mobile-menu-btn {
 }
 
 .mobile-nav-item:active {
-	transform: scale(0.98);
+	transform: scale(0.99);
 }
 
 .mobile-nav-icon {
-	width: 40px;
-	height: 40px;
-	border-radius: 10px;
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 20px;
+	font-size: 17px;
 	flex-shrink: 0;
 	position: relative;
 }
@@ -230,29 +230,32 @@ body.has-open-popup #mobile-menu-btn {
 .mobile-nav-text {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	gap: 1px;
 	flex: 1;
 	min-width: 0;
 }
 
 .mobile-nav-label {
 	font-weight: 600;
-	font-size: 0.925rem;
+	font-size: 0.85rem;
 	color: var(--color-text-main);
-	line-height: 1.25;
+	line-height: 1.2;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .mobile-nav-desc {
-	font-size: 0.775rem;
+	font-size: 0.725rem;
 	color: var(--color-text-muted);
-	line-height: 1.25;
+	line-height: 1.2;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
 .mobile-nav-arrow {
-	font-size: 18px;
+	font-size: 16px;
 	color: var(--color-text-muted);
 	flex-shrink: 0;
 	transition: transform 0.15s ease;
@@ -263,23 +266,22 @@ body.has-open-popup #mobile-menu-btn {
 	color: var(--color-primary);
 }
 
-
 /* Адаптація меню для планшетів та десктопів: 2 колонки карток функцій */
 @media (min-width: 640px) {
 	.mobile-menu-card {
-		max-width: 640px !important;
-		border-radius: 20px !important;
+		max-width: 740px !important;
+		border-radius: 18px !important;
 	}
 
 	.mobile-menu-body {
-		padding: 1.25rem 1.5rem 1.75rem !important;
-		gap: 1.5rem !important;
+		padding: 12px 18px 16px !important;
+		gap: 12px !important;
 	}
 
 	.mobile-menu-grid {
 		display: grid !important;
 		grid-template-columns: repeat(2, 1fr) !important;
-		gap: 10px !important;
+		gap: 8px 12px !important;
 	}
 
 	/* На планшетах і десктопах навігація (Home, View, Search, Lineage) вже винесена в окремий закріплений блок кнопок */

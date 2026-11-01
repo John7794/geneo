@@ -265,9 +265,7 @@ export class MobileMenuManager {
 			themeIcon.className = isDark ? "ri-sun-line" : "ri-moon-line";
 		}
 		if (themeText) {
-			themeText.textContent = isDark
-				? "Увімкнено темну тему. Натисніть для світлої"
-				: "Увімкнено світлу тему. Натисніть для темної";
+			themeText.textContent = isDark ? "Темна тема (увімкнено)" : "Світла тема (увімкнено)";
 		}
 	}
 
