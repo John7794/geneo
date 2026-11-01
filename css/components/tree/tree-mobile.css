@@ -139,78 +139,11 @@
 		display: none !important;
 	}
 
-	/* Контейнер інструментів (Speed Dial меню). Підвищена специфічність. */
+	/* На мобільних екранах панелі доку та меню не показуються як вузькі смуги іконок, оскільки використовується модальне меню #mobile-menu-modal */
 	#tree-view .top-bar-controls,
-	.app-wrapper .top-bar-controls {
-		position: fixed;
-		bottom: 84px;
-		right: var(--spacing-md, 16px);
-		top: auto;
-		left: auto;
-		width: auto;
-		height: auto;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end; /* Вирівнювання по правому краю */
-		gap: 12px;
-		background: transparent;
-		border: none;
-		padding: 0;
-		z-index: 10000;
-		box-shadow: none;
-
-		/* Початковий стан: приховано зсувом вниз */
-		opacity: 0;
-		visibility: hidden;
-		pointer-events: none;
-		transform: translateY(30px) scale(0.9);
-		transform-origin: bottom right;
-		transition:
-			opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-			visibility 0.3s;
-	}
-
+	.app-wrapper .top-bar-controls,
 	.secondary-menu-panel {
-		position: fixed;
-		bottom: 84px;
-		right: calc(var(--spacing-md, 16px) + 56px);
-		top: auto;
-		left: auto;
-		width: auto;
-		height: auto;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 12px;
-		background: transparent;
-		border: none;
-		padding: 0;
-		z-index: 10000;
-		box-shadow: none;
-
-		/* Початковий стан: приховано зсувом вниз */
-		opacity: 0;
-		visibility: hidden;
-		pointer-events: none;
-		transform: translateY(30px) scale(0.9);
-		transform-origin: bottom right;
-		transition:
-			opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-			visibility 0.3s;
-	}
-
-	/* Стан відкритого меню */
-	#tree-view .top-bar-controls.is-open,
-	.app-wrapper .top-bar-controls.is-open,
-	.secondary-menu-panel.is-open {
-		opacity: 1;
-		visibility: visible;
-		pointer-events: auto;
-		transform: translateY(0) scale(1);
-		background: transparent;
-		z-index: 10000;
+		display: none !important;
 	}
 
 	/* Пропорційне збільшення ширини кнопок у плаваючому меню */

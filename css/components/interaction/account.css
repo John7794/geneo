@@ -1361,3 +1361,183 @@ select.form-input {
 	font-size: 0.95rem;
 	font-weight: 500;
 }
+
+
+/* ==========================================================================
+   АДАПТИВНІ СТИЛІ ОСОБИСТОГО КАБІНЕТУ НА МОБІЛЬНИХ ПРИСТРОЯХ (Max-width: 640px)
+   ========================================================================== */
+@media (max-width: 640px) {
+	#account-modal.popup-overlay {
+		padding: 10px 8px !important;
+		overflow-y: auto !important;
+		-webkit-overflow-scrolling: touch !important;
+	}
+
+	.account-modal-container {
+		width: 100% !important;
+		max-height: calc(100dvh - 16px) !important;
+		border-radius: 16px !important;
+		margin: auto !important;
+	}
+
+	.account-modal-header {
+		padding: 1rem !important;
+	}
+
+	.account-modal-body {
+		padding: 1rem 0.875rem 1.25rem !important;
+	}
+
+	/* Вкладка Профіль: кнопка вибору фото та видалення */
+	.profile-avatar-actions {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 8px !important;
+	}
+
+	.profile-avatar-actions label,
+	.profile-avatar-actions button {
+		width: 100% !important;
+		justify-content: center !important;
+		text-align: center !important;
+		box-sizing: border-box !important;
+	}
+
+	/* Вкладка Профіль: сітка даних користувача */
+	.account-info-grid {
+		padding: 0.875rem 1rem !important;
+	}
+
+	.info-row {
+		flex-direction: column !important;
+		align-items: flex-start !important;
+		gap: 3px !important;
+		padding: 8px 0 !important;
+	}
+
+	.info-value {
+		text-align: left !important;
+		word-break: break-all !important;
+		overflow-wrap: anywhere !important;
+	}
+
+	/* Нижні кнопки дій кабінету */
+	.account-actions-box {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 10px !important;
+	}
+
+	.account-actions-box button,
+	.account-actions-box a {
+		width: 100% !important;
+		justify-content: center !important;
+		text-align: center !important;
+		box-sizing: border-box !important;
+	}
+
+	/* Вкладка Мої дерева */
+	.trees-header-row {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 10px !important;
+	}
+
+	.trees-header-row button {
+		width: 100% !important;
+		justify-content: center !important;
+	}
+
+	.account-tree-card {
+		padding: 10px 12px !important;
+		flex-wrap: wrap !important;
+		gap: 8px !important;
+	}
+
+	.tree-card-title-row {
+		flex-wrap: wrap !important;
+		gap: 6px 8px !important;
+	}
+
+	.tree-card-actions {
+		width: 100% !important;
+		display: flex !important;
+		justify-content: flex-end !important;
+		margin-top: 4px !important;
+	}
+
+	/* Вкладка Спільний доступ */
+	.form-inputs-row {
+		flex-direction: column !important;
+		align-items: stretch !important;
+	}
+
+	.form-inputs-row .form-input,
+	.form-inputs-row select,
+	.form-inputs-row button {
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
+		box-sizing: border-box !important;
+	}
+
+	.shared-user-row {
+		padding: 8px 10px !important;
+		gap: 8px !important;
+	}
+
+	.shared-user-info {
+		min-width: 0 !important;
+		flex: 1 !important;
+	}
+
+	.shared-user-info span:first-of-type {
+		overflow: hidden !important;
+		text-overflow: ellipsis !important;
+		white-space: nowrap !important;
+		min-width: 0 !important;
+		flex: 1 !important;
+	}
+
+	/* Вкладка Google Диск */
+	.drive-connection-status {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 12px !important;
+	}
+
+	.btn-drive-single-row {
+		width: 100% !important;
+		justify-content: center !important;
+	}
+
+	.folder-tree-view {
+		max-width: 100% !important;
+		overflow-x: auto !important;
+		box-sizing: border-box !important;
+		font-size: 0.725rem !important;
+	}
+
+	/* Вкладка Аудит */
+	.audit-compare-grid {
+		grid-template-columns: 1fr !important;
+		gap: 8px !important;
+		text-align: center !important;
+	}
+
+	.audit-compare-arrow {
+		transform: rotate(90deg) !important;
+		margin: 2px 0 !important;
+	}
+
+	.audit-card-actions {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 8px !important;
+	}
+
+	.audit-card-actions button {
+		width: 100% !important;
+		justify-content: center !important;
+	}
+}

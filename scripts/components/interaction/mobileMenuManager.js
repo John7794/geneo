@@ -7,38 +7,105 @@ export class MobileMenuManager {
 		this.fabBtn = document.getElementById("mobile-menu-btn");
 		this.dockBtn = document.getElementById("dock-menu-btn");
 		this.secondaryPanel = document.getElementById("secondary-menu-panel");
-		this.mainPanel = document.querySelector(".top-bar-controls");
+		this.mobileMenuModal = document.getElementById("mobile-menu-modal");
+		this.btnCloseMobileMenu = document.getElementById("btn-close-mobile-menu");
 
 		this.isOpen = false;
 
 		// Фіксація контексту для стабільного видалення подій
-		this._handleToggle = this._handleToggle.bind(this);
+		this._handleFabClick = this._handleFabClick.bind(this);
+		this._handleDockClick = this._handleDockClick.bind(this);
 		this._handleGlobalClick = this._handleGlobalClick.bind(this);
 		this._handlePanelClick = this._handlePanelClick.bind(this);
-		this._handleMainPanelClick = this._handleMainPanelClick.bind(this);
+		this._handleMobileAction = this._handleMobileAction.bind(this);
 		this._handleEscape = this._handleEscape.bind(this);
+		this._checkPopups = this._checkPopups.bind(this);
 
 		this.init();
 	}
 
 	init() {
+		// FAB кнопка відкриває повноцінне модальне меню на смартфонах
 		if (this.fabBtn) {
-			this.fabBtn.addEventListener("click", this._handleToggle);
+			this.fabBtn.addEventListener("click", this._handleFabClick);
 		}
+
+		// Десктопна кнопка у доку відкриває випадаючу панель
 		if (this.dockBtn) {
-			this.dockBtn.addEventListener("click", this._handleToggle);
+			this.dockBtn.addEventListener("click", this._handleDockClick);
+		}
+
+		// Кнопка закриття мобільного меню
+		if (this.btnCloseMobileMenu) {
+			this.btnCloseMobileMenu.addEventListener("click", () => this.close());
+		}
+
+		// Клік по оверлею мобільного меню закриває його
+		if (this.mobileMenuModal) {
+			this.mobileMenuModal.addEventListener("click", (e) => {
+				if (e.target === this.mobileMenuModal) {
+					this.close();
+				}
+			});
+
+			// Делегування дій у мобільному меню
+			this.mobileMenuModal.addEventListener("click", this._handleMobileAction);
 		}
 
 		if (this.secondaryPanel) {
 			this.secondaryPanel.addEventListener("click", this._handlePanelClick);
 		}
 
-		if (this.mainPanel) {
-			this.mainPanel.addEventListener("click", this._handleMainPanelClick);
+		// MutationObserver: гарантує, що FAB прихований при будь-якому відкритому модальному вікні
+		this._initPopupObserver();
+
+		// Синхронізація бейджів та теми
+		this._syncBadges();
+		this._syncThemeInfo();
+	}
+
+	_initPopupObserver() {
+		if (typeof MutationObserver === "undefined") return;
+
+		this._observer = new MutationObserver(this._checkPopups);
+		this._observer.observe(document.body, {
+			attributes: true,
+			attributeFilter: ["class"],
+			subtree: true,
+		});
+
+		// Початкова перевірка
+		this._checkPopups();
+	}
+
+	_checkPopups() {
+		const openPopups = document.querySelectorAll(
+			".popup-overlay.show, .popup-overlay.open, .popup-overlay:not(.hidden)"
+		);
+
+		let hasAnyOpenPopup = false;
+		openPopups.forEach((popup) => {
+			if (!popup.classList.contains("hidden")) {
+				hasAnyOpenPopup = true;
+			}
+		});
+
+		if (this.fabBtn) {
+			if (hasAnyOpenPopup) {
+				this.fabBtn.style.setProperty("display", "none", "important");
+			} else {
+				this.fabBtn.style.removeProperty("display");
+			}
 		}
 	}
 
-	toggle() {
+	_handleFabClick(e) {
+		e.stopPropagation();
+		this.open();
+	}
+
+	_handleDockClick(e) {
+		e.stopPropagation();
 		if (this.isOpen) {
 			this.close();
 		} else {
@@ -48,64 +115,67 @@ export class MobileMenuManager {
 
 	open() {
 		this.isOpen = true;
-		if (this.secondaryPanel) {
-			this.secondaryPanel.classList.add("is-open");
-		}
-		if (window.matchMedia("(max-width: 767px)").matches && this.mainPanel) {
-			this.mainPanel.classList.add("is-open");
+		const isMobile = window.matchMedia("(max-width: 767px)").matches;
+
+		if (isMobile) {
+			if (this.mobileMenuModal) {
+				this.mobileMenuModal.classList.remove("hidden");
+				this.mobileMenuModal.classList.add("show");
+				document.body.classList.add("no-scroll");
+				if (this.fabBtn) {
+					this.fabBtn.style.setProperty("display", "none", "important");
+				}
+			}
+			this._syncBadges();
+			this._syncThemeInfo();
+		} else {
+			if (this.secondaryPanel) {
+				this.secondaryPanel.classList.add("is-open");
+			}
 		}
 
-		this._updateButtons(true);
+		if (this.dockBtn) {
+			this.dockBtn.setAttribute("aria-expanded", "true");
+			const icon = this.dockBtn.querySelector("i");
+			if (icon) icon.className = "ri-close-line";
+		}
 
-		// Динамічний монтаж глобальних подій лише на період активності
 		document.addEventListener("click", this._handleGlobalClick);
 		document.addEventListener("keydown", this._handleEscape);
 	}
 
 	close() {
 		this.isOpen = false;
+
+		if (this.mobileMenuModal) {
+			this.mobileMenuModal.classList.remove("show");
+			this.mobileMenuModal.classList.add("hidden");
+			document.body.classList.remove("no-scroll");
+		}
+
 		if (this.secondaryPanel) {
 			this.secondaryPanel.classList.remove("is-open");
 		}
-		if (this.mainPanel) {
-			this.mainPanel.classList.remove("is-open");
+
+		if (this.dockBtn) {
+			this.dockBtn.setAttribute("aria-expanded", "false");
+			const icon = this.dockBtn.querySelector("i");
+			if (icon) icon.className = "ri-menu-line";
 		}
 
-		this._updateButtons(false);
-
-		// Негайне вивільнення ресурсів
 		document.removeEventListener("click", this._handleGlobalClick);
 		document.removeEventListener("keydown", this._handleEscape);
-	}
 
-	_updateButtons(isOpen) {
-		const btns = [this.fabBtn, this.dockBtn].filter(Boolean);
-		btns.forEach((btn) => {
-			btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-			const icon = btn.querySelector("i");
-			if (icon) {
-				icon.className = isOpen ? "ri-close-line" : "ri-menu-line";
-			}
-		});
-	}
-
-	_handleToggle(e) {
-		e.stopPropagation();
-		this.toggle();
+		this._checkPopups();
 	}
 
 	_handleGlobalClick(e) {
-		const isClickInsideFab = this.fabBtn?.contains(e.target);
-		const isClickInsideDockBtn = this.dockBtn?.contains(e.target);
-		const isClickInsideSecondary = this.secondaryPanel?.contains(e.target);
-		const isClickInsideMain = this.mainPanel?.contains(e.target);
-
 		if (
 			this.isOpen &&
-			!isClickInsideFab &&
-			!isClickInsideDockBtn &&
-			!isClickInsideSecondary &&
-			(!window.matchMedia("(max-width: 767px)").matches || !isClickInsideMain)
+			!this.secondaryPanel?.contains(e.target) &&
+			!this.dockBtn?.contains(e.target) &&
+			!this.mobileMenuModal?.contains(e.target) &&
+			!this.fabBtn?.contains(e.target)
 		) {
 			this.close();
 		}
@@ -119,12 +189,94 @@ export class MobileMenuManager {
 		}
 	}
 
-	_handleMainPanelClick(e) {
-		if (window.matchMedia("(max-width: 767px)").matches && this.isOpen) {
-			const toolBtn = e.target.closest("button");
-			if (toolBtn && toolBtn !== this.dockBtn) {
-				this.close();
-			}
+	_handleMobileAction(e) {
+		const actionBtn = e.target.closest(".js-mobile-action");
+		if (!actionBtn) return;
+
+		e.preventDefault();
+		const action = actionBtn.getAttribute("data-action");
+		this.close();
+
+		setTimeout(() => {
+			this._triggerAction(action);
+		}, 100);
+	}
+
+	_triggerAction(action) {
+		switch (action) {
+			case "home":
+				document.getElementById("btn-home")?.click();
+				break;
+			case "search":
+				document.getElementById("btn-search")?.click();
+				break;
+			case "lineage":
+				document.getElementById("btn-lineage")?.click();
+				break;
+			case "account":
+				(
+					document.getElementById("btn-account-menu") ||
+					document.getElementById("btn-user-account")
+				)?.click();
+				break;
+			case "workspaces":
+				document.getElementById("btn-workspaces")?.click();
+				break;
+			case "gedcom":
+				document.getElementById("btn-gedcom")?.click();
+				break;
+			case "gdrive":
+				document.getElementById("btn-gdrive")?.click();
+				break;
+			case "audit":
+				document.getElementById("btn-tree-audit")?.click();
+				break;
+			case "ai":
+				document.getElementById("btn-ai")?.click();
+				break;
+			case "analytics":
+				document.getElementById("btn-analytics")?.click();
+				break;
+			case "events":
+				document.getElementById("btn-events")?.click();
+				break;
+			case "theme":
+				document.getElementById("theme-toggle")?.click();
+				this._syncThemeInfo();
+				break;
+		}
+	}
+
+	_syncBadges() {
+		const eventsBadge = document.getElementById("events-badge");
+		const mobileEventsBadge = document.getElementById("mobile-menu-badge-events");
+		if (mobileEventsBadge && eventsBadge) {
+			const hasEvents = !eventsBadge.classList.contains("hidden");
+			mobileEventsBadge.classList.toggle("hidden", !hasEvents);
+		}
+
+		const auditBadge =
+			document.getElementById("audit-badge-secondary") ||
+			document.getElementById("audit-tab-badge");
+		const mobileAuditBadge = document.getElementById("mobile-menu-badge-audit");
+		if (mobileAuditBadge && auditBadge) {
+			const hasAudit = !auditBadge.classList.contains("hidden");
+			mobileAuditBadge.classList.toggle("hidden", !hasAudit);
+		}
+	}
+
+	_syncThemeInfo() {
+		const isDark = document.documentElement.classList.contains("theme-dark");
+		const themeIcon = document.getElementById("mobile-theme-icon");
+		const themeText = document.getElementById("mobile-theme-text");
+
+		if (themeIcon) {
+			themeIcon.className = isDark ? "ri-sun-line" : "ri-moon-line";
+		}
+		if (themeText) {
+			themeText.textContent = isDark
+				? "Увімкнено темну тему. Натисніть для світлої"
+				: "Увімкнено світлу тему. Натисніть для темної";
 		}
 	}
 
@@ -136,18 +288,16 @@ export class MobileMenuManager {
 
 	destroy() {
 		if (this.isOpen) this.close();
+		if (this._observer) this._observer.disconnect();
 
 		if (this.fabBtn) {
-			this.fabBtn.removeEventListener("click", this._handleToggle);
+			this.fabBtn.removeEventListener("click", this._handleFabClick);
 		}
 		if (this.dockBtn) {
-			this.dockBtn.removeEventListener("click", this._handleToggle);
+			this.dockBtn.removeEventListener("click", this._handleDockClick);
 		}
 		if (this.secondaryPanel) {
 			this.secondaryPanel.removeEventListener("click", this._handlePanelClick);
-		}
-		if (this.mainPanel) {
-			this.mainPanel.removeEventListener("click", this._handleMainPanelClick);
 		}
 	}
 }

@@ -48,6 +48,7 @@
 <link rel="stylesheet" href="/css/components/interaction/relationship.css" />
 <link rel="stylesheet" href="/css/components/interaction/workspaces.css" />
 <link rel="stylesheet" href="/css/components/interaction/account.css" />
+    <link rel="stylesheet" href="/css/components/interaction/mobile-menu.css" />
 <link rel="stylesheet" href="/css/components/interaction/drive.css" />
 <link rel="stylesheet" href="/css/components/interaction/search.css" />
 <link rel="stylesheet" href="/css/components/interaction/zoom.css" />
@@ -721,6 +722,165 @@
                 <button id="btn-ws-new-gedcom" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
                     <i class="ri-upload-cloud-line"></i> Імпортувати нове дерево (GEDCOM)
                 </button>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Повноцінне мобільне меню інструментів (Mobile Menu Modal) -->
+    <div id="mobile-menu-modal" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="mobile-menu-title">
+        <div class="mobile-menu-card">
+            <div class="mobile-menu-header">
+                <div class="mobile-menu-title-wrap">
+                    <div class="mobile-menu-icon-hero"><i class="ri-node-tree"></i></div>
+                    <div>
+                        <h3 id="mobile-menu-title" class="mobile-menu-title">Меню Geneo</h3>
+                        <p class="mobile-menu-subtitle">Інструменти та налаштування родоводу</p>
+                    </div>
+                </div>
+                <button id="btn-close-mobile-menu" class="modal-close js-close-popup" aria-label="Закрити" title="Закрити">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+
+            <div class="mobile-menu-body">
+                <!-- Категорія 1: Навігація та дерево -->
+                <div class="mobile-menu-section">
+                    <div class="mobile-menu-section-title">Навігація та дерево</div>
+                    <div class="mobile-menu-grid">
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="home">
+                            <span class="mobile-nav-icon icon-blue"><i class="ri-home-4-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">На головну</span>
+                                <span class="mobile-nav-desc">Стартовий вигляд дерева</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="search">
+                            <span class="mobile-nav-icon icon-indigo"><i class="ri-search-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Пошук</span>
+                                <span class="mobile-nav-desc">Швидкий пошук персон у базі</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="lineage">
+                            <span class="mobile-nav-icon icon-teal"><i class="ri-git-branch-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Гілки роду</span>
+                                <span class="mobile-nav-desc">Прямі лінії та спорідненість</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Категорія 2: Особистий кабінет та сховище -->
+                <div class="mobile-menu-section">
+                    <div class="mobile-menu-section-title">Кабінет та сховище</div>
+                    <div class="mobile-menu-grid">
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="account">
+                            <span class="mobile-nav-icon icon-emerald"><i class="ri-user-settings-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Мій кабінет</span>
+                                <span class="mobile-nav-desc">Профіль користувача та налаштування</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="workspaces">
+                            <span class="mobile-nav-icon icon-amber"><i class="ri-folder-user-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Дерева та простори</span>
+                                <span class="mobile-nav-desc">Вибір та перемикання між деревами</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="gedcom">
+                            <span class="mobile-nav-icon icon-cyan"><i class="ri-file-transfer-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Файли GEDCOM</span>
+                                <span class="mobile-nav-desc">Імпорт та експорт родоводу (.ged)</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="gdrive">
+                            <span class="mobile-nav-icon icon-green"><i class="ri-google-fill"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Google Диск (BYOS)</span>
+                                <span class="mobile-nav-desc">Власне сховище медіа та фото</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Категорія 3: Дослідження та аналітика -->
+                <div class="mobile-menu-section">
+                    <div class="mobile-menu-section-title">Дослідження та аналітика</div>
+                    <div class="mobile-menu-grid">
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="audit">
+                            <span class="mobile-nav-icon icon-rose">
+                                <i class="ri-shield-check-line"></i>
+                                <span id="mobile-menu-badge-audit" class="badge-dot badge-dot--tr hidden"></span>
+                            </span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Перевірка дерева</span>
+                                <span class="mobile-nav-desc">Виявлення дублікатів та аномалій</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="ai">
+                            <span class="mobile-nav-icon icon-purple"><i class="ri-robot-2-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">AI Асистент</span>
+                                <span class="mobile-nav-desc">Штучний інтелект для аналізу зв'язків</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="analytics">
+                            <span class="mobile-nav-icon icon-blue"><i class="ri-bar-chart-2-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Статистика</span>
+                                <span class="mobile-nav-desc">Демографія, прізвища та діаграми</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="events">
+                            <span class="mobile-nav-icon icon-orange">
+                                <i class="ri-calendar-event-line"></i>
+                                <span id="mobile-menu-badge-events" class="badge-dot badge-dot--tr hidden"></span>
+                            </span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Цей день в історії</span>
+                                <span class="mobile-nav-desc">Дні народження, шлюби та події</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Категорія 4: Налаштування -->
+                <div class="mobile-menu-section">
+                    <div class="mobile-menu-section-title">Налаштування</div>
+                    <div class="mobile-menu-grid">
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="theme">
+                            <span class="mobile-nav-icon icon-gray"><i class="ri-moon-line" id="mobile-theme-icon"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Тема оформлення</span>
+                                <span class="mobile-nav-desc" id="mobile-theme-text">Перемкнути світлу/темну тему</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
