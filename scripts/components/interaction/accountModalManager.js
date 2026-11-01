@@ -123,6 +123,21 @@ export class AccountModalManager {
 	switchTab(tabName) {
 		this.currentTab = tabName;
 		this.render();
+		this._centerActiveTab();
+	}
+
+	_centerActiveTab() {
+		if (!this.modal) return;
+		requestAnimationFrame(() => {
+			const activeTab = this.modal.querySelector(`.account-tab-btn[data-tab="${this.currentTab}"]`);
+			if (activeTab) {
+				activeTab.scrollIntoView({
+					behavior: "smooth",
+					block: "nearest",
+					inline: "center",
+				});
+			}
+		});
 	}
 
 	render() {
@@ -176,6 +191,7 @@ export class AccountModalManager {
 				tab.classList.remove("active");
 			}
 		});
+		this._centerActiveTab();
 
 		// Рендеринг контенту поточної вкладки
 		const contentContainer = this.modal.querySelector("#account-tab-content");
@@ -252,7 +268,7 @@ export class AccountModalManager {
 
 					<div class="profile-avatar-actions">
 						<label for="input-account-avatar-file" class="btn btn-secondary btn-sm" style="cursor: pointer;">
-							<i class="ri-image-edit-line"></i> ${user?.avatar ? "Змінити фото аватарки" : "Завантажити фото аватарки"}
+							<i class="ri-image-edit-line"></i> ${user?.avatar ? "Змінити фото" : "Додати фото"}
 						</label>
 						${
 							user?.avatar
@@ -384,7 +400,7 @@ export class AccountModalManager {
 					<form id="account-share-form" class="share-inline-form">
 						<div class="form-inputs-row">
 							<input type="email" id="share-input-email" placeholder="Email родича..." required class="form-input" />
-							<select id="share-input-role" class="form-input" style="min-width: 170px; max-width: 185px;">
+							<select id="share-input-role" class="form-input">
 								<option value="viewer">Тільки перегляд</option>
 								<option value="editor">Редактор</option>
 							</select>
@@ -889,7 +905,7 @@ export class AccountModalManager {
 				<!-- СТАТИСТИЧНИЙ БАНЕР -->
 				<div class="audit-summary-banner ${audit.totalActive === 0 ? "healthy" : "attention"}">
 					<div class="audit-banner-icon">
-						<i class="${audit.totalActive === 0 ? "ri-shield-check-fill" : "ri-shield-alert-fill"}"></i>
+						<i class="${audit.totalActive === 0 ? "ri-shield-check-line" : "ri-error-warning-line"}"></i>
 					</div>
 					<div class="audit-banner-info">
 						<h4>${audit.totalActive === 0 ? "Родовід цілісний! Аномалій не виявлено" : `Виявлено зауважень щодо якості даних: ${audit.totalActive}`}</h4>

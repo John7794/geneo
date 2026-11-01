@@ -215,6 +215,9 @@ input[type="file"].hidden-file-input {
 	flex-shrink: 0 !important;
 	min-height: 48px;
 	scrollbar-width: thin;
+	scroll-behavior: smooth;
+	scroll-padding: 0 1rem;
+	-webkit-overflow-scrolling: touch;
 }
 
 .account-tab-btn {
@@ -335,7 +338,13 @@ select.form-input {
 .profile-name-text-row {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: 12px;
+	width: 100%;
+}
+
+#btn-toggle-edit-name {
+	margin-left: auto;
 }
 
 .profile-name-value {
@@ -627,12 +636,25 @@ select.form-input {
 .form-inputs-row {
 	display: flex;
 	gap: 10px;
+	align-items: center;
 	flex-wrap: wrap;
 }
 
-.form-inputs-row .form-input {
-	flex: 1;
+.form-inputs-row .form-input,
+.form-inputs-row select.form-input,
+.form-inputs-row button {
+	height: 42px;
+	box-sizing: border-box;
+}
+
+.form-inputs-row input.form-input {
+	flex: 1 1 200px;
 	min-width: 180px;
+}
+
+.form-inputs-row select.form-input {
+	flex: 0 0 auto;
+	min-width: 170px;
 }
 
 .shared-users-box {
@@ -1182,7 +1204,7 @@ select.form-input {
 }
 
 .audit-card.severity-duplicate {
-	border-left-color: #3b82f6;
+	border-left: 1px solid var(--color-border);
 }
 
 .audit-card-header {
@@ -1388,19 +1410,52 @@ select.form-input {
 		padding: 1rem 0.875rem 1.25rem !important;
 	}
 
-	/* Вкладка Профіль: кнопка вибору фото та видалення */
+	/* Вкладка Профіль: кнопка вибору фото та видалення в один рядок */
 	.profile-avatar-actions {
+		display: flex !important;
+		flex-direction: row !important;
+		align-items: center !important;
+		gap: 8px !important;
+		width: 100% !important;
+	}
+
+	.profile-avatar-actions label,
+	.profile-avatar-actions button {
+		flex: 1 1 0 !important;
+		width: 100% !important;
+		height: 42px !important;
+		min-height: 42px !important;
+		padding: 0 8px !important;
+		white-space: nowrap !important;
+		justify-content: center !important;
+		text-align: center !important;
+		box-sizing: border-box !important;
+		border-radius: 10px !important;
+		font-size: 0.85rem !important;
+	}
+
+	/* Вкладка Профіль: редагування імені */
+	.profile-name-input-wrap {
 		flex-direction: column !important;
 		align-items: stretch !important;
 		gap: 8px !important;
 	}
 
-	.profile-avatar-actions label,
-	.profile-avatar-actions button {
+	.profile-name-input-wrap .form-input {
 		width: 100% !important;
+		height: 44px !important;
+		min-height: 44px !important;
+		border-radius: 10px !important;
+		font-size: 0.95rem !important;
+	}
+
+	.profile-name-input-wrap .btn {
+		width: 100% !important;
+		height: 44px !important;
+		min-height: 44px !important;
+		border-radius: 10px !important;
+		font-size: 0.95rem !important;
 		justify-content: center !important;
-		text-align: center !important;
-		box-sizing: border-box !important;
 	}
 
 	/* Вкладка Профіль: сітка даних користувача */
@@ -1431,9 +1486,14 @@ select.form-input {
 	.account-actions-box button,
 	.account-actions-box a {
 		width: 100% !important;
+		height: 44px !important;
+		min-height: 44px !important;
 		justify-content: center !important;
 		text-align: center !important;
 		box-sizing: border-box !important;
+		border-radius: 10px !important;
+		font-size: 0.95rem !important;
+		font-weight: 600 !important;
 	}
 
 	/* Вкладка Мої дерева */
@@ -1445,7 +1505,12 @@ select.form-input {
 
 	.trees-header-row button {
 		width: 100% !important;
+		height: 44px !important;
+		min-height: 44px !important;
 		justify-content: center !important;
+		border-radius: 10px !important;
+		font-size: 0.95rem !important;
+		font-weight: 600 !important;
 	}
 
 	.account-tree-card {
@@ -1468,8 +1533,10 @@ select.form-input {
 
 	/* Вкладка Спільний доступ */
 	.form-inputs-row {
+		display: flex !important;
 		flex-direction: column !important;
 		align-items: stretch !important;
+		gap: 10px !important;
 	}
 
 	.form-inputs-row .form-input,
@@ -1478,7 +1545,19 @@ select.form-input {
 		width: 100% !important;
 		max-width: 100% !important;
 		min-width: 0 !important;
+		height: 44px !important;
+		min-height: 44px !important;
 		box-sizing: border-box !important;
+		font-size: 0.95rem !important;
+		border-radius: 10px !important;
+		padding: 0 14px !important;
+	}
+
+	.form-inputs-row button {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		font-weight: 600 !important;
 	}
 
 	.shared-user-row {
@@ -1508,7 +1587,12 @@ select.form-input {
 
 	.btn-drive-single-row {
 		width: 100% !important;
+		height: 44px !important;
+		min-height: 44px !important;
 		justify-content: center !important;
+		border-radius: 10px !important;
+		font-size: 0.95rem !important;
+		font-weight: 600 !important;
 	}
 
 	.folder-tree-view {
@@ -1519,6 +1603,58 @@ select.form-input {
 	}
 
 	/* Вкладка Аудит */
+	.audit-summary-banner {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 12px !important;
+		padding: 14px !important;
+	}
+
+	.audit-banner-icon {
+		display: none !important;
+	}
+
+	.audit-banner-info {
+		width: 100% !important;
+	}
+
+	.audit-banner-info h4 {
+		font-size: 1.05rem !important;
+		line-height: 1.3 !important;
+		margin: 0 0 6px 0 !important;
+	}
+
+	.audit-banner-info p {
+		font-size: 0.85rem !important;
+		line-height: 1.4 !important;
+		margin: 0 !important;
+	}
+
+	.audit-banner-actions {
+		width: 100% !important;
+		margin-top: 2px !important;
+	}
+
+	.audit-banner-actions button {
+		width: 100% !important;
+		height: 44px !important;
+		min-height: 44px !important;
+		justify-content: center !important;
+		font-size: 0.9rem !important;
+		border-radius: 10px !important;
+		font-weight: 600 !important;
+	}
+
+	.audit-card {
+		border: 1px solid var(--color-border) !important;
+		border-radius: 10px !important;
+		padding: 12px 14px !important;
+	}
+
+	.audit-card.severity-duplicate {
+		border-left: 1px solid var(--color-border) !important;
+	}
+
 	.audit-compare-grid {
 		grid-template-columns: 1fr !important;
 		gap: 8px !important;
@@ -1538,6 +1674,10 @@ select.form-input {
 
 	.audit-card-actions button {
 		width: 100% !important;
+		height: 42px !important;
+		min-height: 42px !important;
 		justify-content: center !important;
+		font-size: 0.875rem !important;
+		border-radius: 8px !important;
 	}
 }
