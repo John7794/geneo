@@ -113,24 +113,18 @@ export class MobileMenuManager {
 
 	open() {
 		this.isOpen = true;
-		const isMobile = window.matchMedia("(max-width: 767px)").matches;
 
-		if (isMobile) {
-			if (this.mobileMenuModal) {
-				this.mobileMenuModal.classList.remove("hidden");
-				this.mobileMenuModal.classList.add("show");
-				document.body.classList.add("no-scroll");
-				if (this.fabBtn) {
-					this.fabBtn.style.setProperty("display", "none", "important");
-				}
-			}
-			this._syncBadges();
-			this._syncThemeInfo();
-		} else {
-			if (this.secondaryPanel) {
-				this.secondaryPanel.classList.add("is-open");
+		if (this.mobileMenuModal) {
+			this.mobileMenuModal.classList.remove("hidden");
+			this.mobileMenuModal.classList.add("show");
+			document.body.classList.add("no-scroll");
+			if (this.fabBtn) {
+				this.fabBtn.style.setProperty("display", "none", "important");
 			}
 		}
+
+		this._syncBadges();
+		this._syncThemeInfo();
 
 		if (this.dockBtn) {
 			this.dockBtn.setAttribute("aria-expanded", "true");
@@ -149,10 +143,6 @@ export class MobileMenuManager {
 			this.mobileMenuModal.classList.remove("show");
 			this.mobileMenuModal.classList.add("hidden");
 			document.body.classList.remove("no-scroll");
-		}
-
-		if (this.secondaryPanel) {
-			this.secondaryPanel.classList.remove("is-open");
 		}
 
 		if (this.dockBtn) {
@@ -238,6 +228,9 @@ export class MobileMenuManager {
 			case "events":
 				document.getElementById("btn-events")?.click();
 				break;
+			case "lang":
+			document.getElementById("btn-lang-toggle")?.click();
+			break;
 			case "theme":
 				document.getElementById("theme-toggle")?.click();
 				this._syncThemeInfo();

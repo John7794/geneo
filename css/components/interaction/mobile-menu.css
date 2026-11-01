@@ -17,12 +17,7 @@ body.has-open-popup #mobile-menu-btn {
 	z-index: 20000 !important;
 }
 
-/* Приховування модального вікна мобільного меню на десктопах */
-@media (min-width: 768px) {
-	#mobile-menu-modal {
-		display: none !important;
-	}
-}
+
 
 /* Модальне вікно мобільного меню */
 #mobile-menu-modal.popup-overlay {
@@ -266,4 +261,29 @@ body.has-open-popup #mobile-menu-btn {
 .mobile-nav-item:hover .mobile-nav-arrow {
 	transform: translateX(3px);
 	color: var(--color-primary);
+}
+
+
+/* Адаптація меню для планшетів та десктопів: 2 колонки карток функцій */
+@media (min-width: 640px) {
+	.mobile-menu-card {
+		max-width: 640px !important;
+		border-radius: 20px !important;
+	}
+
+	.mobile-menu-body {
+		padding: 1.25rem 1.5rem 1.75rem !important;
+		gap: 1.5rem !important;
+	}
+
+	.mobile-menu-grid {
+		display: grid !important;
+		grid-template-columns: repeat(2, 1fr) !important;
+		gap: 10px !important;
+	}
+
+	/* На планшетах і десктопах навігація (Home, View, Search, Lineage) вже винесена в окремий закріплений блок кнопок */
+	.nav-section-mobile-only {
+		display: none !important;
+	}
 }
