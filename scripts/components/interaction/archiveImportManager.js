@@ -7,7 +7,7 @@ import { buildFamilyRolesFromFamilies } from "../../services/familyAdapter.js";
 /**
  * Менеджер імпорту архівованої папки Geneo (.zip)
  * Дозволяє завантажити архів з іншого Google Диску чи резервну копію
- * та автоматично розгорнути дерево у робочому просторі.
+ * та автоматично розгорнути дерево у робочому просторі і на Google Диску.
  */
 export class ArchiveImportManager {
 	constructor(workspaceManager, driveService = null) {
@@ -69,10 +69,19 @@ export class ArchiveImportManager {
 				}
 			}
 
-			this._showProgress("Перевірка цілісності даних родоводу...", 65);
+			this._showProgress("Перевірка цілісності структури родоводу...", 60);
 
-			if (!dbData.basic || !Array.isArray(dbData.basic) || dbData.basic.length === 0) {
-				throw new Error("В архіві не знайдено обов'язкової таблиці basic.csv (Персони). Переконайтеся, що архів містить кореневу папку родоводу Geneo.");
+			// Перевірка обов'язкових таблиць
+			const hasBasic = Array.isArray(dbData.basic) && dbData.basic.length > 0;
+			const hasFamilies = Array.isArray(dbData.families) && dbData.families.length > 0;
+
+			if (!hasBasic || !hasFamilies) {
+				this._hideProgress();
+				this._showInvalidStructureModal(file.name, Object.keys(dbData), {
+					hasBasic,
+					hasFamilies,
+				});
+				return;
 			}
 
 			// Автоматичний синтез familyRoles якщо є families та familyChildren
@@ -83,8 +92,6 @@ export class ArchiveImportManager {
 			) {
 				dbData.familyRoles = buildFamilyRolesFromFamilies(dbData.families, dbData.familyChildren);
 			}
-
-			this._showProgress("Створення робочого простору та збереження бази...", 85);
 
 			// Визначення назви родоводу
 			let treeName = metadata?.workspaceName || metadata?.name || "";
@@ -108,27 +115,126 @@ export class ArchiveImportManager {
 			const personsCount = dbData.basic.length;
 			const familiesCount = (dbData.families || []).length;
 
-			// Створення локального простору
-			const newWs = await this.workspaceManager.createLocalWorkspace({
-				name: treeName,
-				probandId,
-				probandName,
-				personsCount,
-				familiesCount,
-				dbData,
-			});
+			let targetWsId = "";
+
+			// Якщо Google Диск підключено — автоматично створюємо папку проєкту на Диску та вивантажуємо дані
+			if (this.driveService && this.driveService.isConnected()) {
+				this._showProgress("Створення папки проєкту на Google Диску...", 75);
+				const deployed = await this.driveService.createTreeFolderAndDeploy(treeName, dbData, (msg, pct) => {
+					this._showProgress(`Google Диск: ${msg}`, 75 + Math.round(pct * 0.22));
+				});
+
+				const newWs = await this.workspaceManager.createGdriveWorkspace({
+					folderId: deployed.folderId,
+					folderName: deployed.folderName,
+					folderMap: deployed.folderMap,
+					dbData,
+					probandId,
+					probandName,
+					personsCount,
+					familiesCount,
+				});
+				targetWsId = newWs.id;
+			} else {
+				this._showProgress("Збереження бази у робочий простір...", 85);
+				const newWs = await this.workspaceManager.createLocalWorkspace({
+					name: treeName,
+					probandId,
+					probandName,
+					personsCount,
+					familiesCount,
+					dbData,
+				});
+				targetWsId = newWs.id;
+			}
 
 			this._showProgress("Запуск родинного дерева...", 100);
 
 			setTimeout(() => {
 				this._hideProgress();
-				this.workspaceManager.switchWorkspace(newWs.id);
+				this.workspaceManager.switchWorkspace(targetWsId);
 			}, 350);
 
 		} catch (err) {
 			console.error("Помилка імпорту архіву Geneo:", err);
 			this._hideProgress();
 			alert("Не вдалося завантажити архів Geneo: " + err.message);
+		}
+	}
+
+	_showInvalidStructureModal(fileName, presentTables, { hasBasic, hasFamilies }) {
+		let overlay = document.getElementById("archive-error-modal");
+		if (!overlay) {
+			overlay = document.createElement("div");
+			overlay.id = "archive-error-modal";
+			overlay.className = "popup-overlay show";
+			overlay.style.zIndex = "99999";
+			document.body.appendChild(overlay);
+		} else {
+			overlay.classList.remove("hidden");
+			overlay.classList.add("show");
+		}
+
+		const missing = [];
+		if (!hasBasic) missing.push("basic.csv (Таблиця персон)");
+		if (!hasFamilies) missing.push("families.csv (Таблиця сімей)");
+
+		const present = presentTables.length > 0
+			? presentTables.map(t => `${t}.csv`)
+			: ["Жодної таблиці CSV не знайдено"];
+
+		overlay.innerHTML = `
+			<div class="popup-container" style="max-width: 520px; width: 92%; padding: 24px; border-radius: 16px; background: var(--color-bg-card); border: 1px solid var(--color-border); box-shadow: 0 20px 40px rgba(0,0,0,0.25);">
+				<div style="font-size: 38px; color: #dc2626; margin-bottom: 8px;">
+					<i class="ri-error-warning-line"></i>
+				</div>
+				<h3 style="margin: 0 0 8px; font-size: 18px; color: var(--color-text-main);">
+					Невідповідна структура архіву «${escapeHtml(fileName)}»
+				</h3>
+				<p style="margin: 0 0 14px; font-size: 13px; color: var(--color-text-muted); line-height: 1.5;">
+					В архіві відсутні обов'язкові компоненти бази даних Geneo. Додаток не може бути запущений без обов'язкових таблиць.
+				</p>
+
+				<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; font-size: 12px; text-align: left;">
+					<div style="background: var(--color-bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+						<div style="font-weight: 600; color: #16a34a; margin-bottom: 4px;">✅ Знайдено в архіві:</div>
+						${present.slice(0, 5).map(p => `<div>• ${escapeHtml(p)}</div>`).join("")}
+						${present.length > 5 ? `<div style="color:var(--color-text-muted);">...та ще ${present.length - 5} файлів</div>` : ""}
+					</div>
+					<div style="background: var(--color-bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+						<div style="font-weight: 600; color: #dc2626; margin-bottom: 4px;">❌ Обов'язково відсутні:</div>
+						${missing.map(m => `<div>• ${escapeHtml(m)}</div>`).join("")}
+					</div>
+				</div>
+
+				<div style="background: var(--color-bg-body); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 16px; font-size: 12px; text-align: left; line-height: 1.5;">
+					<div style="font-weight: 600; margin-bottom: 6px; color: var(--color-text-main);">
+						📋 Еталонна структура папки Geneo (обов'язкова умова для запуску):
+					</div>
+					<div style="font-family: monospace; background: var(--color-bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--color-border); margin-bottom: 6px; color: var(--color-text-main); font-size: 11px;">
+						Geneo - [Назва родоводу]/<br>
+						├── db/ (basic.csv, families.csv, familyChildren.csv)<br>
+						└── records/ (підпапки portraits/, family_photos/, scans/)
+					</div>
+					<div style="color: var(--color-text-muted);">
+						Будь ласка, перевірте архів або підготуйте файли згідно з еталонною структурою.
+					</div>
+				</div>
+
+				<div style="display: flex; gap: 10px; justify-content: flex-end;">
+					<button id="btn-close-archive-error" type="button" class="btn btn-primary btn-sm" style="padding: 8px 18px; font-weight: 600;">
+						Зрозуміло, обрати інший файл
+					</button>
+				</div>
+			</div>
+		`;
+
+		const btnClose = overlay.querySelector("#btn-close-archive-error");
+		if (btnClose) {
+			btnClose.onclick = () => {
+				overlay.classList.remove("show");
+				overlay.classList.add("hidden");
+			};
 		}
 	}
 
@@ -173,4 +279,14 @@ export class ArchiveImportManager {
 			overlay.classList.add("hidden");
 		}
 	}
+}
+
+function escapeHtml(str) {
+	if (!str) return "";
+	return String(str)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }

@@ -216,8 +216,8 @@ export class GoogleDriveService {
 				return {
 					storageQuota: {
 						limit: String(15 * 1024 * 1024 * 1024),
-						usage: String(2.1 * 1024 * 1024 * 1024),
-						usageInDrive: String(0.85 * 1024 * 1024 * 1024),
+						usage: String(0),
+						usageInDrive: String(0),
 					},
 					user: this.userInfo || {
 						displayName: "Користувач Google",

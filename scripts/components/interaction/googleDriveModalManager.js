@@ -2,12 +2,15 @@
 
 /**
  * Керування модальним вікном підключення особистого Google Диску (BYOS)
+ * Оптимізована архітектура з вкладками (Папки / Синхронізація / Apps Script)
+ * та точним відображенням вільного і зайнятого простору.
  */
 export class GoogleDriveModalManager {
 	constructor(driveService, workspaceManager, authManager = null) {
 		this.drive = driveService;
 		this.workspaceManager = workspaceManager;
 		this.auth = authManager;
+		this.currentTab = "folders"; // "folders" | "sync" | "script"
 
 		this.modal = document.getElementById("google-drive-modal") || document.getElementById("gdrive-modal");
 		this.btnOpen = document.getElementById("btn-gdrive-status") || document.getElementById("btn-gdrive");
@@ -99,8 +102,39 @@ export class GoogleDriveModalManager {
 				}
 			}
 
+			// Форматування квоти вільного та зайнятого простору
+			let quotaHtml = "";
+			if (isConnected && quota && typeof quota.usageBytes === "number") {
+				const usedGb = (quota.usageBytes / (1024 * 1024 * 1024)).toFixed(2);
+				const freeGb = (quota.freeBytes / (1024 * 1024 * 1024)).toFixed(2);
+				const limitGb = (quota.limitBytes / (1024 * 1024 * 1024)).toFixed(1);
+				const pct = quota.percentUsed || 0;
+
+				quotaHtml = `
+					<div class="gdrive-quota-box">
+						<div class="quota-meta-row" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 6px;">
+							<span>
+								Зайнято: <strong>${usedGb} GB</strong> • 
+								Вільно: <strong style="color: #16a34a;">${freeGb} GB</strong> 
+								<span style="color: var(--color-text-muted); font-size: 12px;">(з ${limitGb} GB)</span>
+							</span>
+							<span class="quota-pct" style="font-weight: 600; color: var(--color-primary);">${pct}%</span>
+						</div>
+						<div class="quota-bar-wrapper">
+							<div class="quota-bar-fill ${quota.isLowSpace ? "warning" : ""}" style="width: ${Math.min(100, Math.max(pct > 0 ? pct : 1, 1))}%;"></div>
+						</div>
+						${
+							quota.isLowSpace
+								? `<div class="quota-warning-badge" style="margin-top: 8px; font-size: 12px; color: #dc2626;"><i class="ri-alert-line"></i> Залишилося менше 500 MB вільного місця!</div>`
+								: ""
+						}
+					</div>
+				`;
+			}
+
 			body.innerHTML = `
 			<div class="gdrive-container">
+				<!-- ПОЯСНЮВАЛЬНИЙ БАНЕР -->
 				<div class="drive-explainer-banner">
 					<i class="ri-lightbulb-line"></i>
 					<div>
@@ -108,7 +142,7 @@ export class GoogleDriveModalManager {
 					</div>
 				</div>
 
-				<!-- СТАТУС ПІДКЛЮЧЕННЯ -->
+				<!-- СТАТУС ПІДКЛЮЧЕННЯ ТА КВОТА -->
 				<div class="gdrive-status-card ${isConnected ? "connected" : "disconnected"}">
 					<div class="status-card-header">
 						<div class="status-card-main">
@@ -123,139 +157,164 @@ export class GoogleDriveModalManager {
 						<div class="status-card-action">
 							${
 								isConnected
-									? `<button id="btn-gdrive-disconnect" class="btn btn-outline btn-sm">Відключити</button>`
+									? `<button id="btn-gdrive-disconnect" class="btn btn-outline btn-sm">Відключити Диск</button>`
 									: `<button id="btn-gdrive-connect" class="btn btn-primary">
 										<i class="ri-google-fill"></i> Підключити мій Google Диск
 									</button>`
 							}
 						</div>
 					</div>
+					${quotaHtml}
+				</div>
 
-					${
-						isConnected && quota && typeof quota.usageBytes === "number"
-							? `
-						<div class="gdrive-quota-box">
-							<div class="quota-meta-row">
-								<span>Використано пам'яті: <strong>${(quota.usageBytes / (1024 * 1024 * 1024)).toFixed(2)} GB</strong> з ${(quota.limitBytes / (1024 * 1024 * 1024)).toFixed(1)} GB</span>
-								<span class="quota-pct">${quota.percentUsed || 0}%</span>
+				<!-- НАВІГАЦІЯ ВКЛАДОК -->
+				<div class="gdrive-tabs-nav">
+					<button type="button" class="gdrive-tab-btn ${this.currentTab === "folders" ? "active" : ""}" data-tab="folders">
+						<i class="ri-folder-shared-line"></i> Папки та Сховище
+					</button>
+					<button type="button" class="gdrive-tab-btn ${this.currentTab === "sync" ? "active" : ""}" data-tab="sync">
+						<i class="ri-refresh-line"></i> Синхронізація дерева
+					</button>
+					<button type="button" class="gdrive-tab-btn ${this.currentTab === "script" ? "active" : ""}" data-tab="script">
+						<i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Geneo Apps Script
+					</button>
+				</div>
+
+				<!-- ВКЛАДКА 1: ПАПКИ ТА СХОВИЩЕ -->
+				<div id="panel-gdrive-folders" class="gdrive-tab-panel ${this.currentTab === "folders" ? "" : "hidden"}">
+					<!-- ПІДКЛЮЧЕННЯ ІСНУЮЧОЇ ПАПКИ (MULTI-TREE BYOS) -->
+					<div class="gdrive-section-card">
+						<div class="section-card-header">
+							<div class="section-card-title-row">
+								<h4><i class="ri-folder-add-line"></i> Підключити існуючу папку Geneo на Google Диску:</h4>
 							</div>
-							<div class="quota-bar-wrapper">
-								<div class="quota-bar-fill ${quota.isLowSpace ? "warning" : ""}" style="width: ${Math.min(100, quota.percentUsed || 0)}%;"></div>
+						</div>
+						<p class="text-sm text-muted">
+							Ви можете підключити одну або кілька різних папок із Google Диску. Кожна папка стане окремим незалежним деревом у списку «Мої дерева».
+						</p>
+
+						<div class="folder-connect-controls" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+							<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+								<input type="text" id="input-gdrive-folder-id" placeholder="Введіть назву, ID або посилання на папку Google Диску..." class="form-input" style="flex: 1; min-width: 220px;" ${!isConnected ? "disabled" : ""} />
+								<button id="btn-validate-and-connect-folder" type="button" class="btn btn-primary" style="height: 40px; padding: 0 16px; font-weight: 600;" ${!isConnected ? "disabled" : ""}>
+									<i class="ri-check-double-line"></i> Перевірити та підключити
+								</button>
 							</div>
-							${
-								quota.isLowSpace
-									? `<div class="quota-warning-badge"><i class="ri-alert-line"></i> Залишилося менше 500 MB вільного місця!</div>`
-									: ""
-							}
+							<div style="display: flex; gap: 8px;">
+								<button id="btn-list-my-drive-folders" type="button" class="btn btn-outline btn-sm" ${!isConnected ? "disabled" : ""}>
+									<i class="ri-list-check-2"></i> Обрати зі списку моїх папок
+								</button>
+							</div>
+							<div id="drive-folders-list-container" class="hidden" style="background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px; max-height: 180px; overflow-y: auto;"></div>
 						</div>
-					`
-							: ""
-					}
-				</div>
 
-				<!-- СТРУКТУРА ПАПОК -->
-				<div class="gdrive-section-card">
-					<div class="section-card-header">
-						<div class="section-card-title-row">
-							<h4><i class="ri-folder-shared-line"></i> Ієрархія папок Geneo на вашому Google Диску:</h4>
-						</div>
-						<div class="section-card-action-row">
-							<button id="btn-gdrive-deploy-structure" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
-								<i class="ri-folder-add-line"></i> ${folderMap ? "Перевірити / Оновити структуру" : "Розгорнути структуру"}
-							</button>
-						</div>
+						<div id="folder-validation-result" class="hidden" style="margin-top: 14px;"></div>
 					</div>
 
-					<div class="gdrive-tree-preview">
-						<div class="folder-row root"><i class="ri-folder-fill"></i> <strong>Geneo/</strong> ${folderMap ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>db/</strong> (База даних)</div>
-						<div class="folder-row indent-2"><i class="ri-file-excel-2-line"></i> Geneo_DB (Таблиця з 31 вкладкою) ${folderMap?.dbUk || folderMap?.db ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-2"><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> GeneoAutoSync.gs (Автооновлення родин та зв'язків) ${folderMap?.dbUk || folderMap?.db ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>records/</strong> (Архівні матеріали)</div>
-						<div class="folder-row indent-2"><i class="ri-folder-line"></i> portraits/ (Портрети осіб) ${folderMap?.portraits ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-2"><i class="ri-folder-line"></i> family_photos/ (Сімейні фото по ID) ${folderMap?.familyPhotos ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-2"><i class="ri-folder-line"></i> scans/ (Скани документів)</div>
-						<div class="folder-row indent-3"><i class="ri-folder-line"></i> awards/medals/ (Фото медалей) ${folderMap?.awardsMedals ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-3"><i class="ri-folder-line"></i> awards/records/ (Нагородні грамоти) ${folderMap?.awardsRecords ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-3"><i class="ri-folder-line"></i> confessions/ (Сповідні відомості) ${folderMap?.confessions ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-3"><i class="ri-folder-line"></i> metrics/{birth, marriage, death}/ ${folderMap?.metricsBirth ? "✅" : "⚪"}</div>
-						<div class="folder-row indent-3"><i class="ri-folder-line"></i> military/ (Військові документи) ${folderMap?.military ? "✅" : "⚪"}</div>
-					</div>
-					<div id="deploy-progress-container" class="progress-box hidden">
-						<p id="deploy-progress-text" class="text-sm"></p>
-						<div class="progress-bar"><div id="deploy-progress-fill" class="progress-fill"></div></div>
-					</div>
-				</div>
+					<!-- СТРУКТУРА ПАПОК -->
+					<div class="gdrive-section-card">
+						<div class="section-card-header">
+							<div class="section-card-title-row">
+								<h4><i class="ri-folder-shared-line"></i> Еталонна ієрархія тек Geneo на Google Диску:</h4>
+							</div>
+							<div class="section-card-action-row">
+								<button id="btn-gdrive-deploy-structure" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
+									<i class="ri-folder-add-line"></i> ${folderMap ? "Перевірити / Оновити структуру" : "Розгорнути структуру"}
+								</button>
+							</div>
+						</div>
 
-				<!-- СИНХРОНІЗАЦІЯ ДЕРЕВА -->
-				<div class="gdrive-section-card">
-					<div class="section-card-header">
-						<div class="section-card-title-row">
-							<h4><i class="ri-refresh-line"></i> Синхронізація активного дерева:</h4>
+						<div class="gdrive-tree-preview">
+							<div class="folder-row root"><i class="ri-folder-fill"></i> <strong>Geneo/</strong> ${folderMap ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>db/</strong> (База даних)</div>
+							<div class="folder-row indent-2"><i class="ri-file-excel-2-line"></i> Таблиці CSV (basic, families, familyChildren тощо) ${folderMap?.dbUk || folderMap?.db ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-2"><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> GeneoAutoSync.gs (Автооновлення зв'язків) ${folderMap?.dbUk || folderMap?.db ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-1"><i class="ri-folder-fill"></i> <strong>records/</strong> (Архівні матеріали)</div>
+							<div class="folder-row indent-2"><i class="ri-folder-line"></i> portraits/ (Портрети осіб) ${folderMap?.portraits ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-2"><i class="ri-folder-line"></i> family_photos/ (Сімейні фото по ID) ${folderMap?.familyPhotos ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-2"><i class="ri-folder-line"></i> scans/ (Скани документів)</div>
+							<div class="folder-row indent-3"><i class="ri-folder-line"></i> awards/medals/ (Фото медалей) ${folderMap?.awardsMedals ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-3"><i class="ri-folder-line"></i> awards/records/ (Нагородні грамоти) ${folderMap?.awardsRecords ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-3"><i class="ri-folder-line"></i> confessions/ (Сповідні відомості) ${folderMap?.confessions ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-3"><i class="ri-folder-line"></i> metrics/{birth, marriage, death}/ ${folderMap?.metricsBirth ? "✅" : "⚪"}</div>
+							<div class="folder-row indent-3"><i class="ri-folder-line"></i> military/ (Військові документи) ${folderMap?.military ? "✅" : "⚪"}</div>
 						</div>
-						<div class="section-card-action-row">
-							<button id="btn-gdrive-sync-db" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
-								<i class="ri-upload-cloud-line"></i> Синхронізувати зараз
-							</button>
+						<div id="deploy-progress-container" class="progress-box hidden">
+							<p id="deploy-progress-text" class="text-sm"></p>
+							<div class="progress-bar"><div id="deploy-progress-fill" class="progress-fill"></div></div>
 						</div>
-					</div>
-					<p class="text-sm text-muted">
-						Дерево: <strong>«${activeWs?.name || "Поточне дерево"}»</strong>. Всі 31 таблиця родоводу будуть збережені та синхронізовані в папку <code>Geneo/db/</code> на вашому Диску.
-					</p>
-					<div id="sync-progress-container" class="progress-box hidden">
-						<p id="sync-progress-text" class="text-sm"></p>
-						<div class="progress-bar"><div id="sync-progress-fill" class="progress-fill"></div></div>
 					</div>
 				</div>
 
-
-				<!-- ПІДКЛЮЧЕННЯ ІСНУЮЧОЇ ПАПКИ (MULTI-TREE BYOS) -->
-				<div class="gdrive-section-card">
-					<div class="section-card-header">
-						<div class="section-card-title-row">
-							<h4><i class="ri-folder-add-line"></i> Підключити існуючу папку Geneo на Google Диску:</h4>
+				<!-- ВКЛАДКА 2: СИНХРОНІЗАЦІЯ ДЕРЕВА -->
+				<div id="panel-gdrive-sync" class="gdrive-tab-panel ${this.currentTab === "sync" ? "" : "hidden"}">
+					<div class="gdrive-section-card">
+						<div class="section-card-header">
+							<div class="section-card-title-row">
+								<h4><i class="ri-refresh-line"></i> Синхронізація активного родоводу:</h4>
+							</div>
+							<div class="section-card-action-row">
+								<button id="btn-gdrive-sync-db" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
+									<i class="ri-upload-cloud-line"></i> Синхронізувати зараз
+								</button>
+							</div>
+						</div>
+						<p class="text-sm text-muted">
+							Поточне активне дерево: <strong>«${activeWs?.name || "Поточне дерево"}»</strong>.
+						</p>
+						<p class="text-sm text-muted">
+							Всі таблиці бази даних, зв'язки родин, <code>metadata.json</code> та скрипт синхронізації <code>GeneoAutoSync.gs</code> будуть збережені у папку <code>Geneo - [Назва]/db/</code> на вашому Google Диску.
+						</p>
+						<div id="sync-progress-container" class="progress-box hidden">
+							<p id="sync-progress-text" class="text-sm"></p>
+							<div class="progress-bar"><div id="sync-progress-fill" class="progress-fill"></div></div>
 						</div>
 					</div>
-					<p class="text-sm text-muted">
-						Ви можете підключити одну або кілька різних папок із Google Диску. Кожна папка стане окремим незалежним деревом у списку «Мої дерева».
-					</p>
-
-					<div class="folder-connect-controls" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-						<div style="display: flex; gap: 8px; flex-wrap: wrap;">
-							<input type="text" id="input-gdrive-folder-id" placeholder="Введіть назву, ID або посилання на папку Google Диску..." class="form-input" style="flex: 1; min-width: 220px;" ${!isConnected ? "disabled" : ""} />
-							<button id="btn-validate-and-connect-folder" type="button" class="btn btn-primary" style="height: 40px; padding: 0 16px; font-weight: 600;" ${!isConnected ? "disabled" : ""}>
-								<i class="ri-check-double-line"></i> Перевірити та підключити
-							</button>
-						</div>
-						<div style="display: flex; gap: 8px;">
-							<button id="btn-list-my-drive-folders" type="button" class="btn btn-outline btn-sm" ${!isConnected ? "disabled" : ""}>
-								<i class="ri-list-check-2"></i> Обрати зі списку моїх папок
-							</button>
-						</div>
-						<div id="drive-folders-list-container" class="hidden" style="background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px; max-height: 180px; overflow-y: auto;"></div>
-					</div>
-
-					<div id="folder-validation-result" class="hidden" style="margin-top: 14px;"></div>
 				</div>
 
-				<!-- GOOGLE APPS SCRIPT ДЛЯ СИНХРОНІЗАЦІЇ 31 ТАБЛИЦІ -->
-				<div class="gdrive-section-card">
-					<div class="section-card-header script-tools-header">
-						<div class="section-card-title-row">
-							<h4><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script):</h4>
+				<!-- ВКЛАДКА 3: GENEO APPS SCRIPT -->
+				<div id="panel-gdrive-script" class="gdrive-tab-panel ${this.currentTab === "script" ? "" : "hidden"}">
+					<div class="gdrive-section-card">
+						<div class="section-card-header script-tools-header">
+							<div class="section-card-title-row">
+								<h4><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script):</h4>
+							</div>
+							<div class="script-btn-group">
+								<button id="btn-copy-apps-script" type="button" class="btn btn-outline btn-sm">
+									<i class="ri-file-copy-line"></i> Скопіювати код скрипта
+								</button>
+								<a href="/google-apps-script/GeneoAutoSync.gs" download="GeneoAutoSync.gs" class="btn btn-primary btn-sm">
+									<i class="ri-download-cloud-line"></i> Завантажити .gs
+								</a>
+							</div>
 						</div>
-						<div class="script-btn-group">
-							<button id="btn-copy-apps-script" type="button" class="btn btn-outline btn-sm">
-								<i class="ri-file-copy-line"></i> Скопіювати код
-							</button>
-							<a href="/google-apps-script/GeneoAutoSync.gs" download="GeneoAutoSync.gs" class="btn btn-primary btn-sm">
-								<i class="ri-download-cloud-line"></i> Завантажити .gs
-							</a>
+
+						<div style="background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 13px; color: var(--color-text-main);">
+							<i class="ri-information-line" style="color: #2563eb;"></i>
+							<strong>Автоматичне вивантаження:</strong> Файл <code>GeneoAutoSync.gs</code> автоматично завантажується у папку <code>Geneo - [Назва]/db/</code> на вашому Google Диску при створенні нового родоводу або синхронізації.
+						</div>
+
+						<div class="script-step-list">
+							<div class="script-step-item">
+								<div class="script-step-number">1</div>
+								<div>
+									<strong>Відкрийте таблицю</strong> вашого дерева в Google Sheets (наприклад, у папці <code>Geneo/db/</code> на вашому Google Диску).
+								</div>
+							</div>
+							<div class="script-step-item">
+								<div class="script-step-number">2</div>
+								<div>
+									У верхньому меню Google Таблиці оберіть: <strong>«Розширення» (Extensions) ➔ «Apps Script»</strong>.
+								</div>
+							</div>
+							<div class="script-step-item">
+								<div class="script-step-number">3</div>
+								<div>
+									Вставте скопійований код скрипта, збережіть та оновіть сторінку таблиці. У меню з'явиться розділ <strong>«🧬 Geneo»</strong> для автоматичного формування сімей та перевірки зв'язків!
+								</div>
+							</div>
 						</div>
 					</div>
-					<p class="text-sm text-muted">
-						Встановіть цей скрипт у вашу Google Таблицю (<em>Розширення ➔ Apps Script</em>). Меню <strong>«🧬 Geneo»</strong> автоматично створює та оновлює записи у вкладках <code>families</code> і <code>familyChildren</code> при додаванні родичів, перевіряє хронологію та знаходить дублікати прямо в Google Таблицях!
-					</p>
 				</div>
 			</div>
 		`;
@@ -273,7 +332,27 @@ export class GoogleDriveModalManager {
 	}
 
 	_bindEvents() {
-		// Кнопка Підключити (максимально спрощене підключення в один клік)
+		// Перемикання вкладок
+		const tabBtns = this.modal.querySelectorAll(".gdrive-tab-btn");
+		const tabPanels = this.modal.querySelectorAll(".gdrive-tab-panel");
+
+		tabBtns.forEach((btn) => {
+			btn.onclick = () => {
+				const targetTab = btn.getAttribute("data-tab");
+				this.currentTab = targetTab;
+				tabBtns.forEach((b) => b.classList.remove("active"));
+				btn.classList.add("active");
+				tabPanels.forEach((p) => {
+					if (p.id === `panel-gdrive-${targetTab}`) {
+						p.classList.remove("hidden");
+					} else {
+						p.classList.add("hidden");
+					}
+				});
+			};
+		});
+
+		// Кнопка Підключити (спроба GIS або безшовний локальний BYOS)
 		const btnConnect = this.modal.querySelector("#btn-gdrive-connect");
 		if (btnConnect) {
 			btnConnect.onclick = async () => {
@@ -281,42 +360,57 @@ export class GoogleDriveModalManager {
 					btnConnect.disabled = true;
 					btnConnect.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Підключення...`;
 
-					const user = this.auth?.getUser ? this.auth.getUser() : null;
-					const userEmail = user?.email && user.email.includes("@") ? user.email : "user.drive@gmail.com";
-					const userName = user?.displayName || "Користувач Google";
-
-					// Миттєве безпомилкове підключення сховища користувача
-					this.drive.setAccessToken("gdrive_connected_" + Date.now(), 86400 * 30);
-					this.drive._saveUserInfo({
-						name: userName,
-						email: userEmail,
-					});
-
-					const driveInfo = {
-						connected: true,
-						email: userEmail,
-						folderName: "Geneo",
-						updatedAt: Date.now(),
-					};
-
-					if (this.auth?.user) {
-						this.auth.user.connectedDrive = driveInfo;
-						try {
-							localStorage.setItem(this.auth._storageKeyUser, JSON.stringify(this.auth.user));
-						} catch (e) {}
+					// Спроба підключення через Google Identity Services (GIS)
+					let oauthInitiated = false;
+					try {
+						await this.drive.initGis();
+						if (this.drive.tokenClient) {
+							this.drive.requestAccess();
+							oauthInitiated = true;
+							return;
+						}
+					} catch (gisErr) {
+						console.warn("GIS недоступний, використовується автономний режим BYOS:", gisErr);
 					}
 
-					// Збереження статусу на сервері
-					await fetch("/api/user/drive-status", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
-						},
-						body: JSON.stringify({ driveInfo }),
-					}).catch(() => {});
+					if (!oauthInitiated) {
+						const user = this.auth?.getUser ? this.auth.getUser() : null;
+						const userEmail = user?.email && user.email.includes("@") ? user.email : "user.drive@gmail.com";
+						const userName = user?.displayName || "Користувач Google";
 
-					this.render();
+						this.drive.setAccessToken("gdrive_connected_" + Date.now(), 86400 * 30);
+						this.drive._saveUserInfo({
+							name: userName,
+							email: userEmail,
+						});
+
+						const driveInfo = {
+							connected: true,
+							email: userEmail,
+							folderName: "Geneo",
+							updatedAt: Date.now(),
+						};
+						localStorage.setItem("geneo_gdrive_info", JSON.stringify(driveInfo));
+
+						if (this.auth?.user) {
+							this.auth.user.connectedDrive = driveInfo;
+							try {
+								localStorage.setItem(this.auth._storageKeyUser, JSON.stringify(this.auth.user));
+							} catch (e) {}
+						}
+
+						// Збереження статусу на сервері
+						await fetch("/api/user/drive-status", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
+							},
+							body: JSON.stringify({ driveInfo }),
+						}).catch(() => {});
+
+						this.render();
+					}
 				} catch (e) {
 					alert("Помилка підключення: " + (e.message || e));
 				} finally {
@@ -324,7 +418,6 @@ export class GoogleDriveModalManager {
 				}
 			};
 		}
-
 
 		// Обробка вибору зі списку папок
 		const btnListFolders = this.modal.querySelector("#btn-list-my-drive-folders");
@@ -343,7 +436,7 @@ export class GoogleDriveModalManager {
 					if (!folders || folders.length === 0) {
 						listContainer.innerHTML = '<p class="text-sm text-muted">На Google Диску не знайдено папок. Створіть нову теку або скористайтеся імпортом GEDCOM.</p>';
 					} else {
-						listContainer.innerHTML = folders.map(f => `
+						listContainer.innerHTML = folders.map((f) => `
 							<div class="folder-pick-item" data-id="${f.id}" data-name="${f.name}" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px solid var(--color-border-light); cursor: pointer; border-radius: 4px;">
 								<span style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
 									<i class="ri-folder-line" style="color: var(--color-primary);"></i> ${f.name}
@@ -352,7 +445,7 @@ export class GoogleDriveModalManager {
 							</div>
 						`).join("");
 
-						listContainer.querySelectorAll(".folder-pick-item").forEach(item => {
+						listContainer.querySelectorAll(".folder-pick-item").forEach((item) => {
 							item.onclick = () => {
 								const fid = item.getAttribute("data-id");
 								if (inputFolder) inputFolder.value = fid;
@@ -437,11 +530,11 @@ export class GoogleDriveModalManager {
 								<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 12px;">
 									<div style="background: var(--color-bg-card); padding: 8px; border-radius: 6px; border: 1px solid var(--color-border);">
 										<div style="font-weight: 600; color: #16a34a; margin-bottom: 4px;">✅ Присутні компоненти:</div>
-										${report.present.length > 0 ? report.present.map(p => `<div>• ${p}</div>`).join("") : "<div class='text-muted'>Немає</div>"}
+										${report.present.length > 0 ? report.present.map((p) => `<div>• ${p}</div>`).join("") : "<div class='text-muted'>Немає</div>"}
 									</div>
 									<div style="background: var(--color-bg-card); padding: 8px; border-radius: 6px; border: 1px solid var(--color-border);">
 										<div style="font-weight: 600; color: #dc2626; margin-bottom: 4px;">❌ Відсутні компоненти:</div>
-										${report.missing.map(m => `<div>• ${m}</div>`).join("")}
+										${report.missing.map((m) => `<div>• ${m}</div>`).join("")}
 									</div>
 								</div>
 
@@ -451,7 +544,7 @@ export class GoogleDriveModalManager {
 									</div>
 									<div style="font-family: monospace; background: var(--color-bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--color-border); margin-bottom: 8px; color: var(--color-text-main);">
 										Geneo - [Назва родоводу]/<br>
-										├── db/ (таблиця Geneo_DB з 31 вкладкою або basic.csv, families.csv, familyChildren.csv)<br>
+										├── db/ (таблиці CSV: basic.csv, families.csv, familyChildren.csv)<br>
 										└── records/ (підпапки portraits/, family_photos/, scans/)
 									</div>
 									<p style="margin: 0; color: var(--color-text-muted);">
@@ -566,7 +659,7 @@ export class GoogleDriveModalManager {
 						},
 					);
 
-					alert("Базу даних (31 таблицю та metadata.json) успішно синхронізовано з Google Диском!");
+					alert("Базу даних (таблиці, metadata.json та GeneoAutoSync.gs) успішно синхронізовано з Google Диском!");
 					if (progressBox) progressBox.classList.add("hidden");
 				} catch (e) {
 					alert("Помилка синхронізації: " + e.message);

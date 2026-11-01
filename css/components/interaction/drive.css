@@ -342,3 +342,98 @@
 	border-color: var(--color-primary-hover, #1d4ed8) !important;
 	color: #ffffff !important;
 }
+
+/* Вкладки модального вікна Google Drive (BYOS) */
+.gdrive-tabs-nav {
+	display: flex;
+	gap: 6px;
+	border-bottom: 2px solid var(--color-border);
+	padding: 0 4px;
+	margin-top: 0.25rem;
+	overflow-x: auto;
+}
+
+.gdrive-tab-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 14px;
+	font-size: 13px;
+	font-weight: 600;
+	border-radius: 8px 8px 0 0;
+	border: 1px solid transparent;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+	background: transparent;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	white-space: nowrap;
+	transition: all 0.2s ease;
+}
+
+.gdrive-tab-btn:hover {
+	color: var(--color-text-main);
+	background: var(--color-bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+.gdrive-tab-btn.active {
+	color: var(--color-primary);
+	border-color: var(--color-border);
+	border-bottom: 2px solid var(--color-primary);
+	background: var(--color-bg-card);
+}
+
+:root.theme-dark .gdrive-tab-btn:hover {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+:root.theme-dark .gdrive-tab-btn.active {
+	border-color: var(--color-border);
+	border-bottom: 2px solid var(--color-primary);
+	background: var(--color-bg-card);
+}
+
+.gdrive-tab-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+.gdrive-tab-panel.hidden {
+	display: none !important;
+}
+
+/* Кроки налаштування скрипта */
+.script-step-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin: 12px 0;
+}
+
+.script-step-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	background: var(--color-bg-body);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	padding: 10px 12px;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.script-step-number {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--color-primary);
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
