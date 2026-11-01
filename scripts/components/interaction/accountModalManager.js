@@ -224,6 +224,7 @@ export class AccountModalManager {
 	_renderProfileTab(user) {
 		const isAuth = this.auth.isAuthenticated;
 		const hasName = !!(user?.displayName && user.displayName.trim());
+		const isDriveConnected = this.drive ? this.drive.isConnected() : !!user?.connectedDrive?.connected;
 		return `
 			<div class="account-profile-section">
 				<!-- Картка редагування профілю -->
@@ -297,7 +298,7 @@ export class AccountModalManager {
 					</div>
 					<div class="info-row">
 						<span class="info-label">Google Диск:</span>
-						<span class="info-value">${user?.connectedDrive?.connected ? "🟢 Підключено" : "🟠 Не підключено (Локальне сховище IndexedDB)"}</span>
+						<span class="info-value">${isDriveConnected ? "🟢 Підключено" : "🟠 Не підключено (Локальне сховище IndexedDB)"}</span>
 					</div>
 				</div>
 
@@ -321,6 +322,7 @@ export class AccountModalManager {
 
 	_renderTreesTab(activeWs) {
 		const allTrees = this.workspaceManager.getWorkspaces();
+		const engine = typeof this.getEngine === "function" ? this.getEngine() : null;
 		return `
 			<div class="account-trees-section">
 				<div class="trees-header-row">
@@ -334,6 +336,15 @@ export class AccountModalManager {
 					${allTrees
 						.map((ws) => {
 							const isActive = ws.id === activeWs?.id;
+							let statsText = "<span>Базове родинне дерево</span>";
+							if (ws.stats?.persons || ws.stats?.families) {
+								statsText = `<span>👥 ${ws.stats.persons || 0} осіб</span> • <span>💍 ${ws.stats.families || 0} сімей</span>`;
+							} else if (isActive && engine?.people?.length) {
+								statsText = `<span>👥 ${engine.people.length} осіб</span> • <span>💍 ${engine.familyList ? engine.familyList.length : 0} сімей</span>`;
+							} else if (ws.id === "bundled_author") {
+								statsText = `<span>👥 2453 осіб</span> • <span>💍 1606 сімей</span>`;
+							}
+
 							return `
 							<div class="account-tree-card ${isActive ? "active" : ""}">
 								<div class="tree-card-main">
@@ -345,7 +356,7 @@ export class AccountModalManager {
 										</span>
 									</div>
 									<div class="tree-card-meta">
-										${ws.stats ? `<span>👥 ${ws.stats.persons || 0} осіб</span> • <span>💍 ${ws.stats.families || 0} сімей</span>` : "<span>Базове родинне дерево</span>"}
+										${statsText}
 									</div>
 								</div>
 								<div class="tree-card-actions">
@@ -353,7 +364,14 @@ export class AccountModalManager {
 										!isActive
 											? `<button class="btn btn-sm btn-secondary js-account-switch-tree" data-id="${ws.id}">
 												Відкрити
-											</button>`
+											</button>
+											${
+												ws.id !== "bundled_author"
+													? `<button class="btn btn-sm btn-outline text-danger js-account-delete-tree" data-id="${ws.id}" title="Видалити дерево">
+														<i class="ri-delete-bin-line"></i>
+													</button>`
+													: ""
+											}`
 											: `<span class="text-muted text-sm">Відкрито</span>`
 									}
 								</div>
@@ -661,6 +679,17 @@ export class AccountModalManager {
 				}
 			};
 		});
+
+		const deleteBtns = this.modal.querySelectorAll(".js-account-delete-tree");
+		deleteBtns.forEach((btn) => {
+			btn.onclick = async () => {
+				const id = btn.getAttribute("data-id");
+				if (id && confirm("Ви дійсно бажаєте видалити це дерево зі свого сховища?")) {
+					await this.workspaceManager.deleteWorkspace(id);
+					this.render();
+				}
+			};
+		});
 	}
 
 	_bindSharingEvents(canShare) {
@@ -870,6 +899,15 @@ export class AccountModalManager {
 				secBadge.classList.add("hidden");
 			}
 		}
+
+		const mobileAuditBadge = document.getElementById("mobile-menu-badge-audit");
+		if (mobileAuditBadge) {
+			if (audit.totalActive > 0) {
+				mobileAuditBadge.classList.remove("hidden");
+			} else {
+				mobileAuditBadge.classList.add("hidden");
+			}
+		}
 	}
 
 	_renderAuditTab() {
@@ -1039,10 +1077,10 @@ export class AccountModalManager {
 							? isDup && item.personA && item.personB
 								? `
 								<button type="button" class="btn btn-primary btn-sm js-audit-fix" data-id="${item.personA.id}">
-									<i class="ri-search-eye-line"></i> Переглянути Отримувача 1
+									<i class="ri-search-eye-line"></i> Переглянути Особу 1
 								</button>
 								<button type="button" class="btn btn-outline btn-sm js-audit-fix" data-id="${item.personB.id}">
-									<i class="ri-search-eye-line"></i> Переглянути Отримувача 2
+									<i class="ri-search-eye-line"></i> Переглянути Особу 2
 								</button>
 								<button type="button" class="btn btn-ghost btn-sm text-muted js-audit-dismiss" data-issue-id="${item.id}" title="Відхилити та не показувати це зауваження">
 									<i class="ri-close-line"></i> Відхилити
