@@ -34,6 +34,7 @@ import { AccountModalManager } from "./components/interaction/accountModalManage
 import { WelcomeModalManager } from "./components/interaction/welcomeModalManager.js";
 import { GoogleDriveService } from "./services/googleDriveService.js";
 import { GoogleDriveModalManager } from "./components/interaction/googleDriveModalManager.js";
+import { ArchiveImportManager } from "./components/interaction/archiveImportManager.js";
 
 class App {
 	constructor() {
@@ -108,13 +109,14 @@ class App {
 			this.workspaceManager = new WorkspaceManager();
 			const activeWs = await this.workspaceManager.init(userConfig);
 
-			// Якщо у користувача немає жодного підключеного дерева — відкриваємо Онбординг
+			// Завжди ініціалізуємо базові менеджери оболонки (Кабінет, Тема, Меню, Диск, GEDCOM, ZIP)
+			this._initShellManagers();
+
+			// Якщо у користувача немає жодного підключеного дерева — відображаємо полотно онбордингу
 			const userWorkspaces = this.workspaceManager.getWorkspaces();
 			if (!activeWs || userWorkspaces.length === 0) {
-				this._initBasicManagers();
-				if (this.welcomeModalManager) {
-					this.welcomeModalManager.open();
-				}
+				this._renderEmptyStateCanvas();
+				this.managers.welcome?.checkFirstRun();
 				const loader = document.getElementById("app-loader");
 				if (loader) loader.classList.add("hidden");
 				return;
@@ -131,7 +133,6 @@ class App {
 			}
 
 			if (!this.engine) {
-				this._initBasicManagers();
 				this._renderAccessDeniedView();
 				return;
 			}
@@ -142,7 +143,7 @@ class App {
 				btnShare.style.display = this.workspaceManager.canShareCurrentWorkspace() ? "" : "none";
 			}
 
-			this._initManagers();
+			this._initTreeManagers();
 			this.router.handlePopState();
 
 			// Періодична фонова перевірка актуальності прав доступу
@@ -190,9 +191,167 @@ class App {
 		}
 	}
 
-	_initManagers() {
+	_initShellManagers() {
+		this.driveService = new GoogleDriveService();
+
 		this.managers.modalInterceptor = new GlobalModalInterceptor();
 		this.managers.modalInterceptor.init();
+
+		this.managers.lang = new LangManager();
+		this.managers.theme = new ThemeManager();
+		this.managers.mobileMenu = new MobileMenuManager();
+
+		this.managers.googleDrive = new GoogleDriveModalManager(this.driveService, this.workspaceManager, this.authManager);
+		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager, this.driveService);
+		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
+		this.managers.archiveImport = new ArchiveImportManager(this.workspaceManager, this.driveService);
+
+		this.managers.account = new AccountModalManager(
+			this.authManager,
+			this.workspaceManager,
+			this.managers.gedcom,
+			this.driveService,
+			this.managers.googleDrive,
+			() => this.engine,
+			(personId) => {
+				this.managers.account?.close();
+				if (this.managers.personPopup && this.engine) {
+					const personData = findPersonDetails(personId, this.engine);
+					if (personData) this.managers.personPopup.open(personData);
+				}
+				this.navigateToId(personId);
+			}
+		);
+
+		this.managers.welcome = new WelcomeModalManager(this.managers.gedcom, this.managers.account, this.managers.archiveImport);
+		this.managers.update = new UpdateManager(this);
+
+		// Делегування відкриття особистого кабінету по всьому проєкту
+		document.querySelectorAll(".js-open-account").forEach((el) => {
+			el.addEventListener("click", () => this.managers.account?.open());
+		});
+
+		// Делегування кнопки перевірки дерева
+		document.addEventListener("click", (e) => {
+			if (e.target.closest(".js-open-audit")) {
+				e.preventDefault();
+				if (this.managers.account) {
+					this.managers.account.switchTab("audit");
+					this.managers.account.open();
+				}
+			}
+		});
+
+		// Делегування кнопки поділитися
+		document.addEventListener("click", (e) => {
+			if (e.target.closest(".js-open-share")) {
+				e.preventDefault();
+				if (this.managers.account) {
+					this.managers.account.open();
+					this.managers.account.switchTab("sharing");
+				}
+			}
+		});
+
+		const btnHome = document.getElementById("btn-home");
+		if (btnHome) {
+			btnHome.addEventListener("click", this._handleHomeClick);
+		}
+
+		const btnViewToggle = document.getElementById("btn-view-toggle");
+		if (btnViewToggle) {
+			btnViewToggle.addEventListener("click", (e) => {
+				e.preventDefault();
+				if (window.matchMedia("(max-width: 768px)").matches) return;
+				const url = new URL(window.location);
+				const currentView = url.searchParams.get("view");
+				const targetView = currentView === "circle" || currentView === "fan" ? "tree" : "circle";
+				this.navigateToId(this.currentProfileId || this.rootPersonId, false, targetView);
+			});
+		}
+	}
+
+	_renderEmptyStateCanvas() {
+		document.body.classList.add("tree-empty-mode");
+
+		const treeView = document.getElementById("tree-view");
+		if (treeView) treeView.classList.add("hidden");
+
+		const fanView = document.getElementById("fan-chart-view");
+		if (fanView) fanView.classList.add("hidden");
+
+		const breadcrumbs = document.getElementById("breadcrumbs-container");
+		if (breadcrumbs) breadcrumbs.classList.add("hidden");
+
+		const profileContent = document.getElementById("profile-content");
+		if (profileContent) profileContent.classList.add("hidden");
+
+		const emptyCanvas = document.getElementById("empty-state-canvas");
+		if (emptyCanvas) {
+			emptyCanvas.classList.remove("hidden");
+
+			// Обробники для 3 карток онбордингу
+			const btnGedcom = document.getElementById("btn-empty-gedcom");
+			const cardGedcom = document.getElementById("card-empty-gedcom");
+			const openGedcom = () => this.managers.gedcom?.openModal();
+			if (btnGedcom) btnGedcom.onclick = openGedcom;
+
+			const btnGdrive = document.getElementById("btn-empty-gdrive");
+			const cardGdrive = document.getElementById("card-empty-gdrive");
+			const openGdrive = () => this.managers.googleDrive?.open();
+			if (btnGdrive) btnGdrive.onclick = openGdrive;
+
+			const btnZip = document.getElementById("btn-empty-zip");
+			const cardZip = document.getElementById("card-empty-zip");
+			const inputZip = document.getElementById("input-empty-archive");
+
+			if (btnZip && inputZip) {
+				btnZip.onclick = () => inputZip.click();
+			}
+
+			if (inputZip) {
+				inputZip.onchange = (e) => {
+					if (e.target.files && e.target.files[0]) {
+						this.managers.archiveImport?.handleZipFile(e.target.files[0]);
+					}
+				};
+			}
+
+			// Drag & Drop підтримка для архіву Geneo
+			if (cardZip) {
+				cardZip.addEventListener("dragover", (e) => {
+					e.preventDefault();
+					cardZip.classList.add("dragover");
+				});
+				cardZip.addEventListener("dragleave", () => {
+					cardZip.classList.remove("dragover");
+				});
+				cardZip.addEventListener("drop", (e) => {
+					e.preventDefault();
+					cardZip.classList.remove("dragover");
+					if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+						this.managers.archiveImport?.handleZipFile(e.dataTransfer.files[0]);
+					}
+				});
+			}
+
+			const btnDemo = document.getElementById("btn-empty-demo-link");
+			if (btnDemo) {
+				btnDemo.onclick = () => {
+					if (this.managers.welcome) this.managers.welcome.open();
+				};
+			}
+		}
+	}
+
+	_initTreeManagers() {
+		document.body.classList.remove("tree-empty-mode");
+
+		const emptyCanvas = document.getElementById("empty-state-canvas");
+		if (emptyCanvas) emptyCanvas.classList.add("hidden");
+
+		const treeView = document.getElementById("tree-view");
+		if (treeView) treeView.classList.remove("hidden");
 
 		this.managers.gallery = new GalleryManager();
 		this.managers.breadcrumbs = new BreadcrumbManager({
@@ -268,60 +427,12 @@ class App {
 		this.managers.onboarding = new OnboardingController();
 		this.managers.zoom = new ZoomManager();
 		window.zoomManager = this.managers.zoom;
-		this.managers.lang = new LangManager();
-		this.managers.theme = new ThemeManager();
 		this.managers.share = new ShareManager(this);
 		this.managers.ai = new AIManager();
-		this.driveService = new GoogleDriveService();
-		this.managers.googleDrive = new GoogleDriveModalManager(this.driveService, this.workspaceManager, this.authManager);
 
-		this.managers.gedcom = new GedcomManager(this.engine, this.workspaceManager, this.driveService);
-		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
-		this.managers.account = new AccountModalManager(
-			this.authManager,
-			this.workspaceManager,
-			this.managers.gedcom,
-			this.driveService,
-			this.managers.googleDrive,
-			() => this.engine,
-			(personId) => {
-				this.managers.account?.close();
-				if (this.managers.personPopup && this.engine) {
-					const personData = findPersonDetails(personId, this.engine);
-					if (personData) this.managers.personPopup.open(personData);
-				}
-				this.navigateToId(personId);
-			}
-		);
-		this.managers.welcome = new WelcomeModalManager(this.managers.gedcom, this.managers.account);
-		this.managers.welcome.checkFirstRun();
-
-		// Підключення додаткових кнопок виклику кабінету
-		document.querySelectorAll(".js-open-account").forEach((el) => {
-			el.addEventListener("click", () => this.managers.account.open());
-		});
-
-		// Делегування кнопки перевірки дерева
-		document.addEventListener("click", (e) => {
-			if (e.target.closest(".js-open-audit")) {
-				e.preventDefault();
-				if (this.managers.account) {
-					this.managers.account.switchTab("audit");
-					this.managers.account.open();
-				}
-			}
-		});
-
-		// Делегування кнопки поділитися до вкладки шерингу в кабінеті
-		document.addEventListener("click", (e) => {
-			if (e.target.closest(".js-open-share")) {
-				e.preventDefault();
-				if (this.managers.account) {
-					this.managers.account.open();
-					this.managers.account.switchTab("sharing");
-				}
-			}
-		});
+		if (this.managers.gedcom) {
+			this.managers.gedcom.engine = this.engine;
+		}
 
 		// Фонове оновлення бейджа аудиту родоводу у вільний час процесора (Idle Callback)
 		if (typeof window !== "undefined" && "requestIdleCallback" in window) {
@@ -334,52 +445,12 @@ class App {
 			}, 3000);
 		}
 
-		// 🔥 Виправлення ініціалізації мобільного меню
-		this.managers.mobileMenu = new MobileMenuManager();
-		this.managers.update = new UpdateManager(this);
-
-		const btnHome = document.getElementById("btn-home");
-		if (btnHome) {
-			btnHome.addEventListener("click", this._handleHomeClick);
-		}
-
-		const btnViewToggle = document.getElementById("btn-view-toggle");
-		if (btnViewToggle) {
-			btnViewToggle.addEventListener("click", (e) => {
-				e.preventDefault();
-				if (window.matchMedia("(max-width: 768px)").matches) return;
-				const url = new URL(window.location);
-				const currentView = url.searchParams.get("view");
-				const targetView = currentView === "circle" || currentView === "fan" ? "tree" : "circle";
-				this.navigateToId(this.currentProfileId || this.rootPersonId, false, targetView);
-			});
-		}
-
-
-
 		setTimeout(() => {
 			const scrollableContainer =
 				document.querySelector(".tree-container") ||
 				document.getElementById("tree-view");
 			if (scrollableContainer) enableDragScroll(scrollableContainer);
 		}, 100);
-	}
-
-	_initBasicManagers() {
-		this.managers.modalInterceptor = new GlobalModalInterceptor();
-		this.managers.modalInterceptor.init();
-
-		this.managers.gedcom = new GedcomManager(null, this.workspaceManager, this.driveService);
-		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
-		this.managers.account = new AccountModalManager(
-			this.authManager,
-			this.workspaceManager,
-			this.managers.gedcom,
-			this.driveService,
-			null,
-			() => null,
-			(id) => this.navigateToId(id),
-		);
 	}
 
 	_renderAccessDeniedView() {

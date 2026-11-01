@@ -1,0 +1,214 @@
+/* ./css/components/interaction/empty-canvas.css */
+
+.empty-state-canvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	background: var(--color-bg-body);
+	overflow-y: auto;
+	z-index: 40;
+}
+
+.empty-state-canvas.hidden {
+	display: none !important;
+}
+
+.empty-canvas-container {
+	max-width: 1040px;
+	width: 100%;
+	margin: auto;
+	text-align: center;
+	animation: fadeInScale 0.25s ease-out;
+}
+
+@keyframes fadeInScale {
+	from {
+		opacity: 0;
+		transform: scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.empty-canvas-badge {
+	width: 68px;
+	height: 68px;
+	margin: 0 auto 16px;
+	border-radius: 20px;
+	background: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 32px;
+	color: var(--color-primary);
+	box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.1);
+}
+
+.empty-canvas-title {
+	font-family: "Playfair Display", Georgia, serif;
+	font-size: 2.15rem;
+	font-weight: 700;
+	margin: 0 0 10px;
+	color: var(--color-text-main);
+}
+
+.empty-canvas-subtitle {
+	font-size: 1.05rem;
+	line-height: 1.55;
+	color: var(--color-text-muted);
+	max-width: 640px;
+	margin: 0 auto 32px;
+}
+
+.empty-canvas-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+	gap: 20px;
+	margin-bottom: 28px;
+	text-align: left;
+}
+
+.empty-card {
+	background: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: 16px;
+	padding: 24px 20px;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.05);
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.empty-card:hover {
+	transform: translateY(-3px);
+	border-color: var(--color-primary);
+	box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12);
+}
+
+.empty-card.dragover {
+	border-color: var(--color-primary);
+	background: rgba(var(--color-primary-rgb, 37, 99, 235), 0.06);
+	box-shadow: 0 0 0 3px var(--color-primary);
+}
+
+.empty-card-tag {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 8px;
+	border-radius: 12px;
+	background: var(--color-bg-body);
+	color: var(--color-text-muted);
+	border: 1px solid var(--color-border);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.empty-card-icon {
+	font-size: 34px;
+	margin-bottom: 14px;
+	display: flex;
+	align-items: center;
+}
+
+.empty-card-heading {
+	font-size: 1.15rem;
+	font-weight: 600;
+	margin: 0 0 8px;
+	color: var(--color-text-main);
+}
+
+.empty-card-desc {
+	font-size: 0.88rem;
+	line-height: 1.5;
+	color: var(--color-text-muted);
+	margin: 0 0 20px;
+	flex: 1;
+}
+
+.empty-card .btn {
+	height: 44px;
+	min-height: 44px;
+	border-radius: 10px;
+	font-size: 0.92rem;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.empty-canvas-footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	padding-top: 8px;
+	color: var(--color-text-muted);
+	font-size: 0.85rem;
+}
+
+.empty-canvas-footer .footer-dot {
+	opacity: 0.4;
+}
+
+.empty-canvas-footer .btn-ghost {
+	background: transparent;
+	border: none;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	font-size: 0.88rem;
+	padding: 6px 12px;
+	border-radius: 8px;
+	transition: all 0.15s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.empty-canvas-footer .btn-ghost:hover {
+	color: var(--color-text-main);
+	background: var(--color-bg-card);
+}
+
+/* ==========================================================================
+   АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ
+   ========================================================================== */
+@media (max-width: 640px) {
+	.empty-state-canvas {
+		padding: 60px 14px 24px;
+		align-items: flex-start;
+	}
+
+	.empty-canvas-title {
+		font-size: 1.65rem;
+	}
+
+	.empty-canvas-subtitle {
+		font-size: 0.95rem;
+		margin-bottom: 24px;
+	}
+
+	.empty-canvas-grid {
+		grid-template-columns: 1fr;
+		gap: 16px;
+	}
+
+	.empty-card {
+		padding: 20px 16px;
+	}
+}

@@ -729,9 +729,14 @@ export class GoogleDriveService {
 					allDbFiles.push(...(ukRes.files || []));
 				}
 
-				hasBasicCsv = allDbFiles.some((f) => f.name.toLowerCase() === "basic.csv");
-				hasFamiliesCsv = allDbFiles.some((f) => f.name.toLowerCase() === "families.csv");
-				hasFamilyRolesOrChildren = allDbFiles.some((f) => f.name.toLowerCase() === "familyroles.csv" || f.name.toLowerCase() === "familychildren.csv");
+				const hasUnifiedDb = allDbFiles.some((f) =>
+					(f.mimeType === "application/vnd.google-apps.spreadsheet" || f.mimeType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") &&
+					(f.name.toLowerCase().includes("geneo") || f.name.toLowerCase().includes("db") || f.name.toLowerCase().includes("родовід"))
+				);
+
+				hasBasicCsv = hasUnifiedDb || allDbFiles.some((f) => f.name.toLowerCase() === "basic.csv");
+				hasFamiliesCsv = hasUnifiedDb || allDbFiles.some((f) => f.name.toLowerCase() === "families.csv");
+				hasFamilyRolesOrChildren = hasUnifiedDb || allDbFiles.some((f) => f.name.toLowerCase() === "familyroles.csv" || f.name.toLowerCase() === "familychildren.csv");
 				hasAppsScript = allDbFiles.some((f) => f.name.toLowerCase() === "geneoautosync.gs" || f.name.toLowerCase() === "geneo_db");
 			} catch (e) {}
 		} else if (dbFolder) {
@@ -765,8 +770,12 @@ export class GoogleDriveService {
 		const missing = [];
 
 		if (hasDb) present.push("Папка db/ (База даних)"); else missing.push("Папка db/ (База даних)");
-		if (hasBasicCsv) present.push("Таблиця basic.csv (Персони)"); else missing.push("Таблиця basic.csv (Персони)");
-		if (hasFamiliesCsv) present.push("Таблиця families.csv (Сім'ї)"); else missing.push("Таблиця families.csv (Сім'ї)");
+		if (hasBasicCsv && hasFamiliesCsv) {
+			present.push("Таблиці бази даних (Geneo_DB або basic.csv, families.csv)");
+		} else {
+			if (hasBasicCsv) present.push("Таблиця basic.csv (Персони)"); else missing.push("Таблиця basic.csv (Персони)");
+			if (hasFamiliesCsv) present.push("Таблиця families.csv (Сім'ї)"); else missing.push("Таблиця families.csv (Сім'ї)");
+		}
 		if (hasFamilyRolesOrChildren) present.push("Таблиця familyChildren.csv / familyRoles.csv (Родинні зв'язки)"); else missing.push("Таблиця familyChildren.csv / familyRoles.csv (Родинні зв'язки)");
 		if (hasAppsScript) present.push("Скрипт автоматизації GeneoAutoSync.gs"); else missing.push("Скрипт автоматизації GeneoAutoSync.gs");
 		if (hasRecords) present.push("Папка records/ (Архівні матеріали)"); else missing.push("Папка records/ (Архівні матеріали)");

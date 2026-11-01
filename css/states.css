@@ -75,3 +75,30 @@ body.error-state-active .relationship-alert,
 body.error-state-active .alert {
 	display: none;
 }
+
+
+/* ==========================================================================
+   СТАН ПОРОЖНЬОГО ДЕРЕВА (Коли у користувача 0 підключених дерев: body.tree-empty-mode)
+   ========================================================================== */
+body.tree-empty-mode #btn-home,
+body.tree-empty-mode #btn-view-toggle,
+body.tree-empty-mode #btn-search,
+body.tree-empty-mode #btn-lineage,
+body.tree-empty-mode #btn-ai,
+body.tree-empty-mode #btn-analytics,
+body.tree-empty-mode #btn-tree-audit,
+body.tree-empty-mode #btn-events,
+body.tree-empty-mode #btn-share,
+body.tree-empty-mode .zoom-controls {
+	opacity: 0.32 !important;
+	pointer-events: none !important;
+	cursor: not-allowed !important;
+	filter: grayscale(1) !important;
+}
+
+body.tree-empty-mode .breadcrumbs-wrapper,
+body.tree-empty-mode .nav-arrow,
+body.tree-empty-mode #tree-view,
+body.tree-empty-mode #fan-chart-view {
+	display: none !important;
+}

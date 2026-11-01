@@ -445,41 +445,27 @@ export class GoogleDriveModalManager {
 									</div>
 								</div>
 
+								<div class="reference-structure-notice" style="background: var(--color-bg-body); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 12px; font-size: 12px; line-height: 1.5;">
+									<div style="font-weight: 600; margin-bottom: 6px; color: var(--color-text-main);">
+										<i class="ri-information-line" style="color: var(--color-primary);"></i> Еталонна структура сховища Geneo (обов'язкова умова для підключення):
+									</div>
+									<div style="font-family: monospace; background: var(--color-bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--color-border); margin-bottom: 8px; color: var(--color-text-main);">
+										Geneo - [Назва родоводу]/<br>
+										├── db/ (таблиця Geneo_DB з 31 вкладкою або basic.csv, families.csv, familyChildren.csv)<br>
+										└── records/ (підпапки portraits/, family_photos/, scans/)
+									</div>
+									<p style="margin: 0; color: var(--color-text-muted);">
+										Ця структура є обов'язковою умовою для коректної роботи додатку. Будь ласка, перевірте вміст обраної папки або оберіть іншу папку на Google Диску. Якщо у вас ще немає сформованої структури, скористайтеся <strong>«Завантажити GEDCOM»</strong> або <strong>«Завантажити архів Geneo (.zip)»</strong> — додаток розгорне структуру автоматично.
+									</p>
+								</div>
+
 								<div style="display: flex; gap: 8px; flex-wrap: wrap;">
-									<button id="btn-repair-and-deploy-folder" type="button" class="btn btn-primary btn-sm" style="font-weight: 600;">
-										<i class="ri-tools-line"></i> Розгорнути / Відновити структуру в цій папці
-									</button>
-									<button id="btn-pick-another-folder" type="button" class="btn btn-outline btn-sm">
-										Обрати іншу папку
+									<button id="btn-pick-another-folder" type="button" class="btn btn-primary btn-sm">
+										<i class="ri-folder-open-line"></i> Обрати іншу папку
 									</button>
 								</div>
 							</div>
 						`;
-
-						const btnRepair = valResultDiv.querySelector("#btn-repair-and-deploy-folder");
-						if (btnRepair) {
-							btnRepair.onclick = async () => {
-								try {
-									btnRepair.disabled = true;
-									btnRepair.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Відновлення структури...';
-									const repairedMap = await this.drive.repairFolderStructure(report.folderId, (msg, pct) => {
-										btnRepair.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> ${msg}`;
-									});
-
-									const newWs = await this.workspaceManager.createGdriveWorkspace({
-										folderId: report.folderId,
-										folderName: report.folderName,
-										folderMap: repairedMap,
-										dbData: null,
-									});
-									this.close();
-									this.workspaceManager.switchWorkspace(newWs.id);
-								} catch (repErr) {
-									alert("Помилка відновлення структури: " + repErr.message);
-									btnRepair.disabled = false;
-								}
-							};
-						}
 
 						const btnPickAnother = valResultDiv.querySelector("#btn-pick-another-folder");
 						if (btnPickAnother) {

@@ -48,6 +48,7 @@
 <link rel="stylesheet" href="/css/components/interaction/relationship.css" />
 <link rel="stylesheet" href="/css/components/interaction/workspaces.css" />
 <link rel="stylesheet" href="/css/components/interaction/account.css" />
+    <link rel="stylesheet" href="/css/components/interaction/empty-canvas.css" />
     <link rel="stylesheet" href="/css/components/interaction/mobile-menu.css" />
 <link rel="stylesheet" href="/css/components/interaction/drive.css" />
 <link rel="stylesheet" href="/css/components/interaction/search.css" />
@@ -238,6 +239,73 @@
         <div id="fan-chart-view" class="fan-chart-view hidden"></div>
 
         <div id="profile-content" class="hidden"></div>
+
+        <!-- Полотно онбордингу при порожньому акаунті без дерев (Empty State Hero Canvas) -->
+        <div id="empty-state-canvas" class="empty-state-canvas hidden">
+            <div class="empty-canvas-container">
+                <div class="empty-canvas-badge"><i class="ri-git-repository-line"></i></div>
+                <h1 class="empty-canvas-title">Ласкаво просимо до Geneo</h1>
+                <p class="empty-canvas-subtitle">
+                    У вашому обліковому записі поки немає жодного родинного дерева. Оберіть один із трьох зручних способів, щоб розпочати:
+                </p>
+
+                <div class="empty-canvas-grid">
+                    <!-- Варіант 1: GEDCOM -->
+                    <div class="empty-card" id="card-empty-gedcom">
+                        <div class="empty-card-tag">GEDCOM</div>
+                        <div class="empty-card-icon" style="color: var(--color-primary);"><i class="ri-file-upload-line"></i></div>
+                        <h3 class="empty-card-heading">1. Завантажити GEDCOM (.ged)</h3>
+                        <p class="empty-card-desc">
+                            Імпортуйте родовід з MyHeritage, FamilySearch або Gramps. Geneo автоматично конвертує зв'язки та створить ізольовану структуру бази даних.
+                        </p>
+                        <button type="button" class="btn btn-primary w-full" id="btn-empty-gedcom">
+                            <i class="ri-file-upload-line"></i> Завантажити GEDCOM
+                        </button>
+                    </div>
+
+                    <!-- Варіант 2: Google Диск BYOS -->
+                    <div class="empty-card" id="card-empty-gdrive">
+                        <div class="empty-card-tag">Google Диск</div>
+                        <div class="empty-card-icon" style="color: #16a34a;"><i class="ri-google-fill"></i></div>
+                        <h3 class="empty-card-heading">2. Підключити Google Диск</h3>
+                        <p class="empty-card-desc">
+                            Підключіть існуючу кореневу папку Geneo на вашому особистому Google Диску. 15 ГБ безкоштовно для збереження фотографій, сканів та метрик.
+                        </p>
+                        <button type="button" class="btn btn-primary w-full" id="btn-empty-gdrive">
+                            <i class="ri-google-fill"></i> Підключити Google Диск
+                        </button>
+                    </div>
+
+                    <!-- Варіант 3: Архів Geneo (.zip) -->
+                    <div class="empty-card" id="card-empty-zip">
+                        <div class="empty-card-tag">Архів .zip</div>
+                        <div class="empty-card-icon" style="color: #f59e0b;"><i class="ri-file-zip-line"></i></div>
+                        <h3 class="empty-card-heading">3. Завантажити архів Geneo (.zip)</h3>
+                        <p class="empty-card-desc">
+                            Завантажте архівовану папку Geneo (скачану з іншого Google Диску чи резервну копію). Миттєве розпакування та запуск дерева в один клік.
+                        </p>
+                        <button type="button" class="btn btn-primary w-full" id="btn-empty-zip">
+                            <i class="ri-folder-zip-line"></i> Обрати Geneo .zip
+                        </button>
+                        <input type="file" id="input-empty-archive" accept=".zip,application/zip" style="display: none;" />
+                    </div>
+                </div>
+
+                <div class="empty-canvas-footer">
+                    <button type="button" class="btn btn-ghost btn-sm js-open-account">
+                        <i class="ri-user-settings-line"></i> Особистий кабінет
+                    </button>
+                    <span class="footer-dot">•</span>
+                    <button type="button" class="btn btn-ghost btn-sm js-open-workspaces">
+                        <i class="ri-folder-user-line"></i> Мої дерева
+                    </button>
+                    <span class="footer-dot">•</span>
+                    <button type="button" class="btn btn-ghost btn-sm" id="btn-empty-demo-link">
+                        <i class="ri-compass-3-line"></i> Демо-родовід
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <div id="lineage-modal" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="lineage-modal-title">
             <div class="popup-container">
@@ -961,6 +1029,15 @@
                     <div class="welcome-card-text">
                         <h4>2. Підключити існуючу папку на Google Диску</h4>
                         <p>Підключіть існуючу теку Geneo (BYOS) з автоматичною перевіркою структури та бази даних</p>
+                    </div>
+                    <div class="welcome-card-arrow"><i class="ri-arrow-right-s-line"></i></div>
+                </div>
+
+                <div id="btn-welcome-zip" class="welcome-action-card" role="button" tabindex="0">
+                    <div class="welcome-card-icon"><i class="ri-file-zip-line" style="color: #f59e0b;"></i></div>
+                    <div class="welcome-card-text">
+                        <h4>3. Завантажити архівну папку Geneo (.zip)</h4>
+                        <p>Імпортуйте готову архівовану папку Geneo, завантажену з Google Диску або збережену на комп'ютері</p>
                     </div>
                     <div class="welcome-card-arrow"><i class="ri-arrow-right-s-line"></i></div>
                 </div>
