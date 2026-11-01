@@ -4,12 +4,10 @@ import { UI_CLASSES } from "../../core/uiClasses.js";
 
 export class MobileMenuManager {
 	constructor() {
-		this.menuBtn = document.getElementById("mobile-menu-btn");
+		this.fabBtn = document.getElementById("mobile-menu-btn");
+		this.dockBtn = document.getElementById("dock-menu-btn");
 		this.secondaryPanel = document.getElementById("secondary-menu-panel");
 		this.mainPanel = document.querySelector(".top-bar-controls");
-
-		// Кешування динамічних вузлів O(1)
-		this.icon = this.menuBtn ? this.menuBtn.querySelector("i") : null;
 
 		this.isOpen = false;
 
@@ -24,9 +22,12 @@ export class MobileMenuManager {
 	}
 
 	init() {
-		if (!this.menuBtn) return;
-
-		this.menuBtn.addEventListener("click", this._handleToggle);
+		if (this.fabBtn) {
+			this.fabBtn.addEventListener("click", this._handleToggle);
+		}
+		if (this.dockBtn) {
+			this.dockBtn.addEventListener("click", this._handleToggle);
+		}
 
 		if (this.secondaryPanel) {
 			this.secondaryPanel.addEventListener("click", this._handlePanelClick);
@@ -54,13 +55,7 @@ export class MobileMenuManager {
 			this.mainPanel.classList.add("is-open");
 		}
 
-		if (this.menuBtn) {
-			this.menuBtn.setAttribute("aria-expanded", "true");
-		}
-
-		if (this.icon) {
-			this.icon.className = "ri-close-line";
-		}
+		this._updateButtons(true);
 
 		// Динамічний монтаж глобальних подій лише на період активності
 		document.addEventListener("click", this._handleGlobalClick);
@@ -76,17 +71,22 @@ export class MobileMenuManager {
 			this.mainPanel.classList.remove("is-open");
 		}
 
-		if (this.menuBtn) {
-			this.menuBtn.setAttribute("aria-expanded", "false");
-		}
-
-		if (this.icon) {
-			this.icon.className = "ri-menu-line";
-		}
+		this._updateButtons(false);
 
 		// Негайне вивільнення ресурсів
 		document.removeEventListener("click", this._handleGlobalClick);
 		document.removeEventListener("keydown", this._handleEscape);
+	}
+
+	_updateButtons(isOpen) {
+		const btns = [this.fabBtn, this.dockBtn].filter(Boolean);
+		btns.forEach((btn) => {
+			btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+			const icon = btn.querySelector("i");
+			if (icon) {
+				icon.className = isOpen ? "ri-close-line" : "ri-menu-line";
+			}
+		});
 	}
 
 	_handleToggle(e) {
@@ -95,10 +95,17 @@ export class MobileMenuManager {
 	}
 
 	_handleGlobalClick(e) {
+		const isClickInsideFab = this.fabBtn?.contains(e.target);
+		const isClickInsideDockBtn = this.dockBtn?.contains(e.target);
+		const isClickInsideSecondary = this.secondaryPanel?.contains(e.target);
+		const isClickInsideMain = this.mainPanel?.contains(e.target);
+
 		if (
 			this.isOpen &&
-			!this.secondaryPanel?.contains(e.target) &&
-			!this.menuBtn?.contains(e.target)
+			!isClickInsideFab &&
+			!isClickInsideDockBtn &&
+			!isClickInsideSecondary &&
+			(!window.matchMedia("(max-width: 767px)").matches || !isClickInsideMain)
 		) {
 			this.close();
 		}
@@ -113,8 +120,11 @@ export class MobileMenuManager {
 	}
 
 	_handleMainPanelClick(e) {
-		if (this.isOpen && !this.menuBtn?.contains(e.target)) {
-			this.close();
+		if (window.matchMedia("(max-width: 767px)").matches && this.isOpen) {
+			const toolBtn = e.target.closest("button");
+			if (toolBtn && toolBtn !== this.dockBtn) {
+				this.close();
+			}
 		}
 	}
 
@@ -127,8 +137,11 @@ export class MobileMenuManager {
 	destroy() {
 		if (this.isOpen) this.close();
 
-		if (this.menuBtn) {
-			this.menuBtn.removeEventListener("click", this._handleToggle);
+		if (this.fabBtn) {
+			this.fabBtn.removeEventListener("click", this._handleToggle);
+		}
+		if (this.dockBtn) {
+			this.dockBtn.removeEventListener("click", this._handleToggle);
 		}
 		if (this.secondaryPanel) {
 			this.secondaryPanel.removeEventListener("click", this._handlePanelClick);

@@ -19,6 +19,8 @@ export class EventsManager {
 		this.listContainer = document.getElementById("events-list");
 		this.emptyState = document.getElementById("events-empty");
 		this.badge = document.getElementById("events-badge");
+		this.badgeDock = document.getElementById("events-badge-dock");
+		this.badgeFab = document.getElementById("events-badge-fab");
 		this.dateDisplay = document.getElementById("current-date-display");
 
 		this.today = new Date();

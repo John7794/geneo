@@ -89,8 +89,8 @@
 	scrollbar-width: thin;
 }
 
-/* Кнопка виклику меню-бургера на панелі інструментів */
-.mobile-menu-toggle {
+/* Кнопка виклику меню-бургера на панелі інструментів (Десктоп) */
+.dock-menu-toggle {
 	width: 40px;
 	height: 40px;
 	border-radius: var(--radius-md);
@@ -106,16 +106,16 @@
 	transition: background-color var(--transition-base), color var(--transition-base), transform var(--transition-base);
 }
 
-.mobile-menu-toggle:hover {
+.dock-menu-toggle:hover {
 	background-color: var(--color-bg-hover);
 	color: var(--color-primary);
 }
 
-.mobile-menu-toggle:active {
+.dock-menu-toggle:active {
 	transform: scale(0.92);
 }
 
-.mobile-menu-toggle[aria-expanded="true"] {
+.dock-menu-toggle[aria-expanded="true"] {
 	background-color: var(--color-primary-light, rgba(59, 130, 246, 0.15));
 	color: var(--color-primary);
 }

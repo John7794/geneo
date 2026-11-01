@@ -128,10 +128,16 @@
             </div>
         </div>
 
+        <!-- Плаваюча кнопка мобільного меню (Floating Action Button) -->
+        <button id="mobile-menu-btn" class="mobile-menu-toggle" title="Меню інструментів" aria-label="Меню інструментів" aria-expanded="false">
+            <i class="ri-menu-line"></i>
+            <span id="events-badge-fab" class="badge-dot badge-dot--tr hidden"></span>
+        </button>
+
         <!-- Головна панель керування (завжди видима під панеллю хлібних крихт) -->
         <div class="top-bar-controls" id="main-dock">
             <div class="control-group unified-panel">
-                <button id="mobile-menu-btn" class="btn btn-icon mobile-menu-toggle" title="Додаткові інструменти" aria-label="Меню інструментів" aria-expanded="false">
+                <button id="dock-menu-btn" class="btn btn-icon dock-menu-toggle" title="Додаткові інструменти" aria-label="Меню інструментів" aria-expanded="false">
                     <i class="ri-menu-line"></i>
                     <span id="events-badge-dock" class="badge-dot badge-dot--tr hidden"></span>
                 </button>

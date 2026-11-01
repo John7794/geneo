@@ -87,10 +87,11 @@
 	padding: 0 var(--spacing-md);
 }
 
-/* Приховування мобільного контейнера на десктопах */
+/* Приховування мобільного контейнера та FAB на десктопах */
 @media (min-width: 768px) {
-	.tree-mobile-container {
-		display: none;
+	.tree-mobile-container,
+	.mobile-menu-toggle {
+		display: none !important;
 	}
 }
 
@@ -107,37 +108,43 @@
 
 	/* Головна кнопка виклику (Floating Action Button) */
 	.mobile-menu-toggle {
-		display: flex;
-		position: fixed;
-		bottom: var(--spacing-md);
-		right: var(--spacing-md);
-		width: 56px;
-		height: 56px;
-		border-radius: 50%;
-		background-color: var(--color-primary);
-		color: var(--color-text-inverse);
-		justify-content: center;
-		align-items: center;
-		box-shadow: var(--shadow-lg);
-		z-index: 1001;
-		border: none;
-		cursor: pointer;
+		display: flex !important;
+		position: fixed !important;
+		bottom: var(--spacing-md, 16px) !important;
+		right: var(--spacing-md, 16px) !important;
+		width: 56px !important;
+		height: 56px !important;
+		border-radius: 50% !important;
+		background-color: var(--color-primary) !important;
+		color: #ffffff !important;
+		justify-content: center !important;
+		align-items: center !important;
+		box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28) !important;
+		z-index: 10001 !important;
+		border: none !important;
+		cursor: pointer !important;
+		font-size: 24px !important;
 		transition:
 			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			background-color 0.2s;
 	}
 
 	.mobile-menu-toggle:active {
-		transform: scale(0.9);
+		transform: scale(0.9) !important;
+	}
+
+	/* Приховуємо кнопку бургера та розділювач всередині доку на мобільних */
+	.dock-menu-toggle,
+	.top-bar-controls .panel-divider {
+		display: none !important;
 	}
 
 	/* Контейнер інструментів (Speed Dial меню). Підвищена специфічність. */
 	#tree-view .top-bar-controls,
-	.app-wrapper .top-bar-controls,
-	.secondary-menu-panel {
+	.app-wrapper .top-bar-controls {
 		position: fixed;
-		bottom: 96px;
-		right: var(--spacing-md);
+		bottom: 84px;
+		right: var(--spacing-md, 16px);
 		top: auto;
 		left: auto;
 		width: auto;
@@ -149,12 +156,43 @@
 		background: transparent;
 		border: none;
 		padding: 0;
-		z-index: 1000;
+		z-index: 10000;
 		box-shadow: none;
 
 		/* Початковий стан: приховано зсувом вниз */
 		opacity: 0;
 		visibility: hidden;
+		pointer-events: none;
+		transform: translateY(30px) scale(0.9);
+		transform-origin: bottom right;
+		transition:
+			opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			visibility 0.3s;
+	}
+
+	.secondary-menu-panel {
+		position: fixed;
+		bottom: 84px;
+		right: calc(var(--spacing-md, 16px) + 56px);
+		top: auto;
+		left: auto;
+		width: auto;
+		height: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 12px;
+		background: transparent;
+		border: none;
+		padding: 0;
+		z-index: 10000;
+		box-shadow: none;
+
+		/* Початковий стан: приховано зсувом вниз */
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
 		transform: translateY(30px) scale(0.9);
 		transform-origin: bottom right;
 		transition:
@@ -169,9 +207,10 @@
 	.secondary-menu-panel.is-open {
 		opacity: 1;
 		visibility: visible;
+		pointer-events: auto;
 		transform: translateY(0) scale(1);
 		background: transparent;
-		z-index: 9999;
+		z-index: 10000;
 	}
 
 	/* Пропорційне збільшення ширини кнопок у плаваючому меню */
