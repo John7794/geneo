@@ -560,9 +560,6 @@ async function canAccessAuthorTree(req: express.Request): Promise<boolean> {
   if (cleanUser === authorOwnerEmail.toLowerCase()) {
     return true;
   }
-  if (adminEmailsList.some((a) => a.includes(cleanUser) || cleanUser.includes(a))) {
-    return true;
-  }
   // Перевірка у локальному файлі shares_store.json
   const localShares = readLocalShares();
   if (Object.values(localShares).some((s) => s.email && s.email.toLowerCase() === user.toLowerCase())) {
@@ -1630,83 +1627,46 @@ app.get("/api/config", async (req, res) => {
       return;
     }
 
-    // 2. Якщо це системний адміністратор платформи
-    if (isMainAdmin) {
-      res.json({
-        authenticated: true,
-        canShare: false, // Тільки первинний автор ділиться системним деревом!
-        canSync: true,
-        isMainAdmin: true,
-        isAuthorOwner: false,
-        hasAuthorTreeAccess: true,
-        user: {
-          email: user,
-          displayName: userProfile?.displayName || user.split("@")[0],
-          role: "admin",
-        },
-      });
-      return;
-    }
+    // 2. Для всіх інших (включно з адміністратором www.johnsel771994@gmail.com) перевіряємо наявність у списку shares
+    let hasShareAccess = false;
+    let hiddenProfiles: string[] = [];
 
-    // Перевірка дозволу в local shares
+    // Перевірка у локальному файлі shares_store.json
     const localSharesMap = readLocalShares();
-    const matchedShare = Object.values(localSharesMap).find((s) => s.email && s.email.toLowerCase() === user.toLowerCase());
+    const matchedShare = Object.values(localSharesMap).find((s) => s.email && s.email.toLowerCase() === cleanUser);
     if (matchedShare) {
-      res.json({
-        authenticated: true,
-        canShare: false,
-        canSync: false,
-        isMainAdmin: false,
-        hasAuthorTreeAccess: true,
-        hiddenProfiles: matchedShare.hiddenProfiles || [],
-        user: {
-          email: user,
-          displayName: userProfile?.displayName || user.split("@")[0],
-          role: "viewer",
-        },
-      });
-      return;
+      hasShareAccess = true;
+      hiddenProfiles = matchedShare.hiddenProfiles || [];
     }
 
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    // Перевірка у Firestore shares
+    if (!hasShareAccess && process.env.FIREBASE_SERVICE_ACCOUNT) {
       try {
-        let snap = await fdb.collection("shares").where("email", "==", user).get();
+        let snap = await fdb.collection("shares").where("email", "==", cleanUser).get();
         if (snap.empty) {
-          snap = await fdb.collection("shares").where("value", "==", user).get();
+          snap = await fdb.collection("shares").where("value", "==", cleanUser).get();
         }
         if (!snap.empty) {
-          const shareData = snap.docs[0].data();
-          res.json({ 
-            authenticated: true,
-            canShare: false, 
-            canSync: false, 
-            isMainAdmin: false,
-            hasAuthorTreeAccess: true,
-            hiddenProfiles: shareData.hiddenProfiles || [],
-            user: {
-              email: user,
-              displayName: userProfile?.displayName || user.split("@")[0],
-              role: "viewer",
-            },
-          });
-          return;
+          hasShareAccess = true;
+          hiddenProfiles = snap.docs[0].data()?.hiddenProfiles || [];
         }
       } catch (e) {
         console.error("Firebase shares query error:", e);
       }
     }
 
-    // Default registered user who is NOT main admin and NOT in shares (access revoked or not granted)
     res.json({
       authenticated: true,
-      canShare: false,
-      canSync: false,
-      isMainAdmin: false,
-      hasAuthorTreeAccess: false,
+      canShare: false, // Тільки первинний автор ділиться
+      canSync: isMainAdmin && hasShareAccess,
+      isMainAdmin: isMainAdmin,
+      isAuthorOwner: false,
+      hasAuthorTreeAccess: hasShareAccess, // ТІЛЬКИ якщо користувач явно є в списку запрошених!
+      hiddenProfiles: hiddenProfiles,
       user: {
         email: user,
         displayName: userProfile?.displayName || user.split("@")[0],
-        role: "guest",
+        role: isMainAdmin ? "admin" : (hasShareAccess ? "viewer" : "guest"),
       },
     });
     return;

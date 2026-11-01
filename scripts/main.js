@@ -93,7 +93,7 @@ class App {
 					userConfig.canSync = configData.canSync || false;
 					userConfig.isMainAdmin = !!(configData.isMainAdmin || this.authManager.isAdmin());
 					userConfig.isAuthorOwner = !!configData.isAuthorOwner || (currentUser?.email?.toLowerCase() === "ivanselivanov771994@gmail.com");
-					userConfig.hasAuthorTreeAccess = configData.hasAuthorTreeAccess !== false;
+					userConfig.hasAuthorTreeAccess = userConfig.isAuthorOwner || configData.hasAuthorTreeAccess === true;
 					window.userConfig = userConfig;
 
 					const btnShare = document.getElementById("btn-share");

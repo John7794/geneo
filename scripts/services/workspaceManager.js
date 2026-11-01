@@ -38,7 +38,7 @@ export class WorkspaceManager {
 		this.isMainAdmin = !!userConfig.isMainAdmin;
 		const userEmail = (userConfig.email || "").toLowerCase().trim();
 		this.isAuthorOwner = userEmail === "ivanselivanov771994@gmail.com" || !!userConfig.isAuthorOwner;
-		const hasAuthorTreeAccess = this.isAuthorOwner || userConfig.hasAuthorTreeAccess !== false;
+		const hasAuthorTreeAccess = this.isAuthorOwner || userConfig.hasAuthorTreeAccess === true;
 
 		// Якщо доступ до дерева автора відкликано, негайно очищуємо локально кешовані таблиці та kinship
 		if (!hasAuthorTreeAccess && typeof localforage !== "undefined") {
