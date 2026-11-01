@@ -143,9 +143,10 @@ export class FanChartManager {
 
 		// Конкретна гілка стосується тільки першого пробанда (індекс 1)
 		const effectiveMode = this._getEffectiveLineageMode();
+		const root1Id = typeof this.callbacks?.getRootId === "function" ? this.callbacks.getRootId() : null;
 
-		// Розрахунок предків до 7 поколінь (8 поколінь сумарно) з урахуванням режиму роду
-		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 6, effectiveMode);
+		// Розрахунок предків до 6 поколінь (7 кілець сумарно) з прив'язкою до глобального Індекса 1
+		this.pedigreeData = buildPedigreeData(this.engine, this.currentPersonId, 6, effectiveMode, root1Id);
 
 		this._renderRings();
 		this._renderNavPills();

@@ -216,6 +216,12 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 		const genData = generations[gen];
 		if (!rInfo) continue;
 
+		// Якщо все кільце займає один предок (360°) — пропускаємо рівневий бейдж,
+		// щоб він не перекривав підпис предка у верхній дузі кільця (210°..330°)
+		if (genData?.sectors?.length === 1 && genData.sectors[0]?.angles?.span >= 359.9) {
+			continue;
+		}
+
 		let labelText = genData?.label || levelLabels[gen];
 		if (!labelText) continue;
 		if (labelText.includes("Дідо (по татові)")) labelText = "Дід (Т)";
