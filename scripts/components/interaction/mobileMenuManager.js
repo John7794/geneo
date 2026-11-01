@@ -80,15 +80,10 @@ export class MobileMenuManager {
 
 	_checkPopups() {
 		const openPopups = document.querySelectorAll(
-			".popup-overlay.show, .popup-overlay.open, .popup-overlay:not(.hidden)"
+			".popup-overlay.show, .popup-overlay.open"
 		);
 
-		let hasAnyOpenPopup = false;
-		openPopups.forEach((popup) => {
-			if (!popup.classList.contains("hidden")) {
-				hasAnyOpenPopup = true;
-			}
-		});
+		const hasAnyOpenPopup = openPopups.length > 0;
 
 		if (this.fabBtn) {
 			if (hasAnyOpenPopup) {

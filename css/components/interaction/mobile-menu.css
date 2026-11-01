@@ -3,9 +3,7 @@
 /* Автоматичне приховування FAB при будь-якому відкритому модальному вікні */
 body:has(.popup-overlay.show) #mobile-menu-btn,
 body:has(.popup-overlay.open) #mobile-menu-btn,
-body:has(.popup-overlay:not(.hidden)) #mobile-menu-btn,
-body.has-open-popup #mobile-menu-btn,
-body.no-scroll #mobile-menu-btn {
+body.has-open-popup #mobile-menu-btn {
 	display: none !important;
 	opacity: 0 !important;
 	pointer-events: none !important;
