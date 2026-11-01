@@ -334,6 +334,11 @@ export class AccountModalManager {
 					</button>
 				</div>
 
+				<div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
+					<button id="btn-account-add-gdrive-tree" type="button" class="btn btn-outline btn-sm js-open-gdrive" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+						<i class="ri-folder-add-line" style="color: var(--color-primary);"></i> Підключити папку з Google Диску
+					</button>
+				</div>
 				<div class="account-trees-list">
 					${allTrees
 						.map((ws) => {
@@ -420,10 +425,10 @@ export class AccountModalManager {
 					<form id="account-share-form" class="share-inline-form">
 						<div class="form-inputs-row">
 							<input type="email" id="share-input-email" placeholder="Email родича..." required class="form-input" />
-							<select id="share-input-role" class="form-input">
-								<option value="viewer">Тільки перегляд</option>
-								<option value="editor">Редактор</option>
-							</select>
+							<div class="share-role-locked-badge" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--color-text-muted); white-space: nowrap;">
+								<i class="ri-eye-line" style="color: var(--color-primary);"></i> Тільки перегляд
+							</div>
+							<input type="hidden" id="share-input-role" value="viewer" />
 							<button type="submit" class="btn btn-primary">
 								<i class="ri-user-add-line"></i> Надати доступ
 							</button>

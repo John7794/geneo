@@ -60,10 +60,9 @@ export class ShareManager {
 		this.btnSubmit.disabled = true;
 		this.emailInput.disabled = true;
 
-		// Permissions based on selected role
+		// Permissions: Тільки перегляд за специфікацією
 		const hiddenProfiles = [];
-		const roleSelect = document.getElementById("share-role-select");
-		const canShare = roleSelect ? roleSelect.value === "editor" : false;
+		const canShare = false;
 		const canSync = false;
 
 		try {

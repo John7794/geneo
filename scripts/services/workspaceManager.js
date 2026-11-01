@@ -154,8 +154,8 @@ export class WorkspaceManager {
 			return engine;
 		}
 
-		// Локальний простір (імпортований GEDCOM)
-		if (ws.type === "local") {
+		// Локальний простір (імпортований GEDCOM) або Google Диск (BYOS)
+		if (ws.type === "local" || ws.type === "gdrive") {
 			try {
 				let localDb = null;
 				if (typeof localforage !== "undefined") {
@@ -197,6 +197,49 @@ export class WorkspaceManager {
 		const fallbackEngine = await fetchAllData(userConfig);
 		this.engine = fallbackEngine;
 		return fallbackEngine;
+	}
+
+
+	/**
+	 * Створення / реєстрація простору, підключеного з Google Диску (Multi-Tree BYOS)
+	 */
+	async createGdriveWorkspace({ folderId, folderName, folderMap, dbData, probandId, probandName, personsCount, familiesCount }) {
+		const newId = `gdrive_ws_${folderId}`;
+		const cleanName = folderName || "Дерево на Google Диску";
+
+		if (typeof localforage !== "undefined" && dbData) {
+			await localforage.setItem(`${STORAGE_KEYS.WS_DB_PREFIX}${newId}`, dbData);
+		}
+
+		const pCount = personsCount || (dbData?.basic ? dbData.basic.length : 0);
+		const fCount = familiesCount || (dbData?.families ? dbData.families.length : 0);
+
+		const existingIdx = this.workspaces.findIndex((w) => w.id === newId || w.driveFolderId === folderId);
+		const newWs = {
+			id: newId,
+			name: cleanName,
+			type: "gdrive",
+			isOwner: true,
+			driveFolderId: folderId,
+			driveFolderName: cleanName,
+			folderMap: folderMap,
+			probandId: String(probandId || "1"),
+			probandName: probandName || "Пробанд",
+			personsCount: pCount,
+			familiesCount: fCount,
+			stats: { persons: pCount, families: fCount },
+			description: "Дерево, підключене з власного Google Диску (BYOS)",
+			createdAt: Date.now(),
+		};
+
+		if (existingIdx >= 0) {
+			this.workspaces[existingIdx] = newWs;
+		} else {
+			this.workspaces.push(newWs);
+		}
+
+		this._persistMeta();
+		return newWs;
 	}
 
 	setEngine(engine) {

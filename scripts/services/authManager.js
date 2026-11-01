@@ -48,17 +48,9 @@ export class AuthManager {
 			console.warn("⚠️ Сервер недоступний або режим офлайн. Працюємо з локальним профілем.", e);
 		}
 
-		// 3. Fallback: якщо не авторизовано і немає сервера (локальний/офлайн режим)
+		// 3. Fallback: якщо не авторизовано
 		if (!this.user) {
-			this.user = {
-				email: "local.user@geneo.app",
-				displayName: "Локальний дослідник",
-				role: "owner",
-				isMainAdmin: false,
-				canShare: false, // Локальні дерева не потребують хмарного шерингу без бекенду
-				canSync: false,
-				connectedDrive: null,
-			};
+			this.user = null;
 			this.isAuthenticated = false;
 		}
 
@@ -122,12 +114,30 @@ export class AuthManager {
 			await fetch("/api/auth-logout", { method: "POST" });
 		} catch (e) {}
 
-		localStorage.removeItem(this._storageKeyToken);
-		localStorage.removeItem(this._storageKeyUser);
+		// Повне очищення всіх сховищ за специфікацією
+		try {
+			localStorage.clear();
+			sessionStorage.clear();
+		} catch (e) {}
+
+		if (typeof localforage !== "undefined") {
+			try {
+				await localforage.clear();
+			} catch (e) {}
+		}
+
+		if (typeof window !== "undefined" && window.indexedDB && window.indexedDB.databases) {
+			try {
+				const dbs = await window.indexedDB.databases();
+				for (const db of dbs) {
+					if (db.name) window.indexedDB.deleteDatabase(db.name);
+				}
+			} catch (e) {}
+		}
+
 		this.user = null;
 		this.isAuthenticated = false;
 
-		// Перезавантажуємо сторінку для чистого скидання стану
 		window.location.href = "/login";
 	}
 
@@ -144,8 +154,27 @@ export class AuthManager {
 			console.warn("Помилка запиту видалення кабінету:", e);
 		}
 
-		localStorage.removeItem(this._storageKeyToken);
-		localStorage.removeItem(this._storageKeyUser);
+		// Повне очищення всіх сховищ
+		try {
+			localStorage.clear();
+			sessionStorage.clear();
+		} catch (e) {}
+
+		if (typeof localforage !== "undefined") {
+			try {
+				await localforage.clear();
+			} catch (e) {}
+		}
+
+		if (typeof window !== "undefined" && window.indexedDB && window.indexedDB.databases) {
+			try {
+				const dbs = await window.indexedDB.databases();
+				for (const db of dbs) {
+					if (db.name) window.indexedDB.deleteDatabase(db.name);
+				}
+			} catch (e) {}
+		}
+
 		this.user = null;
 		this.isAuthenticated = false;
 

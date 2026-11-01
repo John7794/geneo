@@ -208,6 +208,36 @@ export class GoogleDriveModalManager {
 					</div>
 				</div>
 
+
+				<!-- ПІДКЛЮЧЕННЯ ІСНУЮЧОЇ ПАПКИ (MULTI-TREE BYOS) -->
+				<div class="gdrive-section-card">
+					<div class="section-card-header">
+						<div class="section-card-title-row">
+							<h4><i class="ri-folder-add-line"></i> Підключити існуючу папку Geneo на Google Диску:</h4>
+						</div>
+					</div>
+					<p class="text-sm text-muted">
+						Ви можете підключити одну або кілька різних папок із Google Диску. Кожна папка стане окремим незалежним деревом у списку «Мої дерева».
+					</p>
+
+					<div class="folder-connect-controls" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+						<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+							<input type="text" id="input-gdrive-folder-id" placeholder="Введіть назву, ID або посилання на папку Google Диску..." class="form-input" style="flex: 1; min-width: 220px;" ${!isConnected ? "disabled" : ""} />
+							<button id="btn-validate-and-connect-folder" type="button" class="btn btn-primary" style="height: 40px; padding: 0 16px; font-weight: 600;" ${!isConnected ? "disabled" : ""}>
+								<i class="ri-check-double-line"></i> Перевірити та підключити
+							</button>
+						</div>
+						<div style="display: flex; gap: 8px;">
+							<button id="btn-list-my-drive-folders" type="button" class="btn btn-outline btn-sm" ${!isConnected ? "disabled" : ""}>
+								<i class="ri-list-check-2"></i> Обрати зі списку моїх папок
+							</button>
+						</div>
+						<div id="drive-folders-list-container" class="hidden" style="background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px; max-height: 180px; overflow-y: auto;"></div>
+					</div>
+
+					<div id="folder-validation-result" class="hidden" style="margin-top: 14px;"></div>
+				</div>
+
 				<!-- GOOGLE APPS SCRIPT ДЛЯ СИНХРОНІЗАЦІЇ 31 ТАБЛИЦІ -->
 				<div class="gdrive-section-card">
 					<div class="section-card-header script-tools-header">
@@ -291,6 +321,182 @@ export class GoogleDriveModalManager {
 					alert("Помилка підключення: " + (e.message || e));
 				} finally {
 					btnConnect.disabled = false;
+				}
+			};
+		}
+
+
+		// Обробка вибору зі списку папок
+		const btnListFolders = this.modal.querySelector("#btn-list-my-drive-folders");
+		const listContainer = this.modal.querySelector("#drive-folders-list-container");
+		const inputFolder = this.modal.querySelector("#input-gdrive-folder-id");
+
+		if (btnListFolders && listContainer) {
+			btnListFolders.onclick = async () => {
+				try {
+					btnListFolders.disabled = true;
+					btnListFolders.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Завантаження папок...';
+					listContainer.classList.remove("hidden");
+					listContainer.innerHTML = '<p class="text-sm text-muted">Запит списку папок на Google Диску...</p>';
+
+					const folders = await this.drive.listGeneoFolders();
+					if (!folders || folders.length === 0) {
+						listContainer.innerHTML = '<p class="text-sm text-muted">На Google Диску не знайдено папок. Створіть нову теку або скористайтеся імпортом GEDCOM.</p>';
+					} else {
+						listContainer.innerHTML = folders.map(f => `
+							<div class="folder-pick-item" data-id="${f.id}" data-name="${f.name}" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px solid var(--color-border-light); cursor: pointer; border-radius: 4px;">
+								<span style="font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+									<i class="ri-folder-line" style="color: var(--color-primary);"></i> ${f.name}
+								</span>
+								<button type="button" class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 11px;">Обрати</button>
+							</div>
+						`).join("");
+
+						listContainer.querySelectorAll(".folder-pick-item").forEach(item => {
+							item.onclick = () => {
+								const fid = item.getAttribute("data-id");
+								if (inputFolder) inputFolder.value = fid;
+								listContainer.classList.add("hidden");
+							};
+						});
+					}
+				} catch (err) {
+					listContainer.innerHTML = `<p class="text-sm text-danger">Помилка: ${err.message}</p>`;
+				} finally {
+					btnListFolders.disabled = false;
+					btnListFolders.innerHTML = '<i class="ri-list-check-2"></i> Обрати зі списку моїх папок';
+				}
+			};
+		}
+
+		// Перевірка структури папки (validateDriveFolderStructure)
+		const btnValidate = this.modal.querySelector("#btn-validate-and-connect-folder");
+		const valResultDiv = this.modal.querySelector("#folder-validation-result");
+
+		if (btnValidate && valResultDiv) {
+			btnValidate.onclick = async () => {
+				const rawVal = inputFolder ? inputFolder.value.trim() : "";
+				if (!rawVal) {
+					alert("Вкажіть назву або ID папки на Google Диску");
+					return;
+				}
+
+				// Витягуємо ID якщо передано повне посилання на Drive
+				let folderId = rawVal;
+				if (folderId.includes("/folders/")) {
+					folderId = folderId.split("/folders/")[1].split("?")[0].split("/")[0];
+				}
+
+				try {
+					btnValidate.disabled = true;
+					btnValidate.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Перевірка структури...';
+					valResultDiv.classList.remove("hidden");
+					valResultDiv.innerHTML = '<p class="text-sm text-muted">Аналіз вмісту папки на відповідність стандарту Geneo BYOS...</p>';
+
+					const report = await this.drive.validateDriveFolderStructure(folderId);
+
+					if (report.isValid) {
+						valResultDiv.innerHTML = `
+							<div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+								<h4 style="margin: 0 0 6px 0; color: #16a34a; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+									<i class="ri-checkbox-circle-line"></i> Структура коректна: ${report.folderName}
+								</h4>
+								<p class="text-sm" style="margin: 0 0 10px 0;">Усі обов'язкові компоненти (db/, basic.csv, families.csv, records/) присутні.</p>
+								<button id="btn-confirm-connect-valid-folder" type="button" class="btn btn-primary btn-sm" style="font-weight: 600;">
+									<i class="ri-link"></i> Підключити це дерево як активне
+								</button>
+							</div>
+						`;
+
+						const btnConfirm = valResultDiv.querySelector("#btn-confirm-connect-valid-folder");
+						if (btnConfirm) {
+							btnConfirm.onclick = async () => {
+								btnConfirm.disabled = true;
+								btnConfirm.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Підключення...';
+								const newWs = await this.workspaceManager.createGdriveWorkspace({
+									folderId: report.folderId,
+									folderName: report.folderName,
+									folderMap: report.folderMap,
+									dbData: null,
+								});
+								this.close();
+								this.workspaceManager.switchWorkspace(newWs.id);
+							};
+						}
+					} else {
+						// Помилка: показуємо схему еталонної структури та відсутні компоненти
+						valResultDiv.innerHTML = `
+							<div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 14px;">
+								<h4 style="margin: 0 0 8px 0; color: #dc2626; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+									<i class="ri-error-warning-line"></i> Увага: Неповна або порожня структура в «${report.folderName}»
+								</h4>
+								<p class="text-sm text-muted" style="margin: 0 0 10px 0;">
+									Для роботи Geneo в папці обов'язково мають бути таблиці та каталоги за стандартом BYOS.
+								</p>
+
+								<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 12px;">
+									<div style="background: var(--color-bg-card); padding: 8px; border-radius: 6px; border: 1px solid var(--color-border);">
+										<div style="font-weight: 600; color: #16a34a; margin-bottom: 4px;">✅ Присутні компоненти:</div>
+										${report.present.length > 0 ? report.present.map(p => `<div>• ${p}</div>`).join("") : "<div class='text-muted'>Немає</div>"}
+									</div>
+									<div style="background: var(--color-bg-card); padding: 8px; border-radius: 6px; border: 1px solid var(--color-border);">
+										<div style="font-weight: 600; color: #dc2626; margin-bottom: 4px;">❌ Відсутні компоненти:</div>
+										${report.missing.map(m => `<div>• ${m}</div>`).join("")}
+									</div>
+								</div>
+
+								<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+									<button id="btn-repair-and-deploy-folder" type="button" class="btn btn-primary btn-sm" style="font-weight: 600;">
+										<i class="ri-tools-line"></i> Розгорнути / Відновити структуру в цій папці
+									</button>
+									<button id="btn-pick-another-folder" type="button" class="btn btn-outline btn-sm">
+										Обрати іншу папку
+									</button>
+								</div>
+							</div>
+						`;
+
+						const btnRepair = valResultDiv.querySelector("#btn-repair-and-deploy-folder");
+						if (btnRepair) {
+							btnRepair.onclick = async () => {
+								try {
+									btnRepair.disabled = true;
+									btnRepair.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Відновлення структури...';
+									const repairedMap = await this.drive.repairFolderStructure(report.folderId, (msg, pct) => {
+										btnRepair.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> ${msg}`;
+									});
+
+									const newWs = await this.workspaceManager.createGdriveWorkspace({
+										folderId: report.folderId,
+										folderName: report.folderName,
+										folderMap: repairedMap,
+										dbData: null,
+									});
+									this.close();
+									this.workspaceManager.switchWorkspace(newWs.id);
+								} catch (repErr) {
+									alert("Помилка відновлення структури: " + repErr.message);
+									btnRepair.disabled = false;
+								}
+							};
+						}
+
+						const btnPickAnother = valResultDiv.querySelector("#btn-pick-another-folder");
+						if (btnPickAnother) {
+							btnPickAnother.onclick = () => {
+								valResultDiv.classList.add("hidden");
+								if (inputFolder) {
+									inputFolder.value = "";
+									inputFolder.focus();
+								}
+							};
+						}
+					}
+				} catch (valErr) {
+					valResultDiv.innerHTML = `<p class="text-sm text-danger">Помилка перевірки: ${valErr.message}</p>`;
+				} finally {
+					btnValidate.disabled = false;
+					btnValidate.innerHTML = '<i class="ri-check-double-line"></i> Перевірити та підключити';
 				}
 			};
 		}

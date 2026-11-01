@@ -17,8 +17,18 @@ export class WelcomeModalManager {
 		if (!this.modal) return;
 
 		const btnImportGedcom = this.modal.querySelector("#btn-welcome-gedcom");
+		const btnConnectGdrive = this.modal.querySelector("#btn-welcome-gdrive");
 		const btnExploreDemo = this.modal.querySelector("#btn-welcome-demo");
 		const btnLogin = this.modal.querySelector("#btn-welcome-login");
+
+		if (btnConnectGdrive) {
+			btnConnectGdrive.addEventListener("click", () => {
+				this._saveDismissState(checkboxDontShow?.checked);
+				this.close();
+				const gdriveBtn = document.getElementById("btn-gdrive") || document.querySelector(".js-open-gdrive");
+				if (gdriveBtn) gdriveBtn.click();
+			});
+		}
 		const btnClose = this.modal.querySelector("#btn-close-welcome");
 		const checkboxDontShow = this.modal.querySelector("#checkbox-welcome-dont-show");
 

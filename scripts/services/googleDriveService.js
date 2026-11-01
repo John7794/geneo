@@ -657,6 +657,245 @@ export class GoogleDriveService {
 		return [headers.join(","), ...rows].join("\n");
 	}
 
+
+	/**
+	 * Отримати список папок на Google Диску
+	 */
+	async listGeneoFolders() {
+		if (!this.isConnected()) throw new Error("Google Диск не підключено");
+		if (this.accessToken && (this.accessToken.startsWith("gdrive_") || this.accessToken.startsWith("demo_"))) {
+			return [
+				{ id: "folder_geneo_selivanov", name: "Geneo - Родовід Селіванових", modifiedTime: new Date().toISOString() },
+				{ id: "folder_geneo_custom", name: "Geneo - Мій Новий Родовід", modifiedTime: new Date().toISOString() }
+			];
+		}
+		const q = "mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+		const res = await this.apiRequest(`/files?q=${encodeURIComponent(q)}&pageSize=50&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc`);
+		return res.files || [];
+	}
+
+	/**
+	 * Валідація структури папки Geneo на Google Диску (validateDriveFolderStructure)
+	 */
+	async validateDriveFolderStructure(folderId) {
+		if (!this.isConnected()) throw new Error("Google Диск не підключено");
+
+		let folderName = "Папка Geneo";
+		let files = [];
+
+		if (this.accessToken && (this.accessToken.startsWith("gdrive_") || this.accessToken.startsWith("demo_"))) {
+			folderName = folderId.includes("empty") ? "Порожня папка" : "Geneo - Мій Родовід";
+			files = folderId.includes("empty") ? [] : [
+				{ id: "f_db", name: "db", mimeType: "application/vnd.google-apps.folder" },
+				{ id: "f_records", name: "records", mimeType: "application/vnd.google-apps.folder" },
+			];
+		} else {
+			try {
+				const folderMeta = await this.apiRequest(`/files/${folderId}?fields=id,name`);
+				folderName = folderMeta.name || "Обрана папка";
+			} catch (e) {}
+
+			const q = `'${folderId}' in parents and trashed = false`;
+			const res = await this.apiRequest(`/files?q=${encodeURIComponent(q)}&pageSize=100&fields=files(id,name,mimeType)`);
+			files = res.files || [];
+		}
+
+		const isFolder = (name) => files.some((f) => f.name.toLowerCase() === name.toLowerCase() && f.mimeType === "application/vnd.google-apps.folder");
+		const findFolder = (name) => files.find((f) => f.name.toLowerCase() === name.toLowerCase() && f.mimeType === "application/vnd.google-apps.folder");
+
+		const hasDb = isFolder("db");
+		const hasRecords = isFolder("records");
+		const dbFolder = findFolder("db");
+		const recordsFolder = findFolder("records");
+
+		let dbFiles = [];
+		let dbUkFolder = null;
+		let hasBasicCsv = false;
+		let hasFamiliesCsv = false;
+		let hasFamilyRolesOrChildren = false;
+		let hasAppsScript = false;
+
+		if (dbFolder && !(this.accessToken && (this.accessToken.startsWith("gdrive_") || this.accessToken.startsWith("demo_")))) {
+			try {
+				const dbQ = `'${dbFolder.id}' in parents and trashed = false`;
+				const dbRes = await this.apiRequest(`/files?q=${encodeURIComponent(dbQ)}&pageSize=100&fields=files(id,name,mimeType)`);
+				dbFiles = dbRes.files || [];
+				dbUkFolder = dbFiles.find((f) => f.name.toLowerCase() === "uk" && f.mimeType === "application/vnd.google-apps.folder");
+
+				let allDbFiles = [...dbFiles];
+				if (dbUkFolder) {
+					const ukQ = `'${dbUkFolder.id}' in parents and trashed = false`;
+					const ukRes = await this.apiRequest(`/files?q=${encodeURIComponent(ukQ)}&pageSize=100&fields=files(id,name,mimeType)`);
+					allDbFiles.push(...(ukRes.files || []));
+				}
+
+				hasBasicCsv = allDbFiles.some((f) => f.name.toLowerCase() === "basic.csv");
+				hasFamiliesCsv = allDbFiles.some((f) => f.name.toLowerCase() === "families.csv");
+				hasFamilyRolesOrChildren = allDbFiles.some((f) => f.name.toLowerCase() === "familyroles.csv" || f.name.toLowerCase() === "familychildren.csv");
+				hasAppsScript = allDbFiles.some((f) => f.name.toLowerCase() === "geneoautosync.gs" || f.name.toLowerCase() === "geneo_db");
+			} catch (e) {}
+		} else if (dbFolder) {
+			hasBasicCsv = true;
+			hasFamiliesCsv = true;
+			hasFamilyRolesOrChildren = true;
+			hasAppsScript = true;
+		}
+
+		let recordsFiles = [];
+		let hasPortraits = false;
+		let hasFamilyPhotos = false;
+		let hasScans = false;
+
+		if (recordsFolder && !(this.accessToken && (this.accessToken.startsWith("gdrive_") || this.accessToken.startsWith("demo_")))) {
+			try {
+				const recQ = `'${recordsFolder.id}' in parents and trashed = false`;
+				const recRes = await this.apiRequest(`/files?q=${encodeURIComponent(recQ)}&pageSize=100&fields=files(id,name,mimeType)`);
+				recordsFiles = recRes.files || [];
+				hasPortraits = recordsFiles.some((f) => f.name.toLowerCase() === "portraits");
+				hasFamilyPhotos = recordsFiles.some((f) => f.name.toLowerCase() === "family_photos");
+				hasScans = recordsFiles.some((f) => f.name.toLowerCase() === "scans");
+			} catch (e) {}
+		} else if (recordsFolder) {
+			hasPortraits = true;
+			hasFamilyPhotos = true;
+			hasScans = true;
+		}
+
+		const present = [];
+		const missing = [];
+
+		if (hasDb) present.push("Папка db/ (База даних)"); else missing.push("Папка db/ (База даних)");
+		if (hasBasicCsv) present.push("Таблиця basic.csv (Персони)"); else missing.push("Таблиця basic.csv (Персони)");
+		if (hasFamiliesCsv) present.push("Таблиця families.csv (Сім'ї)"); else missing.push("Таблиця families.csv (Сім'ї)");
+		if (hasFamilyRolesOrChildren) present.push("Таблиця familyChildren.csv / familyRoles.csv (Родинні зв'язки)"); else missing.push("Таблиця familyChildren.csv / familyRoles.csv (Родинні зв'язки)");
+		if (hasAppsScript) present.push("Скрипт автоматизації GeneoAutoSync.gs"); else missing.push("Скрипт автоматизації GeneoAutoSync.gs");
+		if (hasRecords) present.push("Папка records/ (Архівні матеріали)"); else missing.push("Папка records/ (Архівні матеріали)");
+		if (hasPortraits) present.push("Підпапка records/portraits/ (Портрети)"); else missing.push("Підпапка records/portraits/ (Портрети)");
+		if (hasFamilyPhotos) present.push("Підпапка records/family_photos/ (Сімейні фото)"); else missing.push("Підпапка records/family_photos/ (Сімейні фото)");
+		if (hasScans) present.push("Підпапка records/scans/ (Метрики, сповідні, нагороди)"); else missing.push("Підпапка records/scans/ (Метрики, сповідні, нагороди)");
+
+		const isValid = hasDb && hasBasicCsv && hasFamiliesCsv && hasRecords;
+
+		return {
+			isValid,
+			folderId,
+			folderName,
+			present,
+			missing,
+			folderMap: {
+				root: folderId,
+				db: dbFolder ? dbFolder.id : null,
+				dbUk: dbUkFolder ? dbUkFolder.id : (dbFolder ? dbFolder.id : null),
+				records: recordsFolder ? recordsFolder.id : null,
+			},
+		};
+	}
+
+	/**
+	 * Створення кореневої папки проєкту Geneo - [Назва родоводу] та повне розгортання структури
+	 */
+	async createTreeFolderAndDeploy(treeName, dbData, onProgress = null) {
+		const step = (msg, pct) => {
+			if (typeof onProgress === "function") onProgress(msg, pct);
+		};
+
+		const cleanTreeName = (treeName || "Новий родовід").trim().replace(/^Geneo\s*-\s*/i, "");
+		const rootFolderName = `Geneo - ${cleanTreeName}`;
+
+		step(`Створення кореневої папки "${rootFolderName}"...`, 10);
+		const rootId = await this.getOrCreateFolder(rootFolderName);
+
+		step("Розгортання структури папок db/ та records/...", 30);
+		const dbId = await this.getOrCreateFolder("db", rootId);
+		const dbUkId = await this.getOrCreateFolder("uk", dbId);
+		const recordsId = await this.getOrCreateFolder("records", rootId);
+
+		await this.getOrCreateFolder("portraits", recordsId);
+		await this.getOrCreateFolder("family_photos", recordsId);
+		const scansId = await this.getOrCreateFolder("scans", recordsId);
+		await this.getOrCreateFolder("metrics", scansId);
+		await this.getOrCreateFolder("confessions", scansId);
+		await this.getOrCreateFolder("awards", scansId);
+		await this.getOrCreateFolder("military", scansId);
+
+		const folderMap = {
+			root: rootId,
+			db: dbId,
+			dbUk: dbUkId,
+			records: recordsId,
+			provisionedAt: Date.now(),
+		};
+
+		step("Завантаження таблиць бази даних та скриптів...", 60);
+		const workspaceStub = {
+			id: `gdrive_${rootId}`,
+			name: rootFolderName,
+			dbData: dbData,
+		};
+
+		this.folderMap = folderMap;
+		this._saveFolderMap(folderMap);
+
+		await this.syncWorkspaceDatabaseToDrive(workspaceStub, (tbl, pct) => {
+			step(`Синхронізація ${tbl}...`, 60 + Math.round(pct * 0.35));
+		});
+
+		step("Структуру успішно розгорнуто!", 100);
+
+		return {
+			folderId: rootId,
+			folderName: rootFolderName,
+			folderMap,
+		};
+	}
+
+	/**
+	 * Розгортання або відновлення відсутньої структури у вказаній папці
+	 */
+	async repairFolderStructure(folderId, onProgress = null) {
+		const step = (msg, pct) => {
+			if (typeof onProgress === "function") onProgress(msg, pct);
+		};
+
+		step("Створення обов'язкових папок db/ та records/...", 20);
+		const dbId = await this.getOrCreateFolder("db", folderId);
+		const dbUkId = await this.getOrCreateFolder("uk", dbId);
+		const recordsId = await this.getOrCreateFolder("records", folderId);
+
+		step("Створення архівних підпапок...", 50);
+		await this.getOrCreateFolder("portraits", recordsId);
+		await this.getOrCreateFolder("family_photos", recordsId);
+		const scansId = await this.getOrCreateFolder("scans", recordsId);
+		await this.getOrCreateFolder("metrics", scansId);
+		await this.getOrCreateFolder("confessions", scansId);
+		await this.getOrCreateFolder("awards", scansId);
+		await this.getOrCreateFolder("military", scansId);
+
+		step("Встановлення GeneoAutoSync.gs...", 80);
+		try {
+			const scriptRes = await fetch("/google-apps-script/GeneoAutoSync.gs");
+			if (scriptRes.ok) {
+				const scriptContent = await scriptRes.text();
+				await this.uploadFile({
+					name: "GeneoAutoSync.gs",
+					mimeType: "text/plain;charset=utf-8",
+					content: scriptContent,
+					folderId: dbId,
+				});
+			}
+		} catch (e) {}
+
+		step("Структуру відновлено!", 100);
+
+		return {
+			root: folderId,
+			db: dbId,
+			dbUk: dbUkId,
+			records: recordsId,
+			provisionedAt: Date.now(),
+		};
+	}
+
 	onStateChange(fn) {
 		if (typeof fn === "function") this.listeners.push(fn);
 	}

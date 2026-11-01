@@ -59,6 +59,13 @@ class App {
 
 			this.authManager = new AuthManager();
 			const currentUser = await this.authManager.init();
+
+			// AUTH GATE: неавторизовані користувачі перенаправляються на /login
+			const isGuestMode = new URLSearchParams(window.location.search).get("guest") === "true";
+			if (!this.authManager.isAuthenticated && !isGuestMode) {
+				window.location.href = "/login";
+				return;
+			}
 			
 			let userConfig = { 
 				rootPerson: APP_CONFIG.rootId || "1", 
@@ -97,9 +104,15 @@ class App {
 			this.workspaceManager = new WorkspaceManager();
 			const activeWs = await this.workspaceManager.init(userConfig);
 
-			if (!activeWs) {
+			// Якщо у користувача немає жодного підключеного дерева — відкриваємо Онбординг
+			const userWorkspaces = this.workspaceManager.getWorkspaces();
+			if (!activeWs || userWorkspaces.length === 0) {
 				this._initBasicManagers();
-				this._renderAccessDeniedView();
+				if (this.welcomeModalManager) {
+					this.welcomeModalManager.open();
+				}
+				const loader = document.getElementById("app-loader");
+				if (loader) loader.classList.add("hidden");
 				return;
 			}
 
@@ -141,10 +154,16 @@ class App {
 							if (typeof localforage !== "undefined") {
 								const keys = await localforage.keys();
 								for (const k of keys) {
-									if (k.includes("/data/db/") || k.startsWith("kinship_index_")) {
+									if (k.includes("/data/db/") || k.startsWith("kinship_index_") || k === "store_version") {
 										await localforage.removeItem(k);
 									}
 								}
+							}
+							// Повне видалення дерева зі списку доступних дерев гостя
+							if (this.workspaceManager) {
+								this.workspaceManager.workspaces = this.workspaceManager.workspaces.filter(w => w.id !== "bundled_author");
+								this.workspaceManager._persistMeta();
+								localStorage.removeItem("geneo_active_ws_id");
 							}
 							window.location.reload();
 						}

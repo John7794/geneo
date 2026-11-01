@@ -13,7 +13,7 @@ import { initializeApp, getApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 // Ініціалізація конфігурації адміністратора
-const adminEmailsList = (process.env.ADMIN_EMAIL || "www.johnsel771994@gmail.com,johnsel771994@gmail.com")
+const adminEmailsList = (process.env.ADMIN_EMAIL || "ivanselivanov771994@gmail.com,www.johnsel771994@gmail.com,johnsel771994@gmail.com")
   .split(",")
   .map((e) => e.trim().toLowerCase());
 
@@ -413,6 +413,36 @@ function readLocalUsers(): Record<string, StoredUser> {
   return {};
 }
 
+
+const LOCAL_SHARES_FILE = path.join(ACTIVE_DATA_DIR, "shares_store.json");
+
+interface StoredShare {
+  id: string;
+  email: string;
+  canShare?: boolean;
+  canSync?: boolean;
+  hiddenProfiles?: string[];
+  createdAt: number;
+}
+
+function readLocalShares(): Record<string, StoredShare> {
+  try {
+    if (fs.existsSync(LOCAL_SHARES_FILE)) {
+      return JSON.parse(fs.readFileSync(LOCAL_SHARES_FILE, "utf8"));
+    }
+  } catch (e) {}
+  return {};
+}
+
+function writeLocalShares(shares: Record<string, StoredShare>) {
+  try {
+    fs.mkdirSync(path.dirname(LOCAL_SHARES_FILE), { recursive: true });
+    fs.writeFileSync(LOCAL_SHARES_FILE, JSON.stringify(shares, null, 2), "utf8");
+  } catch (e) {
+    console.warn("Could not write local shares file:", e);
+  }
+}
+
 function writeLocalUsers(users: Record<string, StoredUser>) {
   try {
     fs.mkdirSync(path.dirname(LOCAL_USERS_FILE), { recursive: true });
@@ -522,9 +552,14 @@ function checkCanSync(req: express.Request): boolean {
 async function canAccessAuthorTree(req: express.Request): Promise<boolean> {
   const user = getAuthenticatedUser(req);
   if (!user) {
-    return process.env.NODE_ENV !== "production" && !process.env.FIREBASE_SERVICE_ACCOUNT;
+    return false;
   }
   if (adminEmailsList.some((a) => a.includes(user) || user.includes(a))) {
+    return true;
+  }
+  // Перевірка у локальному файлі shares_store.json
+  const localShares = readLocalShares();
+  if (Object.values(localShares).some((s) => s.email && s.email.toLowerCase() === user.toLowerCase())) {
     return true;
   }
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -539,7 +574,7 @@ async function canAccessAuthorTree(req: express.Request): Promise<boolean> {
       return false;
     }
   }
-  return process.env.NODE_ENV !== "production";
+  return false;
 }
 
 async function checkCanShare(req: express.Request): Promise<boolean> {
@@ -1492,19 +1527,35 @@ app.post("/api/invite", async (req, res) => {
   if (!emailOrPhone) return res.status(400).json({ error: "Missing email or phone" });
 
   const val = emailOrPhone.toLowerCase().trim().replace(/\s/g, "");
-  try {
-    await fdb.collection("shares").add({
-      email: val,
-      canShare: !!req.body.canShare,
-      canSync: !!req.body.canSync,
-      hiddenProfiles: Array.isArray(req.body.hiddenProfiles) ? req.body.hiddenProfiles : [],
-      createdAt: FieldValue.serverTimestamp(),
-    });
-    res.json({ success: true });
-  } catch (e: any) {
-    console.error("Invite error:", e);
-    res.status(500).json({ error: "Failed" });
+  const newShareId = "share_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+
+  // Зберігаємо локально для надійності
+  const localShares = readLocalShares();
+  localShares[newShareId] = {
+    id: newShareId,
+    email: val,
+    canShare: false, // Тільки перегляд за специфікацією
+    canSync: false,
+    hiddenProfiles: Array.isArray(req.body.hiddenProfiles) ? req.body.hiddenProfiles : [],
+    createdAt: Date.now(),
+  };
+  writeLocalShares(localShares);
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      await fdb.collection("shares").doc(newShareId).set({
+        email: val,
+        canShare: false,
+        canSync: false,
+        hiddenProfiles: Array.isArray(req.body.hiddenProfiles) ? req.body.hiddenProfiles : [],
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    } catch (e: any) {
+      console.warn("Firestore invite error (saved locally):", e.message);
+    }
   }
+
+  res.json({ success: true, id: newShareId });
 });
 
 app.delete("/api/shares/:id", async (req, res) => {
@@ -1512,12 +1563,30 @@ app.delete("/api/shares/:id", async (req, res) => {
     return res.status(403).json({ error: "Немає прав для видалення доступів." });
   }
 
-  try {
-    await fdb.collection("shares").doc(req.params.id).delete();
-    res.json({ success: true });
-  } catch (e: any) {
-    res.status(500).json({ error: "Failed" });
+  const shareId = req.params.id;
+  const localShares = readLocalShares();
+  if (localShares[shareId]) {
+    delete localShares[shareId];
+    writeLocalShares(localShares);
+  } else {
+    // Також шукаємо за email, якщо передано email замість ID
+    for (const key of Object.keys(localShares)) {
+      if (localShares[key].email === shareId) {
+        delete localShares[key];
+      }
+    }
+    writeLocalShares(localShares);
   }
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      await fdb.collection("shares").doc(shareId).delete();
+    } catch (e: any) {
+      console.warn("Firestore delete share error:", e.message);
+    }
+  }
+
+  res.json({ success: true });
 });
 
 app.get("/api/shares", async (req, res) => {
@@ -1525,14 +1594,20 @@ app.get("/api/shares", async (req, res) => {
     return res.status(403).json({ error: "Немає прав для перегляду списку доступів." });
   }
 
+  const localShares = readLocalShares();
+  const list = Object.values(localShares);
+
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
       const snap = await fdb.collection("shares").get();
-      const shares = snap.docs.map((doc) => ({ id: doc.id, email: doc.data().email || doc.data().value, ...doc.data() }));
-      return res.json(shares);
+      const firestoreShares = snap.docs.map((doc) => ({ id: doc.id, email: doc.data().email || doc.data().value, ...doc.data() }));
+      const mergedMap = new Map();
+      list.forEach((s) => mergedMap.set(s.id, s));
+      firestoreShares.forEach((s) => mergedMap.set(s.id, s));
+      return res.json(Array.from(mergedMap.values()));
     } catch (e) {}
   }
-  return res.json([]);
+  return res.json(list);
 });
 
 app.get("/api/config", async (req, res) => {
@@ -1557,6 +1632,26 @@ app.get("/api/config", async (req, res) => {
       return;
     }
 
+    // Перевірка дозволу в local shares
+    const localSharesMap = readLocalShares();
+    const matchedShare = Object.values(localSharesMap).find((s) => s.email && s.email.toLowerCase() === user.toLowerCase());
+    if (matchedShare) {
+      res.json({
+        authenticated: true,
+        canShare: false,
+        canSync: false,
+        isMainAdmin: false,
+        hasAuthorTreeAccess: true,
+        hiddenProfiles: matchedShare.hiddenProfiles || [],
+        user: {
+          email: user,
+          displayName: userProfile?.displayName || user.split("@")[0],
+          role: "viewer",
+        },
+      });
+      return;
+    }
+
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       try {
         let snap = await fdb.collection("shares").where("email", "==", user).get();
@@ -1565,18 +1660,17 @@ app.get("/api/config", async (req, res) => {
         }
         if (!snap.empty) {
           const shareData = snap.docs[0].data();
-          const effectiveRole = shareData.canShare ? "editor" : "viewer";
           res.json({ 
             authenticated: true,
-            canShare: !!shareData.canShare, 
-            canSync: !!shareData.canSync, 
+            canShare: false, 
+            canSync: false, 
             isMainAdmin: false,
             hasAuthorTreeAccess: true,
             hiddenProfiles: shareData.hiddenProfiles || [],
             user: {
               email: user,
               displayName: userProfile?.displayName || user.split("@")[0],
-              role: effectiveRole,
+              role: "viewer",
             },
           });
           return;

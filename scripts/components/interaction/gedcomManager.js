@@ -273,6 +273,20 @@ export class GedcomManager {
 					</div>
 				</div>
 
+				${
+					this.driveService && this.driveService.isConnected()
+						? `<div class="gdrive-status-badge-inline" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #16a34a;">
+							<i class="ri-google-fill" style="font-size: 16px;"></i>
+							<span>Google Диск підключено: автоматично буде створено папку проєкту <strong>Geneo - [Назва]</strong> та таблиці</span>
+						</div>`
+						: `<div class="gdrive-status-badge-inline" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px;">
+							<div style="display: flex; align-items: center; gap: 8px; color: #d97706;">
+								<i class="ri-information-line" style="font-size: 16px;"></i>
+								<span>Google Диск не підключено (BYOS)</span>
+							</div>
+							<button type="button" class="btn btn-sm btn-outline js-open-gdrive" style="font-size: 12px; padding: 3px 8px;">Підключити Диск</button>
+						</div>`
+				}
 				<div class="proband-select-card" style="background: var(--color-bg-body); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border);">
 					<label for="gedcom-proband-select" style="display: block; font-size: 13px; font-weight: 600; color: var(--color-text-main); margin-bottom: 6px;">
 						<i class="ri-user-star-line" style="color: var(--color-primary);"></i> Оберіть Пробанда (початкову особу дерева):
@@ -436,27 +450,38 @@ export class GedcomManager {
 									? converted.basic[chosenIndiIdx].person_id
 									: String(chosenIndi ? chosenIndi.id : "1").replace(/^@|@$/g, "").replace(/^I/i, "");
 
-								const newWs = await this.workspaceManager.createLocalWorkspace({
-									name: finalName,
-									probandId: targetProbandId,
-									probandName: probandName,
-									personsCount: converted.stats.personsCount,
-									familiesCount: converted.stats.familiesCount,
-									dbData: converted,
-								});
+								let targetWsId = "";
+								if (this.driveService && this.driveService.isConnected()) {
+									btnOpenTree.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Створення папки проєкту на Google Диску...`;
+									const deployed = await this.driveService.createTreeFolderAndDeploy(finalName, converted, (msg, pct) => {
+										btnOpenTree.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> ${msg} (${pct}%)`;
+									});
 
-								const chkDrive = resultDiv.querySelector("#chk-gedcom-sync-drive");
-								if (chkDrive?.checked && this.driveService?.isConnected()) {
-									try {
-										btnOpenTree.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Синхронізація з Google Диском...`;
-										await this.driveService.syncWorkspaceDatabaseToDrive(newWs);
-									} catch (gErr) {
-										console.warn("Помилка синхронізації з Google Диском:", gErr);
-									}
+									const newWs = await this.workspaceManager.createGdriveWorkspace({
+										folderId: deployed.folderId,
+										folderName: deployed.folderName,
+										folderMap: deployed.folderMap,
+										dbData: converted,
+										probandId: targetProbandId,
+										probandName: probandName,
+										personsCount: converted.stats.personsCount,
+										familiesCount: converted.stats.familiesCount,
+									});
+									targetWsId = newWs.id;
+								} else {
+									const newWs = await this.workspaceManager.createLocalWorkspace({
+										name: finalName,
+										probandId: targetProbandId,
+										probandName: probandName,
+										personsCount: converted.stats.personsCount,
+										familiesCount: converted.stats.familiesCount,
+										dbData: converted,
+									});
+									targetWsId = newWs.id;
 								}
 
 								this.close();
-								this.workspaceManager.switchWorkspace(newWs.id);
+								this.workspaceManager.switchWorkspace(targetWsId);
 							} catch (wsErr) {
 								console.error("Помилка збереження простору:", wsErr);
 								alert("Не вдалося зберегти дерево: " + wsErr.message);
