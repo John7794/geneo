@@ -1,6 +1,8 @@
 /* css/components/interaction/mobile-menu.css */
 
-/* Автоматичне приховування FAB при будь-якому відкритому модальному вікні */
+/* Автоматичне приховування FAB при будь-якому відкритому модальному вікні або активному прелоадері */
+body:has(#app-loader:not(.hidden)) #mobile-menu-btn,
+body:has(.loader:not(.hidden)) #mobile-menu-btn,
 body:has(.popup-overlay.show) #mobile-menu-btn,
 body:has(.popup-overlay.open) #mobile-menu-btn,
 body.has-open-popup #mobile-menu-btn {

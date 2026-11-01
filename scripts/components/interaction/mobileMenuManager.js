@@ -79,14 +79,17 @@ export class MobileMenuManager {
 	}
 
 	_checkPopups() {
+		const appLoader = document.getElementById("app-loader");
+		const isLoaderVisible = appLoader && !appLoader.classList.contains("hidden");
+
 		const openPopups = document.querySelectorAll(
 			".popup-overlay.show, .popup-overlay.open"
 		);
 
-		const hasAnyOpenPopup = openPopups.length > 0;
+		const shouldHideFab = isLoaderVisible || openPopups.length > 0;
 
 		if (this.fabBtn) {
-			if (hasAnyOpenPopup) {
+			if (shouldHideFab) {
 				this.fabBtn.style.setProperty("display", "none", "important");
 			} else {
 				this.fabBtn.style.removeProperty("display");

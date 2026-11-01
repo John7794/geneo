@@ -16,12 +16,23 @@
 	align-items: center;
 
 	/* Найвищий шар */
-	z-index: 9999;
+	z-index: 999999; /* Найвищий шар, перекриває абсолютно всі елементи */
 
 	/* Анімація зникнення */
 	transition:
 		opacity 0.5s ease-out,
 		visibility 0.5s step-end;
+}
+
+
+/* Приховування плаваючої кнопки меню під час роботи прелоадера */
+#app-loader:not(.hidden) ~ * #mobile-menu-btn,
+body:has(#app-loader:not(.hidden)) #mobile-menu-btn,
+body:has(.loader:not(.hidden)) #mobile-menu-btn {
+	display: none !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
 }
 
 /* Стан приховування (уніфікований клас .hidden) */
