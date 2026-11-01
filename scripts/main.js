@@ -79,9 +79,10 @@ class App {
 					if (configData.hiddenProfiles) {
 						userConfig.hiddenProfiles = configData.hiddenProfiles;
 					}
-					userConfig.canShare = configData.canShare || configData.isMainAdmin || false;
-					userConfig.canSync = configData.canSync || configData.isMainAdmin || false;
-					userConfig.isMainAdmin = configData.isMainAdmin || this.authManager.isAdmin() || false;
+					userConfig.canShare = configData.canShare || false;
+					userConfig.canSync = configData.canSync || false;
+					userConfig.isMainAdmin = !!(configData.isMainAdmin || this.authManager.isAdmin());
+					userConfig.hasAuthorTreeAccess = configData.hasAuthorTreeAccess !== false;
 					window.userConfig = userConfig;
 
 					const btnShare = document.getElementById("btn-share");
@@ -96,6 +97,12 @@ class App {
 			this.workspaceManager = new WorkspaceManager();
 			const activeWs = await this.workspaceManager.init(userConfig);
 
+			if (!activeWs) {
+				this._initBasicManagers();
+				this._renderAccessDeniedView();
+				return;
+			}
+
 			if (activeWs && activeWs.probandId) {
 				this.rootPersonId = activeWs.probandId;
 				userConfig.rootPerson = activeWs.probandId;
@@ -103,16 +110,47 @@ class App {
 
 			this.engine = await this.workspaceManager.loadActiveEngine(userConfig);
 
+			if (!this.engine) {
+				this._initBasicManagers();
+				this._renderAccessDeniedView();
+				return;
+			}
+
 			// Контроль прав шерингу: ТІЛЬКИ власник має право ділитися деревом!
 			const btnShare = document.getElementById("btn-share");
 			if (btnShare) {
 				btnShare.style.display = this.workspaceManager.canShareCurrentWorkspace() ? "" : "none";
 			}
 
-			if (!this.engine) throw new Error("Engine is null");
-
 			this._initManagers();
 			this.router.handlePopState();
+
+			// Періодична фонова перевірка актуальності прав доступу
+			const checkLiveAccess = async () => {
+				try {
+					const res = await fetch("/api/config", {
+						headers: { Authorization: "Bearer " + (localStorage.getItem("auth_token") || "") },
+					});
+					if (res.ok) {
+						const cfg = await res.json();
+						const curWs = this.workspaceManager?.getActiveWorkspace();
+						if (curWs?.id === "bundled_author" && cfg.hasAuthorTreeAccess === false) {
+							if (typeof localforage !== "undefined") {
+								const keys = await localforage.keys();
+								for (const k of keys) {
+									if (k.includes("/data/db/") || k.startsWith("kinship_index_")) {
+										await localforage.removeItem(k);
+									}
+								}
+							}
+							window.location.reload();
+						}
+					}
+				} catch (e) {}
+			};
+
+			window.addEventListener("focus", checkLiveAccess);
+			setInterval(checkLiveAccess, 45000);
 		} catch (error) {
 			console.error("❌ Фатальний збій:", error);
 			const container =
@@ -299,6 +337,80 @@ class App {
 				document.getElementById("tree-view");
 			if (scrollableContainer) enableDragScroll(scrollableContainer);
 		}, 100);
+	}
+
+	_initBasicManagers() {
+		this.managers.modalInterceptor = new GlobalModalInterceptor();
+		this.managers.modalInterceptor.init();
+
+		this.managers.gedcom = new GedcomManager(null, this.workspaceManager, this.driveService);
+		this.managers.workspaces = new WorkspaceModalManager(this.workspaceManager, this.managers.gedcom);
+		this.managers.account = new AccountModalManager(
+			this.authManager,
+			this.workspaceManager,
+			this.managers.gedcom,
+			this.driveService,
+			null,
+			() => null,
+			(id) => this.navigateToId(id),
+		);
+	}
+
+	_renderAccessDeniedView() {
+		const loader = document.getElementById("app-loader");
+		if (loader) loader.classList.add("hidden");
+
+		const navDock = document.getElementById("mobile-menu-btn");
+		if (navDock) navDock.style.display = "none";
+		const searchBtn = document.getElementById("btn-search");
+		if (searchBtn) searchBtn.style.display = "none";
+		const lineageBtn = document.getElementById("btn-lineage-toggle");
+		if (lineageBtn) lineageBtn.style.display = "none";
+		const shareBtn = document.getElementById("btn-share");
+		if (shareBtn) shareBtn.style.display = "none";
+
+		const container = document.getElementById("profile-content") || document.body;
+		container.innerHTML = `
+			<div class="access-denied-screen" style="display:flex; justify-content:center; align-items:center; min-height:80vh; padding:20px; box-sizing:border-box;">
+				<div class="account-sharing-restricted" style="max-width:500px; width:100%; background:var(--color-bg-card); border:1px solid var(--color-border); border-radius:16px; padding:2.25rem 1.5rem; box-shadow:0 10px 25px -5px rgba(0,0,0,0.1); text-align:center;">
+					<div class="restricted-icon" style="font-size:48px; color:#ef4444; margin-bottom:12px;"><i class="ri-shield-keyhole-line"></i></div>
+					<h3 style="margin:0 0 8px 0; font-size:1.35rem; color:var(--color-text-main);">Доступ до дерева відкликано</h3>
+					<p class="restricted-desc" style="color:var(--color-text-muted); font-size:0.95rem; line-height:1.45; margin:0 0 1.25rem 0;">
+						Власник дерева відкликав дозвіл на перегляд родоводу <strong>«Родовід Селіванових»</strong> для вашого облікового запису.
+					</p>
+					<div class="restricted-notice" style="margin-bottom:1.5rem;">
+						<i class="ri-information-line"></i>
+						<span>Якщо ви вважаєте, що це помилка, зверніться до власника дерева для поновлення доступу, або завантажте власне родинне дерево.</span>
+					</div>
+					<div class="restricted-action" style="display:flex; flex-direction:column; gap:10px;">
+						<button id="btn-denied-import-tree" class="btn btn-primary" style="height:44px; min-height:44px; justify-content:center; border-radius:10px; font-weight:600;">
+							<i class="ri-file-upload-line"></i> Додати своє дерево (GEDCOM)
+						</button>
+						<button id="btn-denied-logout" class="btn btn-secondary" style="height:44px; min-height:44px; justify-content:center; border-radius:10px;">
+							<i class="ri-logout-box-r-line"></i> Вийти з акаунту
+						</button>
+					</div>
+				</div>
+			</div>
+		`;
+
+		const btnImport = document.getElementById("btn-denied-import-tree");
+		if (btnImport) {
+			btnImport.onclick = () => {
+				const gedcomOverlay = document.getElementById("gedcom-overlay");
+				if (gedcomOverlay) {
+					gedcomOverlay.classList.remove("hidden");
+					gedcomOverlay.classList.add("show");
+				}
+			};
+		}
+
+		const btnLogout = document.getElementById("btn-denied-logout");
+		if (btnLogout) {
+			btnLogout.onclick = () => {
+				this.authManager.logout();
+			};
+		}
 	}
 
 	_handleGlobalPopupClick(e) {

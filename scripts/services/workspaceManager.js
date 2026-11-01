@@ -35,7 +35,22 @@ export class WorkspaceManager {
 	 * Ініціалізація реєстру просторів із збережених даних або дефолтних налаштувань
 	 */
 	async init(userConfig = {}) {
-		this.isMainAdmin = !!(userConfig.isMainAdmin || userConfig.canShare);
+		this.isMainAdmin = !!userConfig.isMainAdmin;
+		const hasAuthorTreeAccess = userConfig.hasAuthorTreeAccess !== false;
+
+		// Якщо доступ до дерева автора відкликано, негайно очищуємо локально кешовані таблиці та kinship
+		if (!hasAuthorTreeAccess && typeof localforage !== "undefined") {
+			try {
+				const keys = await localforage.keys();
+				for (const k of keys) {
+					if (k.includes("/data/db/") || k.startsWith("kinship_index_") || k === "store_version") {
+						await localforage.removeItem(k);
+					}
+				}
+			} catch (e) {
+				console.warn("Помилка очищення кешу дерева автора:", e);
+			}
+		}
 
 		let savedMeta = [];
 		try {
@@ -45,42 +60,60 @@ export class WorkspaceManager {
 			console.warn("Помилка читання geneo_workspaces_v1:", e);
 		}
 
-		// Завжди гарантуємо наявність основного дерева автора
-		const authorWs = {
-			...DEFAULT_AUTHOR_WORKSPACE,
-			isOwner: this.isMainAdmin, // Тільки автор є власником свого дерева
-		};
-
 		const customList = Array.isArray(savedMeta)
 			? savedMeta.filter((w) => w && w.id && w.id !== DEFAULT_AUTHOR_WORKSPACE_ID)
 			: [];
 
-		this.workspaces = [authorWs, ...customList];
+		// Дерево автора додається ТІЛЬКИ якщо користувач має до нього доступ
+		if (hasAuthorTreeAccess) {
+			const authorWs = {
+				...DEFAULT_AUTHOR_WORKSPACE,
+				isOwner: this.isMainAdmin, // Тільки головний адмін є власником дерева автора
+			};
+			this.workspaces = [authorWs, ...customList];
+		} else {
+			this.workspaces = [...customList];
+		}
 
-		// Визначення активного простору: URL param ?ws=... -> localStorage -> fallback
+		// Визначення активного простору
 		const urlParams = new URLSearchParams(window.location.search);
 		const requestedWsId = urlParams.get("ws");
 		const storedWsId = localStorage.getItem(STORAGE_KEYS.ACTIVE_WS_ID);
 
-		const targetId = requestedWsId || storedWsId || DEFAULT_AUTHOR_WORKSPACE_ID;
+		let targetId = requestedWsId || storedWsId;
+		if (!hasAuthorTreeAccess && targetId === DEFAULT_AUTHOR_WORKSPACE_ID) {
+			targetId = customList.length > 0 ? customList[0].id : null;
+		} else if (!targetId) {
+			targetId = hasAuthorTreeAccess ? DEFAULT_AUTHOR_WORKSPACE_ID : (customList[0]?.id || null);
+		}
+
 		const found = this.workspaces.find((w) => w.id === targetId);
 
 		if (found) {
 			this.activeWorkspaceId = found.id;
 			this.activeWorkspace = found;
-		} else {
+			localStorage.setItem(STORAGE_KEYS.ACTIVE_WS_ID, this.activeWorkspaceId);
+		} else if (hasAuthorTreeAccess && this.workspaces.length > 0) {
 			this.activeWorkspaceId = DEFAULT_AUTHOR_WORKSPACE_ID;
-			this.activeWorkspace = authorWs;
+			this.activeWorkspace = this.workspaces[0];
+			localStorage.setItem(STORAGE_KEYS.ACTIVE_WS_ID, this.activeWorkspaceId);
+		} else if (customList.length > 0) {
+			this.activeWorkspaceId = customList[0].id;
+			this.activeWorkspace = customList[0];
+			localStorage.setItem(STORAGE_KEYS.ACTIVE_WS_ID, this.activeWorkspaceId);
+		} else {
+			this.activeWorkspaceId = null;
+			this.activeWorkspace = null;
+			localStorage.removeItem(STORAGE_KEYS.ACTIVE_WS_ID);
 		}
 
-		localStorage.setItem(STORAGE_KEYS.ACTIVE_WS_ID, this.activeWorkspaceId);
 		this._persistMeta();
 
 		return this.activeWorkspace;
 	}
 
 	getActiveWorkspace() {
-		return this.activeWorkspace || { ...DEFAULT_AUTHOR_WORKSPACE };
+		return this.activeWorkspace;
 	}
 
 	listWorkspaces() {
@@ -110,6 +143,10 @@ export class WorkspaceManager {
 	 */
 	async loadActiveEngine(userConfig = {}) {
 		const ws = this.getActiveWorkspace();
+
+		if (!ws || (ws.id === DEFAULT_AUTHOR_WORKSPACE_ID && userConfig.hasAuthorTreeAccess === false)) {
+			return null;
+		}
 
 		if (ws.type === "bundled") {
 			return await fetchAllData(userConfig);

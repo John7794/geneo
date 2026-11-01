@@ -48,12 +48,18 @@ export async function fetchAllData(userConfig = {}) {
 
 		// Якщо в кеші немає або версія оновилася — завантажуємо через мережу
 		try {
+			const token = localStorage.getItem("auth_token") || "";
+			const fetchHeaders = { "Accept": "application/json" };
+			if (token) fetchHeaders["Authorization"] = `Bearer ${token}`;
+
 			// Спочатку пробуємо прямий статичний файл, якщо ні — API
 			let res = await fetch(`./data/kinship.json?v=${version}`, {
-				headers: { "Accept": "application/json" }
+				headers: fetchHeaders,
 			});
 			if (!res.ok) {
-				res = await fetch(`/api/data/kinship?v=${version}`);
+				res = await fetch(`/api/data/kinship?v=${version}`, {
+					headers: fetchHeaders,
+				});
 			}
 			if (!res.ok) throw new Error("HTTP " + res.status);
 			

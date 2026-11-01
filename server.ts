@@ -290,6 +290,14 @@ app.use(cookieParser());
 
 // Роздача /data зі статичним кешуванням
 app.use("/data", async (req, res, next) => {
+  // Захист родовідних даних автора від несанкціонованого доступу
+  if (req.path.includes("/db/") || req.path.includes("kinship.json")) {
+    const hasAccess = await canAccessAuthorTree(req);
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Доступ до дерева автора обмежено або відкликано." });
+    }
+  }
+
   if (req.path.includes("metadata.json") || req.path.includes("basic.csv")) {
     await ensureLatestDataFromFirestore();
   }
@@ -302,11 +310,10 @@ app.use("/data", async (req, res, next) => {
   );
 
   if (fileToSend) {
-    // metadata.json не кешуємо, але великі файли та kinship.json кешуємо з валідацією
     if (req.path.includes("metadata.json")) {
       res.setHeader("Cache-Control", "no-cache, must-revalidate");
     } else {
-      res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=86400");
+      res.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate");
     }
     return res.sendFile(fileToSend);
   }
@@ -315,11 +322,16 @@ app.use("/data", async (req, res, next) => {
 
 // Ендпоінт індексу спорідненості
 app.get("/api/data/kinship", async (req, res) => {
+  const hasAccess = await canAccessAuthorTree(req);
+  if (!hasAccess) {
+    return res.status(403).json({ error: "Доступ до дерева автора обмежено або відкликано." });
+  }
+
   await ensureLatestDataFromFirestore();
   const file = resolveDataFile("kinship.json");
   if (fs.existsSync(file)) {
     res.setHeader("Content-Type", "application/json");
-    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=86400");
+    res.setHeader("Cache-Control", "private, no-cache, no-store, must-revalidate");
     return res.sendFile(file);
   }
   res.status(404).json({ error: "Kinship index not found" });
@@ -507,6 +519,29 @@ function checkCanSync(req: express.Request): boolean {
   return process.env.NODE_ENV !== "production";
 }
 
+async function canAccessAuthorTree(req: express.Request): Promise<boolean> {
+  const user = getAuthenticatedUser(req);
+  if (!user) {
+    return process.env.NODE_ENV !== "production" && !process.env.FIREBASE_SERVICE_ACCOUNT;
+  }
+  if (adminEmailsList.some((a) => a.includes(user) || user.includes(a))) {
+    return true;
+  }
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      let snap = await fdb.collection("shares").where("email", "==", user).get();
+      if (snap.empty) {
+        snap = await fdb.collection("shares").where("value", "==", user).get();
+      }
+      return !snap.empty;
+    } catch (e) {
+      console.error("canAccessAuthorTree error:", e);
+      return false;
+    }
+  }
+  return process.env.NODE_ENV !== "production";
+}
+
 async function checkCanShare(req: express.Request): Promise<boolean> {
   const user = getAuthenticatedUser(req);
   if (!user) return false;
@@ -514,7 +549,10 @@ async function checkCanShare(req: express.Request): Promise<boolean> {
 
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
-      const snap = await fdb.collection("shares").where("email", "==", user).get();
+      let snap = await fdb.collection("shares").where("email", "==", user).get();
+      if (snap.empty) {
+        snap = await fdb.collection("shares").where("value", "==", user).get();
+      }
       if (!snap.empty) {
         const shareData = snap.docs[0].data();
         return !!shareData.canShare;
@@ -1486,7 +1524,7 @@ app.get("/api/shares", async (req, res) => {
 app.get("/api/config", async (req, res) => {
   const user = getAuthenticatedUser(req);
   if (user) {
-    const isMainAdmin = adminEmailsList.some(a => a.includes(user) || user.includes(a));
+    const isMainAdmin = adminEmailsList.some((a) => a.includes(user) || user.includes(a));
     const userProfile = await findUserByEmail(user);
 
     if (isMainAdmin) {
@@ -1495,6 +1533,7 @@ app.get("/api/config", async (req, res) => {
         canShare: true,
         canSync: true,
         isMainAdmin: true,
+        hasAuthorTreeAccess: true,
         user: {
           email: user,
           displayName: userProfile?.displayName || user.split("@")[0],
@@ -1506,7 +1545,10 @@ app.get("/api/config", async (req, res) => {
 
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       try {
-        const snap = await fdb.collection("shares").where("email", "==", user).get();
+        let snap = await fdb.collection("shares").where("email", "==", user).get();
+        if (snap.empty) {
+          snap = await fdb.collection("shares").where("value", "==", user).get();
+        }
         if (!snap.empty) {
           const shareData = snap.docs[0].data();
           res.json({ 
@@ -1514,6 +1556,7 @@ app.get("/api/config", async (req, res) => {
             canShare: !!shareData.canShare, 
             canSync: !!shareData.canSync, 
             isMainAdmin: false,
+            hasAuthorTreeAccess: true,
             hiddenProfiles: shareData.hiddenProfiles || [],
             user: {
               email: user,
@@ -1528,16 +1571,17 @@ app.get("/api/config", async (req, res) => {
       }
     }
 
-    // Default registered owner user
+    // Default registered user who is NOT main admin and NOT in shares (access revoked or not granted)
     res.json({
       authenticated: true,
-      canShare: true, // Власник своїх дерев
+      canShare: false,
       canSync: false,
       isMainAdmin: false,
+      hasAuthorTreeAccess: false,
       user: {
         email: user,
         displayName: userProfile?.displayName || user.split("@")[0],
-        role: userProfile?.role || "owner",
+        role: "guest",
       },
     });
     return;
@@ -1547,6 +1591,7 @@ app.get("/api/config", async (req, res) => {
       canShare: true,
       canSync: true,
       isMainAdmin: true,
+      hasAuthorTreeAccess: true,
       user: {
         email: "dev-user@geneo.app",
         displayName: "Розробник (Локальний)",

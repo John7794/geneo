@@ -31,7 +31,19 @@ export async function checkDataVersion() {
 
 	try {
 		// cache-busting запит до metadata.json залишається, оскільки це первинна перевірка
-		const response = await fetch(`./data/db/metadata.json?t=${Date.now()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+		const token = localStorage.getItem("auth_token") || "";
+		const headers = { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' };
+		if (token) headers['Authorization'] = `Bearer ${token}`;
+
+		const response = await fetch(`./data/db/metadata.json?t=${Date.now()}`, { cache: 'no-store', headers });
+
+		if (response.status === 403) {
+			// Доступ до даних автора відкликано
+			if (typeof localforage !== "undefined") {
+				await localforage.clear().catch(() => {});
+			}
+			return "access_denied";
+		}
 
 		if (response.ok) {
 			const meta = await response.json();
@@ -80,9 +92,18 @@ export async function fetchCsv(url) {
 
 	const fetchPromise = (async () => {
 		// URL вже містить параметр версії, сформований у модулі api.js
-		const response = await fetch(url, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+		const token = localStorage.getItem("auth_token") || "";
+		const headers = { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' };
+		if (token) headers['Authorization'] = `Bearer ${token}`;
 
-		if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+		const response = await fetch(url, { cache: 'no-store', headers });
+
+		if (!response.ok) {
+			if (response.status === 403 && typeof localforage !== "undefined") {
+				await localforage.clear().catch(() => {});
+			}
+			throw new Error(`HTTP ${response.status} for ${url}`);
+		}
 
 		const csvText = await response.text();
 
