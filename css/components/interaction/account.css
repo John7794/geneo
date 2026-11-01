@@ -648,7 +648,7 @@ select.form-input {
 }
 
 .form-inputs-row input.form-input {
-	flex: 1 1 200px;
+	flex: 1 1 auto;
 	min-width: 180px;
 }
 
@@ -1540,13 +1540,16 @@ select.form-input {
 	}
 
 	.form-inputs-row .form-input,
+	.form-inputs-row input.form-input,
 	.form-inputs-row select,
 	.form-inputs-row button {
+		flex: none !important;
 		width: 100% !important;
 		max-width: 100% !important;
 		min-width: 0 !important;
 		height: 44px !important;
 		min-height: 44px !important;
+		max-height: 44px !important;
 		box-sizing: border-box !important;
 		font-size: 0.95rem !important;
 		border-radius: 10px !important;
