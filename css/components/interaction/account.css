@@ -74,18 +74,55 @@
 
 .account-modal-header {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: space-between;
 	padding: 1.25rem 1.5rem;
 	background: var(--color-bg-subtle, #f8fafc);
 	border-bottom: 1px solid var(--color-border);
 	flex-shrink: 0;
+	gap: 12px;
+}
+
+.account-modal-header .modal-close {
+	flex-shrink: 0;
+	margin-left: 8px;
+	margin-top: 2px;
 }
 
 .account-user-badge-header {
 	display: flex;
 	align-items: center;
 	gap: 14px;
+	flex: 1;
+	min-width: 0;
+}
+
+.account-user-meta {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.account-name-badge-row {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px 10px;
+	min-width: 0;
+}
+
+.account-name-badge-row h3,
+.account-user-meta h3 {
+	margin: 0;
+	font-size: 1.15rem;
+	font-weight: 700;
+	color: var(--color-text-main);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
 }
 
 .account-avatar-picker-wrap {
@@ -183,6 +220,8 @@ input[type="file"].hidden-file-input {
 	padding: 2px 8px;
 	border-radius: 12px;
 	letter-spacing: 0.02em;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .account-role-badge.badge-owner {
@@ -1683,4 +1722,109 @@ select.form-input {
 		font-size: 0.875rem !important;
 		border-radius: 8px !important;
 	}
+}
+
+/* Стилі для вертикальних карток Google Диску в кабінеті */
+.drive-connection-status.vertical-card-layout {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 12px;
+	padding: 1rem 1.25rem;
+	background: var(--color-bg-subtle, var(--color-bg-card));
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg, 12px);
+}
+
+.drive-connection-status.vertical-card-layout .status-indicator {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 0.95rem;
+	color: var(--color-text-main);
+}
+
+.drive-connection-status.vertical-card-layout .status-action-row {
+	width: 100%;
+}
+
+.drive-connection-status.vertical-card-layout .status-action-row .btn {
+	width: 100% !important;
+	justify-content: center !important;
+	height: 42px !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	border-radius: 10px !important;
+}
+
+.drive-tools-card {
+	margin-top: 16px;
+	padding: 16px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg, 12px);
+	background: var(--color-bg-subtle, var(--color-bg-card));
+	color: var(--color-text-main);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.drive-tools-card-header {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 10px;
+}
+
+.drive-tools-card-title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--color-text-main);
+}
+
+.drive-tools-btn-group {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	flex-wrap: wrap;
+}
+
+.drive-tools-btn-group .btn {
+	flex: 1 1 calc(50% - 4px);
+	min-width: 130px;
+	height: 40px !important;
+	padding: 0 12px !important;
+	justify-content: center !important;
+	box-sizing: border-box !important;
+	border-radius: 8px !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+}
+
+@media (max-width: 440px) {
+	.drive-tools-btn-group .btn {
+		flex: 1 1 100% !important;
+		width: 100% !important;
+	}
+}
+
+.drive-tools-footer {
+	border-top: 1px solid var(--color-border);
+	padding-top: 12px;
+	display: flex;
+	width: 100%;
+}
+
+.drive-tools-footer .btn {
+	width: 100% !important;
+	justify-content: center !important;
+	height: 40px !important;
+	font-size: 13.5px !important;
+	font-weight: 600 !important;
+	border-radius: 8px !important;
 }

@@ -180,8 +180,7 @@ export class AccountModalManager {
 		}
 
 		if (nameContainer) {
-			const roleHtml = roleContainer ? roleContainer.outerHTML : "";
-			nameContainer.innerHTML = `${user?.displayName || "Користувач"} ${roleHtml}`;
+			nameContainer.textContent = user?.displayName || "Користувач";
 		}
 		if (emailContainer) emailContainer.textContent = user?.email || "local@geneo.app";
 
@@ -479,24 +478,28 @@ export class AccountModalManager {
 					</pre>
 				</div>
 
-				<div class="drive-connection-status single-row-layout">
+				<div class="drive-connection-status vertical-card-layout">
 					<div class="status-indicator">
 						<span class="status-dot ${isDriveConnected ? "green" : "gray"}"></span>
 						<span>Статус: <strong>${isDriveConnected ? "Підключено до Google Диску" : "Локальне сховище (IndexedDB)"}</strong></span>
 					</div>
-					<button id="btn-toggle-account-gdrive" type="button" class="btn ${isDriveConnected ? "btn-secondary" : "btn-primary"} btn-drive-single-row">
-						<i class="ri-google-fill"></i>
-						<span>${isDriveConnected ? "Відключити Google Диск" : "Підключити Google Диск"}</span>
-					</button>
+					<div class="status-action-row">
+						<button id="btn-toggle-account-gdrive" type="button" class="btn ${isDriveConnected ? "btn-secondary" : "btn-primary"}">
+							<i class="ri-google-fill"></i>
+							<span>${isDriveConnected ? "Відключити Google Диск" : "Підключити Google Диск"}</span>
+						</button>
+					</div>
 				</div>
 
 				<!-- АВТОМАТИЗАЦІЯ ТАБЛИЦЬ ТА РОЗШИРЕНЕ КЕРУВАННЯ -->
-				<div class="drive-tools-card" style="margin-top: 16px; padding: 16px; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; background: var(--bg-card, #ffffff);">
-					<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-						<h4 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px;">
-							<i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script)
-						</h4>
-						<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+				<div class="drive-tools-card">
+					<div class="drive-tools-card-header">
+						<div class="drive-tools-card-title-row">
+							<h4 class="drive-tools-card-title">
+								<i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script)
+							</h4>
+						</div>
+						<div class="drive-tools-btn-group">
 							<button id="btn-account-copy-script" type="button" class="btn btn-outline btn-sm">
 								<i class="ri-file-copy-line"></i> Скопіювати код
 							</button>
@@ -505,10 +508,10 @@ export class AccountModalManager {
 							</a>
 						</div>
 					</div>
-					<p class="text-sm text-muted" style="margin: 0 0 12px 0;">
+					<p class="text-sm text-muted">
 						Встановіть фірмовий скрипт у вашу Google Таблицю для автоматичного оновлення зв'язків та повної інтеграції з Geneo.
 					</p>
-					<div style="border-top: 1px solid var(--border-color, #e2e8f0); padding-top: 12px; display: flex; justify-content: flex-end;">
+					<div class="drive-tools-footer">
 						<button id="btn-account-open-drive-modal" type="button" class="btn btn-secondary btn-sm">
 							<i class="ri-folder-shared-line"></i> Розгорнути структуру / Менеджер Google Диску
 						</button>

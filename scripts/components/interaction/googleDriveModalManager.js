@@ -111,12 +111,14 @@ export class GoogleDriveModalManager {
 				<!-- СТАТУС ПІДКЛЮЧЕННЯ -->
 				<div class="gdrive-status-card ${isConnected ? "connected" : "disconnected"}">
 					<div class="status-card-header">
-						<div class="gdrive-logo-badge">
-							<i class="ri-google-fill"></i>
-						</div>
-						<div class="status-card-info">
-							<h3>${isConnected ? "Google Диск підключено" : "Google Диск не підключено"}</h3>
-							<p>${isConnected ? (userInfo?.email || "Особистий обліковий запис Google") : "Зберігайте базу даних та фотографії на власному Диску (BYOS)"}</p>
+						<div class="status-card-main">
+							<div class="gdrive-logo-badge">
+								<i class="ri-google-fill"></i>
+							</div>
+							<div class="status-card-info">
+								<h3>${isConnected ? "Google Диск підключено" : "Google Диск не підключено"}</h3>
+								<p>${isConnected ? (userInfo?.email || "Особистий обліковий запис Google") : "Зберігайте базу даних та фотографії на власному Диску (BYOS)"}</p>
+							</div>
 						</div>
 						<div class="status-card-action">
 							${
@@ -154,10 +156,14 @@ export class GoogleDriveModalManager {
 				<!-- СТРУКТУРА ПАПОК -->
 				<div class="gdrive-section-card">
 					<div class="section-card-header">
-						<h4><i class="ri-folder-shared-line"></i> Ієрархія папок Geneo на вашому Google Диску:</h4>
-						<button id="btn-gdrive-deploy-structure" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
-							<i class="ri-folder-add-line"></i> ${folderMap ? "Перевірити / Оновити структуру" : "Розгорнути структуру"}
-						</button>
+						<div class="section-card-title-row">
+							<h4><i class="ri-folder-shared-line"></i> Ієрархія папок Geneo на вашому Google Диску:</h4>
+						</div>
+						<div class="section-card-action-row">
+							<button id="btn-gdrive-deploy-structure" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
+								<i class="ri-folder-add-line"></i> ${folderMap ? "Перевірити / Оновити структуру" : "Розгорнути структуру"}
+							</button>
+						</div>
 					</div>
 
 					<div class="gdrive-tree-preview">
@@ -184,10 +190,14 @@ export class GoogleDriveModalManager {
 				<!-- СИНХРОНІЗАЦІЯ ДЕРЕВА -->
 				<div class="gdrive-section-card">
 					<div class="section-card-header">
-						<h4><i class="ri-refresh-line"></i> Синхронізація активного дерева:</h4>
-						<button id="btn-gdrive-sync-db" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
-							<i class="ri-upload-cloud-line"></i> Синхронізувати зараз
-						</button>
+						<div class="section-card-title-row">
+							<h4><i class="ri-refresh-line"></i> Синхронізація активного дерева:</h4>
+						</div>
+						<div class="section-card-action-row">
+							<button id="btn-gdrive-sync-db" class="btn btn-primary btn-sm" ${!isConnected ? "disabled" : ""}>
+								<i class="ri-upload-cloud-line"></i> Синхронізувати зараз
+							</button>
+						</div>
 					</div>
 					<p class="text-sm text-muted">
 						Дерево: <strong>«${activeWs?.name || "Поточне дерево"}»</strong>. Всі 31 таблиця родоводу будуть збережені та синхронізовані в папку <code>Geneo/db/</code> на вашому Диску.
@@ -201,7 +211,9 @@ export class GoogleDriveModalManager {
 				<!-- GOOGLE APPS SCRIPT ДЛЯ СИНХРОНІЗАЦІЇ 31 ТАБЛИЦІ -->
 				<div class="gdrive-section-card">
 					<div class="section-card-header script-tools-header">
-						<h4><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script):</h4>
+						<div class="section-card-title-row">
+							<h4><i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script):</h4>
+						</div>
 						<div class="script-btn-group">
 							<button id="btn-copy-apps-script" type="button" class="btn btn-outline btn-sm">
 								<i class="ri-file-copy-line"></i> Скопіювати код

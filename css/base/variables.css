@@ -48,6 +48,8 @@
 	--color-text: var(--color-text-main);
 	--text-muted: var(--color-text-muted);
 	--border-color: var(--color-border);
+	--bg-card: var(--color-bg-card);
+	--bg-body: var(--color-bg-body);
 
 	/* Специфічні кольори для родоводу */
 	--color-male: #e0f2fe; /* Світло-синій для чоловіків */
