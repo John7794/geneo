@@ -486,6 +486,31 @@ export class AccountModalManager {
 						<span>${isDriveConnected ? "Відключити Google Диск" : "Підключити Google Диск"}</span>
 					</button>
 				</div>
+
+				<!-- АВТОМАТИЗАЦІЯ ТАБЛИЦЬ ТА РОЗШИРЕНЕ КЕРУВАННЯ -->
+				<div class="drive-tools-card" style="margin-top: 16px; padding: 16px; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; background: var(--bg-card, #ffffff);">
+					<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+						<h4 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+							<i class="ri-code-s-slash-line" style="color: #2563eb;"></i> Автоматизація таблиць (Geneo Apps Script)
+						</h4>
+						<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+							<button id="btn-account-copy-script" type="button" class="btn btn-outline btn-sm">
+								<i class="ri-file-copy-line"></i> Скопіювати код
+							</button>
+							<a href="/google-apps-script/GeneoAutoSync.gs" download="GeneoAutoSync.gs" class="btn btn-primary btn-sm">
+								<i class="ri-download-cloud-line"></i> Завантажити .gs
+							</a>
+						</div>
+					</div>
+					<p class="text-sm text-muted" style="margin: 0 0 12px 0;">
+						Встановіть фірмовий скрипт у вашу Google Таблицю для автоматичного оновлення зв'язків та повної інтеграції з Geneo.
+					</p>
+					<div style="border-top: 1px solid var(--border-color, #e2e8f0); padding-top: 12px; display: flex; justify-content: flex-end;">
+						<button id="btn-account-open-drive-modal" type="button" class="btn btn-secondary btn-sm">
+							<i class="ri-folder-shared-line"></i> Розгорнути структуру / Менеджер Google Диску
+						</button>
+					</div>
+				</div>
 			</div>
 		`;
 	}
@@ -823,7 +848,10 @@ export class AccountModalManager {
 							}
 							await fetch("/api/user/drive-status", {
 								method: "POST",
-								headers: { "Content-Type": "application/json" },
+								headers: {
+									"Content-Type": "application/json",
+									Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
+								},
 								body: JSON.stringify({ driveInfo: null }),
 							}).catch(() => {});
 						} finally {
@@ -860,7 +888,10 @@ export class AccountModalManager {
 
 						await fetch("/api/user/drive-status", {
 							method: "POST",
-							headers: { "Content-Type": "application/json" },
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
+							},
 							body: JSON.stringify({ driveInfo }),
 						}).catch(() => {});
 
@@ -870,6 +901,40 @@ export class AccountModalManager {
 					} finally {
 						this.render();
 					}
+				}
+			};
+		}
+
+		// Копіювання коду Apps Script
+		const copyScriptBtn = this.modal.querySelector("#btn-account-copy-script");
+		if (copyScriptBtn) {
+			copyScriptBtn.onclick = async () => {
+				try {
+					copyScriptBtn.disabled = true;
+					copyScriptBtn.innerHTML = `<i class="ri-loader-4-line spin"></i> Отримання...`;
+					const res = await fetch("/google-apps-script/GeneoAutoSync.gs");
+					const code = await res.text();
+					await navigator.clipboard.writeText(code);
+					copyScriptBtn.innerHTML = `<i class="ri-check-line"></i> Скопійовано!`;
+					setTimeout(() => {
+						copyScriptBtn.disabled = false;
+						copyScriptBtn.innerHTML = `<i class="ri-file-copy-line"></i> Скопіювати код`;
+					}, 2000);
+				} catch (err) {
+					alert("Помилка копіювання скрипта: " + err.message);
+					copyScriptBtn.disabled = false;
+					copyScriptBtn.innerHTML = `<i class="ri-file-copy-line"></i> Скопіювати код`;
+				}
+			};
+		}
+
+		// Відкриття розширеного модального вікна Google Диску
+		const openModalBtn = this.modal.querySelector("#btn-account-open-drive-modal");
+		if (openModalBtn) {
+			openModalBtn.onclick = () => {
+				this.close();
+				if (this.driveModalManager) {
+					this.driveModalManager.open();
 				}
 			};
 		}

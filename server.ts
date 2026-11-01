@@ -1405,6 +1405,20 @@ app.post("/api/user/drive-status", async (req, res) => {
   res.json({ success: true, driveInfo });
 });
 
+// РОЗДАЧА GOOGLE APPS SCRIPT (GeneoAutoSync.gs)
+app.get("/google-apps-script/GeneoAutoSync.gs", (_req, res) => {
+  const localGas = path.join(process.cwd(), "google-apps-script", "GeneoAutoSync.gs");
+  const distGas = path.join(process.cwd(), "dist", "google-apps-script", "GeneoAutoSync.gs");
+  const targetPath = fs.existsSync(localGas) ? localGas : distGas;
+
+  if (fs.existsSync(targetPath)) {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.sendFile(targetPath);
+  } else {
+    res.status(404).send("GeneoAutoSync.gs not found");
+  }
+});
+
 // ОНОВЛЕННЯ ПРОФІЛЮ КОРИСТУВАЧА (Ім'я, Аватар)
 app.post("/api/user/profile", async (req, res) => {
   const email = getAuthenticatedUser(req);

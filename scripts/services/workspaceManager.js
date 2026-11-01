@@ -149,7 +149,9 @@ export class WorkspaceManager {
 		}
 
 		if (ws.type === "bundled") {
-			return await fetchAllData(userConfig);
+			const engine = await fetchAllData(userConfig);
+			this.engine = engine;
+			return engine;
 		}
 
 		// Локальний простір (імпортований GEDCOM)
@@ -183,6 +185,7 @@ export class WorkspaceManager {
 					{}, // kinshipData
 				);
 
+				this.engine = engine;
 				return engine;
 			} catch (err) {
 				console.error(`Помилка завантаження локального дерева ${ws.id}:`, err);
@@ -191,7 +194,13 @@ export class WorkspaceManager {
 			}
 		}
 
-		return await fetchAllData(userConfig);
+		const fallbackEngine = await fetchAllData(userConfig);
+		this.engine = fallbackEngine;
+		return fallbackEngine;
+	}
+
+	setEngine(engine) {
+		this.engine = engine;
 	}
 
 	/**

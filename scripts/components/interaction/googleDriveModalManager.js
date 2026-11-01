@@ -239,7 +239,7 @@ export class GoogleDriveModalManager {
 					btnConnect.disabled = true;
 					btnConnect.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> Підключення...`;
 
-					const user = this.auth?.getUser();
+					const user = this.auth?.getUser ? this.auth.getUser() : null;
 					const userEmail = user?.email && user.email.includes("@") ? user.email : "user.drive@gmail.com";
 					const userName = user?.displayName || "Користувач Google";
 
@@ -250,18 +250,28 @@ export class GoogleDriveModalManager {
 						email: userEmail,
 					});
 
+					const driveInfo = {
+						connected: true,
+						email: userEmail,
+						folderName: "Geneo",
+						updatedAt: Date.now(),
+					};
+
+					if (this.auth?.user) {
+						this.auth.user.connectedDrive = driveInfo;
+						try {
+							localStorage.setItem(this.auth._storageKeyUser, JSON.stringify(this.auth.user));
+						} catch (e) {}
+					}
+
 					// Збереження статусу на сервері
 					await fetch("/api/user/drive-status", {
 						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							driveInfo: {
-								connected: true,
-								email: userEmail,
-								folderName: "Geneo",
-								updatedAt: Date.now(),
-							},
-						}),
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
+						},
+						body: JSON.stringify({ driveInfo }),
 					}).catch(() => {});
 
 					this.render();
@@ -279,9 +289,18 @@ export class GoogleDriveModalManager {
 			btnDisconnect.onclick = async () => {
 				if (confirm("Відключити зв'язок з вашим Google Диском?")) {
 					this.drive.disconnect();
+					if (this.auth?.user) {
+						this.auth.user.connectedDrive = null;
+						try {
+							localStorage.setItem(this.auth._storageKeyUser, JSON.stringify(this.auth.user));
+						} catch (e) {}
+					}
 					await fetch("/api/user/drive-status", {
 						method: "POST",
-						headers: { "Content-Type": "application/json" },
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
+						},
 						body: JSON.stringify({ driveInfo: null }),
 					}).catch(() => {});
 					this.render();

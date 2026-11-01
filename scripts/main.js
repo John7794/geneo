@@ -109,6 +109,9 @@ class App {
 			}
 
 			this.engine = await this.workspaceManager.loadActiveEngine(userConfig);
+			if (this.engine) {
+				this.workspaceManager.setEngine(this.engine);
+			}
 
 			if (!this.engine) {
 				this._initBasicManagers();

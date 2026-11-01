@@ -555,7 +555,7 @@ export class GoogleDriveService {
 		}
 
 		const db = workspace.dbData;
-		const PapaUnparse = window.Papa?.unparse || this._fallbackCsvUnparse;
+		const PapaUnparse = window.Papa?.unparse ? window.Papa.unparse.bind(window.Papa) : this._fallbackCsvUnparse.bind(this);
 
 		const tables = [
 			{ name: "basic.csv", data: db.basic },
