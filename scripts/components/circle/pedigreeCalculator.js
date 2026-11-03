@@ -122,6 +122,11 @@ export function getGenerationRibbonLabelBySectors(gen, sectors, lineageMode, isR
 		if (sosa === 5) return "Баба (по татові)";
 		if (sosa === 6) return "Дідо (по мамі)";
 		if (sosa === 7) return "Баба (по мамі)";
+		if (sosa >= 8 && sosa <= 15) return sosa % 2 === 0 ? "Прадід" : "Прабаба";
+		if (sosa >= 16) {
+			const n = Math.floor(Math.log2(sosa)) - 2;
+			return sosa % 2 === 0 ? `Пра(${n})дід` : `Пра(${n})баба`;
+		}
 	}
 
 	// Покоління з бінарним розгалуженням
@@ -135,9 +140,11 @@ export function getGenerationRibbonLabelBySectors(gen, sectors, lineageMode, isR
 
 	if (gRel === 1) return "Батьки";
 	if (gRel === 2) {
-		const targetSosa = getLineageBranchTargetSosa(lineageMode);
-		if (targetSosa === 2) return "Дідусі (по татові)";
-		if (targetSosa === 3) return "Дідусі (по мамі)";
+		if (isRootProband) {
+			const targetSosa = getLineageBranchTargetSosa(lineageMode);
+			if (targetSosa === 2) return "Дідусі (по татові)";
+			if (targetSosa === 3) return "Дідусі (по мамі)";
+		}
 		return "Дідусі";
 	}
 	if (gRel === 3) return "Прадідусі";
@@ -454,14 +461,10 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 		}
 	}
 
-	// 7. Визначення базового номера Sosa для CurrentProband відносно Root_1
-	let probandSosa = 1;
-	for (const [s, pid] of ahnentafelMap.entries()) {
-		if (pid === curIdStr) {
-			probandSosa = s;
-			break;
-		}
-	}
+	// 7. Базовий номер Sosa для CurrentProband у його віялі ЗАВЖДИ дорівнює 1.
+	// Це гарантує, що для будь-якої центральної особи кільце 1 — це її Батьки (Sosa 2, 3),
+	// кільце 2 — Дідусі (Sosa 4..7), кільце 3 — Прадідусі (Sosa 8..15) тощо.
+	const probandSosa = 1;
 
 	// 8. Рекурсивна побудова секторів за універсальною кутовою моделлю
 	const ringsData = Array.from({ length: maxGenerations + 1 }, () => []);
@@ -547,8 +550,10 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 		// Випадок 1: Транзитне кільце 360° (перебуваємо на ланцюжку до BranchTarget і ще не дійшли кінця)
 		if (idxInPath !== -1 && idxInPath < path.length - 1) {
 			const nextPid = path[idxInPath + 1];
-			const nextSosa = pathSosas[idxInPath + 1];
-			const nextHemi = (nextSosa % 2 === 0 || nextSosa === 4 || nextSosa === 5) ? "paternal" : "maternal";
+			const parents = getParentsOfPerson(engine, pidStr);
+			const isFather = String(parents.fatherId || "").trim() === String(nextPid).trim();
+			const nextSosa = isFather ? 2 * sosa : 2 * sosa + 1;
+			const nextHemi = isFather ? "paternal" : "maternal";
 
 			buildFanNodes(nextPid, nextSosa, ringIndex + 1, 0, 360, true, nextHemi);
 			return;

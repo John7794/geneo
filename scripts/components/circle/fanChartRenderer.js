@@ -201,11 +201,11 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 	// Бейджі ідентифікації рівнів поколінь вздовж верхнього вертикального розділювача
 	const levelLabels = {
 		1: "Батьки",
-		2: "Діди",
-		3: "Прадіди",
-		4: "Пра(2)діди",
-		5: "Пра(3)діди",
-		6: "Пра(4)діди",
+		2: "Дідусі",
+		3: "Прадідусі",
+		4: "Пра(2)дідусі",
+		5: "Пра(3)дідусі",
+		6: "Пра(4)дідусі",
 	};
 
 	const levelPillsGroup = document.createElementNS(svgNS, "g");
@@ -238,7 +238,7 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 		pillG.setAttribute("class", "fan-level-pill");
 		pillG.setAttribute("transform", `translate(${cx}, ${pillY.toFixed(1)})`);
 
-		const pillW = labelText.length > 7 ? 68 : (labelText.length > 5 ? 56 : 46);
+		const pillW = labelText.length > 9 ? 84 : (labelText.length > 7 ? 70 : (labelText.length > 5 ? 56 : 46));
 		const pillH = 17;
 
 		const rect = document.createElementNS(svgNS, "rect");
