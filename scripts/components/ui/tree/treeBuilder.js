@@ -104,8 +104,12 @@ export function renderCardHTML(
 		safeStatus === "true" ||
 		safeStatus === "так" ||
 		safeStatus === "+";
+	const isIndirect = safeStatus === "2" || safeStatus === "indirect" || safeStatus === "побічно";
 
-	const statusClass = !isConfirmed ? UI_CLASSES.treeNodeHypothetical : "";
+	let statusClass = "";
+	if (!isConfirmed) {
+		statusClass = isIndirect ? "tree-node--indirect" : UI_CLASSES.treeNodeHypothetical;
+	}
 
 	const DB = context.db || {};
 	let cachedB = "";

@@ -153,14 +153,6 @@
 .fan-sector--paternal.fan-sector--gen-6 .fan-sector-shape { fill: #dbeafe; }
 .fan-sector--paternal.fan-sector--gen-7 .fan-sector-shape { fill: #eff6ff; }
 
-/* Диференціація гілок дідуся і бабусі по батькові */
-.fan-sector--paternal.fan-sector--q2.fan-sector--gen-2 .fan-sector-shape { fill: #6366f1; }
-.fan-sector--paternal.fan-sector--q2.fan-sector--gen-3 .fan-sector-shape { fill: #818cf8; }
-.fan-sector--paternal.fan-sector--q2.fan-sector--gen-4 .fan-sector-shape { fill: #a5b4fc; }
-.fan-sector--paternal.fan-sector--q2.fan-sector--gen-5 .fan-sector-shape { fill: #c7d2fe; }
-.fan-sector--paternal.fan-sector--q2.fan-sector--gen-6 .fan-sector-shape { fill: #e0e7ff; }
-.fan-sector--paternal.fan-sector--q2.fan-sector--gen-7 .fan-sector-shape { fill: #eef2ff; }
-
 /* --- Материнська лінія (Right hemisphere: Корал / Рожевий / Рубіновий) --- */
 .fan-sector--maternal.fan-sector--gen-1 .fan-sector-shape { fill: #e11d48; }
 .fan-sector--maternal.fan-sector--gen-2 .fan-sector-shape { fill: #f43f5e; }
@@ -170,15 +162,16 @@
 .fan-sector--maternal.fan-sector--gen-6 .fan-sector-shape { fill: #ffe4e6; }
 .fan-sector--maternal.fan-sector--gen-7 .fan-sector-shape { fill: #fff1f2; }
 
-/* Диференціація гілок дідуся і бабусі по матері */
-.fan-sector--maternal.fan-sector--q3.fan-sector--gen-2 .fan-sector-shape { fill: #ec4899; }
-.fan-sector--maternal.fan-sector--q3.fan-sector--gen-3 .fan-sector-shape { fill: #f472b6; }
-.fan-sector--maternal.fan-sector--q3.fan-sector--gen-4 .fan-sector-shape { fill: #f9a8d4; }
-.fan-sector--maternal.fan-sector--q3.fan-sector--gen-5 .fan-sector-shape { fill: #fbcfe8; }
-.fan-sector--maternal.fan-sector--q3.fan-sector--gen-6 .fan-sector-shape { fill: #fdf2f8; }
-.fan-sector--maternal.fan-sector--q3.fan-sector--gen-7 .fan-sector-shape { fill: #fdf4ff; }
+/* --- 3 рівні підтвердження зв'язку предків (контури дуг) --- */
+.fan-sector--confirmed .fan-sector-shape {
+	stroke-dasharray: none;
+}
 
-/* --- Гіпотетичний зв'язок (пунктирний контур) --- */
+.fan-sector--indirect .fan-sector-shape {
+	stroke-dasharray: 2.5 2;
+	stroke-width: 1.8px;
+}
+
 .fan-sector--hypothetical .fan-sector-shape {
 	stroke-dasharray: 4 2.5;
 	stroke-width: 1.8px;
@@ -210,13 +203,6 @@
 :root.theme-dark .fan-sector--paternal.fan-sector--gen-6 .fan-sector-shape { fill: #2d5186; }
 :root.theme-dark .fan-sector--paternal.fan-sector--gen-7 .fan-sector-shape { fill: #3864a2; }
 
-:root.theme-dark .fan-sector--paternal.fan-sector--q2.fan-sector--gen-2 .fan-sector-shape { fill: #4338ca; }
-:root.theme-dark .fan-sector--paternal.fan-sector--q2.fan-sector--gen-3 .fan-sector-shape { fill: #3730a3; }
-:root.theme-dark .fan-sector--paternal.fan-sector--q2.fan-sector--gen-4 .fan-sector-shape { fill: #312e81; }
-:root.theme-dark .fan-sector--paternal.fan-sector--q2.fan-sector--gen-5 .fan-sector-shape { fill: #3b3790; }
-:root.theme-dark .fan-sector--paternal.fan-sector--q2.fan-sector--gen-6 .fan-sector-shape { fill: #4843a8; }
-:root.theme-dark .fan-sector--paternal.fan-sector--q2.fan-sector--gen-7 .fan-sector-shape { fill: #5752c4; }
-
 :root.theme-dark .fan-sector--maternal.fan-sector--gen-1 .fan-sector-shape { fill: #be123c; }
 :root.theme-dark .fan-sector--maternal.fan-sector--gen-2 .fan-sector-shape { fill: #9f1239; }
 :root.theme-dark .fan-sector--maternal.fan-sector--gen-3 .fan-sector-shape { fill: #881337; }
@@ -224,13 +210,6 @@
 :root.theme-dark .fan-sector--maternal.fan-sector--gen-5 .fan-sector-shape { fill: #5c1630; }
 :root.theme-dark .fan-sector--maternal.fan-sector--gen-6 .fan-sector-shape { fill: #4a1226; }
 :root.theme-dark .fan-sector--maternal.fan-sector--gen-7 .fan-sector-shape { fill: #5e142e; }
-
-:root.theme-dark .fan-sector--maternal.fan-sector--q3.fan-sector--gen-2 .fan-sector-shape { fill: #db2777; }
-:root.theme-dark .fan-sector--maternal.fan-sector--q3.fan-sector--gen-3 .fan-sector-shape { fill: #be185d; }
-:root.theme-dark .fan-sector--maternal.fan-sector--q3.fan-sector--gen-4 .fan-sector-shape { fill: #9d174d; }
-:root.theme-dark .fan-sector--maternal.fan-sector--q3.fan-sector--gen-5 .fan-sector-shape { fill: #831843; }
-:root.theme-dark .fan-sector--maternal.fan-sector--q3.fan-sector--gen-6 .fan-sector-shape { fill: #6b1437; }
-:root.theme-dark .fan-sector--maternal.fan-sector--q3.fan-sector--gen-7 .fan-sector-shape { fill: #7e163f; }
 
 :root.theme-dark .fan-sector--unknown .fan-sector-shape {
 	fill: #1e293b;
@@ -604,6 +583,11 @@
 	color: var(--c-success-text, #137333);
 }
 
+.fan-flyout-card .profile-status-pill.status-badge--indirect {
+	background-color: var(--c-info-bg, #e8f0fe);
+	color: var(--c-info-text, #1a73e8);
+}
+
 .fan-flyout-card .profile-status-pill.status-badge--hypothetical {
 	background-color: var(--c-warning-bg, #fef7e0);
 	color: var(--c-warning-text, #b06000);
@@ -614,9 +598,86 @@
 	color: #81c995;
 }
 
+:root.theme-dark .fan-flyout-card .profile-status-pill.status-badge--indirect {
+	background-color: rgba(138, 180, 248, 0.15);
+	color: #8ab4f8;
+}
+
 :root.theme-dark .fan-flyout-card .profile-status-pill.status-badge--hypothetical {
 	background-color: rgba(253, 214, 99, 0.15);
 	color: #fdd663;
+}
+
+/* Блок списку документальних підтверджень */
+.fan-flyout-confirmations {
+	margin: 8px 0;
+	padding: 8px 10px;
+	background: rgba(0, 0, 0, 0.03);
+	border-radius: var(--radius-sm, 6px);
+	border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+}
+
+:root.theme-dark .fan-flyout-confirmations {
+	background: rgba(255, 255, 255, 0.04);
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+.fan-flyout-confirmations-title {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-text-main, #0f172a);
+	margin-bottom: 5px;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+:root.theme-dark .fan-flyout-confirmations-title {
+	color: #f1f5f9;
+}
+
+.fan-flyout-confirmations-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.fan-flyout-confirmations-list li {
+	font-size: 11px;
+	color: var(--color-text-muted, #64748b);
+	display: flex;
+	align-items: flex-start;
+	gap: 5px;
+	line-height: 1.35;
+}
+
+:root.theme-dark .fan-flyout-confirmations-list li {
+	color: #cbd5e1;
+}
+
+.fan-flyout-confirmations-list li i {
+	color: var(--color-primary, #2563eb);
+	font-size: 12px;
+	margin-top: 1px;
+	flex-shrink: 0;
+}
+
+.fan-flyout-confirmations-text {
+	font-size: 11px;
+	color: var(--color-text-muted, #64748b);
+	line-height: 1.35;
+}
+
+:root.theme-dark .fan-flyout-confirmations-text {
+	color: #cbd5e1;
+}
+
+/* Коли картка показується при hover (не закріплена), pointer-events: none запобігає мигтінню */
+.fan-flyout-card.is-hover {
+	pointer-events: none !important;
 }
 
 .fan-flyout-close {

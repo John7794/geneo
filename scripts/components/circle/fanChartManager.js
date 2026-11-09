@@ -22,6 +22,7 @@ export class FanChartManager {
 		// Множина активних поколінь (підтримка комбінації з декількох рівнів)
 		this.activeGens = new Set(["all"]);
 		this.selectedSosa = null;
+		this.isPinnedFlyout = false;
 
 		// Векторний трансформ SVG <g id="fan-viewport">
 		this.scale = 1;
@@ -435,8 +436,16 @@ export class FanChartManager {
 		if (!sosaStr) return;
 		const sosa = Number(sosaStr);
 
-		// Хувер просто виділяє та підсвічує гілку
+		// Хувер виділяє та підсвічує гілку
 		this._highlightBranch(sosa);
+
+		// Якщо картка не зафіксована кліком і пристрій з курсором (десктоп) — підтягуємо дані при наведенні
+		if (!this.isPinnedFlyout && e.pointerType !== "touch") {
+			const sectorData = this.pedigreeData?.sosaMap?.get(sosa);
+			if (sectorData && sectorData.isKnown) {
+				this.showFlyout(sectorData, e.clientX, e.clientY, false);
+			}
+		}
 	}
 
 	_handleSectorOut(e) {
@@ -445,11 +454,17 @@ export class FanChartManager {
 		const nextSector = related?.closest(".fan-sector, .fan-proband-group");
 		if (!nextSector) {
 			this._clearBranchHighlight();
+			if (!this.isPinnedFlyout) {
+				this.hideFlyout();
+			}
 		}
 	}
 
 	_handleCanvasLeave() {
 		this._clearBranchHighlight();
+		if (!this.isPinnedFlyout) {
+			this.hideFlyout();
+		}
 	}
 
 	_highlightBranch(sosa) {
@@ -574,6 +589,7 @@ export class FanChartManager {
 		if (!target) {
 			this.selectedSosa = null;
 			this._highlightSelectedSector(null);
+			this.isPinnedFlyout = false;
 			this.hideFlyout();
 			return;
 		}
@@ -586,6 +602,7 @@ export class FanChartManager {
 		if (sectorData && sectorData.isKnown) {
 			this.selectedSosa = sosa;
 			this._highlightSelectedSector(sosa);
+			this.isPinnedFlyout = true;
 			this.showFlyout(sectorData, e.clientX, e.clientY, true);
 		}
 	}
@@ -670,12 +687,61 @@ export class FanChartManager {
 		const dates = p.dates || p.lifespan || "";
 		const displayDates = sectorData.lifeYears || dates;
 
-		// Бейдж статусу підтвердження як у профілі (без зайвих іконок)
-		const statusBadgeHtml = `
-			<div class="profile-status-pill ${isConfirmed ? "status-badge--confirmed" : "status-badge--hypothetical"}">
-				<span class="status-text">${isConfirmed ? "Підтверджений зв'язок" : "Гіпотетичний зв'язок"}</span>
-			</div>
-		`;
+		// Бейдж статусу підтвердження: 3 рівні
+		const confStatus = sectorData.confirmationStatus || (sectorData.isConfirmed ? "confirmed" : "hypothetical");
+		let statusBadgeHtml = "";
+		if (confStatus === "confirmed") {
+			statusBadgeHtml = `
+				<div class="profile-status-pill status-badge--confirmed">
+					<i class="ri-checkbox-circle-line" style="margin-right: 4px;"></i>
+					<span class="status-text">Підтверджений зв'язок</span>
+				</div>
+			`;
+		} else if (confStatus === "indirect") {
+			statusBadgeHtml = `
+				<div class="profile-status-pill status-badge--indirect">
+					<i class="ri-link" style="margin-right: 4px;"></i>
+					<span class="status-text">Опосередкований зв'язок</span>
+				</div>
+			`;
+		} else {
+			statusBadgeHtml = `
+				<div class="profile-status-pill status-badge--hypothetical">
+					<i class="ri-question-line" style="margin-right: 4px;"></i>
+					<span class="status-text">Гіпотетичний зв'язок</span>
+				</div>
+			`;
+		}
+
+		// Документальні підтвердження (список джерел: метричний запис, сповідні відомості, ревізькі казки тощо)
+		let confirmationsHtml = "";
+		const confList = sectorData.confirmationsList || [];
+		if (confList.length > 0) {
+			const itemsHtml = confList
+				.map((c) => `<li><i class="ri-article-line"></i> <span>${escapeHtml(c)}</span></li>`)
+				.join("");
+			confirmationsHtml = `
+				<div class="fan-flyout-confirmations">
+					<div class="fan-flyout-confirmations-title">
+						<i class="ri-shield-check-line"></i> Документальні підтвердження:
+					</div>
+					<ul class="fan-flyout-confirmations-list">
+						${itemsHtml}
+					</ul>
+				</div>
+			`;
+		} else if (confStatus === "indirect") {
+			confirmationsHtml = `
+				<div class="fan-flyout-confirmations">
+					<div class="fan-flyout-confirmations-title">
+						<i class="ri-information-line"></i> Документальне підтвердження:
+					</div>
+					<div class="fan-flyout-confirmations-text">
+						Побічні свідчення / непрямі джерела
+					</div>
+				</div>
+			`;
+		}
 
 		const recordsHtml = sectorData.hasRecords
 			? `<div class="fan-flyout-badge-records"><i class="ri-file-text-line"></i> Документів: ${sectorData.recordsCount}</div>`
@@ -716,6 +782,7 @@ export class FanChartManager {
 				${birthHtml}
 				${deathHtml}
 				${jobHtml}
+				${confirmationsHtml}
 				${recordsHtml}
 			</div>
 			<div class="fan-flyout-actions">
@@ -729,6 +796,11 @@ export class FanChartManager {
 		`;
 
 		this.flyout.classList.remove("hidden");
+		if (isPinned) {
+			this.flyout.classList.remove("is-hover");
+		} else {
+			this.flyout.classList.add("is-hover");
+		}
 
 		// Прив'язка кнопок дій
 		this.flyout.querySelector("#fan-btn-flyout-close")?.addEventListener("click", () => this.hideFlyout());
@@ -766,8 +838,10 @@ export class FanChartManager {
 	}
 
 	hideFlyout() {
+		this.isPinnedFlyout = false;
 		if (this.flyout) {
 			this.flyout.classList.add("hidden");
+			this.flyout.classList.remove("is-hover");
 		}
 	}
 

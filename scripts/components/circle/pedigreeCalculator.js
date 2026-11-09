@@ -1,6 +1,6 @@
 // ./scripts/components/circle/pedigreeCalculator.js
 
-import { findPersonDetails } from "../../utils/personUtils.js";
+import { findPersonDetails, resolveStatus, parseConfirmations } from "../../utils/personUtils.js";
 
 /**
  * Отримує назву спорідненості за номером Sosa-Stradonitz згідно зі схемою проєкту:
@@ -234,6 +234,8 @@ export function getQuadrant(sosa) {
 
 /**
  * Допоміжна функція отримання батьків особи з engine
+ * Гарантує, що якщо вказаний тільки один з батьків (батько або мати),
+ * він не буде дублюватися у слот протилежної статі.
  */
 export function getParentsOfPerson(engine, pid) {
 	if (!pid) return { fatherId: null, motherId: null };
@@ -241,36 +243,67 @@ export function getParentsOfPerson(engine, pid) {
 	let fId = null;
 	let mId = null;
 
+	const parentCandidates = new Set();
+
+	// 1. Отримання батьків з engine.getParents
 	if (engine && typeof engine.getParents === "function") {
 		const pList = engine.getParents(cleanPid) || [];
 		for (const p of pList) {
-			const pNode = engine.getPerson(p);
-			if (pNode?.gender === "m" && !fId) fId = String(p).trim();
-			else if (pNode?.gender === "f" && !mId) mId = String(p).trim();
-			else if (!fId) fId = String(p).trim();
-			else if (!mId) mId = String(p).trim();
+			if (p) parentCandidates.add(String(p).trim());
 		}
 	}
 
-	if (!fId || !mId) {
-		const pNode = engine?.getPerson ? engine.getPerson(cleanPid) : null;
-		const parentIds = pNode?.parents || [];
-		for (const p of parentIds) {
-			const parentNode = engine.getPerson(p);
-			if (parentNode?.gender === "m" && !fId) fId = String(p).trim();
-			else if (parentNode?.gender === "f" && !mId) mId = String(p).trim();
-			else if (!fId) fId = String(p).trim();
-			else if (!mId) mId = String(p).trim();
+	// 2. Отримання батьків з вузла персони
+	const pNode = engine?.getPerson ? engine.getPerson(cleanPid) : null;
+	if (pNode?.parents && Array.isArray(pNode.parents)) {
+		for (const p of pNode.parents) {
+			if (p) parentCandidates.add(String(p).trim());
 		}
 	}
 
+	// 3. Розподіл кандидатів строго за статтю
+	for (const candidateId of parentCandidates) {
+		const candidate = engine?.getPerson ? engine.getPerson(candidateId) : null;
+		const g = candidate?.gender ? String(candidate.gender).trim().toLowerCase() : "";
+		if (g === "m" && !fId) {
+			fId = candidateId;
+		} else if (g === "f" && !mId) {
+			mId = candidateId;
+		}
+	}
+
+	// 4. Додаткова перевірка через familyRoles (parents_bio: "father_id;mother_id")
 	if ((!fId || !mId) && engine?.db) {
 		const roles = engine.db.familyRoles || [];
 		const rRow = roles.find((r) => String(r.person_id).trim() === cleanPid);
 		if (rRow && rRow.parents_bio) {
 			const parts = String(rRow.parents_bio).split(";");
-			if (parts[0] && !fId) fId = parts[0].trim();
-			if (parts[1] && !mId) mId = parts[1].trim();
+			const bioF = parts[0] ? parts[0].trim() : null;
+			const bioM = parts[1] ? parts[1].trim() : null;
+
+			if (bioF && !fId) {
+				const candF = engine?.getPerson ? engine.getPerson(bioF) : null;
+				const gF = candF?.gender ? String(candF.gender).trim().toLowerCase() : "";
+				// Чоловік або невідома стать, але точно не жінка
+				if (gF !== "f") fId = bioF;
+			}
+			if (bioM && !mId) {
+				const candM = engine?.getPerson ? engine.getPerson(bioM) : null;
+				const gM = candM?.gender ? String(candM.gender).trim().toLowerCase() : "";
+				// Жінка або невідома стать, але точно не чоловік
+				if (gM !== "m") mId = bioM;
+			}
+		}
+	}
+
+	// 5. Захист від дублювання: одна особа не може бути одночасно і батьком, і матір'ю
+	if (fId && mId && fId === mId) {
+		const samePerson = engine?.getPerson ? engine.getPerson(fId) : null;
+		const g = samePerson?.gender ? String(samePerson.gender).trim().toLowerCase() : "";
+		if (g === "f") {
+			fId = null;
+		} else {
+			mId = null;
 		}
 	}
 
@@ -498,14 +531,17 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 		const span = Math.abs(endAngle - startAngle);
 		const mid = span >= 359.9 ? 270 : (startAngle + endAngle) / 2;
 
-		// Статус зв'язку
-		const rawStatus = String(personDetails?.status || "").trim().toLowerCase();
-		const isConfirmed = isKnown && (
-			rawStatus === "1" || rawStatus === "confirmed" || rawStatus === "true" || rawStatus === "так" || rawStatus === "+"
-		);
+		// 3 рівні підтвердження зв'язку та документальні підтвердження
+		const rawBase = isKnown ? engine?.db?.basic?.find((r) => String(r.person_id || r.id) === personId) : null;
+		const rawConf = personDetails?.confirmations || rawBase?.confirmations || rawBase?.["підтвердження"] || rawBase?.["документальні підтвердження"] || "";
+		const confirmationsList = personDetails?.confirmationsList?.length ? personDetails.confirmationsList : parseConfirmations(rawConf);
+		const rawStatus = rawBase?.status !== undefined ? rawBase.status : (personDetails?.rawStatus || personDetails?.status || "");
+		const confirmationStatus = resolveStatus(rawStatus, rawConf);
+		const isConfirmed = isKnown && confirmationStatus === "confirmed";
+		const isIndirect = isKnown && confirmationStatus === "indirect";
+		const isHypothetical = isKnown && confirmationStatus === "hypothetical";
 
 		// Дати та місця народження / смерті
-		const rawBase = isKnown ? engine?.db?.basic?.find((r) => String(r.person_id || r.id) === personId) : null;
 		const birthEvent = isKnown ? birthMap.get(personId) : null;
 		const deathEvent = isKnown ? deathMap.get(personId) : null;
 		const birthData = formatEventData(birthEvent, true, rawBase, placesMap);
@@ -525,6 +561,11 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 			personId: personId || null,
 			isKnown,
 			isConfirmed,
+			isIndirect,
+			isHypothetical,
+			confirmationStatus, // "confirmed" | "indirect" | "hypothetical"
+			confirmations: rawConf,
+			confirmationsList,
 			person: personDetails,
 			kinshipTitle: getKinshipTitle(sosa, gender),
 			hasRecords: isKnown && (recordsMap.get(personId) || 0) > 0,

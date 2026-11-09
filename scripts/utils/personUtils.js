@@ -65,24 +65,61 @@ const calculateLifeCycle = (bStr, dStr, vStatus, hasDeathRecord = false) => {
 	};
 };
 
-function resolveStatus(rawStatus) {
+/**
+ * Розбиває рядок документальних підтверджень на окремі записи
+ * Підтримує перенесення рядків (\n), крапку з комою (;) та коми
+ * @param {string} text
+ * @returns {string[]}
+ */
+export function parseConfirmations(text) {
+	if (!text) return [];
+	return String(text)
+		.split(/[\r\n;,]+/)
+		.map((s) => s.trim())
+		.filter(Boolean);
+}
+
+/**
+ * Визначає рівень підтвердження зв'язку:
+ * 1. "confirmed" (пряме документальне підтвердження)
+ * 2. "indirect" (опосередковане / побічне підтвердження)
+ * 3. "hypothetical" (непідтверджений / гіпотетичний зв'язок)
+ * @param {string|number} rawStatus
+ * @param {string} rawConfirmations
+ * @returns {"confirmed"|"indirect"|"hypothetical"}
+ */
+export function resolveStatus(rawStatus, rawConfirmations = "") {
+	const s = String(rawStatus ?? "").trim().toLowerCase();
+	const confStr = String(rawConfirmations ?? "").trim().toLowerCase();
+
+	// 1. Опосередковане / побічне підтвердження (рівень 2)
 	if (
-		rawStatus === undefined ||
-		rawStatus === null ||
-		String(rawStatus).trim() === ""
+		s === "2" ||
+		s === "indirect" ||
+		s === "побічно" ||
+		s === "опосередковано" ||
+		confStr === "побічно" ||
+		confStr.startsWith("побічно") ||
+		confStr.includes("опосередковано") ||
+		confStr.includes("indirect")
 	) {
-		return "hypothetical";
+		return "indirect";
 	}
-	const s = String(rawStatus).trim().toLowerCase();
+
+	// 2. Пряме документальне підтвердження (рівень 1)
 	if (
 		s === "1" ||
 		s === "true" ||
 		s === "+" ||
 		s === "confirmed" ||
-		s === "так"
+		s === "так" ||
+		s === "direct" ||
+		(confStr.length > 0 && confStr !== "0" && confStr !== "false" && confStr !== "непідтверджено" && confStr !== "none")
 	) {
 		return "confirmed";
 	}
+
+	// 3. Непідтверджений / гіпотетичний зв'язок (рівень 3)
 	return "hypothetical";
 }
 
@@ -336,7 +373,14 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 				? rawRow.status
 				: rawRow.fam_status;
 
-	const safeStatus = resolveStatus(rawStatus);
+	const confKey = C?.confirmations || "confirmations";
+	const rawConfirmations =
+		rawRow[confKey] !== undefined
+			? rawRow[confKey]
+			: (rawRow.confirmations || rawRow.confirmation || rawRow.proofs || rawRow.evidence || rawRow.sources || rawRow.documents || rawRow["підтвердження"] || rawRow["документальні підтвердження"] || rawRow["документи"] || "");
+
+	const confirmationsList = parseConfirmations(rawConfirmations);
+	const safeStatus = resolveStatus(rawStatus, rawConfirmations);
 	const lifeCycle = calculateLifeCycle(bDate, dDate, vStatus, hasDeathRecord);
 
 	return {
@@ -385,6 +429,9 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 			rawRow[C?.maritalStatus || "maritalStatus"] || rawRow.maritalStatus || "",
 		kinship: rawRow[C?.note || "note"] || rawRow.note || "",
 		status: safeStatus,
+		rawStatus,
+		confirmations: rawConfirmations,
+		confirmationsList,
 		hasProfile: false,
 		_engine: engineData,
 	};
@@ -443,7 +490,14 @@ function buildBasicPersonObj(basicPerson, nameInfo, exactId, allData) {
 			? basicPerson[statusKey]
 			: basicPerson.status;
 
-	const safeStatus = resolveStatus(rawStatus);
+	const confKey = COLUMNS.basic?.confirmations || "confirmations";
+	const rawConfirmations =
+		basicPerson[confKey] !== undefined
+			? basicPerson[confKey]
+			: (basicPerson.confirmations || basicPerson.confirmation || basicPerson.proofs || basicPerson.evidence || basicPerson.sources || basicPerson.documents || basicPerson["підтвердження"] || basicPerson["документальні підтвердження"] || basicPerson["документи"] || "");
+
+	const confirmationsList = parseConfirmations(rawConfirmations);
+	const safeStatus = resolveStatus(rawStatus, rawConfirmations);
 	const lifeCycle = calculateLifeCycle(bDate, dDate, vStatus, hasDeathRecord);
 
 	return {
@@ -464,6 +518,9 @@ function buildBasicPersonObj(basicPerson, nameInfo, exactId, allData) {
 			basicPerson[COLUMNS.basic?.gender || "gender"] || basicPerson.gender,
 		),
 		status: safeStatus,
+		rawStatus,
+		confirmations: rawConfirmations,
+		confirmationsList,
 		vitalStatus: vStatus,
 		maidenName:
 			nameInfo?.[COLUMNS.names?.bSurname || "bSurname"] ||

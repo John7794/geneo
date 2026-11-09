@@ -181,6 +181,7 @@ export const UI_CLASSES = {
 	statusModifiers: {
 		0: "status-badge--hypothetical",
 		1: "status-badge--confirmed",
+		2: "status-badge--indirect",
 	},
 	years: "years",
 	familyLinkItem: "family-link-item",

@@ -319,13 +319,22 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 	const g = document.createElementNS(svgNS, "g");
 
 	const isSelected = selectedSosa === sosa;
+	let statusClass = "fan-sector--hypothetical";
+	if (isKnown) {
+		if (sector.isConfirmed || sector.confirmationStatus === "confirmed") {
+			statusClass = "fan-sector--confirmed";
+		} else if (sector.isIndirect || sector.confirmationStatus === "indirect") {
+			statusClass = "fan-sector--indirect";
+		}
+	}
+
 	const sectorClass = [
 		"fan-sector",
 		`fan-sector--gen-${generation}`,
 		`fan-sector--${side}`,
 		`fan-sector--q${quadrant}`,
 		isKnown ? "fan-sector--known" : "fan-sector--unknown",
-		isKnown && isConfirmed ? "fan-sector--confirmed" : (isKnown ? "fan-sector--hypothetical" : ""),
+		isKnown ? statusClass : "",
 		isSelected ? "fan-sector--selected" : "",
 	].filter(Boolean).join(" ");
 

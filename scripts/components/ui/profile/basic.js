@@ -25,16 +25,10 @@ export function renderBasicBlock(person) {
 	const safePhotoSrc = rawPhotoSrc.startsWith("data:") ? rawPhotoSrc : encodeURI(rawPhotoSrc);
 	const defaultAvatar = getAvatarUrl(null, female, pName, pSurname);
 
-	// 🔥 Комбінований статус: генеруємо І ТЕКСТ, І ІКОНКУ
-	const rawStatus = String(person.status || "")
-		.trim()
-		.toLowerCase();
-	const isConfirmed =
-		rawStatus === "1" ||
-		rawStatus === "confirmed" ||
-		rawStatus === "true" ||
-		rawStatus === "так" ||
-		rawStatus === "+";
+	// 🔥 Комбінований статус: 3 рівні підтвердження
+	const statusVal = person.status || "";
+	const isConfirmed = statusVal === "confirmed" || statusVal === "1";
+	const isIndirect = statusVal === "indirect" || statusVal === "2";
 
 	let statusTextRaw = "";
 	let modifierClass = "";
@@ -46,6 +40,12 @@ export function renderBasicBlock(person) {
 		modifierClass =
 			UI_CLASSES.statusModifiers?.[1] || "status-badge--confirmed";
 		iconClass = "ri-shield-check-line";
+	} else if (isIndirect) {
+		statusTextRaw =
+			i18n.t("taxonomy.statusIndirect") || "Опосередкований зв'язок";
+		modifierClass =
+			UI_CLASSES.statusModifiers?.[2] || "status-badge--indirect";
+		iconClass = "ri-link";
 	} else {
 		statusTextRaw =
 			i18n.t("taxonomy.statusHypothetical") || "Гіпотетичний зв'язок";
@@ -56,9 +56,16 @@ export function renderBasicBlock(person) {
 
 	const safeStatusText = escapeHtml(statusTextRaw);
 
+	// Формуємо tooltip із переліком документальних підтверджень, якщо вони є
+	const confList = person.confirmationsList || [];
+	let confTooltip = safeStatusText;
+	if (confList.length > 0) {
+		confTooltip += `: ${confList.join(', ')}`;
+	}
+
 	// Додаємо обидва елементи. Відображенням керуватиме CSS.
 	const statusHtml = `
-		<div class="profile-status-pill ${modifierClass}" title="${safeStatusText}">
+		<div class="profile-status-pill ${modifierClass}" title="${escapeHtml(confTooltip)}">
 			<span class="status-text">${safeStatusText}</span>
 			<i class="${iconClass} status-icon" aria-hidden="true" style="display: none; font-size: 16px; line-height: 1;"></i>
 		</div>`;
