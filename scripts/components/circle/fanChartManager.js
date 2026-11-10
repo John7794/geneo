@@ -223,13 +223,12 @@ export class FanChartManager {
 	}
 
 	/**
-	 * Рендерить кнопки поколінь у верхній стрічці
+	 * Рендерить маркери рівнів поколінь у верхній стрічці (статичні інформаційні мітки без активного стану та кліків)
 	 */
 	_renderNavPills() {
 		if (!this.nav || !this.pedigreeData) return;
 
 		const generations = this.pedigreeData.generations || [];
-		const isAllActive = this.activeGens.has("all");
 		const filterMode = document.body.getAttribute("data-status-filter") || "all";
 
 		const totalFiltered = this._getFilteredCount(this.pedigreeData.sectors || []);
@@ -238,16 +237,15 @@ export class FanChartManager {
 			: `${this.pedigreeData.totalKnown}`;
 
 		let html = `
-			<button class="fan-nav-pill ${isAllActive ? "active" : ""}" data-gen="all">
+			<span class="fan-nav-pill" data-gen="all">
 				Усі <span class="fan-nav-pill-badge">${totalBadge}</span>
-			</button>
+			</span>
 		`;
 
 		for (let g = 0; g < generations.length; g++) {
 			const genData = generations[g];
 			if (!genData || genData.knownCount === 0) continue;
 
-			const isGenActive = !isAllActive && (this.activeGens.has(String(g)) || this.activeGens.has(g));
 			const effectiveMode = this._getEffectiveLineageMode();
 			const label = genData.label || getGenerationRibbonLabel(g, effectiveMode);
 
@@ -257,21 +255,13 @@ export class FanChartManager {
 				: `${genData.knownCount}`;
 
 			html += `
-				<button class="fan-nav-pill ${isGenActive ? "active" : ""}" data-gen="${g}">
+				<span class="fan-nav-pill" data-gen="${g}">
 					${label} <span class="fan-nav-pill-badge">${pillBadge}</span>
-				</button>
+				</span>
 			`;
 		}
 
 		this.nav.innerHTML = html;
-
-		// Обробник вибору покоління (підтримка комбінації з декількох рівнів)
-		this.nav.querySelectorAll(".fan-nav-pill").forEach((btn) => {
-			btn.addEventListener("click", (e) => {
-				const gen = btn.getAttribute("data-gen");
-				this.toggleGenerationLevel(gen);
-			});
-		});
 	}
 
 	/**

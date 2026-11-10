@@ -210,6 +210,7 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 
 	const levelPillsGroup = document.createElementNS(svgNS, "g");
 	levelPillsGroup.setAttribute("class", "fan-level-pills-group");
+	levelPillsGroup.setAttribute("pointer-events", "none");
 
 	for (let gen = 1; gen < Math.min(generations.length, ringRadii.length); gen++) {
 		const rInfo = ringRadii[gen];
@@ -237,6 +238,7 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 
 		const pillG = document.createElementNS(svgNS, "g");
 		pillG.setAttribute("class", "fan-level-pill");
+		pillG.setAttribute("pointer-events", "none");
 		pillG.setAttribute("transform", `translate(${cx}, ${pillY.toFixed(1)})`);
 
 		const pillW = labelText.length > 9 ? 74 : (labelText.length > 7 ? 62 : (labelText.length > 5 ? 50 : 42));

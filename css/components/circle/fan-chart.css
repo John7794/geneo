@@ -92,41 +92,32 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
-	padding: 6px 12px;
+	padding: 5px 11px;
 	font-family: var(--font-family-base);
 	font-size: var(--font-size-xs);
-	font-weight: 600;
+	font-weight: 500;
 	color: var(--color-text-muted);
 	background: transparent;
 	border: 1px solid transparent;
 	border-radius: var(--radius-full);
-	cursor: pointer;
+	cursor: default;
+	pointer-events: none;
+	user-select: none;
 	white-space: nowrap;
-	transition: all var(--transition-fast);
-}
-
-.fan-nav-pill:hover {
-	color: var(--color-text-main);
-	background: var(--color-bg-hover);
-}
-
-.fan-nav-pill.active {
-	color: var(--color-text-inverse);
-	background: var(--color-primary);
-	border-color: var(--color-primary);
-	box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
 }
 
 .fan-nav-pill-badge {
 	font-size: 10px;
-	padding: 1px 5px;
+	font-weight: 600;
+	padding: 1px 6px;
 	border-radius: var(--radius-full);
-	background: rgba(0, 0, 0, 0.08);
+	background: rgba(0, 0, 0, 0.06);
+	color: var(--color-text-main);
 }
 
-.fan-nav-pill.active .fan-nav-pill-badge {
-	background: rgba(255, 255, 255, 0.25);
-	color: #ffffff;
+:root.theme-dark .fan-nav-pill-badge {
+	background: rgba(255, 255, 255, 0.1);
+	color: var(--color-text-main);
 }
 
 /* ==========================================================================
@@ -941,7 +932,8 @@
    ІДЕНТИФІКАЦІЯ РІВНІВ ПОКОЛІНЬ (LEVEL PILLS)
    ========================================================================== */
 .fan-level-pills-group {
-	transition: opacity 0.25s ease;
+	pointer-events: none !important;
+	user-select: none;
 }
 
 .fan-level-pills--hidden {
@@ -949,20 +941,8 @@
 }
 
 .fan-level-pill {
-	pointer-events: auto;
+	pointer-events: none !important;
 	user-select: none;
-	transition: opacity 0.2s ease, transform 0.15s ease;
-}
-
-/* При наведенні миші на віяло плашки стають майже прозорими, щоб відкривати текст під ними */
-.fan-viewport:hover .fan-level-pill {
-	opacity: 0.2;
-}
-
-/* При безпосередньому наведенні на плашку вона повністю проявляється */
-.fan-level-pill:hover {
-	opacity: 1 !important;
-	transform: scale(1.06);
 }
 
 .fan-level-pill-bg {
