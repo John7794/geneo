@@ -80,9 +80,6 @@ export class FanChartManager {
 				<button class="fan-zoom-btn" id="fan-btn-zoom-out" title="Зменшити" aria-label="Зменшити масштаб">
 					<i class="ri-subtract-line"></i>
 				</button>
-				<button class="fan-zoom-btn" id="fan-btn-status-filter" title="Фільтр зв'язку: Усі родичі (клікніть для перемикання)" aria-label="Фільтр достовірності зв'язку">
-					<i class="ri-shield-line"></i>
-				</button>
 				<button class="fan-zoom-btn ${this.showLevelLabels ? "active" : ""}" id="fan-btn-toggle-labels" title="Підписи поколінь" aria-label="Показати або приховати назви поколінь на діаграмі">
 					<i class="ri-price-tag-3-line"></i>
 				</button>

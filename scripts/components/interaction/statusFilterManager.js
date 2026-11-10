@@ -69,22 +69,10 @@ export class StatusFilterManager {
 	}
 
 	_initDOM() {
-		// Кнопка у головному доку
+		// Кнопка у головному доку (#btn-status-filter)
 		const dockBtn = document.getElementById("btn-status-filter");
 		if (dockBtn) {
 			dockBtn.addEventListener("click", () => this.cycleMode());
-		}
-
-		// Кнопка у плаваючих інструментах дерева
-		const treeBtn = document.getElementById("btn-tree-status-filter");
-		if (treeBtn) {
-			treeBtn.addEventListener("click", () => this.cycleMode());
-		}
-
-		// Кнопка у плаваючих інструментах віяла
-		const fanBtn = document.getElementById("fan-btn-status-filter");
-		if (fanBtn) {
-			fanBtn.addEventListener("click", () => this.cycleMode());
 		}
 
 		// Делегування для кнопок мобільного меню
@@ -163,25 +151,7 @@ export class StatusFilterManager {
 			}
 		}
 
-		// 3. Оновлення кнопки в zoom-controls дерева (#btn-tree-status-filter)
-		const treeBtn = document.getElementById("btn-tree-status-filter");
-		if (treeBtn) {
-			treeBtn.setAttribute("title", config.title);
-			treeBtn.className = `btn btn-icon ${config.accentClass}`;
-			const iconEl = treeBtn.querySelector("i");
-			if (iconEl) iconEl.className = config.icon;
-		}
-
-		// 4. Оновлення кнопки в fan-zoom-controls віяла (#fan-btn-status-filter)
-		const fanBtn = document.getElementById("fan-btn-status-filter");
-		if (fanBtn) {
-			fanBtn.setAttribute("title", config.title);
-			fanBtn.className = `fan-zoom-btn ${config.accentClass} ${this.mode !== STATUS_FILTER_MODES.ALL ? "active" : ""}`;
-			const iconEl = fanBtn.querySelector("i");
-			if (iconEl) iconEl.className = config.icon;
-		}
-
-		// 5. Оновлення сегментованого перемикача в мобільному меню
+		// 3. Оновлення сегментованого перемикача в мобільному меню
 		document.querySelectorAll(".mobile-status-seg-btn").forEach((btn) => {
 			const bMode = btn.getAttribute("data-status-filter");
 			btn.classList.toggle("active", bMode === this.mode);
