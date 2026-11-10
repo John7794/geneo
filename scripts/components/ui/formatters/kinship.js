@@ -20,17 +20,18 @@ export function getStatusBadgeHtml(rawStatus) {
 	const badgeClass = UI_CLASSES.statusBadge || "status-badge";
 
 	if (dynamicCssClass) {
-		// Маршрутизація до нового домену таксономій
-		const i18nKey =
-			statusIndex === 1
-				? "taxonomy.statusConfirmed"
-				: "taxonomy.statusHypothetical";
+		let i18nKey = "taxonomy.statusConfirmed";
+		let fallbackText = "Підтверджений зв'язок";
+		if (statusIndex === 2) {
+			i18nKey = "taxonomy.statusIndirect";
+			fallbackText = "Опосередкований зв'язок";
+		} else if (statusIndex === 3 || statusIndex === 0) {
+			i18nKey = "taxonomy.statusHypothetical";
+			fallbackText = "Гіпотетичний зв'язок";
+		}
 
-		// Синхронізація фолбеків з uk.json
-		const fallbackText =
-			statusIndex === 1 ? "Підтверджений зв'язок" : "Гіпотетичний зв'язок";
-
-		const text = escapeHtml(i18n.t(i18nKey) || fallbackText);
+		const val = i18n.t(i18nKey);
+		const text = escapeHtml((val && val !== i18nKey) ? val : fallbackText);
 
 		return `<span class="${badgeClass} ${dynamicCssClass}">${text}</span>`;
 	}

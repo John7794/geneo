@@ -358,6 +358,7 @@
     "taxonomy": {
         "cemetery": "Цвинтар",
         "statusConfirmed": "Підтверджений зв'язок",
+        "statusIndirect": "Опосередкований зв'язок",
         "statusHypothetical": "Гіпотетичний зв'язок",
         "confessionDefault": "Християнство",
         "confessionGkc": "Греко-католицька",

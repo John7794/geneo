@@ -462,10 +462,12 @@ export class AnalyticsManager {
 			    maleCount++; 
 			}
 
-            let isConfirmed = false;
+            let isConfirmed = true;
             if (person.raw) {
                 const rawStatus = String(person.raw[COLUMNS.basic?.status || "status"] || "").trim().toLowerCase();
-                isConfirmed = rawStatus === "1" || rawStatus === "confirmed" || rawStatus === "true" || rawStatus === "так" || rawStatus === "+";
+                if (rawStatus === "3" || rawStatus === "0" || rawStatus === "hypothetical" || rawStatus === "гіпотеза" || rawStatus === "непідтверджено") {
+                    isConfirmed = false;
+                }
             }
             if (isConfirmed) {
                 confirmedCount++;

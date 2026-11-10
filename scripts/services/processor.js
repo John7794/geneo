@@ -188,6 +188,12 @@ export function buildPersonObject(queryId, allData) {
 				? basicRow.status
 				: basicRow[COLUMNS.basic?.status || "status"]
 			: "",
+		sources: basicRow
+			? (basicRow.sources || basicRow.confirmations || basicRow.grounds || basicRow[COLUMNS.basic?.sources || "sources"] || basicRow[COLUMNS.basic?.confirmations || "confirmations"] || "")
+			: "",
+		confirmations: basicRow
+			? (basicRow.sources || basicRow.confirmations || basicRow.grounds || basicRow[COLUMNS.basic?.sources || "sources"] || basicRow[COLUMNS.basic?.confirmations || "confirmations"] || "")
+			: "",
 		vitalStatus: basicRow
 			? basicRow.vital_status !== undefined
 				? basicRow.vital_status

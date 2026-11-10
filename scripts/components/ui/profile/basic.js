@@ -2,7 +2,7 @@
 
 import { APP_CONFIG } from "../../../core/appConfig.js";
 import { i18n } from "../../../core/i18n.js";
-import { getFullName, getAvatarUrl } from "../../../utils/personUtils.js";
+import { getFullName, getAvatarUrl, resolveStatus, parseConfirmations } from "../../../utils/personUtils.js";
 import { isFemale } from "../../../utils/genderUtils.js";
 import { UI_CLASSES } from "../../../core/uiClasses.js";
 import { escapeHtml } from "../../../utils/helpers.js";
@@ -25,44 +25,48 @@ export function renderBasicBlock(person) {
 	const safePhotoSrc = rawPhotoSrc.startsWith("data:") ? rawPhotoSrc : encodeURI(rawPhotoSrc);
 	const defaultAvatar = getAvatarUrl(null, female, pName, pSurname);
 
-	// 🔥 Комбінований статус: 3 рівні підтвердження. Пробанд (ID 1) завжди підтверджений за замовчуванням
+	// 🔥 Комбінований статус: 3 рівні підтвердження. Пробанд (ID 1) та порожні комірки = підтверджено за замовчуванням
 	const isProband1 = String(person.id).trim() === "1" || person.isRoot;
-	const statusVal = isProband1 ? "confirmed" : (person.status || "");
-	const isConfirmed = isProband1 || statusVal === "confirmed" || statusVal === "1";
-	const isIndirect = !isConfirmed && (statusVal === "indirect" || statusVal === "2");
+	const rawSources = person.sources || person.confirmations || person._basic?.sources || person._basic?.confirmations || person.grounds || person._basic?.grounds || "";
+	const resolvedStatus = resolveStatus(person.status, rawSources, isProband1);
+
+	const isConfirmed = isProband1 || resolvedStatus === "confirmed";
+	const isIndirect = !isConfirmed && resolvedStatus === "indirect";
+	const isHypothetical = !isConfirmed && !isIndirect;
 
 	let statusTextRaw = "";
 	let modifierClass = "";
 	let iconClass = "";
+
+	const getSafeTranslation = (key, fallback) => {
+		const val = i18n.t(key);
+		return (val && val !== key) ? val : fallback;
+	};
 
 	if (isProband1) {
 		statusTextRaw = "Вихідна особа (Пробанд)";
 		modifierClass = UI_CLASSES.statusModifiers?.[1] || "status-badge--confirmed";
 		iconClass = "ri-shield-check-line";
 	} else if (isConfirmed) {
-		statusTextRaw =
-			i18n.t("taxonomy.statusConfirmed") || "Підтверджений зв'язок";
-		modifierClass =
-			UI_CLASSES.statusModifiers?.[1] || "status-badge--confirmed";
+		statusTextRaw = getSafeTranslation("taxonomy.statusConfirmed", "Підтверджений зв'язок");
+		modifierClass = UI_CLASSES.statusModifiers?.[1] || "status-badge--confirmed";
 		iconClass = "ri-shield-check-line";
 	} else if (isIndirect) {
-		statusTextRaw =
-			i18n.t("taxonomy.statusIndirect") || "Опосередкований зв'язок";
-		modifierClass =
-			UI_CLASSES.statusModifiers?.[2] || "status-badge--indirect";
+		statusTextRaw = getSafeTranslation("taxonomy.statusIndirect", "Опосередкований зв'язок");
+		modifierClass = UI_CLASSES.statusModifiers?.[2] || "status-badge--indirect";
 		iconClass = "ri-link";
 	} else {
-		statusTextRaw =
-			i18n.t("taxonomy.statusHypothetical") || "Гіпотетичний зв'язок";
-		modifierClass =
-			UI_CLASSES.statusModifiers?.[0] || "status-badge--hypothetical";
+		statusTextRaw = getSafeTranslation("taxonomy.statusHypothetical", "Гіпотетичний зв'язок");
+		modifierClass = UI_CLASSES.statusModifiers?.[0] || "status-badge--hypothetical";
 		iconClass = "ri-question-line";
 	}
 
 	const safeStatusText = escapeHtml(statusTextRaw);
 
-	// Формуємо перелік документальних підтверджень із колонки confirmations
-	const confList = person.confirmationsList || [];
+	// Формуємо перелік документальних підтверджень із колонки confirmations / sources
+	const confList = (person.confirmationsList && person.confirmationsList.length > 0)
+		? person.confirmationsList
+		: parseConfirmations(rawSources);
 	let confTooltip = safeStatusText;
 	if (confList.length > 0) {
 		confTooltip += `: ${confList.join(', ')}`;
