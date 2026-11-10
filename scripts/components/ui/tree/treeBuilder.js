@@ -3,7 +3,7 @@
 import { i18n } from "../../../core/i18n.js";
 import { UI_CLASSES } from "../../../core/uiClasses.js";
 import { isFemale } from "../../../utils/genderUtils.js";
-import { getAvatarUrl } from "../../../utils/personUtils.js";
+import { getAvatarUrl, getEffectivePersonStatus } from "../../../utils/personUtils.js";
 import {
 	clearTreeCache,
 	getCachedPersonDetails,
@@ -89,33 +89,17 @@ export function renderCardHTML(
 		(surname ? `${name} ${surname}` : name).trim(),
 	);
 
-	// За замовчуванням усі предки в дереві є підтвердженими (confirmed = 1),
-	// винятками є лише явні позначки: 2 (непряме) або 3/0 (гіпотеза).
+	// Каскадне успадкування від Пробанда: якщо нащадок має статус 2 чи 3, усі його предки успадковують цей статус
 	const isRootPerson = person.isRoot || safeId === "1" || (context.rootPersonId && safeId === String(context.rootPersonId));
-	const rawStatus =
-		person.status !== undefined ? person.status : person.fam_status;
-	const safeStatus = String(
-		rawStatus !== undefined && rawStatus !== null && rawStatus !== "" ? rawStatus : "confirmed",
-	)
-		.trim()
-		.toLowerCase();
+	
+	const effStatus = isRootPerson
+		? { status: "confirmed", weakest: null }
+		: (person.effectiveStatus
+			? { status: person.effectiveStatus, weakest: person.weakestLink }
+			: getEffectivePersonStatus(safeId, context.engine || context.db || context, context.rootPersonId || "1"));
 
-	const isHypothetical = !isRootPerson && (
-		safeStatus === "3" ||
-		safeStatus === "0" ||
-		safeStatus === "hypothetical" ||
-		safeStatus === "гіпотеза" ||
-		safeStatus === "припущення" ||
-		safeStatus === "false"
-	);
-
-	const isIndirect = !isRootPerson && !isHypothetical && (
-		safeStatus === "2" ||
-		safeStatus === "indirect" ||
-		safeStatus === "побічно" ||
-		safeStatus === "опосередковано"
-	);
-
+	const isHypothetical = !isRootPerson && effStatus.status === "hypothetical";
+	const isIndirect = !isRootPerson && effStatus.status === "indirect";
 	const isConfirmed = isRootPerson || (!isHypothetical && !isIndirect);
 
 	let statusClass = "";

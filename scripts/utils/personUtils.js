@@ -150,6 +150,111 @@ export function resolveStatus(rawStatus, rawConfirmations = "", isProband = fals
 	return "confirmed";
 }
 
+let effectiveStatusCache = null;
+let effectiveStatusRoot = null;
+
+export function clearEffectiveStatusCache() {
+	effectiveStatusCache = null;
+	effectiveStatusRoot = null;
+}
+
+/**
+ * Будує мапу каскадного успадкування статусів для всіх предків Пробанда.
+ * Принцип: "Ланцюг не міцніший за найслабшу ланку". Якщо нащадок має статус 2 або 3,
+ * усі його предки автоматично успадковують цей статус відносно Пробанда.
+ */
+export function getEffectiveStatusMap(allData, rootId = "1") {
+	const strRoot = String(rootId || "1").trim();
+	if (effectiveStatusCache && effectiveStatusRoot === strRoot) {
+		return effectiveStatusCache;
+	}
+
+	const DB = allData?.db || allData || {};
+	const kinship = allData?.kinship || allData?._kinship || {};
+	const basicList = DB?.basic || [];
+
+	const bMap = new Map();
+	if (Array.isArray(basicList)) {
+		basicList.forEach((p) => {
+			const id = String(p.person_id || p.id || "").trim();
+			if (id) bMap.set(id, p);
+		});
+	}
+
+	const getLocal = (id) => {
+		if (id === strRoot) return "confirmed";
+		const p = bMap.get(id);
+		const s = p ? (p.status !== undefined ? p.status : p[COLUMNS.basic?.status || "status"]) : "";
+		const c = p ? (p.sources || p.confirmations || p.grounds || p["підстави"] || p["джерела"] || "") : "";
+		return resolveStatus(s, c, false);
+	};
+
+	const statusMap = new Map();
+	statusMap.set(strRoot, { status: "confirmed", weakest: null, weakestName: null });
+
+	const queue = [strRoot];
+	while (queue.length > 0) {
+		const currId = queue.shift();
+		const currEff = statusMap.get(currId);
+		const parentsStr = kinship[currId]?.p?.bio || "";
+		const parents = parentsStr.split(" ").map((s) => s.trim()).filter(Boolean);
+
+		for (const pId of parents) {
+			const pLocal = getLocal(pId);
+			let pEff = "confirmed";
+			let pWeakest = null;
+			let pWeakestName = null;
+
+			if (currEff.status === "hypothetical" || pLocal === "hypothetical") {
+				pEff = "hypothetical";
+				pWeakest = currEff.status === "hypothetical" ? currEff.weakest : pId;
+			} else if (currEff.status === "indirect" || pLocal === "indirect") {
+				pEff = "indirect";
+				pWeakest = currEff.status === "indirect" ? currEff.weakest : pId;
+			} else {
+				pEff = "confirmed";
+			}
+
+			if (pWeakest) {
+				const wp = bMap.get(pWeakest);
+				if (wp) {
+					pWeakestName = [wp.surname, wp.name, wp.patronymic].filter(Boolean).join(" ");
+				}
+			}
+
+			if (!statusMap.has(pId)) {
+				statusMap.set(pId, { status: pEff, weakest: pWeakest, weakestName: pWeakestName });
+				queue.push(pId);
+			}
+		}
+	}
+
+	effectiveStatusCache = statusMap;
+	effectiveStatusRoot = strRoot;
+	return statusMap;
+}
+
+/**
+ * Повертає ефективний статус особи з урахуванням каскадного успадкування від Пробанда.
+ */
+export function getEffectivePersonStatus(personId, allData, rootId = "1") {
+	const strId = String(personId || "").trim();
+	const strRoot = String(rootId || "1").trim();
+	if (strId === strRoot) return { status: "confirmed", weakest: null, weakestName: null };
+
+	const map = getEffectiveStatusMap(allData, strRoot);
+	if (map && map.has(strId)) {
+		return map.get(strId);
+	}
+
+	// Фолбек: якщо особа не в прямому родоводі Пробанда
+	const DB = allData?.db || allData || {};
+	const p = DB?.basic?.find?.((r) => String(r.person_id || r.id) === strId);
+	const s = p ? p.status : "";
+	const c = p ? (p.sources || p.confirmations || p.grounds || "") : "";
+	return { status: resolveStatus(s, c, false), weakest: null, weakestName: null };
+}
+
 export function resolveRealId(queryId, ctx) {
 	if (!queryId) return null;
 	const exactId = String(queryId).trim();

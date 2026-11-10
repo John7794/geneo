@@ -1,7 +1,7 @@
 // ./scripts/services/processor.js
 
 import { COLUMNS } from "../core/dbSchema.js";
-import { findPersonDetails, resolveRealId } from "../utils/personUtils.js";
+import { findPersonDetails, resolveRealId, getEffectivePersonStatus } from "../utils/personUtils.js";
 import {
 	enrich,
 	parseKinshipIds,
@@ -183,6 +183,9 @@ export function buildPersonObject(queryId, allData) {
 		),
 		hasProfile: true,
 		_engine: allData,
+		effectiveStatus: getEffectivePersonStatus(targetId, allData, "1")?.status || "confirmed",
+		weakestLink: getEffectivePersonStatus(targetId, allData, "1")?.weakest || null,
+		weakestName: getEffectivePersonStatus(targetId, allData, "1")?.weakestName || null,
 		status: basicRow
 			? basicRow.status !== undefined
 				? basicRow.status

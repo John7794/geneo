@@ -28,7 +28,11 @@ export function renderBasicBlock(person) {
 	// 🔥 Комбінований статус: 3 рівні підтвердження. Пробанд (ID 1) та порожні комірки = підтверджено за замовчуванням
 	const isProband1 = String(person.id).trim() === "1" || person.isRoot;
 	const rawSources = person.sources || person.confirmations || person._basic?.sources || person._basic?.confirmations || person.grounds || person._basic?.grounds || "";
-	const resolvedStatus = resolveStatus(person.status, rawSources, isProband1);
+	
+	// Каскадне успадкування статусу зв'язку від Пробанда (найслабша ланка в ланцюгу)
+	const resolvedStatus = isProband1
+		? "confirmed"
+		: (person.effectiveStatus || resolveStatus(person.status, rawSources, false));
 
 	const isConfirmed = isProband1 || resolvedStatus === "confirmed";
 	const isIndirect = !isConfirmed && resolvedStatus === "indirect";
@@ -91,6 +95,12 @@ export function renderBasicBlock(person) {
 					` : `
 						<div class="dark-tooltip-empty">${isProband1 ? "Базова особа родоводу (Пробанд)" : (isIndirect ? "Побічні свідчення / реконструкція" : (isConfirmed ? "Підтверджений родинний зв'язок" : "Без внесених першоджерел"))}</div>
 					`}
+					${person.weakestLink && String(person.weakestLink) !== String(person.id) ? `
+						<div style="font-size: 11px; color: #fcd34d; margin-top: 6px; padding-top: 5px; border-top: 1px dashed rgba(255,255,255,0.15); display: flex; align-items: center; gap: 5px;">
+							<i class="ri-link"></i>
+							<span>Успадковано від нащадка: <strong>${escapeHtml(person.weakestName || ('ID ' + person.weakestLink))}</strong></span>
+						</div>
+					` : ""}
 				</div>
 			</div>
 		</div>`;
