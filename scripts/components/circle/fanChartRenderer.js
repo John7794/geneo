@@ -458,7 +458,7 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 	const { person, gender, isConfirmed } = probandData;
 	const g = document.createElementNS(svgNS, "g");
-	g.setAttribute("class", "fan-proband-group");
+	g.setAttribute("class", "fan-proband-group fan-sector--confirmed");
 	g.setAttribute("data-sosa", "1");
 	if (probandData.personId) g.setAttribute("data-person-id", String(probandData.personId));
 

@@ -536,23 +536,19 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 		const rawConf = personDetails?.sources || personDetails?.confirmations || rawBase?.sources || rawBase?.confirmations || rawBase?.["джерела"] || rawBase?.["підтвердження"] || rawBase?.["документальні підтвердження"] || "";
 		const confirmationsList = personDetails?.confirmationsList?.length ? personDetails.confirmationsList : parseConfirmations(rawConf);
 		const rawStatus = rawBase?.status !== undefined ? rawBase.status : (personDetails?.rawStatus || personDetails?.status || "");
-		const localStatus = resolveStatus(rawStatus, rawConf); // "confirmed" | "indirect" | "hypothetical"
+		
+		// Пробанд (Індекс 1) є нульовою аксіоматичною точкою родоводу ("Я") і ЗАВЖДИ підтверджений за замовчуванням
+		const isProband = ringIndex === 0 || sosa === 1 || String(personId).trim() === root1Id || String(personId).trim() === "1";
+		let localStatus = isProband ? "confirmed" : resolveStatus(rawStatus, rawConf, isProband); // "confirmed" | "indirect" | "hypothetical"
 
 		// Ланцюгова валідація відносно Пробанда (Root): "Ланцюг не міцніший за найслабшу ланку"
 		let chainStatus = localStatus;
 		let weakestLink = null;
 
-		if (ringIndex === 0 || sosa === 1) {
-			chainStatus = localStatus === "hypothetical" ? "hypothetical" : (localStatus === "indirect" ? "indirect" : "confirmed");
-			if (chainStatus !== "confirmed") {
-				weakestLink = {
-					sosa: 1,
-					personId,
-					name: [personDetails?.name || personDetails?.first_name, personDetails?.surname || personDetails?.last_name].filter(Boolean).join(" ") || "Пробанд",
-					kinshipTitle: "Пробанд",
-					status: chainStatus,
-				};
-			}
+		if (isProband) {
+			localStatus = "confirmed";
+			chainStatus = "confirmed";
+			weakestLink = null;
 		} else {
 			const childSosa = Math.floor(sosa / 2);
 			const childSector = sosaMap.get(childSosa);
@@ -586,9 +582,9 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 			}
 		}
 
-		const isConfirmed = isKnown && chainStatus === "confirmed";
-		const isIndirect = isKnown && chainStatus === "indirect";
-		const isHypothetical = isKnown && chainStatus === "hypothetical";
+		const isConfirmed = isKnown && (isProband || chainStatus === "confirmed");
+		const isIndirect = isKnown && !isProband && chainStatus === "indirect";
+		const isHypothetical = isKnown && !isProband && chainStatus === "hypothetical";
 
 		// Дати та місця народження / смерті
 		const birthEvent = isKnown ? birthMap.get(personId) : null;

@@ -89,22 +89,24 @@ export function renderCardHTML(
 		(surname ? `${name} ${surname}` : name).trim(),
 	);
 
-	// 🔥 Строга верифікація статусу. Відсутність маркера = пунктир
+	// 🔥 Строга верифікація статусу. Відсутність маркера = пунктир. Пробанд 1 (корінь) завжди підтверджений за замовчуванням
+	const isRootPerson = person.isRoot || safeId === "1" || (context.rootPersonId && safeId === String(context.rootPersonId));
 	const rawStatus =
 		person.status !== undefined ? person.status : person.fam_status;
 	const safeStatus = String(
-		rawStatus !== undefined && rawStatus !== null ? rawStatus : "hypothetical",
+		rawStatus !== undefined && rawStatus !== null && rawStatus !== "" ? rawStatus : (isRootPerson ? "confirmed" : "hypothetical"),
 	)
 		.trim()
 		.toLowerCase();
 
 	const isConfirmed =
+		isRootPerson ||
 		safeStatus === "1" ||
 		safeStatus === "confirmed" ||
 		safeStatus === "true" ||
 		safeStatus === "так" ||
 		safeStatus === "+";
-	const isIndirect = safeStatus === "2" || safeStatus === "indirect" || safeStatus === "побічно";
+	const isIndirect = !isConfirmed && (safeStatus === "2" || safeStatus === "indirect" || safeStatus === "побічно");
 
 	let statusClass = "";
 	if (!isConfirmed) {

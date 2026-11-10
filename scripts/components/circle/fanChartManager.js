@@ -688,9 +688,17 @@ export class FanChartManager {
 		const displayDates = sectorData.lifeYears || dates;
 
 		// 1. Локальний статус документального батьківства (localStatus)
-		const localStatus = sectorData.localStatus || sectorData.confirmationStatus || (sectorData.isConfirmed ? "confirmed" : "hypothetical");
+		const isProband = Number(sosa) === 1 || String(sectorData.personId).trim() === "1";
+		const localStatus = isProband ? "confirmed" : (sectorData.localStatus || sectorData.confirmationStatus || (sectorData.isConfirmed ? "confirmed" : "hypothetical"));
 		let localStatusBadgeHtml = "";
-		if (localStatus === "confirmed") {
+		if (isProband) {
+			localStatusBadgeHtml = `
+				<div class="fan-status-badge fan-status-badge--confirmed">
+					<i class="ri-checkbox-circle-fill"></i>
+					<span>Вихідна особа родоводу (Підтверджено)</span>
+				</div>
+			`;
+		} else if (localStatus === "confirmed") {
 			localStatusBadgeHtml = `
 				<div class="fan-status-badge fan-status-badge--confirmed">
 					<i class="ri-checkbox-circle-fill"></i>
@@ -714,10 +722,10 @@ export class FanChartManager {
 		}
 
 		// 2. Ланцюговий статус відносно Пробанда (chainStatus)
-		const chainStatus = sectorData.chainStatus || localStatus;
+		const chainStatus = isProband ? "confirmed" : (sectorData.chainStatus || localStatus);
 		let chainNoticeHtml = "";
 		const weakest = sectorData.weakestLink;
-		if (chainStatus !== localStatus && weakest) {
+		if (!isProband && chainStatus !== localStatus && weakest) {
 			const linkName = escapeHtml(weakest.name || `№ ${weakest.sosa}`);
 			if (chainStatus === "indirect") {
 				chainNoticeHtml = `
@@ -751,6 +759,17 @@ export class FanChartManager {
 					<ul class="fan-confirmations-list">
 						${itemsHtml}
 					</ul>
+				</div>
+			`;
+		} else if (isProband) {
+			confirmationsHtml = `
+				<div class="fan-confirmations-block">
+					<div class="fan-confirmations-title">
+						<i class="ri-file-text-line"></i> Документальні джерела:
+					</div>
+					<div class="fan-confirmations-empty">
+						Базова вихідна особа дерева (Пробанд)
+					</div>
 				</div>
 			`;
 		} else if (localStatus === "indirect") {

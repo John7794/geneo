@@ -84,11 +84,17 @@ export function parseConfirmations(text) {
  * 1. "confirmed" (пряме документальне підтвердження) — статус 1
  * 2. "indirect" (опосередковане / побічне підтвердження) — статус 2
  * 3. "hypothetical" (непідтверджений / гіпотетичний зв'язок) — статус 3 або 0
+ * Пробанд (Індекс 1) завжди підтверджений за замовчуванням.
  * @param {string|number} rawStatus
  * @param {string} rawConfirmations
+ * @param {boolean} isProband
  * @returns {"confirmed"|"indirect"|"hypothetical"}
  */
-export function resolveStatus(rawStatus, rawConfirmations = "") {
+export function resolveStatus(rawStatus, rawConfirmations = "", isProband = false) {
+	if (isProband) {
+		return "confirmed";
+	}
+
 	const s = String(rawStatus ?? "").trim().toLowerCase();
 	const confStr = String(rawConfirmations ?? "").trim().toLowerCase();
 
@@ -403,7 +409,8 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 			: (rawRow.sources || rawRow.confirmations || rawRow.confirmation || rawRow.proofs || rawRow.evidence || rawRow.documents || rawRow["підтвердження"] || rawRow["документальні підтвердження"] || rawRow["джерела"] || rawRow["документи"] || "");
 
 	const confirmationsList = parseConfirmations(rawConfirmations);
-	const safeStatus = resolveStatus(rawStatus, rawConfirmations);
+	const isProband1 = String(exactId).trim() === "1";
+	const safeStatus = resolveStatus(rawStatus, rawConfirmations, isProband1);
 	const lifeCycle = calculateLifeCycle(bDate, dDate, vStatus, hasDeathRecord);
 
 	return {
@@ -520,7 +527,8 @@ function buildBasicPersonObj(basicPerson, nameInfo, exactId, allData) {
 			: (basicPerson.sources || basicPerson.confirmations || basicPerson.confirmation || basicPerson.proofs || basicPerson.evidence || basicPerson.documents || basicPerson["підтвердження"] || basicPerson["документальні підтвердження"] || basicPerson["джерела"] || basicPerson["документи"] || "");
 
 	const confirmationsList = parseConfirmations(rawConfirmations);
-	const safeStatus = resolveStatus(rawStatus, rawConfirmations);
+	const isProband1 = String(exactId).trim() === "1";
+	const safeStatus = resolveStatus(rawStatus, rawConfirmations, isProband1);
 	const lifeCycle = calculateLifeCycle(bDate, dDate, vStatus, hasDeathRecord);
 
 	return {

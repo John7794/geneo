@@ -372,7 +372,10 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 	};
 
 	// Сувора інвертована логіка бази даних
-	const resolveStatusUI = (rawStatus) => {
+	const resolveStatusUI = (rawStatus, id = "") => {
+		if (String(id).trim() === "1") {
+			return "confirmed";
+		}
 		if (
 			rawStatus === undefined ||
 			rawStatus === null ||
@@ -390,6 +393,9 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 		) {
 			return "confirmed";
 		}
+		if (s === "2" || s === "indirect" || s === "побічно" || s === "опосередковано") {
+			return "indirect";
+		}
 		return "hypothetical";
 	};
 
@@ -402,7 +408,7 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 			surname: basic[COLUMNS.basic?.surname || "surname"],
 			photo: basic[COLUMNS.basic?.photo || "photo"],
 			gender: basic[COLUMNS.basic?.gender || "gender"],
-			status: resolveStatusUI(basic[COLUMNS.basic?.status || "status"]),
+			status: resolveStatusUI(basic[COLUMNS.basic?.status || "status"], strId),
 			lifeYears: getLifeYears(basic),
 		};
 	}
@@ -421,7 +427,7 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 			surname: fam[COLUMNS.familyList?.surname || "fam_surname"],
 			photo: fam[COLUMNS.familyList?.photo || "fam_photo"],
 			gender: fam[COLUMNS.familyList?.gender || "fam_gender"],
-			status: resolveStatusUI(rawStatus),
+			status: resolveStatusUI(rawStatus, strId),
 			lifeYears: formatRawDates(
 				fam[COLUMNS.familyList?.birthDate || "fam_birth_date"],
 				fam[COLUMNS.familyList?.deathDate || "fam_death_date"],

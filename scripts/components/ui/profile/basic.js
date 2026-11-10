@@ -25,16 +25,21 @@ export function renderBasicBlock(person) {
 	const safePhotoSrc = rawPhotoSrc.startsWith("data:") ? rawPhotoSrc : encodeURI(rawPhotoSrc);
 	const defaultAvatar = getAvatarUrl(null, female, pName, pSurname);
 
-	// 🔥 Комбінований статус: 3 рівні підтвердження
-	const statusVal = person.status || "";
-	const isConfirmed = statusVal === "confirmed" || statusVal === "1";
-	const isIndirect = statusVal === "indirect" || statusVal === "2";
+	// 🔥 Комбінований статус: 3 рівні підтвердження. Пробанд (ID 1) завжди підтверджений за замовчуванням
+	const isProband1 = String(person.id).trim() === "1" || person.isRoot;
+	const statusVal = isProband1 ? "confirmed" : (person.status || "");
+	const isConfirmed = isProband1 || statusVal === "confirmed" || statusVal === "1";
+	const isIndirect = !isConfirmed && (statusVal === "indirect" || statusVal === "2");
 
 	let statusTextRaw = "";
 	let modifierClass = "";
 	let iconClass = "";
 
-	if (isConfirmed) {
+	if (isProband1) {
+		statusTextRaw = "Вихідна особа (Пробанд)";
+		modifierClass = UI_CLASSES.statusModifiers?.[1] || "status-badge--confirmed";
+		iconClass = "ri-shield-check-line";
+	} else if (isConfirmed) {
 		statusTextRaw =
 			i18n.t("taxonomy.statusConfirmed") || "Підтверджений зв'язок";
 		modifierClass =
@@ -80,7 +85,7 @@ export function renderBasicBlock(person) {
 							${confList.map(c => `<li><span class="conf-bullet">•</span> <span>${escapeHtml(c)}</span></li>`).join("")}
 						</ul>
 					` : `
-						<div class="dark-tooltip-empty">${isIndirect ? "Побічні свідчення / реконструкція" : "Без внесених першоджерел"}</div>
+						<div class="dark-tooltip-empty">${isProband1 ? "Базова особа родоводу (Пробанд)" : (isIndirect ? "Побічні свідчення / реконструкція" : "Без внесених першоджерел")}</div>
 					`}
 				</div>
 			</div>
