@@ -73,7 +73,7 @@ export function renderBasicBlock(person) {
 	}
 
 	const statusHtml = `
-		<div class="profile-status-pill ${modifierClass} has-dark-tooltip" title="${escapeHtml(confTooltip)}" tabindex="0">
+		<div class="profile-status-pill ${modifierClass} has-dark-tooltip" aria-label="${escapeHtml(confTooltip)}" tabindex="0" onclick="if(this.dataset.focused==='1'){this.blur();this.dataset.focused='0';}else{this.dataset.focused='1';}" onblur="this.dataset.focused='0';">
 			<span class="status-text">${safeStatusText}</span>
 			<i class="${iconClass} status-icon" aria-hidden="true" style="display: none; font-size: 16px; line-height: 1;"></i>
 

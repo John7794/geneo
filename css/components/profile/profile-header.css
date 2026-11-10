@@ -21,7 +21,7 @@
 	background-color: var(--color-bg-card);
 	border-radius: var(--radius-lg);
 	border: 1px solid var(--color-border);
-	overflow: hidden;
+	overflow: visible;
 	display: flex;
 	flex-direction: column;
 
@@ -54,6 +54,8 @@
 	left: 0;
 	right: 0;
 	height: 120px;
+	border-top-left-radius: inherit;
+	border-top-right-radius: inherit;
 	background: linear-gradient(135deg, #0056b3 0%, #00aaff 100%);
 	z-index: 0;
 	transition:
@@ -216,16 +218,18 @@
 
 .profile-status-dark-tooltip {
 	position: absolute;
-	top: calc(100% + 8px);
+	bottom: calc(100% + 10px);
+	top: auto;
 	left: 50%;
 	transform: translateX(-50%) translateY(4px);
 	min-width: 220px;
-	max-width: 320px;
-	background: rgba(15, 23, 42, 0.92);
-	border: 1px solid rgba(255, 255, 255, 0.14);
+	max-width: 340px;
+	width: max-content;
+	background: rgba(15, 23, 42, 0.95);
+	border: 1px solid rgba(255, 255, 255, 0.16);
 	border-radius: 10px;
-	box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25);
-	padding: 10px 12px;
+	box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.35);
+	padding: 10px 14px;
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
@@ -237,6 +241,19 @@
 	letter-spacing: normal;
 	font-weight: normal;
 	color: #f8fafc;
+	text-align: left;
+}
+
+/* Стрілочка вказівника підказки зверху (вказує вниз на пігулку) */
+.profile-status-dark-tooltip::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 6px 6px 0 6px;
+	border-style: solid;
+	border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent;
 }
 
 .profile-status-pill.has-dark-tooltip:hover .profile-status-dark-tooltip,
@@ -245,6 +262,25 @@
 	visibility: visible;
 	transform: translateX(-50%) translateY(0);
 	pointer-events: auto;
+}
+
+/* У згорнутій шапці при скролі підказка показується знизу під пігулкою */
+.profile-header.is-collapsed .profile-status-dark-tooltip {
+	bottom: auto;
+	top: calc(100% + 10px);
+	transform: translateX(-50%) translateY(-4px);
+}
+
+.profile-header.is-collapsed .profile-status-pill.has-dark-tooltip:hover .profile-status-dark-tooltip,
+.profile-header.is-collapsed .profile-status-pill.has-dark-tooltip:focus .profile-status-dark-tooltip {
+	transform: translateX(-50%) translateY(0);
+}
+
+.profile-header.is-collapsed .profile-status-dark-tooltip::after {
+	top: auto;
+	bottom: 100%;
+	border-width: 0 6px 6px 6px;
+	border-color: transparent transparent rgba(15, 23, 42, 0.95) transparent;
 }
 
 .dark-tooltip-header {
