@@ -404,7 +404,7 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 	const rawConfirmations =
 		rawRow[confKey] !== undefined
 			? rawRow[confKey]
-			: (rawRow.sources || rawRow.confirmations || rawRow.confirmation || rawRow.proofs || rawRow.evidence || rawRow.documents || rawRow["підтвердження"] || rawRow["документальні підтвердження"] || rawRow["джерела"] || rawRow["документи"] || "");
+			: (rawRow.sources || rawRow.confirmations || rawRow.grounds || rawRow.confirmation || rawRow.proofs || rawRow.evidence || rawRow.documents || rawRow["підтвердження"] || rawRow["документальні підтвердження"] || rawRow["джерела"] || rawRow["документи"] || rawRow["підстави"] || rawRow["підстави зв'язку"] || "");
 
 	const confirmationsList = parseConfirmations(rawConfirmations);
 	const isProband1 = String(exactId).trim() === "1";
@@ -522,7 +522,7 @@ function buildBasicPersonObj(basicPerson, nameInfo, exactId, allData) {
 	const rawConfirmations =
 		basicPerson[confKey] !== undefined
 			? basicPerson[confKey]
-			: (basicPerson.sources || basicPerson.confirmations || basicPerson.confirmation || basicPerson.proofs || basicPerson.evidence || basicPerson.documents || basicPerson["підтвердження"] || basicPerson["документальні підтвердження"] || basicPerson["джерела"] || basicPerson["документи"] || "");
+			: (basicPerson.sources || basicPerson.confirmations || basicPerson.grounds || basicPerson.confirmation || basicPerson.proofs || basicPerson.evidence || basicPerson.documents || basicPerson["підтвердження"] || basicPerson["документальні підтвердження"] || basicPerson["джерела"] || basicPerson["документи"] || basicPerson["підстави"] || basicPerson["підстави зв'язку"] || "");
 
 	const confirmationsList = parseConfirmations(rawConfirmations);
 	const isProband1 = String(exactId).trim() === "1";
