@@ -48,6 +48,7 @@
 <link rel="stylesheet" href="/css/components/interaction/relationship.css" />
 <link rel="stylesheet" href="/css/components/interaction/workspaces.css" />
 <link rel="stylesheet" href="/css/components/interaction/account.css" />
+    <link rel="stylesheet" href="/css/components/interaction/status-filter.css" />
     <link rel="stylesheet" href="/css/components/interaction/empty-canvas.css" />
     <link rel="stylesheet" href="/css/components/interaction/mobile-menu.css" />
 <link rel="stylesheet" href="/css/components/interaction/drive.css" />
@@ -161,6 +162,11 @@
                 <button id="btn-lineage" class="btn btn-icon js-open-lineage" title="Гілки роду" aria-label="Гілки роду" data-i18n-title="kinship.toggleTitle">
                     <i class="ri-git-branch-line"></i>
                 </button>
+
+                <button id="btn-status-filter" class="btn btn-icon js-status-filter" title="Фільтр зв'язку: Усі родичі (клікніть для перемикання)" aria-label="Фільтр достовірності зв'язку" data-filter="all">
+                    <i class="ri-shield-line"></i>
+                    <span id="status-filter-badge" class="badge-dot badge-dot--tr hidden"></span>
+                </button>
             </div>
         </div>
 
@@ -227,6 +233,9 @@
 
                 <button id="btn-zoom-out" class="btn btn-icon" title="Зменшити" aria-label="Зменшити масштаб" data-i18n-title="ui.zoomOut">
                     <i class="ri-subtract-line"></i>
+                </button>
+                <button id="btn-tree-status-filter" class="btn btn-icon" title="Фільтр зв'язку: Усі родичі (клікніть для перемикання)" aria-label="Фільтр достовірності зв'язку">
+                    <i class="ri-shield-line"></i>
                 </button>
                 <span id="zoom-level-display" class="text-meta zoom-display">100%</span>
             </div>
@@ -847,6 +856,26 @@
                             </span>
                             <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
                         </button>
+                    </div>
+
+                    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--color-border);">
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <i class="ri-shield-line" style="color: var(--color-primary);"></i> Достовірність зв'язку
+                        </div>
+                        <div class="mobile-status-segmented" id="mobile-status-segmented">
+                            <button type="button" class="mobile-status-seg-btn active" data-status-filter="all">
+                                <i class="ri-shield-line"></i>
+                                <span>Усі</span>
+                            </button>
+                            <button type="button" class="mobile-status-seg-btn" data-status-filter="confirmed_indirect">
+                                <i class="ri-shield-keyhole-line"></i>
+                                <span>Підтв.+Опосер.</span>
+                            </button>
+                            <button type="button" class="mobile-status-seg-btn" data-status-filter="confirmed_only">
+                                <i class="ri-shield-check-fill"></i>
+                                <span>Тільки прямі</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

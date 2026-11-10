@@ -201,6 +201,9 @@ export class MobileMenuManager {
 			case "lineage":
 				document.getElementById("btn-lineage")?.click();
 				break;
+			case "status-filter":
+				document.getElementById("btn-status-filter")?.click();
+				break;
 			case "account":
 				(
 					document.getElementById("btn-account-menu") ||

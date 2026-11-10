@@ -80,6 +80,9 @@ export class FanChartManager {
 				<button class="fan-zoom-btn" id="fan-btn-zoom-out" title="Зменшити" aria-label="Зменшити масштаб">
 					<i class="ri-subtract-line"></i>
 				</button>
+				<button class="fan-zoom-btn" id="fan-btn-status-filter" title="Фільтр зв'язку: Усі родичі (клікніть для перемикання)" aria-label="Фільтр достовірності зв'язку">
+					<i class="ri-shield-line"></i>
+				</button>
 				<button class="fan-zoom-btn ${this.showLevelLabels ? "active" : ""}" id="fan-btn-toggle-labels" title="Підписи поколінь" aria-label="Показати або приховати назви поколінь на діаграмі">
 					<i class="ri-price-tag-3-line"></i>
 				</button>
@@ -197,6 +200,29 @@ export class FanChartManager {
 	}
 
 	/**
+	 * Рахує унікальних пращурів у вибірці секторів з урахуванням активного фільтра достовірності
+	 * @param {Array} sectors 
+	 * @returns {number}
+	 */
+	_getFilteredCount(sectors) {
+		if (!sectors || !sectors.length) return 0;
+		const filterMode = document.body.getAttribute("data-status-filter") || "all";
+		const uniqueIds = new Set();
+		sectors.forEach((s) => {
+			if (!s.isKnown || !s.personId) return;
+			const eff = s.chainStatus || (s.isConfirmed ? "confirmed" : (s.isIndirect ? "indirect" : "hypothetical"));
+			if (filterMode === "confirmed_indirect" && eff === "hypothetical") return;
+			if (filterMode === "confirmed_only" && eff !== "confirmed") return;
+			uniqueIds.add(String(s.personId).trim());
+		});
+		return uniqueIds.size;
+	}
+
+	onStatusFilterChange() {
+		this._renderNavPills();
+	}
+
+	/**
 	 * Рендерить кнопки поколінь у верхній стрічці
 	 */
 	_renderNavPills() {
@@ -204,10 +230,16 @@ export class FanChartManager {
 
 		const generations = this.pedigreeData.generations || [];
 		const isAllActive = this.activeGens.has("all");
+		const filterMode = document.body.getAttribute("data-status-filter") || "all";
+
+		const totalFiltered = this._getFilteredCount(this.pedigreeData.sectors || []);
+		const totalBadge = filterMode !== "all" && totalFiltered < this.pedigreeData.totalKnown
+			? `${totalFiltered}/${this.pedigreeData.totalKnown}`
+			: `${this.pedigreeData.totalKnown}`;
 
 		let html = `
 			<button class="fan-nav-pill ${isAllActive ? "active" : ""}" data-gen="all">
-				Усі <span class="fan-nav-pill-badge">${this.pedigreeData.totalKnown}</span>
+				Усі <span class="fan-nav-pill-badge">${totalBadge}</span>
 			</button>
 		`;
 
@@ -219,9 +251,14 @@ export class FanChartManager {
 			const effectiveMode = this._getEffectiveLineageMode();
 			const label = genData.label || getGenerationRibbonLabel(g, effectiveMode);
 
+			const filteredCount = this._getFilteredCount(genData.sectors || []);
+			const pillBadge = filterMode !== "all" && filteredCount < genData.knownCount
+				? `${filteredCount}/${genData.knownCount}`
+				: `${genData.knownCount}`;
+
 			html += `
 				<button class="fan-nav-pill ${isGenActive ? "active" : ""}" data-gen="${g}">
-					${label} <span class="fan-nav-pill-badge">${genData.knownCount}</span>
+					${label} <span class="fan-nav-pill-badge">${pillBadge}</span>
 				</button>
 			`;
 		}

@@ -320,14 +320,8 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 	const g = document.createElementNS(svgNS, "g");
 
 	const isSelected = selectedSosa === sosa;
-	let statusClass = "fan-sector--hypothetical";
-	if (isKnown) {
-		if (sector.isConfirmed || sector.confirmationStatus === "confirmed") {
-			statusClass = "fan-sector--confirmed";
-		} else if (sector.isIndirect || sector.confirmationStatus === "indirect") {
-			statusClass = "fan-sector--indirect";
-		}
-	}
+	const effStatus = sector.chainStatus || (sector.isConfirmed ? "confirmed" : (sector.isIndirect ? "indirect" : "hypothetical"));
+	const statusClass = "fan-sector--" + effStatus;
 
 	const sectorClass = [
 		"fan-sector",
@@ -342,6 +336,7 @@ function createSectorElement(sector, rInfo, cx, cy, defs, svgNS, selectedSosa) {
 	g.setAttribute("class", sectorClass);
 	g.setAttribute("data-sosa", String(sosa));
 	g.setAttribute("data-generation", String(generation));
+	g.setAttribute("data-status", effStatus);
 	if (sector.personId) g.setAttribute("data-person-id", String(sector.personId));
 
 	const pathD = buildAnnularPath(cx, cy, rInfo.in, rInfo.out, angles.start, angles.end);
@@ -461,6 +456,7 @@ function createProbandElement(probandData, rInfo, cx, cy, svgNS, isDimmed) {
 	const g = document.createElementNS(svgNS, "g");
 	g.setAttribute("class", "fan-proband-group fan-sector--confirmed");
 	g.setAttribute("data-sosa", "1");
+	g.setAttribute("data-status", "confirmed");
 	if (probandData.personId) g.setAttribute("data-person-id", String(probandData.personId));
 
 	if (isDimmed) {

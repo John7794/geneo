@@ -93,10 +93,13 @@ export function renderPersonTile(
 		? `data-id="${safeId}" data-source="${sourceSafe}"`
 		: "";
 
+	const effStatus = options.effectiveStatus || person.effectiveStatus || "confirmed";
+	const statusClass = `node-${effStatus}`;
+
 	// 4. Фінальна збірка
 	return `
-    <div class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardPerson} ${popupClass}" 
-         ${dataAttrs} role="button" tabindex="0">
+    <div class="${UI_CLASSES.kinshipCard} ${UI_CLASSES.kinshipCardPerson} ${statusClass} ${popupClass}" 
+         ${dataAttrs} data-status="${effStatus}" role="button" tabindex="0">
         
         <div class="${UI_CLASSES.kinshipCardMedia}">
             <img src="${photoSrc}" 

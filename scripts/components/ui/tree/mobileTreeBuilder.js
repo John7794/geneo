@@ -3,6 +3,7 @@
 import { i18n } from "../../../core/i18n.js";
 import { UI_CLASSES } from "../../../core/uiClasses.js";
 import { renderPersonTile } from "../shared/personTile.js";
+import { getEffectivePersonStatus } from "../../../utils/personUtils.js";
 import {
 	clearTreeCache,
 	getCachedPersonDetails,
@@ -131,12 +132,23 @@ export function buildMobileGenerationHTML(
 			const isPlaceholder = !person || person.source === "unknown";
 
 			let renderData = person;
+			let effStatus = "confirmed";
 			if (person) {
 				renderData = { ...person };
+				const isRoot = String(person.id) === String(rootId) || String(person.id) === "1";
+				if (!isRoot) {
+					const res = person.effectiveStatus
+						? { status: person.effectiveStatus }
+						: getEffectivePersonStatus(person.id, context.engine || context.db || context, rootId || "1");
+					effStatus = res?.status || "confirmed";
+				}
 			}
 
 			htmlBuffer.push(
-				renderPersonTile(renderData, context, "", isPlaceholder, strictOptions),
+				renderPersonTile(renderData, context, "", isPlaceholder, {
+					...strictOptions,
+					effectiveStatus: effStatus,
+				}),
 			);
 		});
 

@@ -102,9 +102,11 @@ export function renderCardHTML(
 	const isIndirect = !isRootPerson && effStatus.status === "indirect";
 	const isConfirmed = isRootPerson || (!isHypothetical && !isIndirect);
 
-	let statusClass = "";
-	if (!isConfirmed) {
-		statusClass = isIndirect ? "tree-node--indirect" : UI_CLASSES.treeNodeHypothetical;
+	let statusClass = "tree-node--confirmed";
+	if (isHypothetical) {
+		statusClass = UI_CLASSES.treeNodeHypothetical || "tree-node--hypothetical";
+	} else if (isIndirect) {
+		statusClass = "tree-node--indirect";
 	}
 
 	const DB = context.db || {};
@@ -208,7 +210,7 @@ export function renderCardHTML(
 	const rootData = isRoot ? 'data-root="true"' : "";
 
 	const htmlOutput = `
-		<div class="${UI_CLASSES.treeNode} ${statusClass} ${genderClass}" data-id="${safeId}" ${rootData}>
+		<div class="${UI_CLASSES.treeNode} ${statusClass} ${genderClass}" data-id="${safeId}" data-status="${effStatus.status || "confirmed"}" ${rootData}>
 			${buttonHtml}
 			<div class="${UI_CLASSES.treeNodeInner}">
 				 <div class="${UI_CLASSES.treeNodePhotoBox}">${imgHtml}</div>

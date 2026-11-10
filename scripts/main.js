@@ -23,6 +23,7 @@ import { FanChartManager } from "./components/circle/fanChartManager.js";
 import { ThemeManager } from "./components/interaction/themeManager.js";
 import { MobileMenuManager } from "./components/interaction/mobileMenuManager.js";
 import { ShareManager } from "./components/interaction/shareManager.js";
+import { StatusFilterManager } from "./components/interaction/statusFilterManager.js";
 import { UpdateManager } from "./components/interaction/updateManager.js";
 import { GlobalModalInterceptor } from "./core/globalModalInterceptor.js";
 import { AIManager } from "./components/interaction/aiManager.js";
@@ -429,6 +430,13 @@ class App {
 		window.zoomManager = this.managers.zoom;
 		this.managers.share = new ShareManager(this);
 		this.managers.ai = new AIManager();
+		this.managers.statusFilter = new StatusFilterManager({
+			onFilterChange: (mode) => {
+				if (this.managers.fanChart) {
+					this.managers.fanChart.onStatusFilterChange(mode);
+				}
+			},
+		});
 
 		if (this.managers.gedcom) {
 			this.managers.gedcom.engine = this.engine;
