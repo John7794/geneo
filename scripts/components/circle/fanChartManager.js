@@ -744,7 +744,7 @@ export class FanChartManager {
 			}
 		}
 
-		// 3. Перелік вмісту комірки confirmations на темній glassmorphism-style плашці
+		// 3. Перелік вмісту комірки confirmations / sources на темній glassmorphism-style плашці
 		let confirmationsHtml = "";
 		const confList = sectorData.confirmationsList || [];
 		if (confList.length > 0) {
@@ -754,7 +754,7 @@ export class FanChartManager {
 			confirmationsHtml = `
 				<div class="fan-confirmations-block">
 					<div class="fan-confirmations-title">
-						<i class="ri-file-text-line"></i> Документальні джерела:
+						<i class="ri-file-text-line"></i> Підстави зв'язку:
 					</div>
 					<ul class="fan-confirmations-list">
 						${itemsHtml}
@@ -765,7 +765,7 @@ export class FanChartManager {
 			confirmationsHtml = `
 				<div class="fan-confirmations-block">
 					<div class="fan-confirmations-title">
-						<i class="ri-file-text-line"></i> Документальні джерела:
+						<i class="ri-file-text-line"></i> Підстави зв'язку:
 					</div>
 					<div class="fan-confirmations-empty">
 						Базова вихідна особа дерева (Пробанд)
@@ -776,7 +776,7 @@ export class FanChartManager {
 			confirmationsHtml = `
 				<div class="fan-confirmations-block">
 					<div class="fan-confirmations-title">
-						<i class="ri-file-text-line"></i> Документальне джерело:
+						<i class="ri-file-text-line"></i> Підстави зв'язку:
 					</div>
 					<div class="fan-confirmations-empty">
 						Побічні свідчення / реконструкція зв'язку
@@ -787,10 +787,21 @@ export class FanChartManager {
 			confirmationsHtml = `
 				<div class="fan-confirmations-block">
 					<div class="fan-confirmations-title">
-						<i class="ri-file-text-line"></i> Документальне джерело:
+						<i class="ri-file-text-line"></i> Підстави зв'язку:
 					</div>
 					<div class="fan-confirmations-empty">
 						Без прямих джерел (родинне припущення)
+					</div>
+				</div>
+			`;
+		} else {
+			confirmationsHtml = `
+				<div class="fan-confirmations-block">
+					<div class="fan-confirmations-title">
+						<i class="ri-file-text-line"></i> Підстави зв'язку:
+					</div>
+					<div class="fan-confirmations-empty">
+						Підтверджений родинний зв'язок
 					</div>
 				</div>
 			`;

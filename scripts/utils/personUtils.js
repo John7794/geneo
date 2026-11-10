@@ -106,12 +106,15 @@ export function resolveStatus(rawStatus, rawConfirmations = "", isProband = fals
 		s === "гіпотеза" ||
 		s === "припущення" ||
 		s === "непідтверджено" ||
-		s === "false"
+		s === "false" ||
+		confStr === "гіпотеза" ||
+		confStr.startsWith("гіпотеза") ||
+		confStr.includes("припущення")
 	) {
 		return "hypothetical";
 	}
 
-	// 2. Опосередковане / побічне підтвердження (статус 2 або непрямі джерела)
+	// 2. Опосередковане / побічне підтвердження (статус 2 або непрямі джерела/підстави)
 	if (
 		s === "2" ||
 		s === "indirect" ||
@@ -120,7 +123,12 @@ export function resolveStatus(rawStatus, rawConfirmations = "", isProband = fals
 		confStr === "побічно" ||
 		confStr.startsWith("побічно") ||
 		confStr.includes("опосередковано") ||
-		confStr.includes("indirect")
+		confStr.includes("indirect") ||
+		confStr.includes("спогади") ||
+		confStr.includes("патронім") ||
+		confStr.includes("по батькові") ||
+		confStr.includes("реконструкція") ||
+		confStr.includes("переказ")
 	) {
 		return "indirect";
 	}
@@ -137,19 +145,9 @@ export function resolveStatus(rawStatus, rawConfirmations = "", isProband = fals
 		return "confirmed";
 	}
 
-	// 4. Якщо статус у комірці не вказано, але вказані джерела:
-	if (
-		confStr.length > 0 &&
-		confStr !== "0" &&
-		confStr !== "false" &&
-		confStr !== "непідтверджено" &&
-		confStr !== "none"
-	) {
-		return "confirmed";
-	}
-
-	// За замовчуванням: гіпотетичний
-	return "hypothetical";
+	// 4. За замовчуванням: усі предки в базі є підтвердженими (confirmed = 1),
+	// винятками є лише явні позначки 2 (непряме) або 3 (гіпотеза).
+	return "confirmed";
 }
 
 export function resolveRealId(queryId, ctx) {

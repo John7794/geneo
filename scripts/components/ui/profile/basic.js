@@ -85,7 +85,7 @@ export function renderBasicBlock(person) {
 							${confList.map(c => `<li><span class="conf-bullet">•</span> <span>${escapeHtml(c)}</span></li>`).join("")}
 						</ul>
 					` : `
-						<div class="dark-tooltip-empty">${isProband1 ? "Базова особа родоводу (Пробанд)" : (isIndirect ? "Побічні свідчення / реконструкція" : "Без внесених першоджерел")}</div>
+						<div class="dark-tooltip-empty">${isProband1 ? "Базова особа родоводу (Пробанд)" : (isIndirect ? "Побічні свідчення / реконструкція" : (isConfirmed ? "Підтверджений родинний зв'язок" : "Без внесених першоджерел"))}</div>
 					`}
 				</div>
 			</div>

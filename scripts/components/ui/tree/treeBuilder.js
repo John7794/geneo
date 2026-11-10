@@ -89,24 +89,34 @@ export function renderCardHTML(
 		(surname ? `${name} ${surname}` : name).trim(),
 	);
 
-	// 🔥 Строга верифікація статусу. Відсутність маркера = пунктир. Пробанд 1 (корінь) завжди підтверджений за замовчуванням
+	// За замовчуванням усі предки в дереві є підтвердженими (confirmed = 1),
+	// винятками є лише явні позначки: 2 (непряме) або 3/0 (гіпотеза).
 	const isRootPerson = person.isRoot || safeId === "1" || (context.rootPersonId && safeId === String(context.rootPersonId));
 	const rawStatus =
 		person.status !== undefined ? person.status : person.fam_status;
 	const safeStatus = String(
-		rawStatus !== undefined && rawStatus !== null && rawStatus !== "" ? rawStatus : (isRootPerson ? "confirmed" : "hypothetical"),
+		rawStatus !== undefined && rawStatus !== null && rawStatus !== "" ? rawStatus : "confirmed",
 	)
 		.trim()
 		.toLowerCase();
 
-	const isConfirmed =
-		isRootPerson ||
-		safeStatus === "1" ||
-		safeStatus === "confirmed" ||
-		safeStatus === "true" ||
-		safeStatus === "так" ||
-		safeStatus === "+";
-	const isIndirect = !isConfirmed && (safeStatus === "2" || safeStatus === "indirect" || safeStatus === "побічно");
+	const isHypothetical = !isRootPerson && (
+		safeStatus === "3" ||
+		safeStatus === "0" ||
+		safeStatus === "hypothetical" ||
+		safeStatus === "гіпотеза" ||
+		safeStatus === "припущення" ||
+		safeStatus === "false"
+	);
+
+	const isIndirect = !isRootPerson && !isHypothetical && (
+		safeStatus === "2" ||
+		safeStatus === "indirect" ||
+		safeStatus === "побічно" ||
+		safeStatus === "опосередковано"
+	);
+
+	const isConfirmed = isRootPerson || (!isHypothetical && !isIndirect);
 
 	let statusClass = "";
 	if (!isConfirmed) {

@@ -371,7 +371,7 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 		return formatRawDates(bDate, dDate, vStatus);
 	};
 
-	// Сувора інвертована логіка бази даних
+	// За замовчуванням усі предки підтверджені, якщо не вказано виняток 2 або 3
 	const resolveStatusUI = (rawStatus, id = "") => {
 		if (String(id).trim() === "1") {
 			return "confirmed";
@@ -381,22 +381,16 @@ export function formatGraphNode(id, basicMap, familyMap, birthMap, deathMap) {
 			rawStatus === null ||
 			String(rawStatus).trim() === ""
 		) {
-			return "hypothetical";
+			return "confirmed";
 		}
 		const s = String(rawStatus).trim().toLowerCase();
-		if (
-			s === "1" ||
-			s === "true" ||
-			s === "+" ||
-			s === "так" ||
-			s === "confirmed"
-		) {
-			return "confirmed";
+		if (s === "3" || s === "0" || s === "hypothetical" || s === "гіпотеза" || s === "припущення") {
+			return "hypothetical";
 		}
 		if (s === "2" || s === "indirect" || s === "побічно" || s === "опосередковано") {
 			return "indirect";
 		}
-		return "hypothetical";
+		return "confirmed";
 	};
 
 	const basic = basicMap.get(strId);
