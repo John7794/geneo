@@ -687,57 +687,91 @@ export class FanChartManager {
 		const dates = p.dates || p.lifespan || "";
 		const displayDates = sectorData.lifeYears || dates;
 
-		// Бейдж статусу підтвердження: 3 рівні
-		const confStatus = sectorData.confirmationStatus || (sectorData.isConfirmed ? "confirmed" : "hypothetical");
-		let statusBadgeHtml = "";
-		if (confStatus === "confirmed") {
-			statusBadgeHtml = `
-				<div class="profile-status-pill status-badge--confirmed">
-					<i class="ri-checkbox-circle-line" style="margin-right: 4px;"></i>
-					<span class="status-text">Підтверджений зв'язок</span>
+		// 1. Локальний статус документального батьківства (localStatus)
+		const localStatus = sectorData.localStatus || sectorData.confirmationStatus || (sectorData.isConfirmed ? "confirmed" : "hypothetical");
+		let localStatusBadgeHtml = "";
+		if (localStatus === "confirmed") {
+			localStatusBadgeHtml = `
+				<div class="fan-status-badge fan-status-badge--confirmed">
+					<i class="ri-checkbox-circle-fill"></i>
+					<span>Пряме підтвердження батьківства</span>
 				</div>
 			`;
-		} else if (confStatus === "indirect") {
-			statusBadgeHtml = `
-				<div class="profile-status-pill status-badge--indirect">
-					<i class="ri-link" style="margin-right: 4px;"></i>
-					<span class="status-text">Опосередкований зв'язок</span>
+		} else if (localStatus === "indirect") {
+			localStatusBadgeHtml = `
+				<div class="fan-status-badge fan-status-badge--indirect">
+					<i class="ri-link"></i>
+					<span>Опосередковане батьківство</span>
 				</div>
 			`;
 		} else {
-			statusBadgeHtml = `
-				<div class="profile-status-pill status-badge--hypothetical">
-					<i class="ri-question-line" style="margin-right: 4px;"></i>
-					<span class="status-text">Гіпотетичний зв'язок</span>
+			localStatusBadgeHtml = `
+				<div class="fan-status-badge fan-status-badge--hypothetical">
+					<i class="ri-question-fill"></i>
+					<span>Гіпотетичний зв'язок (припущення)</span>
 				</div>
 			`;
 		}
 
-		// Документальні підтвердження (список джерел: метричний запис, сповідні відомості, ревізькі казки тощо)
+		// 2. Ланцюговий статус відносно Пробанда (chainStatus)
+		const chainStatus = sectorData.chainStatus || localStatus;
+		let chainNoticeHtml = "";
+		const weakest = sectorData.weakestLink;
+		if (chainStatus !== localStatus && weakest) {
+			const linkName = escapeHtml(weakest.name || `№ ${weakest.sosa}`);
+			if (chainStatus === "indirect") {
+				chainNoticeHtml = `
+					<div class="fan-chain-notice fan-chain-notice--indirect">
+						<i class="ri-information-line"></i>
+						<span>Зв'язок із вами: <strong>опосередкований</strong> (через ланку ${linkName})</span>
+					</div>
+				`;
+			} else if (chainStatus === "hypothetical") {
+				chainNoticeHtml = `
+					<div class="fan-chain-notice fan-chain-notice--hypothetical">
+						<i class="ri-alert-line"></i>
+						<span>Зв'язок із вами: <strong>гіпотетичний</strong> (через припущення у ланці ${linkName})</span>
+					</div>
+				`;
+			}
+		}
+
+		// 3. Перелік вмісту комірки confirmations на темній glassmorphism-style плашці
 		let confirmationsHtml = "";
 		const confList = sectorData.confirmationsList || [];
 		if (confList.length > 0) {
 			const itemsHtml = confList
-				.map((c) => `<li><i class="ri-article-line"></i> <span>${escapeHtml(c)}</span></li>`)
+				.map((c) => `<li><span class="conf-bullet">•</span> <span>${escapeHtml(c)}</span></li>`)
 				.join("");
 			confirmationsHtml = `
-				<div class="fan-flyout-confirmations">
-					<div class="fan-flyout-confirmations-title">
-						<i class="ri-shield-check-line"></i> Документальні підтвердження:
+				<div class="fan-confirmations-block">
+					<div class="fan-confirmations-title">
+						<i class="ri-file-text-line"></i> Документальні джерела:
 					</div>
-					<ul class="fan-flyout-confirmations-list">
+					<ul class="fan-confirmations-list">
 						${itemsHtml}
 					</ul>
 				</div>
 			`;
-		} else if (confStatus === "indirect") {
+		} else if (localStatus === "indirect") {
 			confirmationsHtml = `
-				<div class="fan-flyout-confirmations">
-					<div class="fan-flyout-confirmations-title">
-						<i class="ri-information-line"></i> Документальне підтвердження:
+				<div class="fan-confirmations-block">
+					<div class="fan-confirmations-title">
+						<i class="ri-file-text-line"></i> Документальне джерело:
 					</div>
-					<div class="fan-flyout-confirmations-text">
-						Побічні свідчення / непрямі джерела
+					<div class="fan-confirmations-empty">
+						Побічні свідчення / реконструкція зв'язку
+					</div>
+				</div>
+			`;
+		} else if (localStatus === "hypothetical") {
+			confirmationsHtml = `
+				<div class="fan-confirmations-block">
+					<div class="fan-confirmations-title">
+						<i class="ri-file-text-line"></i> Документальне джерело:
+					</div>
+					<div class="fan-confirmations-empty">
+						Без прямих джерел (родинне припущення)
 					</div>
 				</div>
 			`;
@@ -773,16 +807,18 @@ export class FanChartManager {
 				<div class="fan-flyout-title-wrap">
 					<span class="${kinshipClass}">№ ${sosa} • ${escapeHtml(sectorData.kinshipTitle)}</span>
 					<h4 class="fan-flyout-name" title="${escapeHtml(fullName)}">${escapeHtml(fullName)}</h4>
+					${displayDates ? `<div class="fan-flyout-dates">${escapeHtml(displayDates)}</div>` : ""}
 				</div>
 			</div>
 			<div class="fan-flyout-status-container">
-				${statusBadgeHtml}
+				${localStatusBadgeHtml}
+				${chainNoticeHtml}
 			</div>
 			<div class="fan-flyout-body">
+				${confirmationsHtml}
 				${birthHtml}
 				${deathHtml}
 				${jobHtml}
-				${confirmationsHtml}
 				${recordsHtml}
 			</div>
 			<div class="fan-flyout-actions">
@@ -792,6 +828,9 @@ export class FanChartManager {
 				<button class="fan-flyout-btn" id="fan-btn-center-person">
 					<i class="ri-focus-3-line"></i> В центр
 				</button>
+			</div>
+			<div class="fan-flyout-hover-tip">
+				<i class="ri-cursor-fill"></i> Натисніть для дій (профіль / в центр)
 			</div>
 		`;
 

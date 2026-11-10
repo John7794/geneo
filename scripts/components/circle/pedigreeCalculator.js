@@ -536,10 +536,59 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 		const rawConf = personDetails?.confirmations || rawBase?.confirmations || rawBase?.["підтвердження"] || rawBase?.["документальні підтвердження"] || "";
 		const confirmationsList = personDetails?.confirmationsList?.length ? personDetails.confirmationsList : parseConfirmations(rawConf);
 		const rawStatus = rawBase?.status !== undefined ? rawBase.status : (personDetails?.rawStatus || personDetails?.status || "");
-		const confirmationStatus = resolveStatus(rawStatus, rawConf);
-		const isConfirmed = isKnown && confirmationStatus === "confirmed";
-		const isIndirect = isKnown && confirmationStatus === "indirect";
-		const isHypothetical = isKnown && confirmationStatus === "hypothetical";
+		const localStatus = resolveStatus(rawStatus, rawConf); // "confirmed" | "indirect" | "hypothetical"
+
+		// Ланцюгова валідація відносно Пробанда (Root): "Ланцюг не міцніший за найслабшу ланку"
+		let chainStatus = localStatus;
+		let weakestLink = null;
+
+		if (ringIndex === 0 || sosa === 1) {
+			chainStatus = localStatus === "hypothetical" ? "hypothetical" : (localStatus === "indirect" ? "indirect" : "confirmed");
+			if (chainStatus !== "confirmed") {
+				weakestLink = {
+					sosa: 1,
+					personId,
+					name: [personDetails?.name || personDetails?.first_name, personDetails?.surname || personDetails?.last_name].filter(Boolean).join(" ") || "Пробанд",
+					kinshipTitle: "Пробанд",
+					status: chainStatus,
+				};
+			}
+		} else {
+			const childSosa = Math.floor(sosa / 2);
+			const childSector = sosaMap.get(childSosa);
+			const childChain = childSector ? childSector.chainStatus : "confirmed";
+
+			if (childChain === "hypothetical" || localStatus === "hypothetical") {
+				chainStatus = "hypothetical";
+				weakestLink = childChain === "hypothetical"
+					? childSector.weakestLink
+					: {
+						sosa,
+						personId,
+						name: [personDetails?.name || personDetails?.first_name, personDetails?.surname || personDetails?.last_name].filter(Boolean).join(" ") || `Особа №${sosa}`,
+						kinshipTitle: getKinshipTitle(sosa, gender),
+						status: "hypothetical",
+					};
+			} else if (childChain === "indirect" || localStatus === "indirect") {
+				chainStatus = "indirect";
+				weakestLink = childChain === "indirect"
+					? childSector.weakestLink
+					: {
+						sosa,
+						personId,
+						name: [personDetails?.name || personDetails?.first_name, personDetails?.surname || personDetails?.last_name].filter(Boolean).join(" ") || `Особа №${sosa}`,
+						kinshipTitle: getKinshipTitle(sosa, gender),
+						status: "indirect",
+					};
+			} else {
+				chainStatus = "confirmed";
+				weakestLink = null;
+			}
+		}
+
+		const isConfirmed = isKnown && chainStatus === "confirmed";
+		const isIndirect = isKnown && chainStatus === "indirect";
+		const isHypothetical = isKnown && chainStatus === "hypothetical";
 
 		// Дати та місця народження / смерті
 		const birthEvent = isKnown ? birthMap.get(personId) : null;
@@ -563,7 +612,10 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 			isConfirmed,
 			isIndirect,
 			isHypothetical,
-			confirmationStatus, // "confirmed" | "indirect" | "hypothetical"
+			confirmationStatus: chainStatus, // для контуру дуги віяла
+			localStatus, // локальний статус документального батьківства
+			chainStatus, // ефективний статус відносно Пробанда
+			weakestLink, // найслабша ланка в ланцюгу
 			confirmations: rawConf,
 			confirmationsList,
 			person: personDetails,

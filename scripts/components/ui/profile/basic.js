@@ -56,18 +56,34 @@ export function renderBasicBlock(person) {
 
 	const safeStatusText = escapeHtml(statusTextRaw);
 
-	// Формуємо tooltip із переліком документальних підтверджень, якщо вони є
+	// Формуємо перелік документальних підтверджень із колонки confirmations
 	const confList = person.confirmationsList || [];
 	let confTooltip = safeStatusText;
 	if (confList.length > 0) {
 		confTooltip += `: ${confList.join(', ')}`;
 	}
 
-	// Додаємо обидва елементи. Відображенням керуватиме CSS.
 	const statusHtml = `
-		<div class="profile-status-pill ${modifierClass}" title="${escapeHtml(confTooltip)}">
+		<div class="profile-status-pill ${modifierClass} has-dark-tooltip" title="${escapeHtml(confTooltip)}" tabindex="0">
 			<span class="status-text">${safeStatusText}</span>
 			<i class="${iconClass} status-icon" aria-hidden="true" style="display: none; font-size: 16px; line-height: 1;"></i>
+
+			<!-- Темна glassmorphism-плашка для статусу в шапці профілю -->
+			<div class="profile-status-dark-tooltip">
+				<div class="dark-tooltip-header">
+					<i class="ri-shield-check-line"></i>
+					<span>${safeStatusText}</span>
+				</div>
+				<div class="dark-tooltip-body">
+					${confList.length > 0 ? `
+						<ul class="dark-tooltip-list">
+							${confList.map(c => `<li><span class="conf-bullet">•</span> <span>${escapeHtml(c)}</span></li>`).join("")}
+						</ul>
+					` : `
+						<div class="dark-tooltip-empty">${isIndirect ? "Побічні свідчення / реконструкція" : "Без внесених першоджерел"}</div>
+					`}
+				</div>
+			</div>
 		</div>`;
 
 	const idLabel = escapeHtml(i18n.t("common.id") || "ID");

@@ -206,6 +206,98 @@
 	display: none;
 }
 
+/* ==========================================================================
+   ТЕМНА GLASSMORPHISM-ПЛАШКА СТАТУСУ У ШАПЦІ ПРОФІЛЮ
+   ========================================================================== */
+.profile-status-pill.has-dark-tooltip {
+	position: relative;
+	cursor: pointer;
+}
+
+.profile-status-dark-tooltip {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%) translateY(4px);
+	min-width: 220px;
+	max-width: 320px;
+	background: rgba(15, 23, 42, 0.92);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	border-radius: 10px;
+	box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25);
+	padding: 10px 12px;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+	z-index: 1000;
+	backdrop-filter: blur(16px) saturate(180%);
+	-webkit-backdrop-filter: blur(16px) saturate(180%);
+	text-transform: none;
+	letter-spacing: normal;
+	font-weight: normal;
+	color: #f8fafc;
+}
+
+.profile-status-pill.has-dark-tooltip:hover .profile-status-dark-tooltip,
+.profile-status-pill.has-dark-tooltip:focus .profile-status-dark-tooltip {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(0);
+	pointer-events: auto;
+}
+
+.dark-tooltip-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #cbd5e1;
+	margin-bottom: 6px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-tooltip-header i {
+	color: #38bdf8;
+	font-size: 13px;
+}
+
+.dark-tooltip-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.dark-tooltip-list li {
+	font-size: 11.5px;
+	color: #f1f5f9;
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	line-height: 1.35;
+}
+
+.dark-tooltip-list .conf-bullet {
+	color: #38bdf8;
+	font-weight: bold;
+	flex-shrink: 0;
+	line-height: 1.2;
+}
+
+.dark-tooltip-empty {
+	font-size: 11px;
+	color: #94a3b8;
+	font-style: italic;
+	line-height: 1.35;
+}
+
 /* =========================================
    ЗГОРНУТИЙ СТАН (Apple Glassmorphism)
    ========================================= */

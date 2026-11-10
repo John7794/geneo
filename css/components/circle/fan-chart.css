@@ -466,22 +466,24 @@
 }
 
 /* ==========================================================================
-   9. СПЛИВАЮЧА КАРТКА ПРЕДКА (FLYOUT PREVIEW CARD)
+   9. СПЛИВАЮЧА КАРТКА ПРЕДКА (DARK GLASSMORPHISM FLYOUT CARD)
    ========================================================================== */
 .fan-flyout-card {
 	position: fixed;
 	z-index: 1000;
-	width: 290px;
-	background: var(--color-bg-card);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-xl);
-	padding: var(--spacing-md);
-	backdrop-filter: blur(16px);
-	-webkit-backdrop-filter: blur(16px);
+	width: 300px;
+	background: rgba(15, 23, 42, 0.90);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	border-radius: 14px;
+	box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.3);
+	padding: 14px 16px;
+	backdrop-filter: blur(16px) saturate(180%);
+	-webkit-backdrop-filter: blur(16px) saturate(180%);
 	pointer-events: auto;
-	transition: opacity 0.15s ease, transform 0.15s ease;
+	transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 	font-family: var(--font-family-base);
+	color: #f8fafc;
+	box-sizing: border-box;
 }
 
 .fan-flyout-card.hidden {
@@ -494,16 +496,16 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	margin-bottom: 6px;
+	margin-bottom: 8px;
 }
 
 .fan-flyout-avatar-box {
-	width: 48px;
-	height: 48px;
-	border-radius: var(--radius-full);
+	width: 44px;
+	height: 44px;
+	border-radius: var(--radius-full, 50%);
 	overflow: hidden;
-	background: var(--color-bg-body);
-	border: 2px solid var(--color-border);
+	background: rgba(30, 41, 59, 0.8);
+	border: 1.5px solid rgba(255, 255, 255, 0.2);
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
@@ -517,9 +519,9 @@
 }
 
 .fan-flyout-avatar-initials {
-	font-size: 16px;
+	font-size: 15px;
 	font-weight: 700;
-	color: var(--color-text-muted);
+	color: #cbd5e1;
 }
 
 .fan-flyout-title-wrap {
@@ -528,156 +530,226 @@
 }
 
 .fan-flyout-kinship-badge {
-	display: inline-block;
-	font-size: 10.5px;
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 7px;
+	border-radius: 4px;
+	font-size: 10px;
 	font-weight: 700;
 	text-transform: uppercase;
-	letter-spacing: 0.4px;
-	color: var(--color-primary);
-	margin-bottom: 2px;
+	letter-spacing: 0.04em;
+	background: rgba(59, 130, 246, 0.2);
+	color: #93c5fd;
+	border: 1px solid rgba(59, 130, 246, 0.35);
+	margin-bottom: 3px;
 }
 
 .fan-flyout-kinship-badge--maternal {
-	color: #e11d48;
+	background: rgba(244, 63, 94, 0.2);
+	color: #fda4af;
+	border-color: rgba(244, 63, 94, 0.35);
 }
 
 .fan-flyout-name {
 	margin: 0;
-	font-size: 14.5px;
+	font-size: 15px;
 	font-weight: 700;
-	color: var(--color-text-main);
+	color: #ffffff;
 	line-height: 1.25;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.fan-flyout-meta {
-	font-size: 11.5px;
-	color: var(--color-text-meta);
+.fan-flyout-dates {
+	font-size: 11px;
+	color: #94a3b8;
+	font-weight: 500;
 	margin-top: 2px;
+	line-height: 1.2;
 }
 
 .fan-flyout-status-container {
-	margin: 6px 0 10px 0;
+	margin: 8px 0 10px 0;
 	display: flex;
-	align-items: center;
+	flex-direction: column;
+	gap: 6px;
 }
 
-/* Бейдж статусу зв'язку як у профілі */
-.fan-flyout-card .profile-status-pill {
+/* Локальний бейдж підтвердження батьківства */
+.fan-status-badge {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
+	gap: 6px;
 	padding: 4px 10px;
-	border-radius: 50px;
-	font-size: 10px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
-	white-space: nowrap;
-}
-
-.fan-flyout-card .profile-status-pill.status-badge--confirmed {
-	background-color: var(--c-success-bg, #e6f4ea);
-	color: var(--c-success-text, #137333);
-}
-
-.fan-flyout-card .profile-status-pill.status-badge--indirect {
-	background-color: var(--c-info-bg, #e8f0fe);
-	color: var(--c-info-text, #1a73e8);
-}
-
-.fan-flyout-card .profile-status-pill.status-badge--hypothetical {
-	background-color: var(--c-warning-bg, #fef7e0);
-	color: var(--c-warning-text, #b06000);
-}
-
-:root.theme-dark .fan-flyout-card .profile-status-pill.status-badge--confirmed {
-	background-color: rgba(129, 201, 149, 0.15);
-	color: #81c995;
-}
-
-:root.theme-dark .fan-flyout-card .profile-status-pill.status-badge--indirect {
-	background-color: rgba(138, 180, 248, 0.15);
-	color: #8ab4f8;
-}
-
-:root.theme-dark .fan-flyout-card .profile-status-pill.status-badge--hypothetical {
-	background-color: rgba(253, 214, 99, 0.15);
-	color: #fdd663;
-}
-
-/* Блок списку документальних підтверджень */
-.fan-flyout-confirmations {
-	margin: 8px 0;
-	padding: 8px 10px;
-	background: rgba(0, 0, 0, 0.03);
-	border-radius: var(--radius-sm, 6px);
-	border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
-}
-
-:root.theme-dark .fan-flyout-confirmations {
-	background: rgba(255, 255, 255, 0.04);
-	border-color: rgba(255, 255, 255, 0.08);
-}
-
-.fan-flyout-confirmations-title {
+	border-radius: 20px;
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--color-text-main, #0f172a);
-	margin-bottom: 5px;
+	line-height: 1.25;
+	width: fit-content;
+}
+
+.fan-status-badge--confirmed {
+	background: rgba(16, 185, 129, 0.2);
+	color: #6ee7b7;
+	border: 1px solid rgba(16, 185, 129, 0.38);
+}
+
+.fan-status-badge--confirmed i {
+	color: #34d399;
+	font-size: 13px;
+}
+
+.fan-status-badge--indirect {
+	background: rgba(56, 189, 248, 0.2);
+	color: #7dd3fc;
+	border: 1px solid rgba(56, 189, 248, 0.38);
+}
+
+.fan-status-badge--indirect i {
+	color: #38bdf8;
+	font-size: 13px;
+}
+
+.fan-status-badge--hypothetical {
+	background: rgba(245, 158, 11, 0.18);
+	color: #fcd34d;
+	border: 1px dashed rgba(245, 158, 11, 0.45);
+}
+
+.fan-status-badge--hypothetical i {
+	color: #fbbf24;
+	font-size: 13px;
+}
+
+/* Рядок попередження про непрямий ланцюговий статус відносно Пробанда */
+.fan-chain-notice {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 6px 9px;
+	border-radius: 6px;
+	font-size: 11px;
+	line-height: 1.35;
+}
+
+.fan-chain-notice--indirect {
+	background: rgba(56, 189, 248, 0.1);
+	border: 1px solid rgba(56, 189, 248, 0.25);
+	color: #bae6fd;
+}
+
+.fan-chain-notice--indirect i {
+	color: #38bdf8;
+	font-size: 13px;
+	margin-top: 1px;
+	flex-shrink: 0;
+}
+
+.fan-chain-notice--hypothetical {
+	background: rgba(245, 158, 11, 0.12);
+	border: 1px solid rgba(245, 158, 11, 0.28);
+	color: #fef08a;
+}
+
+.fan-chain-notice--hypothetical i {
+	color: #fbbf24;
+	font-size: 13px;
+	margin-top: 1px;
+	flex-shrink: 0;
+}
+
+/* Блок списку документальних підтверджень з комірки confirmations */
+.fan-confirmations-block {
+	margin: 8px 0;
+	padding: 9px 11px;
+	background: rgba(255, 255, 255, 0.045);
+	border-radius: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fan-confirmations-title {
+	font-size: 10.5px;
+	font-weight: 700;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	margin-bottom: 6px;
 	display: flex;
 	align-items: center;
 	gap: 5px;
 }
 
-:root.theme-dark .fan-flyout-confirmations-title {
-	color: #f1f5f9;
+.fan-confirmations-title i {
+	color: #38bdf8;
+	font-size: 13px;
 }
 
-.fan-flyout-confirmations-list {
+.fan-confirmations-list {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 4.5px;
 }
 
-.fan-flyout-confirmations-list li {
-	font-size: 11px;
-	color: var(--color-text-muted, #64748b);
+.fan-confirmations-list li {
+	font-size: 11.5px;
+	color: #f1f5f9;
 	display: flex;
 	align-items: flex-start;
-	gap: 5px;
+	gap: 6px;
 	line-height: 1.35;
 }
 
-:root.theme-dark .fan-flyout-confirmations-list li {
-	color: #cbd5e1;
-}
-
-.fan-flyout-confirmations-list li i {
-	color: var(--color-primary, #2563eb);
-	font-size: 12px;
-	margin-top: 1px;
+.fan-confirmations-list .conf-bullet {
+	color: #38bdf8;
+	font-weight: bold;
 	flex-shrink: 0;
+	line-height: 1.2;
 }
 
-.fan-flyout-confirmations-text {
+.fan-confirmations-empty {
 	font-size: 11px;
-	color: var(--color-text-muted, #64748b);
+	color: #94a3b8;
+	font-style: italic;
 	line-height: 1.35;
-}
-
-:root.theme-dark .fan-flyout-confirmations-text {
-	color: #cbd5e1;
 }
 
 /* Коли картка показується при hover (не закріплена), pointer-events: none запобігає мигтінню */
 .fan-flyout-card.is-hover {
 	pointer-events: none !important;
+}
+
+.fan-flyout-card.is-hover .fan-flyout-close {
+	display: none !important;
+}
+
+.fan-flyout-card.is-hover .fan-flyout-actions {
+	display: none !important;
+}
+
+.fan-flyout-hover-tip {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin-top: 8px;
+	padding-top: 6px;
+	border-top: 1px dashed rgba(255, 255, 255, 0.12);
+	font-size: 10.5px;
+	font-weight: 500;
+	color: #94a3b8;
+}
+
+.fan-flyout-hover-tip i {
+	color: #38bdf8;
+	font-size: 12px;
+}
+
+.fan-flyout-card.is-hover .fan-flyout-hover-tip {
+	display: flex !important;
 }
 
 .fan-flyout-close {
@@ -688,9 +760,9 @@
 	height: 24px;
 	border: none;
 	background: transparent;
-	color: var(--color-text-meta);
+	color: #94a3b8;
 	cursor: pointer;
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius-sm, 4px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -699,41 +771,37 @@
 }
 
 .fan-flyout-close:hover {
-	background: var(--color-bg-hover);
-	color: var(--color-text-main);
+	background: rgba(255, 255, 255, 0.1);
+	color: #ffffff;
 }
 
 .fan-flyout-body {
-	border-top: 1px solid var(--color-border-light);
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
 	padding-top: 8px;
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
-	font-size: 12px;
+	font-size: 11.5px;
 }
 
 .fan-flyout-row {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	color: var(--color-text-muted);
+	color: #cbd5e1;
 }
 
 .fan-flyout-row i {
-	font-size: 14px;
-	color: var(--color-text-meta);
+	font-size: 13px;
+	color: #94a3b8;
 	flex-shrink: 0;
 }
 
 .fan-flyout-row--birth i {
-	color: #10b981 !important;
+	color: #34d399 !important;
 }
 
 .fan-flyout-row--death i {
-	color: #64748b !important;
-}
-
-:root.theme-dark .fan-flyout-row--death i {
 	color: #94a3b8 !important;
 }
 
@@ -741,28 +809,23 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	background: rgba(245, 158, 11, 0.12);
-	color: #d97706;
-	border-radius: var(--radius-sm);
+	background: rgba(245, 158, 11, 0.18);
+	color: #fbbf24;
+	border-radius: 4px;
 	padding: 2px 7px;
 	font-weight: 600;
-	font-size: 11px;
+	font-size: 10.5px;
 	margin-top: 2px;
 	width: fit-content;
-}
-
-:root.theme-dark .fan-flyout-badge-records {
-	background: rgba(245, 158, 11, 0.2);
-	color: #fbbf24;
 }
 
 .fan-flyout-actions {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 8px;
-	margin-top: 12px;
-	border-top: 1px solid var(--color-border-light);
-	padding-top: 10px;
+	margin-top: 10px;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+	padding-top: 8px;
 }
 
 .fan-flyout-btn {
@@ -774,30 +837,30 @@
 	font-family: var(--font-family-base);
 	font-size: 11.5px;
 	font-weight: 600;
-	border-radius: var(--radius-md);
-	border: 1px solid var(--color-border);
-	background: var(--color-bg-sub);
-	color: var(--color-text-main);
+	border-radius: var(--radius-md, 6px);
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	background: rgba(255, 255, 255, 0.08);
+	color: #ffffff;
 	cursor: pointer;
 	text-decoration: none;
-	transition: all var(--transition-fast);
+	transition: all 0.15s ease;
 	white-space: nowrap;
 }
 
 .fan-flyout-btn:hover {
-	background: var(--color-bg-hover);
-	border-color: var(--color-border-hover);
+	background: rgba(255, 255, 255, 0.15);
+	border-color: rgba(255, 255, 255, 0.25);
 }
 
 .fan-flyout-btn--primary {
-	background: var(--color-primary);
-	border-color: var(--color-primary);
+	background: #2563eb;
+	border-color: #3b82f6;
 	color: #ffffff;
 }
 
 .fan-flyout-btn--primary:hover {
-	background: var(--color-primary-hover);
-	border-color: var(--color-primary-hover);
+	background: #1d4ed8;
+	border-color: #2563eb;
 }
 
 /* ==========================================================================
