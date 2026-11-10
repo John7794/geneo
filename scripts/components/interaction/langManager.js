@@ -55,10 +55,18 @@ export class LangManager {
 
 		const displayMap = {
 			uk: "UA",
+			en: "EN",
 		};
 
 		const activeCode = displayMap[rawLang] || rawLang.toUpperCase();
-		this.btnToggle.innerHTML = `<span class="lang-code-text">${activeCode}</span>`;
+		if (this.btnToggle) {
+			this.btnToggle.innerHTML = `<span class="lang-code-text">${activeCode}</span>`;
+		}
+
+		const mobileLangDesc = document.querySelector('[data-action="lang"] .mobile-nav-desc');
+		if (mobileLangDesc) {
+			mobileLangDesc.textContent = rawLang === "en" ? "English (активна)" : "Українська (активна)";
+		}
 	}
 
 	toggleMenu() {
@@ -77,7 +85,7 @@ export class LangManager {
 				this.menu.style.right = "";
 				this.menu.style.left = "";
 				this.menu.style.bottom = "";
-				this.menu.style.zIndex = "";
+				this.menu.style.zIndex = "30005";
 			} else if (this.btnToggle) {
 				// Десктоп: фіксоване позиціонування ліворуч від кнопки
 				const rect = this.btnToggle.getBoundingClientRect();
@@ -86,7 +94,7 @@ export class LangManager {
 				this.menu.style.right = `${window.innerWidth - rect.left + 12}px`;
 				this.menu.style.left = "auto";
 				this.menu.style.bottom = "auto";
-				this.menu.style.zIndex = "10020";
+				this.menu.style.zIndex = "30005";
 			}
 
 			this.menu.classList.remove(UI_CLASSES.hidden || "hidden");
@@ -155,9 +163,52 @@ export class LangManager {
 
 	changeLanguage(langCode) {
 		this.closeMenu();
-		if (localStorage.getItem("appLang") === langCode) return;
+		const current = localStorage.getItem("appLang") || "uk";
+		const label = langCode === "en" ? "English" : "Українська";
+		const icon = langCode === "en" ? "ri-global-line" : "ri-translate-2";
+
+		if (current === langCode) {
+			this._showToast(`Мова інтерфейсу: ${label}`, icon);
+			return;
+		}
+
 		localStorage.setItem("appLang", langCode);
-		window.location.reload();
+		this._showToast(`Зміна мови на: ${label}...`, icon);
+		setTimeout(() => {
+			window.location.reload();
+		}, 300);
+	}
+
+	cycleLanguage() {
+		const current = localStorage.getItem("appLang") || "uk";
+		const next = current === "uk" ? "en" : "uk";
+		this.changeLanguage(next);
+	}
+
+	_showToast(text, iconClass) {
+		let toast = document.getElementById("status-filter-toast");
+		if (!toast) {
+			toast = document.createElement("div");
+			toast.id = "status-filter-toast";
+			toast.className = "status-filter-toast hidden";
+			document.body.appendChild(toast);
+		}
+
+		toast.innerHTML = `
+			<i class="${iconClass} toast-icon"></i>
+			<span class="toast-text">${text}</span>
+		`;
+
+		toast.className = "status-filter-toast show";
+
+		setTimeout(() => {
+			toast.classList.remove("show");
+			setTimeout(() => {
+				if (!toast.classList.contains("show")) {
+					toast.classList.add("hidden");
+				}
+			}, 250);
+		}, 1800);
 	}
 
 	destroy() {

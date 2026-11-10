@@ -536,15 +536,23 @@ export class AppRouter {
 			if (profileContentEl) profileContentEl.classList.remove("hidden");
 		} else if (mode === "analytics") {
 			document.body.classList.remove("error-state-active");
-			if (treeViewEl) treeViewEl.classList.add("hidden");
-			if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
+			if (window.innerWidth < 768) {
+				if (treeViewEl) treeViewEl.classList.add("hidden");
+				if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
+			} else {
+				// На десктопі та планшеті зберігаємо фоновий вигляд (дерево) під розмитим бекдропом модального вікна
+				if (treeViewEl && (!fanChartViewEl || fanChartViewEl.classList.contains("hidden"))) {
+					treeViewEl.classList.remove("hidden");
+					treeViewEl.style.opacity = "1";
+				}
+			}
 			if (profileContentEl) profileContentEl.classList.add("hidden");
 			if (analyticsViewEl) analyticsViewEl.classList.remove("hidden");
 		}
 		
 		const breadcrumbsEl = document.getElementById("breadcrumbs-container");
 		if (breadcrumbsEl) {
-		    if (mode === "analytics") breadcrumbsEl.style.display = "none";
+		    if (mode === "analytics" && window.innerWidth < 768) breadcrumbsEl.style.display = "none";
 		    else breadcrumbsEl.style.display = "";
 		}
 	}

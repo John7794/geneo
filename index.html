@@ -213,7 +213,10 @@
 
                     <div id="lang-menu" class="lang-menu-dropdown hidden">
                         <button class="breadcrumbs__dropdown-item" data-lang="uk">
-                            Українська
+                            🇺🇦 Українська
+                        </button>
+                        <button class="breadcrumbs__dropdown-item" data-lang="en">
+                            🇬🇧 English
                         </button>
                     </div>
                 </div>
@@ -447,6 +450,7 @@
 
         <!-- Analytics Modal -->
         <div id="analytics-view" class="hidden analytics-view">
+            <div class="analytics-dialog" id="analytics-dialog">
             <div class="analytics-header">
                 <div class="analytics-header-left">
                     <button id="btn-back-analytics" class="btn-icon" title="Назад" aria-label="Назад">
@@ -668,6 +672,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </main>
@@ -977,7 +982,7 @@
                             <span class="mobile-nav-icon icon-teal"><i class="ri-translate-2"></i></span>
                             <span class="mobile-nav-text">
                                 <span class="mobile-nav-label">Мова інтерфейсу</span>
-                                <span class="mobile-nav-desc">Українська (змінити)</span>
+                                <span class="mobile-nav-desc" id="mobile-menu-lang-desc">Українська (змінити)</span>
                             </span>
                             <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
                         </button>

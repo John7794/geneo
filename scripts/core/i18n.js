@@ -2,9 +2,7 @@
 
 export class I18n {
 	constructor(defaultLang = "uk") {
-		this.lang = "uk";
-		// Force local storage to uk so we don't break anywhere else
-		localStorage.setItem("appLang", "uk");
+		this.lang = localStorage.getItem("appLang") || defaultLang || "uk";
 		this.translations = {};
 		this.basePath = "./data/locales";
 		this._keyCache = new Map(); // Кеш для розібраних шляхів

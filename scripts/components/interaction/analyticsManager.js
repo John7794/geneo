@@ -47,21 +47,49 @@ export class AnalyticsManager {
 				}
 			});
 		}
+
+		this.viewEl = document.getElementById("analytics-view");
+		if (this.viewEl) {
+			this.viewEl.addEventListener("click", (e) => {
+				if (e.target === this.viewEl) {
+					this._closeAnalytics();
+				}
+			});
+		}
+
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape" && this.viewEl && !this.viewEl.classList.contains("hidden")) {
+				const detailedView = document.getElementById("analytics-detailed-view");
+				if (detailedView && detailedView.style.display !== "none") {
+					document.getElementById("btn-back-to-summary")?.click();
+				} else {
+					this._closeAnalytics();
+				}
+			}
+		});
+
 		this.closeBtn = document.getElementById("btn-close-analytics");
 		if (this.closeBtn) {
 		    this.closeBtn.addEventListener("click", () => {
-		        if (window.app && window.app.navigateToId) {
-		            window.app.navigateToId(window.app.currentProfileId || window.app.rootPersonId, false, "tree");
-		        }
+		        this._closeAnalytics();
 		    });
 		}
 		this.backBtn = document.getElementById("btn-back-analytics");
 		if (this.backBtn) {
 		    this.backBtn.addEventListener("click", () => {
-		        if (window.app && window.app.navigateToId) {
-		            window.app.navigateToId(window.app.currentProfileId || window.app.rootPersonId, false, "tree");
+		        const detailedView = document.getElementById("analytics-detailed-view");
+		        if (detailedView && detailedView.style.display !== "none") {
+		            document.getElementById("btn-back-to-summary")?.click();
+		            return;
 		        }
+		        this._closeAnalytics();
 		    });
+		}
+	}
+
+	_closeAnalytics() {
+		if (window.app && window.app.navigateToId) {
+			window.app.navigateToId(window.app.currentProfileId || window.app.rootPersonId, false, "tree");
 		}
 	}
 
@@ -846,70 +874,121 @@ export class AnalyticsManager {
         const confMax = lifespansConfirmed.length > 0 ? Math.max(...lifespansConfirmed.map(s => s.age)) : 0;
         const approxMax = lifespansApprox.length > 0 ? Math.max(...lifespansApprox.map(s => s.age)) : 0;
         let html = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; ">
-                    <!-- Загальна кількість -->
-                    <div style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px;" class="analytics-summary-stats">
-                        <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
-                            <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 12px;">Підтверджені</div>
-                            <div style="font-size: 24px; font-weight: bold; color: var(--color-text-main); margin-bottom: 8px;">${confirmedCount}</div>
-                            <div style="color: var(--color-text-meta); font-size: 12px; margin-top: 4px;">Чоловіків: ${confirmedMale} / Жінок: ${confirmedFemale}</div>
+                <div class="analytics-hero-stats">
+                    <!-- Підтверджені -->
+                    <div class="analytics-stat-card card-confirmed">
+                        <div class="stat-card-header">
+                            <span class="stat-badge badge-confirmed">
+                                <i class="ri-checkbox-circle-fill"></i> Підтверджені
+                            </span>
                         </div>
-                        
-                        <div class="analytics-summary-stats-divider"></div>
-
-                        <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
-                            <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 12px;">Загальна кількість</div>
-                            <div style="font-size: 32px; font-weight: bold; color: var(--color-primary); margin-bottom: 8px;">${totalPeople}</div>
-                            <div style="color: var(--color-text-meta); font-size: 14px; margin-top: 4px;">Чоловіків: ${maleCount} / Жінок: ${femaleCount}</div>
+                        <div class="stat-card-value">${confirmedCount}</div>
+                        <div class="stat-card-footer">
+                            <span class="stat-pill pill-male"><i class="ri-men-line"></i> ${confirmedMale}</span>
+                            <span class="stat-pill pill-female"><i class="ri-women-line"></i> ${confirmedFemale}</span>
                         </div>
+                    </div>
 
-                        <div class="analytics-summary-stats-divider"></div>
-                        
-                        <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
-                            <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 12px;">Непідтверджені</div>
-                            <div style="font-size: 24px; font-weight: bold; color: var(--color-text-main); margin-bottom: 8px;">${unconfirmedCount}</div>
-                            <div style="color: var(--color-text-meta); font-size: 12px; margin-top: 4px;">Чоловіків: ${unconfirmedMale} / Жінок: ${unconfirmedFemale}</div>
+                    <!-- Всі персони (Hero) -->
+                    <div class="analytics-stat-card card-total">
+                        <div class="stat-card-header">
+                            <span class="stat-badge badge-total">
+                                <i class="ri-group-fill"></i> Загальна кількість
+                            </span>
+                        </div>
+                        <div class="stat-card-value">${totalPeople}</div>
+                        <div class="stat-card-footer">
+                            <span class="stat-pill pill-male"><i class="ri-men-line"></i> ${maleCount}</span>
+                            <span class="stat-pill pill-female"><i class="ri-women-line"></i> ${femaleCount}</span>
+                        </div>
+                    </div>
+
+                    <!-- Непідтверджені -->
+                    <div class="analytics-stat-card card-unconfirmed">
+                        <div class="stat-card-header">
+                            <span class="stat-badge badge-unconfirmed">
+                                <i class="ri-question-fill"></i> Непідтверджені
+                            </span>
+                        </div>
+                        <div class="stat-card-value">${unconfirmedCount}</div>
+                        <div class="stat-card-footer">
+                            <span class="stat-pill pill-male"><i class="ri-men-line"></i> ${unconfirmedMale}</span>
+                            <span class="stat-pill pill-female"><i class="ri-women-line"></i> ${unconfirmedFemale}</span>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-lifespan" data-title="Тривалість життя" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Тривалість життя</div>
-                        
+                <div class="analytics-features-grid">
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-lifespan" data-title="Тривалість життя">
+                        <div class="feature-card-icon icon-coral"><i class="ri-heart-pulse-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Тривалість життя</div>
+                            <div class="feature-card-desc">Вік, довгожителі та середня тривалість</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
                     </a>
 
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-names" data-title="Імена" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600;">Імена</div>
-                        
-                    </a>
-                    
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-surnames" data-title="Прізвища" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600;">Прізвища</div>
-                        
-                    </a>
-                    
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-places" data-title="Населені пункти" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Населені пункти</div>
-                        
-                    </a>
-                    
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-deaths" data-title="Причини смерті" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Причини смерті</div>
-                        
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-names" data-title="Імена">
+                        <div class="feature-card-icon icon-sky"><i class="ri-user-smile-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Імена</div>
+                            <div class="feature-card-desc">Популярні чоловічі та жіночі імена</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
                     </a>
 
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-events" data-title="Календар подій" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Календар подій</div>
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-surnames" data-title="Прізвища">
+                        <div class="feature-card-icon icon-indigo"><i class="ri-team-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Прізвища</div>
+                            <div class="feature-card-desc">Поширеність прізвищ та родинні гілки</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
                     </a>
-                    
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-timeline" data-title="Хронологія" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600; text-align: center;">Хронологія</div>
+
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-places" data-title="Населені пункти">
+                        <div class="feature-card-icon icon-emerald"><i class="ri-map-pin-2-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Населені пункти</div>
+                            <div class="feature-card-desc">Географія та місця ключових подій</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
                     </a>
-                    
-                    <a href="#" class="analytics-nav-btn" data-target="analytics-coats" data-title="Герби" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px 16px; color: var(--color-text-main); text-decoration: none; transition: all 0.2s;">
-                        <div style="font-size: 18px; font-weight: 600;">Герби</div>
-                        
+
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-deaths" data-title="Причини смерті">
+                        <div class="feature-card-icon icon-amber"><i class="ri-file-list-3-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Причини смерті</div>
+                            <div class="feature-card-desc">Аналіз записів у метричних книгах</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
+                    </a>
+
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-events" data-title="Календар подій">
+                        <div class="feature-card-icon icon-purple"><i class="ri-calendar-event-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Календар подій</div>
+                            <div class="feature-card-desc">Дні народження, шлюби та роковини</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
+                    </a>
+
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-timeline" data-title="Хронологія">
+                        <div class="feature-card-icon icon-cyan"><i class="ri-time-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Хронологія</div>
+                            <div class="feature-card-desc">Часова лінія родоводу по епохах</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
+                    </a>
+
+                    <a href="#" class="analytics-feature-card analytics-nav-btn" data-target="analytics-coats" data-title="Герби">
+                        <div class="feature-card-icon icon-gold"><i class="ri-shield-star-line"></i></div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-title">Герби</div>
+                            <div class="feature-card-desc">Шляхетські та родові геральдичні знаки</div>
+                        </div>
+                        <i class="ri-arrow-right-s-line feature-card-arrow"></i>
                     </a>
                 </div>
             `;
@@ -954,6 +1033,8 @@ export class AnalyticsManager {
                          }
 
                          if (titleView) titleView.textContent = title;
+                         const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
+                         if (analyticsBody) analyticsBody.scrollTop = 0;
                          window.scrollTo(0, 0);
                      }
                  });
@@ -969,6 +1050,8 @@ export class AnalyticsManager {
                      this.containerSummary.style.display = "flex";
                      const analyticsView = document.getElementById("analytics-view");
                      if (analyticsView) analyticsView.classList.remove('in-detailed-view');
+                     const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
+                     if (analyticsBody) analyticsBody.scrollTop = 0;
                      window.scrollTo(0, 0);
                  });
              }

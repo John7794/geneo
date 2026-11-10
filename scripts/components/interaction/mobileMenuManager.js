@@ -232,8 +232,12 @@ export class MobileMenuManager {
 				document.getElementById("btn-events")?.click();
 				break;
 			case "lang":
-			document.getElementById("btn-lang-toggle")?.click();
-			break;
+				if (window.app?.managers?.lang) {
+					window.app.managers.lang.cycleLanguage();
+				} else {
+					document.getElementById("btn-lang-toggle")?.click();
+				}
+				break;
 			case "theme":
 				document.getElementById("theme-toggle")?.click();
 				this._syncThemeInfo();
@@ -269,6 +273,12 @@ export class MobileMenuManager {
 		}
 		if (themeText) {
 			themeText.textContent = isDark ? "Темна тема (увімкнено)" : "Світла тема (увімкнено)";
+		}
+
+		const currentLang = localStorage.getItem("appLang") || "uk";
+		const mobileLangDesc = document.getElementById("mobile-menu-lang-desc");
+		if (mobileLangDesc) {
+			mobileLangDesc.textContent = currentLang === "en" ? "English (активна, змінити)" : "Українська (активна, змінити)";
 		}
 	}
 
