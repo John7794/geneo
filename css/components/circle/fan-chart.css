@@ -904,6 +904,11 @@
 	color: var(--color-primary);
 }
 
+.fan-zoom-btn.active {
+	background: var(--color-bg-hover);
+	color: var(--color-primary);
+}
+
 .fan-zoom-btn:active {
 	transform: scale(0.94);
 }
@@ -935,30 +940,50 @@
 /* ==========================================================================
    ІДЕНТИФІКАЦІЯ РІВНІВ ПОКОЛІНЬ (LEVEL PILLS)
    ========================================================================== */
+.fan-level-pills-group {
+	transition: opacity 0.25s ease;
+}
+
+.fan-level-pills--hidden {
+	display: none !important;
+}
+
 .fan-level-pill {
-	pointer-events: none;
+	pointer-events: auto;
 	user-select: none;
+	transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+/* При наведенні миші на віяло плашки стають майже прозорими, щоб відкривати текст під ними */
+.fan-viewport:hover .fan-level-pill {
+	opacity: 0.2;
+}
+
+/* При безпосередньому наведенні на плашку вона повністю проявляється */
+.fan-level-pill:hover {
+	opacity: 1 !important;
+	transform: scale(1.06);
 }
 
 .fan-level-pill-bg {
-	fill: rgba(15, 23, 42, 0.88);
+	fill: rgba(15, 23, 42, 0.84);
 	stroke: rgba(255, 255, 255, 0.2);
-	stroke-width: 1px;
+	stroke-width: 0.8px;
 }
 
 :root.theme-dark .fan-level-pill-bg {
-	fill: rgba(30, 41, 59, 0.92);
-	stroke: rgba(255, 255, 255, 0.25);
+	fill: rgba(30, 41, 59, 0.88);
+	stroke: rgba(255, 255, 255, 0.22);
 }
 
 :root:not(.theme-dark) .fan-level-pill-bg {
-	fill: rgba(255, 255, 255, 0.94);
-	stroke: rgba(15, 23, 42, 0.22);
+	fill: rgba(255, 255, 255, 0.92);
+	stroke: rgba(15, 23, 42, 0.2);
 }
 
 .fan-level-pill-text {
 	font-family: var(--font-family-base);
-	font-size: 10px;
+	font-size: 8.5px;
 	font-weight: 600;
 	fill: #f8fafc;
 	letter-spacing: 0.02em;

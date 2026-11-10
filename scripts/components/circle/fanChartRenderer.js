@@ -231,15 +231,16 @@ export function renderFanChartSVG(pedigreeData, options = {}) {
 		else if (labelText.includes("Дідусі (по татові)")) labelText = "Діди (Т)";
 		else if (labelText.includes("Дідусі (по мамі)")) labelText = "Діди (М)";
 
-		const rMid = (rInfo.in + rInfo.out) / 2;
-		const pillY = cy - rMid;
+		// 🔥 Розміщуємо плашку на межі кілець (rInfo.in), а не по центру імен (rMid)!
+		// Текст імен предків розміщено на радіусі rMid, тому на межі кілець плашка не перекриває літери.
+		const pillY = cy - rInfo.in;
 
 		const pillG = document.createElementNS(svgNS, "g");
 		pillG.setAttribute("class", "fan-level-pill");
 		pillG.setAttribute("transform", `translate(${cx}, ${pillY.toFixed(1)})`);
 
-		const pillW = labelText.length > 9 ? 84 : (labelText.length > 7 ? 70 : (labelText.length > 5 ? 56 : 46));
-		const pillH = 17;
+		const pillW = labelText.length > 9 ? 74 : (labelText.length > 7 ? 62 : (labelText.length > 5 ? 50 : 42));
+		const pillH = 15;
 
 		const rect = document.createElementNS(svgNS, "rect");
 		rect.setAttribute("x", String(-pillW / 2));

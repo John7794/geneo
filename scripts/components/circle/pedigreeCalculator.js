@@ -689,21 +689,35 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 	// Запуск рекурсії від центрального пробанда (кільце 0: 360°)
 	buildFanNodes(curIdStr, probandSosa, 0, 0, 360, true, "center");
 
-	// 9. Формування масиву поколінь з коректними назвами для стрічки
+	// 9. Формування масиву поколінь з підрахунком виключно УНІКАЛЬНИХ пращурів
+	const uniqueAllPersonIds = new Set();
 	const generations = [];
+
 	for (let gen = 0; gen <= maxGenerations; gen++) {
 		const sectors = ringsData[gen] || [];
-		const knownInGen = sectors.filter((s) => s.isKnown).length;
+		const uniqueInGen = new Set();
+		sectors.forEach((s) => {
+			if (s.isKnown && s.personId) {
+				const idStr = String(s.personId).trim();
+				uniqueInGen.add(idStr);
+				uniqueAllPersonIds.add(idStr);
+			}
+		});
+
 		const label = getGenerationRibbonLabelBySectors(gen, sectors, lineageMode, curIdStr === root1Id);
 
 		generations.push({
 			generation: gen,
 			count: sectors.length,
-			knownCount: knownInGen,
+			knownCount: uniqueInGen.size, // 🔥 тільки унікальні пращури на рівні покоління
+			rawKnownCount: sectors.filter((s) => s.isKnown).length,
+			uniqueCount: uniqueInGen.size,
 			label,
 			sectors,
 		});
 	}
+
+	const totalUnique = uniqueAllPersonIds.size;
 
 	return {
 		rootPersonId: root1Id,
@@ -711,7 +725,8 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 		lineageMode,
 		maxGenerations,
 		deepestGeneration,
-		totalKnown,
+		totalKnown: totalUnique, // 🔥 тільки унікальні пращури всього дерева
+		totalUnique,
 		generations,
 		sectors: allSectors,
 		sosaMap,

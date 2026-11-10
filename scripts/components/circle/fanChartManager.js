@@ -23,6 +23,7 @@ export class FanChartManager {
 		this.activeGens = new Set(["all"]);
 		this.selectedSosa = null;
 		this.isPinnedFlyout = false;
+		this.showLevelLabels = localStorage.getItem("geneo_fan_show_labels") !== "false";
 
 		// Векторний трансформ SVG <g id="fan-viewport">
 		this.scale = 1;
@@ -79,6 +80,9 @@ export class FanChartManager {
 				<button class="fan-zoom-btn" id="fan-btn-zoom-out" title="Зменшити" aria-label="Зменшити масштаб">
 					<i class="ri-subtract-line"></i>
 				</button>
+				<button class="fan-zoom-btn ${this.showLevelLabels ? "active" : ""}" id="fan-btn-toggle-labels" title="Підписи поколінь" aria-label="Показати або приховати назви поколінь на діаграмі">
+					<i class="ri-price-tag-3-line"></i>
+				</button>
 				<span class="fan-zoom-level" id="fan-zoom-level">100%</span>
 			</div>
 
@@ -91,10 +95,22 @@ export class FanChartManager {
 		this.flyout = this.container.querySelector("#fan-flyout-card");
 		this.zoomLevelDisplay = this.container.querySelector("#fan-zoom-level");
 
-		// Обробники зуму через кнопки
+		// Обробники зуму та перемикачів через кнопки
 		this.container.querySelector("#fan-btn-zoom-in")?.addEventListener("click", () => this.zoomByButton(1));
 		this.container.querySelector("#fan-btn-zoom-out")?.addEventListener("click", () => this.zoomByButton(-1));
 		this.container.querySelector("#fan-btn-fit")?.addEventListener("click", () => this.fitToScreen());
+		this.container.querySelector("#fan-btn-toggle-labels")?.addEventListener("click", () => {
+			this.showLevelLabels = !this.showLevelLabels;
+			const pillsGroup = this.canvas?.querySelector(".fan-level-pills-group");
+			if (pillsGroup) {
+				pillsGroup.classList.toggle("fan-level-pills--hidden", !this.showLevelLabels);
+			}
+			const btn = this.container.querySelector("#fan-btn-toggle-labels");
+			if (btn) {
+				btn.classList.toggle("active", this.showLevelLabels);
+			}
+			localStorage.setItem("geneo_fan_show_labels", String(this.showLevelLabels));
+		});
 
 		// Кінематика полотна (ідентична до режиму дерева)
 		this.canvas.addEventListener("wheel", this._handleWheel, { passive: false });
@@ -173,6 +189,10 @@ export class FanChartManager {
 		this.canvas.appendChild(svg);
 		this.svgElement = svg;
 		this.viewportGroup = svg.querySelector("#fan-viewport");
+		if (!this.showLevelLabels) {
+			const pillsGroup = svg.querySelector(".fan-level-pills-group");
+			if (pillsGroup) pillsGroup.classList.add("fan-level-pills--hidden");
+		}
 		this._updateSelectedOverlay(this.selectedSosa);
 	}
 
