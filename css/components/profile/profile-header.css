@@ -122,6 +122,8 @@
 	color: var(--color-text-main);
 	text-align: center;
 	transition: font-size 0.4s ease;
+	word-break: break-word;
+	overflow-wrap: break-word;
 }
 
 .btn-tree {
@@ -222,8 +224,8 @@
 	bottom: auto;
 	left: 50%;
 	transform: translateX(-50%) translateY(-4px);
-	min-width: 230px;
-	max-width: 340px;
+	min-width: 240px;
+	max-width: min(380px, calc(100vw - 32px));
 	width: max-content;
 	background: rgba(15, 23, 42, 0.96);
 	border: 1px solid rgba(255, 255, 255, 0.16);
@@ -242,6 +244,10 @@
 	font-weight: normal;
 	color: #f8fafc;
 	text-align: left;
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: break-word;
+	box-sizing: border-box;
 }
 
 /* Стрілочка вказівника підказки (дивиться вгору на пігулку) */
@@ -268,6 +274,17 @@
 .profile-header.is-collapsed .profile-status-dark-tooltip {
 	top: calc(100% + 10px);
 	bottom: auto;
+}
+
+@media (max-width: 768px) {
+	.profile-header.is-collapsed .profile-status-dark-tooltip {
+		left: 0;
+		transform: translateY(0);
+	}
+	.profile-header.is-collapsed .profile-status-dark-tooltip::after {
+		left: 20px;
+		transform: none;
+	}
 }
 
 .dark-tooltip-header {
@@ -305,6 +322,9 @@
 	align-items: flex-start;
 	gap: 6px;
 	line-height: 1.35;
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: break-word;
 }
 
 .dark-tooltip-list .conf-bullet {
@@ -319,6 +339,49 @@
 	color: #94a3b8;
 	font-style: italic;
 	line-height: 1.35;
+}
+
+.dark-tooltip-inherited {
+	font-size: 11px;
+	color: #fcd34d;
+	margin-top: 8px;
+	padding-top: 6px;
+	border-top: 1px dashed rgba(255, 255, 255, 0.15);
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	line-height: 1.4;
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: break-word;
+}
+
+.dark-tooltip-inherited i {
+	color: #fcd34d;
+	font-size: 13px;
+	margin-top: 1.5px;
+	flex-shrink: 0;
+}
+
+.dark-tooltip-inherited-content {
+	flex: 1 1 auto;
+	min-width: 0;
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: break-word;
+}
+
+.dark-tooltip-inherited-label {
+	color: #fcd34d;
+	margin-right: 4px;
+}
+
+.dark-tooltip-ancestor-name {
+	color: #fef08a;
+	font-weight: 600;
+	display: inline;
+	word-break: break-word;
+	overflow-wrap: break-word;
 }
 
 /* =========================================

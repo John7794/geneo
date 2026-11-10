@@ -165,6 +165,9 @@
 }
 
 .popup-person-info {
+	min-width: 0;
+	word-break: break-word;
+	overflow-wrap: break-word;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -172,6 +175,8 @@
 }
 
 .popup-surname {
+	word-break: break-word;
+	overflow-wrap: break-word;
 	text-transform: uppercase;
 	font-weight: 700;
 	font-size: 1.15em;
@@ -180,6 +185,8 @@
 }
 
 .popup-name-patronymic {
+	word-break: break-word;
+	overflow-wrap: break-word;
 	font-weight: 500;
 	font-size: 0.95em;
 	color: var(--color-text-main);
@@ -362,6 +369,9 @@
 	}
 
 	.popup-person-info {
+	min-width: 0;
+	word-break: break-word;
+	overflow-wrap: break-word;
 		align-items: center;
 		min-height: auto;
 	}

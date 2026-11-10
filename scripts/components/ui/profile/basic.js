@@ -96,9 +96,12 @@ export function renderBasicBlock(person) {
 						<div class="dark-tooltip-empty">${isProband1 ? "Базова особа родоводу (Пробанд)" : (isIndirect ? "Побічні свідчення / реконструкція" : (isConfirmed ? "Підтверджений родинний зв'язок" : "Без внесених першоджерел"))}</div>
 					`}
 					${person.weakestLink && String(person.weakestLink) !== String(person.id) ? `
-						<div style="font-size: 11px; color: #fcd34d; margin-top: 6px; padding-top: 5px; border-top: 1px dashed rgba(255,255,255,0.15); display: flex; align-items: center; gap: 5px;">
+						<div class="dark-tooltip-inherited">
 							<i class="ri-link"></i>
-							<span>Успадковано від нащадка: <strong>${escapeHtml(person.weakestName || ('ID ' + person.weakestLink))}</strong></span>
+							<div class="dark-tooltip-inherited-content">
+								<span class="dark-tooltip-inherited-label">Успадковано від нащадка:</span>
+								<strong class="dark-tooltip-ancestor-name">${escapeHtml(person.weakestName || ('ID ' + person.weakestLink))}</strong>
+							</div>
 						</div>
 					` : ""}
 				</div>
