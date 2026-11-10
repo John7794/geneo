@@ -50,6 +50,7 @@ export const COLUMNS = Object.freeze({
 		patronymic: "patronymic",
 		gender: "gender",
 		status: "status",
+		sources: "sources",
 		confirmations: "confirmations",
 		photo: "photo_id",
 		slug: "profile_slug",

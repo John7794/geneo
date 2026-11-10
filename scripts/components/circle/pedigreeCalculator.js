@@ -533,7 +533,7 @@ export function buildPedigreeData(engine, currentPersonId, maxGenerations = 6, l
 
 		// 3 рівні підтвердження зв'язку та документальні підтвердження
 		const rawBase = isKnown ? engine?.db?.basic?.find((r) => String(r.person_id || r.id) === personId) : null;
-		const rawConf = personDetails?.confirmations || rawBase?.confirmations || rawBase?.["підтвердження"] || rawBase?.["документальні підтвердження"] || "";
+		const rawConf = personDetails?.sources || personDetails?.confirmations || rawBase?.sources || rawBase?.confirmations || rawBase?.["джерела"] || rawBase?.["підтвердження"] || rawBase?.["документальні підтвердження"] || "";
 		const confirmationsList = personDetails?.confirmationsList?.length ? personDetails.confirmationsList : parseConfirmations(rawConf);
 		const rawStatus = rawBase?.status !== undefined ? rawBase.status : (personDetails?.rawStatus || personDetails?.status || "");
 		const localStatus = resolveStatus(rawStatus, rawConf); // "confirmed" | "indirect" | "hypothetical"

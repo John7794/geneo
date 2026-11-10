@@ -81,9 +81,9 @@ export function parseConfirmations(text) {
 
 /**
  * Визначає рівень підтвердження зв'язку:
- * 1. "confirmed" (пряме документальне підтвердження)
- * 2. "indirect" (опосередковане / побічне підтвердження)
- * 3. "hypothetical" (непідтверджений / гіпотетичний зв'язок)
+ * 1. "confirmed" (пряме документальне підтвердження) — статус 1
+ * 2. "indirect" (опосередковане / побічне підтвердження) — статус 2
+ * 3. "hypothetical" (непідтверджений / гіпотетичний зв'язок) — статус 3 або 0
  * @param {string|number} rawStatus
  * @param {string} rawConfirmations
  * @returns {"confirmed"|"indirect"|"hypothetical"}
@@ -92,7 +92,20 @@ export function resolveStatus(rawStatus, rawConfirmations = "") {
 	const s = String(rawStatus ?? "").trim().toLowerCase();
 	const confStr = String(rawConfirmations ?? "").trim().toLowerCase();
 
-	// 1. Опосередковане / побічне підтвердження (рівень 2)
+	// 1. Гіпотетичний зв'язок (статус 3, 0 або ключові слова)
+	if (
+		s === "3" ||
+		s === "0" ||
+		s === "hypothetical" ||
+		s === "гіпотеза" ||
+		s === "припущення" ||
+		s === "непідтверджено" ||
+		s === "false"
+	) {
+		return "hypothetical";
+	}
+
+	// 2. Опосередковане / побічне підтвердження (статус 2 або непрямі джерела)
 	if (
 		s === "2" ||
 		s === "indirect" ||
@@ -106,20 +119,30 @@ export function resolveStatus(rawStatus, rawConfirmations = "") {
 		return "indirect";
 	}
 
-	// 2. Пряме документальне підтвердження (рівень 1)
+	// 3. Пряме документальне підтвердження (статус 1)
 	if (
 		s === "1" ||
 		s === "true" ||
 		s === "+" ||
 		s === "confirmed" ||
 		s === "так" ||
-		s === "direct" ||
-		(confStr.length > 0 && confStr !== "0" && confStr !== "false" && confStr !== "непідтверджено" && confStr !== "none")
+		s === "direct"
 	) {
 		return "confirmed";
 	}
 
-	// 3. Непідтверджений / гіпотетичний зв'язок (рівень 3)
+	// 4. Якщо статус у комірці не вказано, але вказані джерела:
+	if (
+		confStr.length > 0 &&
+		confStr !== "0" &&
+		confStr !== "false" &&
+		confStr !== "непідтверджено" &&
+		confStr !== "none"
+	) {
+		return "confirmed";
+	}
+
+	// За замовчуванням: гіпотетичний
 	return "hypothetical";
 }
 
@@ -373,11 +396,11 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 				? rawRow.status
 				: rawRow.fam_status;
 
-	const confKey = C?.confirmations || "confirmations";
+	const confKey = C?.sources || C?.confirmations || "sources";
 	const rawConfirmations =
 		rawRow[confKey] !== undefined
 			? rawRow[confKey]
-			: (rawRow.confirmations || rawRow.confirmation || rawRow.proofs || rawRow.evidence || rawRow.sources || rawRow.documents || rawRow["підтвердження"] || rawRow["документальні підтвердження"] || rawRow["документи"] || "");
+			: (rawRow.sources || rawRow.confirmations || rawRow.confirmation || rawRow.proofs || rawRow.evidence || rawRow.documents || rawRow["підтвердження"] || rawRow["документальні підтвердження"] || rawRow["джерела"] || rawRow["документи"] || "");
 
 	const confirmationsList = parseConfirmations(rawConfirmations);
 	const safeStatus = resolveStatus(rawStatus, rawConfirmations);
@@ -490,11 +513,11 @@ function buildBasicPersonObj(basicPerson, nameInfo, exactId, allData) {
 			? basicPerson[statusKey]
 			: basicPerson.status;
 
-	const confKey = COLUMNS.basic?.confirmations || "confirmations";
+	const confKey = COLUMNS.basic?.sources || COLUMNS.basic?.confirmations || "sources";
 	const rawConfirmations =
 		basicPerson[confKey] !== undefined
 			? basicPerson[confKey]
-			: (basicPerson.confirmations || basicPerson.confirmation || basicPerson.proofs || basicPerson.evidence || basicPerson.sources || basicPerson.documents || basicPerson["підтвердження"] || basicPerson["документальні підтвердження"] || basicPerson["документи"] || "");
+			: (basicPerson.sources || basicPerson.confirmations || basicPerson.confirmation || basicPerson.proofs || basicPerson.evidence || basicPerson.documents || basicPerson["підтвердження"] || basicPerson["документальні підтвердження"] || basicPerson["джерела"] || basicPerson["документи"] || "");
 
 	const confirmationsList = parseConfirmations(rawConfirmations);
 	const safeStatus = resolveStatus(rawStatus, rawConfirmations);

@@ -1,4 +1,4 @@
-"person_id","surname","name","patronymic","gender","status","confirmations","photo_id","vital_status","profile_slug"
+"person_id","surname","name","patronymic","gender","status","sources","photo_id","vital_status","profile_slug"
 "1","Селіванов","Іван","Сергійович","m","1","свідоцтво про народження","https://drive.google.com/file/d/1qX207FMLpuayZmYqEqbvPXu5ny2WAY0d/view?usp=drive_link","1","selivanov_ivan_1994"
 "2","Селіванов","Сергій","Іванович","m","1","свідоцтво про народження","https://drive.google.com/file/d/1pW4ANPMqCn6xyinaR8qXObgC4jd738LQ/view?usp=drive_link","",""
 "3","Селіванова","Лілія","Іванівна","f","1","свідоцтво про народження","https://drive.google.com/file/d/121ks2ZG1yEcuIf6uuB7UFgF_QG3lJgUS/view?usp=drive_link","1","selivanova_lilia_1951"
