@@ -71,6 +71,21 @@ export function getLineageBranchTargetSosa(lineageMode) {
 }
 
 /**
+ * Отримує теоретичну місткість (кількість генеалогічних слотів) для покоління gen
+ * @param {number} gen 
+ * @param {string} lineageMode 
+ * @returns {number}
+ */
+export function getTheoreticalCapacity(gen, lineageMode = "all") {
+	const config = getLineageFilterConfig(lineageMode);
+	if (config.subRootGen > 0) {
+		if (gen < config.subRootGen) return 1;
+		return Math.pow(2, gen - config.subRootGen);
+	}
+	return Math.pow(2, gen);
+}
+
+/**
  * Отримує назву рівня для стрічки фільтрації поколінь
  * @param {number} gen 
  * @param {string} lineageMode

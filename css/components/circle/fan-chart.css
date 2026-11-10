@@ -109,15 +109,28 @@
 .fan-nav-pill-badge {
 	font-size: 10px;
 	font-weight: 600;
-	padding: 1px 6px;
+	padding: 1px 7px;
 	border-radius: var(--radius-full);
 	background: rgba(0, 0, 0, 0.06);
 	color: var(--color-text-main);
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	white-space: nowrap;
+}
+
+.fan-nav-pill-pct {
+	font-weight: 500;
+	color: var(--color-text-muted);
 }
 
 :root.theme-dark .fan-nav-pill-badge {
 	background: rgba(255, 255, 255, 0.1);
 	color: var(--color-text-main);
+}
+
+:root.theme-dark .fan-nav-pill-pct {
+	color: rgba(255, 255, 255, 0.7);
 }
 
 /* ==========================================================================

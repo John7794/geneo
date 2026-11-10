@@ -1,6 +1,6 @@
 // ./scripts/components/circle/fanChartManager.js
 
-import { buildPedigreeData, getGenerationRibbonLabel } from "./pedigreeCalculator.js";
+import { buildPedigreeData, getGenerationRibbonLabel, getTheoreticalCapacity } from "./pedigreeCalculator.js";
 import { renderFanChartSVG, FAN_CONFIG } from "./fanChartRenderer.js";
 import { escapeHtml, convertDriveLink } from "../../utils/helpers.js";
 import { UI_CLASSES } from "../../core/uiClasses.js";
@@ -218,26 +218,73 @@ export class FanChartManager {
 		return uniqueIds.size;
 	}
 
+	/**
+	 * Рахує кількість заповнених слотів (незалежно від унікальності персон)
+	 * з урахуванням активного фільтра достовірності
+	 * @param {Array} sectors 
+	 * @returns {number}
+	 */
+	_getFilledSlotCount(sectors) {
+		if (!sectors || !sectors.length) return 0;
+		const filterMode = document.body.getAttribute("data-status-filter") || "all";
+		let count = 0;
+		sectors.forEach((s) => {
+			if (!s.isKnown || !s.personId) return;
+			const eff = s.chainStatus || (s.isConfirmed ? "confirmed" : (s.isIndirect ? "indirect" : "hypothetical"));
+			if (filterMode === "confirmed_indirect" && eff === "hypothetical") return;
+			if (filterMode === "confirmed_only" && eff !== "confirmed") return;
+			count++;
+		});
+		return count;
+	}
+
+	_formatPct(val) {
+		if (val >= 99.95) return "100%";
+		if (val <= 0) return "0%";
+		const rounded = Math.round(val);
+		if (Math.abs(val - rounded) < 0.05) return `${rounded}%`;
+		return `${val.toFixed(1)}%`;
+	}
+
 	onStatusFilterChange() {
 		this._renderNavPills();
 	}
 
 	/**
-	 * Рендерить маркери рівнів поколінь у верхній стрічці (статичні інформаційні мітки без активного стану та кліків)
+	 * Рендерить маркери рівнів поколінь у верхній стрічці:
+	 * - Кількість тільки унікальних пращурів
+	 * - Відсоток повноти заповнення генеалогічних слотів покоління (при імбридингу без відсутніх пращурів = 100%)
 	 */
 	_renderNavPills() {
 		if (!this.nav || !this.pedigreeData) return;
 
 		const generations = this.pedigreeData.generations || [];
 		const filterMode = document.body.getAttribute("data-status-filter") || "all";
+		const effectiveMode = this._getEffectiveLineageMode();
+
+		// Розрахунок загальної місткості та заповнених слотів для "Усі"
+		let totalCapacity = 0;
+		let totalFilledSlots = 0;
+		for (let g = 0; g < generations.length; g++) {
+			const genData = generations[g];
+			if (!genData) continue;
+			const cap = getTheoreticalCapacity(g, effectiveMode);
+			totalCapacity += cap;
+			totalFilledSlots += this._getFilledSlotCount(genData.sectors || []);
+		}
+		const totalPct = totalCapacity > 0 ? Math.min(100, (totalFilledSlots / totalCapacity) * 100) : 0;
+		const totalPctStr = this._formatPct(totalPct);
 
 		const totalFiltered = this._getFilteredCount(this.pedigreeData.sectors || []);
-		const totalBadge = filterMode !== "all" && totalFiltered < this.pedigreeData.totalKnown
+		const totalCountStr = filterMode !== "all" && totalFiltered < this.pedigreeData.totalKnown
 			? `${totalFiltered}/${this.pedigreeData.totalKnown}`
 			: `${this.pedigreeData.totalKnown}`;
 
+		const totalBadge = `${totalCountStr} <span class="fan-nav-pill-pct">(${totalPctStr})</span>`;
+		const totalTitle = `Усі покоління: ${totalFiltered} унікальних пращурів, заповненість ${totalPctStr} (${totalFilledSlots} з ${totalCapacity} слотів)`;
+
 		let html = `
-			<span class="fan-nav-pill" data-gen="all">
+			<span class="fan-nav-pill" data-gen="all" title="${escapeHtml(totalTitle)}">
 				Усі <span class="fan-nav-pill-badge">${totalBadge}</span>
 			</span>
 		`;
@@ -246,16 +293,22 @@ export class FanChartManager {
 			const genData = generations[g];
 			if (!genData || genData.knownCount === 0) continue;
 
-			const effectiveMode = this._getEffectiveLineageMode();
 			const label = genData.label || getGenerationRibbonLabel(g, effectiveMode);
+			const genCapacity = getTheoreticalCapacity(g, effectiveMode);
+			const genFilledSlots = this._getFilledSlotCount(genData.sectors || []);
+			const genPct = genCapacity > 0 ? Math.min(100, (genFilledSlots / genCapacity) * 100) : 0;
+			const genPctStr = this._formatPct(genPct);
 
 			const filteredCount = this._getFilteredCount(genData.sectors || []);
-			const pillBadge = filterMode !== "all" && filteredCount < genData.knownCount
+			const countStr = filterMode !== "all" && filteredCount < genData.knownCount
 				? `${filteredCount}/${genData.knownCount}`
 				: `${genData.knownCount}`;
 
+			const pillBadge = `${countStr} <span class="fan-nav-pill-pct">(${genPctStr})</span>`;
+			const genTitle = `${label}: ${filteredCount} унікальних пращурів, заповненість ${genPctStr} (${genFilledSlots} з ${genCapacity} слотів)`;
+
 			html += `
-				<span class="fan-nav-pill" data-gen="${g}">
+				<span class="fan-nav-pill" data-gen="${g}" title="${escapeHtml(genTitle)}">
 					${label} <span class="fan-nav-pill-badge">${pillBadge}</span>
 				</span>
 			`;
