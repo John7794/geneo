@@ -454,7 +454,7 @@
                         <i class="ri-arrow-left-line"></i>
                     </button>
                     <i class="ri-bar-chart-2-line text-primary"></i>
-                    <h1>Аналітика родоводу</h1>
+                    <h1 id="analytics-header-title">Аналітика родоводу</h1>
                 </div>
                 <button id="btn-close-analytics" class="btn-icon" title="Закрити" aria-label="Закрити">
                     <i class="ri-close-line"></i>
@@ -670,6 +670,20 @@
                     </div>
                 </div>
             </div>
+            </div>
+        </div>
+
+        <!-- Coat of Arms Preview Lightbox Modal -->
+        <div id="coat-preview-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" style="z-index: 11000;" onclick="if(event.target===this) { this.classList.remove('show'); this.classList.add('hidden'); }">
+            <div class="popup-content" style="max-width: 480px; width: 90%; margin: auto; padding: 24px; border-radius: 16px; background: var(--color-bg-card); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid var(--color-border);">
+                <button id="btn-close-coat-preview" class="modal-close js-close-popup" style="position: absolute; top: 14px; right: 14px;" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
+                <div style="background: var(--color-bg-body); padding: 20px; border-radius: 14px; display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box;">
+                    <img id="coat-preview-img" src="" alt="" style="max-width: 100%; max-height: 280px; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.18));" />
+                </div>
+                <div>
+                    <h3 id="coat-preview-title" style="margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: var(--color-text-main);"></h3>
+                    <p id="coat-preview-surnames" style="margin: 0; font-size: 14px; color: var(--color-text-muted); line-height: 1.45;"></p>
+                </div>
             </div>
         </div>
     </main>

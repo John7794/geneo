@@ -23,6 +23,12 @@
 	text-decoration: none;
 }
 
+.btn:hover,
+.btn:focus-visible {
+	text-decoration: none !important;
+	box-shadow: 0 0 0 3px var(--color-primary-light, rgba(37, 99, 235, 0.18)), var(--shadow-sm);
+}
+
 .btn:active {
 	transform: translateY(1px);
 }
@@ -37,6 +43,8 @@
 .btn-primary:hover,
 .btn-primary:focus-visible {
 	background-color: var(--color-primary-hover);
+	text-decoration: none !important;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35), 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 /* ==========================================
@@ -71,6 +79,8 @@
 	background-color: var(--color-bg-hover, rgba(0, 0, 0, 0.06));
 	color: var(--color-primary);
 	transform: translateY(-1px);
+	text-decoration: none !important;
+	box-shadow: 0 0 0 3px var(--color-primary-light, rgba(37, 99, 235, 0.16));
 }
 
 /* Стан кліку (Active) */

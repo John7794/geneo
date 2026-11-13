@@ -3,7 +3,7 @@ import { i18n } from "../../core/i18n.js";
 import { calculateAgeAtDeath, convertJulianToGregorian } from "../../utils/dateUtils.js";
 import { resolveCoatUrl } from "../../utils/coatUtils.js";
 import { renderPersonTile } from "../ui/shared/personTile.js";
-import { findPersonDetails, generateInitialsAvatar } from "../../utils/personUtils.js";
+import { findPersonDetails, generateInitialsAvatar, getAvatarUrl } from "../../utils/personUtils.js";
 import { escapeHtml } from "../../utils/helpers.js";
 
 export class AnalyticsManager {
@@ -58,12 +58,20 @@ export class AnalyticsManager {
 		}
 
 		document.addEventListener("keydown", (e) => {
-			if (e.key === "Escape" && this.viewEl && !this.viewEl.classList.contains("hidden")) {
-				const detailedView = document.getElementById("analytics-detailed-view");
-				if (detailedView && detailedView.style.display !== "none") {
-					document.getElementById("btn-back-to-summary")?.click();
-				} else {
-					this._closeAnalytics();
+			if (e.key === "Escape") {
+				const coatOverlay = document.getElementById("coat-preview-overlay");
+				if (coatOverlay && coatOverlay.classList.contains("show")) {
+					coatOverlay.classList.remove("show");
+					coatOverlay.classList.add("hidden");
+					return;
+				}
+				if (this.viewEl && !this.viewEl.classList.contains("hidden")) {
+					const detailedView = document.getElementById("analytics-detailed-view");
+					if (detailedView && detailedView.style.display !== "none") {
+						document.getElementById("btn-back-to-summary")?.click();
+					} else {
+						this._closeAnalytics();
+					}
 				}
 			}
 		});
@@ -88,9 +96,63 @@ export class AnalyticsManager {
 	}
 
 	_closeAnalytics() {
+		const detailedView = document.getElementById("analytics-detailed-view");
+		if (detailedView) {
+			detailedView.style.display = "none";
+			detailedView.classList.remove('has-sort-controls');
+		}
+		if (this.containerSummary) this.containerSummary.style.display = "flex";
+		const analyticsView = document.getElementById("analytics-view");
+		if (analyticsView) analyticsView.classList.remove('in-detailed-view');
+		const headerTitle = document.getElementById("analytics-header-title");
+		if (headerTitle) headerTitle.textContent = "Аналітика родоводу";
+		const btnBackModal = document.getElementById("btn-back-analytics");
+		if (btnBackModal) btnBackModal.style.display = "none";
+
 		if (window.app && window.app.navigateToId) {
 			window.app.navigateToId(window.app.currentProfileId || window.app.rootPersonId, false, "tree");
 		}
+	}
+
+	_getPersonPIB(details, eventType = null) {
+		if (!details) return "";
+		let s = details.surname || "";
+		let n = details.name || "";
+		let pat = details.patronymic || "";
+		const isFem = details.gender === "f" || details.gender === "ж";
+		if (["birth", "baptism", "marriage", "народження", "хрещення", "шлюб"].includes(eventType)) {
+			if (isFem) s = details.maidenName ? details.maidenName : (s || "");
+		} else if (["death", "funeral", "смерть", "поховання"].includes(eventType)) {
+			if (isFem) {
+				if (details.marriedName) {
+					const mSurnames = String(details.marriedName).split(/[,;]/).map(x => x.trim()).filter(Boolean);
+					if (mSurnames.length > 0) s = mSurnames[mSurnames.length - 1];
+					else s = details.maidenName ? details.maidenName : (s || "");
+				} else {
+					s = details.maidenName ? details.maidenName : (s || "");
+				}
+			}
+		}
+		const fullName = [s, n, pat].filter(Boolean).join(" ");
+		return fullName;
+	}
+
+	_renderPersonChip(person, eventType = null) {
+		if (!person) return '<span style="color: var(--color-text-muted);">Невідомо</span>';
+		const pid = typeof person === "object" ? (person.id || person.pid) : person;
+		if (!pid) return '<span style="color: var(--color-text-muted);">Невідомо</span>';
+		
+		const details = findPersonDetails(pid, this.engine) || {};
+		const isFem = details.gender === "f" || details.gender === "ж" || (typeof person === "object" && person.gender === "f");
+		const avatarUrl = getAvatarUrl(details.photo, isFem, details.name || (typeof person === "object" ? person.name : ""), details.surname);
+		const pib = this._getPersonPIB(details, eventType) || (typeof person === "object" ? person.name : "") || "Невідомо";
+		
+		return `
+			<a href="?id=${encodeURIComponent(pid)}&view=profile" class="analytics-person-link js-stop-prop analytics-person-chip" data-pid="${pid}">
+				<img src="${avatarUrl}" class="analytics-person-avatar" alt="" />
+				<span class="analytics-person-name">${escapeHtml(pib)}</span>
+			</a>
+		`;
 	}
 
 	render() {
@@ -298,11 +360,15 @@ export class AnalyticsManager {
                 });
 
                 if (!placesCount[pName].peopleLists[eventType]) {
-                    placesCount[pName].peopleLists[eventType] = new Set();
+                    placesCount[pName].peopleLists[eventType] = new Map();
                 }
-                const oldSize = placesCount[pName].peopleLists[eventType].size;
-                peopleList.forEach(p => placesCount[pName].peopleLists[eventType].add(p));
-                const newSize = placesCount[pName].peopleLists[eventType].size;
+                const pMap = placesCount[pName].peopleLists[eventType];
+                const oldSize = pMap.size;
+                peopleList.forEach(p => {
+                    const key = typeof p === "object" ? (p.key || (p.isCouple ? `${p.hid}_${p.wid}` : String(p.pid))) : String(p);
+                    if (!pMap.has(key)) pMap.set(key, p);
+                });
+                const newSize = pMap.size;
                 placesCount[pName].total += (newSize - oldSize);
                 placesCount[pName].events[eventType] = newSize;
             }
@@ -312,14 +378,14 @@ export class AnalyticsManager {
             this.engine.db.birth.forEach(b => {
                 const pid = b[COLUMNS.birth?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", [getPersonName(pid, "народження")], [pid]);
+                countPlace(b[COLUMNS.birth?.placeId || "place_id"], "народження", [{ key: String(pid), pid, name: getPersonName(pid, "народження") }], [pid]);
             });
         }
         if (this.engine.db.death) {
             this.engine.db.death.forEach(d => {
                 const pid = d[COLUMNS.death?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", [getPersonName(pid, "смерть")], [pid]);
+                countPlace(d[COLUMNS.death?.placeId || "place_id"], "смерть", [{ key: String(pid), pid, name: getPersonName(pid, "смерть") }], [pid]);
             });
         }
         if (this.engine.db.marriage) {
@@ -330,21 +396,21 @@ export class AnalyticsManager {
                 const hName = getPersonName(hid, "шлюб");
                 const wName = getPersonName(wid, "шлюб");
                 const couple = (hid || wid) ? `${hName} та ${wName}` : "Невідомо";
-                countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб", [couple], [hid, wid]);
+                countPlace(m[COLUMNS.marriage?.placeId || "place_id"], "шлюб", [{ key: `${hid}_${wid}`, isCouple: true, hid, wid, name: couple }], [hid, wid]);
             });
         }
         if (this.engine.db.baptism) {
             this.engine.db.baptism.forEach(m => {
                 const pid = m[COLUMNS.baptism?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення", [getPersonName(pid, "хрещення")], [pid]);
+                countPlace(m[COLUMNS.baptism?.placeId || "place_id"], "хрещення", [{ key: String(pid), pid, name: getPersonName(pid, "хрещення") }], [pid]);
             });
         }
         if (this.engine.db.funeral) {
             this.engine.db.funeral.forEach(m => {
                 const pid = m[COLUMNS.funeral?.personId || "person_id"];
                 if (visibleIds && !visibleIds.has(String(pid))) return;
-                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання", [getPersonName(pid, "поховання")], [pid]);
+                countPlace(m[COLUMNS.funeral?.placeId || "place_id"], "поховання", [{ key: String(pid), pid, name: getPersonName(pid, "поховання") }], [pid]);
             });
         }
         if (this.engine.db.familyList) {
@@ -358,12 +424,12 @@ export class AnalyticsManager {
                     let alreadyExists = false;
                     if (placesCount[pName]) {
                         for (const eventName of Object.keys(placesCount[pName].peopleLists)) {
-                            if (eventName !== "згадки в індексах пращурів" && placesCount[pName].peopleLists[eventName].has(personName)) {
+                            if (eventName !== "згадки в індексах пращурів" && placesCount[pName].peopleLists[eventName].has(String(pid))) {
                                 alreadyExists = true; break;
                             }
                         }
                     }
-                    if (!alreadyExists) countPlace(placeId, "згадки в індексах пращурів", [personName], [pid]);
+                    if (!alreadyExists) countPlace(placeId, "згадки в індексах пращурів", [{ key: String(pid), pid, name: personName }], [pid]);
                 }
             });
         }
@@ -378,12 +444,12 @@ export class AnalyticsManager {
                     let alreadyExists = false;
                     if (placesCount[pName]) {
                         for (const eventName of Object.keys(placesCount[pName].peopleLists)) {
-                            if (eventName !== "згадки в індексах пращурів" && placesCount[pName].peopleLists[eventName].has(personName)) {
+                            if (eventName !== "згадки в індексах пращурів" && placesCount[pName].peopleLists[eventName].has(String(pid))) {
                                 alreadyExists = true; break;
                             }
                         }
                     }
-                    if (!alreadyExists) countPlace(placeId, "згадки в індексах пращурів", [personName], [pid]);
+                    if (!alreadyExists) countPlace(placeId, "згадки в індексах пращурів", [{ key: String(pid), pid, name: personName }], [pid]);
                 }
             });
         }
@@ -550,13 +616,13 @@ export class AnalyticsManager {
 
 		// Render General
 		this.containerGeneral.innerHTML = `
-			<div class="analytics-stat-card" style="justify-content: flex-start; padding-top: 15px;">
-				<div class="analytics-general-value">${totalPeople}</div>
-				<div class="analytics-stat-label">Осіб у дереві</div>
+			<div class="analytics-stat-card" style="padding: 16px; text-align: center; align-items: center; justify-content: center;">
+				<div class="analytics-general-value" style="text-align: center; width: 100%;">${totalPeople}</div>
+				<div class="analytics-stat-label" style="text-align: center; width: 100%;">Осіб у дереві</div>
 			</div>
-			<div class="analytics-stat-card" style="justify-content: flex-start; padding-top: 15px;">
-				<div class="analytics-general-value">${maleCount} / ${femaleCount}</div>
-				<div class="analytics-stat-label">Чоловіків / Жінок</div>
+			<div class="analytics-stat-card" style="padding: 16px; text-align: center; align-items: center; justify-content: center;">
+				<div class="analytics-general-value" style="text-align: center; width: 100%;">${maleCount} / ${femaleCount}</div>
+				<div class="analytics-stat-label" style="text-align: center; width: 100%;">Чоловіків / Жінок</div>
 			</div>
 		`;
 
@@ -608,18 +674,14 @@ export class AnalyticsManager {
                 }
 
                 let avatarHtml = '';
-                if (obj && obj.id && window.app && window.app.engine && window.app.engine.db) {
-                    const person = window.app.engine.db.names.find(n => n.id === obj.id);
-                    const avatarPath = person ? window.app.engine.getPersonPhoto(person) : null;
-                    if (avatarPath) {
-                        avatarHtml = `<img src="${avatarPath}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
-                    } else {
-                        const initSrc = generateInitialsAvatar(obj.name || shortName, "", obj.gender === 'f');
-                        avatarHtml = `<img src="${initSrc}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
-                    }
+                if (obj && obj.id) {
+                    const details = findPersonDetails(obj.id, this.engine);
+                    const isFem = details?.gender === 'f' || details?.gender === 'ж' || obj.gender === 'f';
+                    const avatarUrl = getAvatarUrl(details?.photo, isFem, details?.name || obj.name, details?.surname);
+                    avatarHtml = `<img src="${avatarUrl}" class="analytics-person-avatar" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" alt="" />`;
                 } else if (obj) {
                     const initSrc = generateInitialsAvatar(obj.name || shortName, "", obj.gender === 'f');
-                    avatarHtml = `<img src="${initSrc}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />`;
+                    avatarHtml = `<img src="${initSrc}" class="analytics-person-avatar" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" alt="" />`;
                 }
 
 				return `
@@ -998,6 +1060,23 @@ export class AnalyticsManager {
              const detailedView = document.getElementById("analytics-detailed-view");
              const btnBack = document.getElementById("btn-back-to-summary");
              const titleView = document.getElementById("detailed-view-title");
+             const headerTitle = document.getElementById("analytics-header-title");
+             const btnBackModal = document.getElementById("btn-back-analytics");
+
+             const returnToSummary = () => {
+                 if (detailedView) {
+                     detailedView.style.display = "none";
+                     detailedView.classList.remove('has-sort-controls');
+                 }
+                 this.containerSummary.style.display = "flex";
+                 const analyticsView = document.getElementById("analytics-view");
+                 if (analyticsView) analyticsView.classList.remove('in-detailed-view');
+                 if (headerTitle) headerTitle.textContent = "Аналітика родоводу";
+                 if (btnBackModal) btnBackModal.style.display = "none";
+                 const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
+                 if (analyticsBody) analyticsBody.scrollTop = 0;
+                 window.scrollTo(0, 0);
+             };
 
              navBtns.forEach(btn => {
                  btn.addEventListener("click", (e) => {
@@ -1008,6 +1087,9 @@ export class AnalyticsManager {
                      this.containerSummary.style.display = "none";
                      const analyticsView = document.getElementById("analytics-view");
                      if (analyticsView) analyticsView.classList.add('in-detailed-view');
+
+                     if (headerTitle) headerTitle.textContent = title;
+                     if (btnBackModal) btnBackModal.style.display = "inline-flex";
 
                      if (detailedView) {
                          detailedView.style.display = "flex";
@@ -1042,17 +1124,16 @@ export class AnalyticsManager {
 
              if (btnBack && !btnBack.dataset.init) {
                  btnBack.dataset.init = "true";
-                 btnBack.addEventListener("click", () => {
-                     if (detailedView) {
-                         detailedView.style.display = "none";
-                         detailedView.classList.remove('has-sort-controls');
+                 btnBack.addEventListener("click", returnToSummary);
+             }
+
+             if (btnBackModal && !btnBackModal.dataset.initSummary) {
+                 btnBackModal.dataset.initSummary = "true";
+                 btnBackModal.addEventListener("click", (e) => {
+                     if (detailedView && detailedView.style.display !== "none") {
+                         e.stopPropagation();
+                         returnToSummary();
                      }
-                     this.containerSummary.style.display = "flex";
-                     const analyticsView = document.getElementById("analytics-view");
-                     if (analyticsView) analyticsView.classList.remove('in-detailed-view');
-                     const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
-                     if (analyticsBody) analyticsBody.scrollTop = 0;
-                     window.scrollTo(0, 0);
                  });
              }
 
@@ -1143,14 +1224,22 @@ export class AnalyticsManager {
                                 return sortedEvents.map(e => {
                                     const evtName = e[0];
                                     const evtCount = e[1];
-                                    const peopleList = Array.from(p[1].peopleLists?.[evtName] || []);
+                                    const peopleList = Array.from(p[1].peopleLists?.[evtName]?.values() || []);
                                     const peopleHtml = peopleList.length > 0 
                                         ? `<ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
-                                            ${peopleList.map(personName => `
-                                            <li style="padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; list-style: none; margin-left: 12px;">
-                                                <div style="font-size: 15px; color: var(--color-text-main); line-height: 1.4;">
-                                                    ${personName}
-                                                </div>
+                                            ${peopleList.map(personItem => `
+                                            <li style="padding: 10px 14px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; list-style: none; margin-left: 12px;">
+                                                ${personItem && personItem.isCouple 
+                                                    ? `<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                        ${this._renderPersonChip(personItem.hid, 'шлюб')}
+                                                        <span style="color: var(--color-text-muted); font-size: 13px;">та</span>
+                                                        ${this._renderPersonChip(personItem.wid, 'шлюб')}
+                                                       </div>`
+                                                    : (personItem && personItem.pid
+                                                        ? this._renderPersonChip(personItem.pid, evtName)
+                                                        : `<div style="font-size: 15px; color: var(--color-text-main); line-height: 1.4;">${escapeHtml(typeof personItem === 'object' ? (personItem.name || '') : String(personItem))}</div>`
+                                                      )
+                                                }
                                             </li>`).join("")}
                                           </ul>` 
                                         : "";
@@ -1168,23 +1257,20 @@ export class AnalyticsManager {
                 `;
             });
             
+            const topPlacesPills = sortedEntries.slice(0, 15).map((p, idx) => {
+                const placeName = placeNameMap[p[0]] || p[0];
+                const total = p[1].total;
+                const blockId = `event-place-${idx}`;
+                return `<button type="button" class="analytics-nav-pill js-quick-scroll-place" data-target="${blockId}"><span>${escapeHtml(placeName)}</span><span class="pill-count">${total}</span></button>`;
+            }).join('');
+            const quickNavHtml = topPlacesPills.length > 0 ? `<div class="analytics-quick-nav-bar" role="navigation" aria-label="Населені пункти">${topPlacesPills}</div>` : '';
+
             this.containerPlaces.innerHTML = `
-                <div class="events-layout-with-sidebar" style="position: relative; width: 100%;">
-                    <aside class="events-sidebar-desktop" style="display: none;">
-                        <div>
-                            <div class="profile-toc-container">
-                                <h3 class="profile-toc-title">Населені пункти</h3>
-                                <ul class="profile-toc-list">
-                                    ${tocLinksHtml}
-                                </ul>
-                            </div>
-                        </div>
-                    </aside>
-                    <div class="events-body-blocks">
-                        <ul class="analytics-list-none" style="padding: 0; margin: 0;">
-                            ${html}
-                        </ul>
-                    </div>
+                <div class="analytics-places-wrapper" style="width: 100%;">
+                    ${quickNavHtml}
+                    <ul class="analytics-list-none" style="padding: 0; margin: 0;">
+                        ${html}
+                    </ul>
                 </div>
             `;
             
@@ -1195,52 +1281,35 @@ export class AnalyticsManager {
                 const body = item.querySelector('.analytics-place-body');
                 const icon = item.querySelector('.analytics-place-icon');
                 
-                const isDesktop = window.innerWidth >= 1200;
-                if (!isDesktop) {
-                    body.style.display = 'none';
-                    if (icon) icon.style.transform = 'rotate(0deg)';
-                } else {
-                    header.style.cursor = 'default';
-                }
-
+                header.style.cursor = 'pointer';
                 header.addEventListener('click', () => {
-                    if (window.innerWidth >= 1200) return;
                     const isOpen = body.style.display === 'block';
                     body.style.display = isOpen ? 'none' : 'block';
                     if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
                 });
             });
             
-            // Sidebar display on desktop
-            const sidebar = this.containerPlaces.querySelector('.events-sidebar-desktop');
-            if (sidebar && window.innerWidth >= 1200) {
-                sidebar.style.display = 'block';
-            }
-            
-            // Attach smooth scroll for toc links
-            this.containerPlaces.querySelectorAll('.js-scroll-to').forEach(link => {
-                link.addEventListener('click', (e) => {
+            // Attach smooth scroll for quick-nav pills
+            this.containerPlaces.querySelectorAll('.js-quick-scroll-place').forEach(btn => {
+                btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const targetId = link.getAttribute('href').substring(1);
+                    const targetId = btn.getAttribute('data-target');
                     const targetEl = document.getElementById(targetId);
                     if (targetEl) {
                         const body = targetEl.querySelector('.analytics-place-body');
                         const icon = targetEl.querySelector('.analytics-place-icon');
-                        if (body && body.style.display === 'none') {
-                            body.style.display = 'block';
-                            if (icon) icon.style.transform = 'rotate(180deg)';
-                        }
-                        if (sidebar) {
-                            sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
-                            link.classList.add('active');
-                        }
+                        if (body) body.style.display = 'block';
+                        if (icon) icon.style.transform = 'rotate(180deg)';
                         targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        
+                        this.containerPlaces.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
                     }
                 });
             });
 
-            // Scroll-spy observer to keep active place in view inside sticky sidebar
-            if (sidebar && window.IntersectionObserver) {
+            // Scroll-spy observer to keep active place pill highlighted
+            if (window.IntersectionObserver) {
                 if (this._placesObserver) {
                     this._placesObserver.disconnect();
                 }
@@ -1248,16 +1317,16 @@ export class AnalyticsManager {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const id = entry.target.id;
-                            const link = sidebar.querySelector(`.profile-toc-link[href="#${id}"]`);
-                            if (link) {
-                                sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
-                                link.classList.add('active');
-                                link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                            const pill = this.containerPlaces.querySelector(`.js-quick-scroll-place[data-target="${id}"]`);
+                            if (pill) {
+                                this.containerPlaces.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
+                                pill.classList.add('active');
+                                pill.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
                             }
                         }
                     });
                 }, {
-                    rootMargin: '-172px 0px -70% 0px',
+                    rootMargin: '-50px 0px -70% 0px',
                     threshold: 0
                 });
                 placeItems.forEach(item => this._placesObserver.observe(item));
@@ -1337,10 +1406,8 @@ export class AnalyticsManager {
                     const peopleHtml2 = peopleList.length > 0 
                         ? `<ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
                             ${peopleList.map(person => `
-                                <li style="padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; list-style: none;">
-                                    <div style="font-size: 15px; color: var(--color-text-main); line-height: 1.4;">
-                                        <a href="?id=${encodeURIComponent(person.pid)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${person.pid}" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(person.name)}</a>
-                                    </div>
+                                <li style="padding: 10px 14px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; list-style: none;">
+                                    ${this._renderPersonChip({ id: person.pid, name: person.name }, 'death')}
                                 </li>
                             `).join("")}
                           </ul>` 
@@ -1583,17 +1650,18 @@ export class AnalyticsManager {
                                     return fullName || p.name || "Невідомо";
                                 };
 
-                                let p1Html = `<a href="?id=${encodeURIComponent(evt.person.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.person.id}" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(getPersonPIB(evt.person, evt.type))}</a>`;
+                                let p1Html = this._renderPersonChip(evt.person, evt.type);
                                 let p2Html = "";
                                 if (evt.type === "marriage" && evt.spouse) {
-                                    p2Html = ` та <a href="?id=${encodeURIComponent(evt.spouse.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.spouse.id}" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(getPersonPIB(evt.spouse, evt.type))}</a>`;
+                                    p2Html = ` <span style="color: var(--color-text-muted); font-size: 13px; margin: 0 4px;">та</span> ` + this._renderPersonChip(evt.spouse, evt.type);
                                 }
 
-                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${escapeHtml(evt.original.yearStr)} р.)</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: 8px;">(${evt.year} р.)</span>` : "");
+                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">(${escapeHtml(evt.original.yearStr)} р.)</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">(${evt.year} р.)</span>` : "");
                                 
                                 html += `
-                                        <li style="padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; list-style: none;">
-                                            <div style="font-size: 15px; color: var(--color-text-main); line-height: 1.4;">${p1Html}${p2Html}${yearInfo}</div>
+                                        <li style="padding: 10px 14px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; list-style: none; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">${p1Html}${p2Html}</div>
+                                            ${yearInfo}
                                         </li>
                                 `;
                             });
@@ -1616,23 +1684,26 @@ export class AnalyticsManager {
                 
                 const eventsSectionContent = containerEvents.closest('.analytics-section-content');
                 if (eventsSectionContent) {
+                    const monthPillsHtml = Array.from({ length: 12 }, (_, i) => {
+                        const monthKey = monthNames[i];
+                        const monthLabel = i18n.t(`months.${monthKey}`) || monthKey;
+                        const count = monthEvents[i] ? monthEvents[i].length : 0;
+                        return `
+                            <button type="button" class="analytics-nav-pill js-quick-scroll-event ${count === 0 ? 'pill-empty' : ''}" data-target="event-month-${i}">
+                                <span>${monthLabel}</span>
+                                <span class="pill-count">${count}</span>
+                            </button>
+                        `;
+                    }).join('');
+
                     eventsSectionContent.innerHTML = `
-                        <div class="events-layout-with-sidebar" style="position: relative; width: 100%;">
-                            <aside class="events-sidebar-desktop" style="display: none;">
-                                <div>
-                                    <div class="profile-toc-container">
-                                        <h3 class="profile-toc-title">Місяці</h3>
-                                        <ul class="profile-toc-list">
-                                            ${tocLinksHtml}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </aside>
-                            <div class="events-body-blocks">
-                                <ul id="analytics-events-list" class="analytics-list-none" style="padding: 0; margin: 0;">
-                                    ${html}
-                                </ul>
+                        <div class="analytics-events-wrapper" style="width: 100%;">
+                            <div class="analytics-quick-nav-bar" role="navigation" aria-label="Місяці">
+                                ${monthPillsHtml}
                             </div>
+                            <ul id="analytics-events-list" class="analytics-list-none" style="padding: 0; margin: 0;">
+                                ${html}
+                            </ul>
                         </div>
                     `;
                     
@@ -1644,50 +1715,43 @@ export class AnalyticsManager {
                         const body = item.querySelector('.analytics-event-month-body');
                         const icon = item.querySelector('.analytics-event-month-icon');
                         
-                        const isDesktop = window.innerWidth >= 1200;
-                if (!isDesktop) {
-                    body.style.display = 'none';
-                    if (icon) icon.style.transform = 'rotate(0deg)';
-                } else {
-                    header.style.cursor = 'default';
-                }
+                        // Default open on desktop, closed on mobile
+                        if (window.innerWidth < 768) {
+                            body.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                        } else {
+                            body.style.display = 'block';
+                            if (icon) icon.style.transform = 'rotate(180deg)';
+                        }
                         
+                        header.style.cursor = 'pointer';
                         header.addEventListener('click', () => {
-                    if (window.innerWidth >= 1200) return;
-                    const isOpen = body.style.display === 'block';
+                            const isOpen = body.style.display === 'block';
                             body.style.display = isOpen ? 'none' : 'block';
                             if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
                         });
                     });
                     
-                    // Attach smooth scroll for toc links
-                    eventsSectionContent.querySelectorAll('.js-event-month-link').forEach(link => {
-                        link.addEventListener('click', (e) => {
+                    // Attach smooth scroll for quick-nav pills
+                    eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
                             e.preventDefault();
-                            const targetId = link.getAttribute('href').substring(1);
+                            const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
                             if (targetEl) {
                                 const body = targetEl.querySelector('.analytics-event-month-body');
                                 const icon = targetEl.querySelector('.analytics-event-month-icon');
-                                if (body && body.style.display === 'none') {
-                                    body.style.display = 'block';
-                                    if (icon) icon.style.transform = 'rotate(180deg)';
-                                }
-                                const sidebarEl = eventsSectionContent.querySelector('.events-sidebar-desktop');
-                                if (sidebarEl) {
-                                    sidebarEl.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
-                                    link.classList.add('active');
-                                }
+                                if (body) body.style.display = 'block';
+                                if (icon) icon.style.transform = 'rotate(180deg)';
                                 targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                                eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
                             }
                         });
                     });
 
-                    const eventsSidebar = eventsSectionContent.querySelector('.events-sidebar-desktop');
-                    if (eventsSidebar && window.innerWidth >= 1200) {
-                        eventsSidebar.style.display = 'block';
-                    }
-                    if (eventsSidebar && window.IntersectionObserver) {
+                    if (window.IntersectionObserver) {
                         if (this._eventsObserver) {
                             this._eventsObserver.disconnect();
                         }
@@ -1695,16 +1759,16 @@ export class AnalyticsManager {
                             entries.forEach(entry => {
                                 if (entry.isIntersecting) {
                                     const id = entry.target.id;
-                                    const link = eventsSidebar.querySelector(`.profile-toc-link[href="#${id}"]`);
-                                    if (link) {
-                                        eventsSidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
-                                        link.classList.add('active');
-                                        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                                    const pill = eventsSectionContent.querySelector(`.js-quick-scroll-event[data-target="${id}"]`);
+                                    if (pill) {
+                                        eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
+                                        pill.classList.add('active');
+                                        pill.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
                                     }
                                 }
                             });
                         }, {
-                            rootMargin: '-136px 0px -70% 0px',
+                            rootMargin: '-50px 0px -70% 0px',
                             threshold: 0
                         });
                         newContainerEvents.querySelectorAll('.analytics-event-month-item').forEach(item => this._eventsObserver.observe(item));
@@ -2728,9 +2792,9 @@ const renderTimeline = () => {
                             return fullName || p.name || "Невідомо";
                         };
                         
-                        let namesStr = `<a href="?id=${encodeURIComponent(evt.person.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.person.id}" style="color: var(--color-text-main); text-decoration: none; font-weight: 500;">${escapeHtml(getPersonPIB(evt.person, evt.type))}</a>`;
+                        let namesStr = this._renderPersonChip(evt.person, evt.type);
                         if (evt.type === "marriage" && evt.spouse) {
-                            namesStr += ` та <a href="?id=${encodeURIComponent(evt.spouse.id)}&view=profile" class="analytics-person-link js-stop-prop" data-pid="${evt.spouse.id}" style="color: var(--color-text-main); text-decoration: none; font-weight: 500;">${escapeHtml(getPersonPIB(evt.spouse, evt.type))}</a>`;
+                            namesStr += ` <span style="color: var(--color-text-muted); font-size: 13px; margin: 0 4px;">та</span> ` + this._renderPersonChip(evt.spouse, evt.type);
                         }
                         
                         html += `
@@ -2746,60 +2810,35 @@ const renderTimeline = () => {
                 if (timelineList) {
                     timelineList.innerHTML = html;
                     
-                    let tocLinksHtml = Array.from(tocCenturies).sort((a, b) => b - a).map(c => `<li><a href="#timeline-century-${c}" class="profile-toc-link js-scroll-to">${getCenturyRoman(c)} ${i18n.t("time.century") || "століття"}</a></li>`).join('');
-                    
-                    let sidebar = timelineList.closest('.events-layout-with-sidebar') ? timelineList.closest('.events-layout-with-sidebar').querySelector('.events-sidebar-desktop') : null;
-                    if (!sidebar) {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'events-layout-with-sidebar';
-                        wrapper.style.cssText = 'position: relative; width: 100%;';
-                        
-                        sidebar = document.createElement('aside');
-                        sidebar.className = 'events-sidebar-desktop';
-                        
-                        const bodyBlocks = document.createElement('div');
-                        bodyBlocks.className = 'events-body-blocks';
-                        
-                        
-                        
-                        timelineList.parentNode.insertBefore(wrapper, timelineList);
-                        wrapper.appendChild(sidebar);
-                        wrapper.appendChild(bodyBlocks);
-                        bodyBlocks.appendChild(timelineList);
-                        const chartEl = document.getElementById("analytics-timeline-chart");
-                        if (chartEl) bodyBlocks.appendChild(chartEl);
-
-
+                    let quickNav = timelineList.parentNode.querySelector('.analytics-quick-nav-bar');
+                    if (!quickNav) {
+                        quickNav = document.createElement('div');
+                        quickNav.className = 'analytics-quick-nav-bar';
+                        quickNav.setAttribute('role', 'navigation');
+                        quickNav.setAttribute('aria-label', 'Століття');
+                        timelineList.parentNode.insertBefore(quickNav, timelineList);
                     }
-                    
-                    sidebar.innerHTML = `
-                        <div>
-                            <div class="profile-toc-container">
-                                <h3 class="profile-toc-title">${(i18n.t("time.century") || "століття").toUpperCase()}</h3>
-                                <ul class="profile-toc-list">
-                                    ${tocLinksHtml}
-                                </ul>
-                            </div>
-                        </div>
-                    `;
-                    
-                    const isDesktop = window.innerWidth >= 1200;
-                    sidebar.style.display = isDesktop && tocCenturies.size > 0 ? 'block' : 'none';
-                    
-                    sidebar.querySelectorAll('.js-scroll-to').forEach(link => {
-                        link.addEventListener('click', (e) => {
+                    const centuriesPills = Array.from(tocCenturies).sort((a, b) => b - a).map(c => `
+                        <button type="button" class="analytics-nav-pill js-quick-scroll-century" data-target="timeline-century-${c}">
+                            <span>${getCenturyRoman(c)} ст.</span>
+                        </button>
+                    `).join('');
+                    quickNav.innerHTML = centuriesPills;
+
+                    quickNav.querySelectorAll('.js-quick-scroll-century').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
                             e.preventDefault();
-                            const targetId = link.getAttribute('href').substring(1);
+                            const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
                             if (targetEl) {
-                                sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
-                                link.classList.add('active');
                                 targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
                             }
                         });
                     });
 
-                    if (sidebar && window.IntersectionObserver) {
+                    if (window.IntersectionObserver) {
                         if (this._timelineObserver) {
                             this._timelineObserver.disconnect();
                         }
@@ -2807,16 +2846,16 @@ const renderTimeline = () => {
                             entries.forEach(entry => {
                                 if (entry.isIntersecting) {
                                     const id = entry.target.id;
-                                    const link = sidebar.querySelector(`.profile-toc-link[href="#${id}"]`);
-                                    if (link) {
-                                        sidebar.querySelectorAll('.profile-toc-link').forEach(l => l.classList.remove('active'));
-                                        link.classList.add('active');
-                                        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                                    const pill = quickNav.querySelector(`.js-quick-scroll-century[data-target="${id}"]`);
+                                    if (pill) {
+                                        quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
+                                        pill.classList.add('active');
+                                        pill.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
                                     }
                                 }
                             });
                         }, {
-                            rootMargin: '-172px 0px -70% 0px',
+                            rootMargin: '-50px 0px -70% 0px',
                             threshold: 0
                         });
                         timelineList.querySelectorAll('.analytics-timeline-century-item').forEach(item => this._timelineObserver.observe(item));
@@ -2949,13 +2988,49 @@ const renderTimeline = () => {
             containerCoats.innerHTML = coatsData.map(c => {
                 const surnamesList = coatsMap[c.name] ? Array.from(coatsMap[c.name]) : [];
                 const surnamesHtml = surnamesList.length > 0 ? `<span class="analytics-coat-surnames">${surnamesList.join(", ")}</span>` : "";
+                const coatUrl = resolveCoatUrl(c.name, {coats: this.engine.db.coats});
                 return `
-                <li class="analytics-coat-item">
-                    <img class="analytics-coat-img" src="${resolveCoatUrl(c.name, {coats: this.engine.db.coats})}" alt="${c.name}">
-                    <span class="analytics-coat-name">${c.name}</span>
+                <li class="analytics-coat-item" data-coat-name="${escapeHtml(c.name)}" data-coat-img="${escapeHtml(coatUrl)}" title="Натисніть для збільшення">
+                    <img class="analytics-coat-img" src="${coatUrl}" alt="${escapeHtml(c.name)}">
+                    <span class="analytics-coat-name">${escapeHtml(c.name)}</span>
                     ${surnamesHtml}
                 </li>
             `}).join("");
+
+            containerCoats.querySelectorAll('.analytics-coat-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const coatName = item.getAttribute('data-coat-name');
+                    const imgUrl = item.getAttribute('data-coat-img');
+                    const surnamesEl = item.querySelector('.analytics-coat-surnames');
+                    const surnamesText = surnamesEl ? surnamesEl.textContent : '';
+
+                    const overlay = document.getElementById('coat-preview-overlay');
+                    const previewImg = document.getElementById('coat-preview-img');
+                    const previewTitle = document.getElementById('coat-preview-title');
+                    const previewSurnames = document.getElementById('coat-preview-surnames');
+
+                    if (overlay && previewImg && previewTitle && previewSurnames) {
+                        previewImg.src = imgUrl;
+                        previewImg.alt = coatName || '';
+                        previewTitle.textContent = coatName || '';
+                        previewSurnames.textContent = surnamesText ? `Шляхетські роди: ${surnamesText}` : '';
+                        overlay.classList.remove('hidden');
+                        overlay.classList.add('show');
+                    }
+                });
+            });
+
+            const btnCloseCoat = document.getElementById('btn-close-coat-preview');
+            if (btnCloseCoat && !btnCloseCoat.dataset.init) {
+                btnCloseCoat.dataset.init = "true";
+                btnCloseCoat.addEventListener('click', () => {
+                    const overlay = document.getElementById('coat-preview-overlay');
+                    if (overlay) {
+                        overlay.classList.remove('show');
+                        overlay.classList.add('hidden');
+                    }
+                });
+            }
         }
 
 	}

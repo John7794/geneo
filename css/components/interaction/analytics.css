@@ -98,21 +98,24 @@
         background: var(--color-text-muted);
     }
 
-    .analytics-dialog .detailed-view-header {
-        top: 0;
-        margin: -24px -28px 16px -28px;
-        padding: 12px 28px;
-        position: sticky;
-        background: var(--color-bg-card);
-        z-index: 10;
+    .analytics-dialog .analytics-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        gap: 16px !important;
     }
 
-    .analytics-dialog .detailed-view-header::before {
-        display: none;
+    .analytics-dialog .detailed-view-header,
+    .detailed-view-header {
+        display: none !important;
     }
 
     .analytics-view:not(.in-detailed-view) #btn-back-analytics {
-        display: none;
+        display: none !important;
+    }
+
+    .analytics-view.in-detailed-view #btn-back-analytics {
+        display: inline-flex !important;
     }
 }
 
@@ -394,23 +397,16 @@
     font-weight: normal;
     align-items: center;
     position: sticky;
-    top: 112px;
+    top: 0;
     z-index: 80;
     background: var(--color-bg-card);
-    padding: 8px var(--analytics-padding);
-    margin: 0 calc(-1 * var(--analytics-padding)) 12px calc(-1 * var(--analytics-padding));
+    padding: 10px 0;
+    margin: 0 0 16px 0;
     border-bottom: 1px solid var(--color-border);
+    width: 100%;
 }
 .analytics-sort-controls::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100vw;
-    right: -100vw;
-    bottom: 0;
-    background: var(--color-bg-card);
-    z-index: -1;
-    border-bottom: 1px solid var(--color-border);
+    display: none;
 }
 
 .analytics-sort-controls span {
@@ -487,7 +483,11 @@
 }
 
 .accordion-open .analytics-section-content > :first-child:not(.analytics-sort-controls) {
-    margin-top: 16px;
+    margin-top: 0;
+}
+
+.events-sidebar-desktop {
+    display: none !important;
 }
 
 @media (min-width: 1200px) {
@@ -497,15 +497,7 @@
     }
 
     .events-sidebar-desktop {
-        display: block !important;
-        position: absolute;
-        right: 100%;
-        margin-right: 40px;
-        top: 0;
-        bottom: 0;
-        width: 180px;
-        z-index: 50;
-        pointer-events: none;
+        display: none !important;
     }
 
     .events-sidebar-desktop > div {
@@ -737,7 +729,9 @@
     padding: 16px 18px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     gap: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     position: relative;
@@ -763,12 +757,15 @@
 .stat-card-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
 }
 
 .stat-badge {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     font-size: 12.5px;
     font-weight: 600;
@@ -797,21 +794,26 @@
     line-height: 1.1;
     color: var(--color-text-main);
     letter-spacing: -0.02em;
+    text-align: center;
+    width: 100%;
 }
 
 .stat-card-footer {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 8px;
     flex-wrap: wrap;
     margin-top: 4px;
+    width: 100%;
 }
 
 .stat-pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
-    padding: 3px 8px;
+    padding: 3px 10px;
     border-radius: 999px;
     font-size: 11.5px;
     font-weight: 600;
@@ -856,6 +858,13 @@
     }
 }
 
+.analytics-feature-card,
+.analytics-feature-card:hover,
+.analytics-feature-card:focus,
+.analytics-feature-card * {
+    text-decoration: none !important;
+}
+
 .analytics-feature-card {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border);
@@ -864,7 +873,7 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    text-decoration: none;
+    text-decoration: none !important;
     color: var(--color-text-main);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -875,11 +884,11 @@
 .analytics-feature-card:hover {
     transform: translateY(-2px);
     border-color: var(--color-primary, #0284c7);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.16), 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .theme-dark .analytics-feature-card:hover {
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22), 0 8px 24px rgba(0, 0, 0, 0.35);
     border-color: #38bdf8;
 }
 
@@ -1011,4 +1020,161 @@
 .theme-dark .icon-gold {
     background: rgba(234, 179, 8, 0.2);
     color: #facc15;
+}
+
+/* =========================================
+   ШВИДКА ГОРИЗОНТАЛЬНА НАВІГАЦІЯ (Quick Nav Bar)
+   ========================================= */
+
+.analytics-quick-nav-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 6px 2px 12px 2px;
+    margin-bottom: 12px;
+    position: sticky;
+    top: 0;
+    background: var(--color-bg-card);
+    z-index: 15;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.analytics-quick-nav-bar::-webkit-scrollbar {
+    height: 4px;
+}
+.analytics-quick-nav-bar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 999px;
+}
+
+.analytics-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+    text-decoration: none !important;
+}
+
+.analytics-nav-pill:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: var(--color-bg-hover, rgba(0, 0, 0, 0.04));
+    box-shadow: 0 0 0 2px var(--color-primary-light, rgba(37, 99, 235, 0.15));
+    text-decoration: none !important;
+}
+
+.analytics-nav-pill.active {
+    background: var(--color-primary);
+    color: var(--color-text-inverse, #ffffff);
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.analytics-nav-pill .pill-count {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--color-bg-body);
+    color: var(--color-text-main);
+}
+
+.analytics-nav-pill.active .pill-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.analytics-nav-pill.pill-empty {
+    opacity: 0.55;
+}
+
+/* =========================================
+   УНІФІКОВАНІ ПЕРСОНИ (Іконки, Фото, Чіпи)
+   ========================================= */
+
+.analytics-person-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 10px 3px 4px;
+    background: var(--color-bg-body);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    text-decoration: none !important;
+    color: var(--color-text-main);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    transition: all 0.18s ease;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.analytics-person-chip:hover {
+    background: var(--color-bg-hover, rgba(0, 0, 0, 0.06));
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light, rgba(37, 99, 235, 0.18));
+    text-decoration: none !important;
+    color: var(--color-primary);
+}
+
+.theme-dark .analytics-person-chip {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.theme-dark .analytics-person-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+}
+
+.analytics-person-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.analytics-person-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* =========================================
+   ГЕРБИ (Інтерактивність та Збільшення)
+   ========================================= */
+
+.analytics-coat-item {
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--color-border);
+}
+
+.analytics-coat-item:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08), 0 0 0 2px var(--color-primary-light, rgba(37, 99, 235, 0.15));
+    border-color: var(--color-primary);
+}
+
+.theme-dark .analytics-coat-item:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(56, 189, 248, 0.25);
+    border-color: #38bdf8;
 }
