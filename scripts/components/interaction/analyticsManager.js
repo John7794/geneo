@@ -1257,7 +1257,7 @@ export class AnalyticsManager {
                 `;
             });
             
-            const topPlacesPills = sortedEntries.slice(0, 15).map((p, idx) => {
+            const topPlacesPills = sortedEntries.map((p, idx) => {
                 const placeName = placeNameMap[p[0]] || p[0];
                 const total = p[1].total;
                 const blockId = `event-place-${idx}`;
@@ -1312,7 +1312,17 @@ export class AnalyticsManager {
                         const icon = targetEl.querySelector('.analytics-place-icon');
                         if (body) body.style.display = 'block';
                         if (icon) icon.style.transform = 'rotate(180deg)';
-                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const scrollContainer = targetEl.closest('.analytics-body');
+                        const stickyPanel = document.querySelector('.analytics-places-sticky-panel');
+                        const stickyHeight = stickyPanel ? stickyPanel.offsetHeight : 0;
+                        if (scrollContainer) {
+                            const targetRect = targetEl.getBoundingClientRect();
+                            const containerRect = scrollContainer.getBoundingClientRect();
+                            const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyHeight - 6;
+                            scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
+                        } else {
+                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
                         
                         document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
@@ -1759,7 +1769,17 @@ export class AnalyticsManager {
                                 const icon = targetEl.querySelector('.analytics-event-month-icon');
                                 if (body) body.style.display = 'block';
                                 if (icon) icon.style.transform = 'rotate(180deg)';
-                                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                const scrollContainer = targetEl.closest('.analytics-body');
+                                const stickyNav = document.querySelector('#analytics-events .analytics-quick-nav-bar');
+                                const stickyHeight = stickyNav ? stickyNav.offsetHeight : 0;
+                                if (scrollContainer) {
+                                    const targetRect = targetEl.getBoundingClientRect();
+                                    const containerRect = scrollContainer.getBoundingClientRect();
+                                    const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyHeight - 6;
+                                    scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
+                                } else {
+                                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
 
                                 eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
@@ -1915,6 +1935,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             if (btnViewList && btnViewChart) {
                 const periodFilterEl = document.getElementById("timeline-chart-period-filter");
                 const updateButtonStyles = () => {
+                    const qNavSlot = document.getElementById('analytics-timeline-quick-nav');
                     const qNav = document.querySelector('#analytics-timeline .analytics-quick-nav-bar');
                     if (timelineViewMode === "list") {
                         btnViewList.style.background = 'var(--color-primary)';
@@ -1926,6 +1947,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (periodFilterEl) periodFilterEl.style.display = 'none';
                         const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
                         if (scrubberToggle) scrubberToggle.style.display = 'none';
+                        if (qNavSlot) qNavSlot.style.display = 'block';
                         if (qNav) qNav.style.display = 'flex';
                     } else {
                         btnViewChart.style.background = 'var(--color-primary)';
@@ -1937,6 +1959,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (periodFilterEl) periodFilterEl.style.display = 'inline-flex';
                         const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
                         if (scrubberToggle) scrubberToggle.style.display = 'inline-flex';
+                        if (qNavSlot) qNavSlot.style.display = 'none';
                         if (qNav) qNav.style.display = 'none';
                     }
                 };
@@ -2017,6 +2040,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             
             const renderTimelineChart = () => {
                 if (!chartContainer) return;
+
+                const qNavSlot = document.getElementById('analytics-timeline-quick-nav');
+                const qNav = document.querySelector('#analytics-timeline .analytics-quick-nav-bar');
+                if (qNavSlot) qNavSlot.style.display = 'none';
+                if (qNav) qNav.style.display = 'none';
                 
                 const timelineList = document.getElementById("analytics-timeline-list");
                 const personEvents = {};
@@ -2830,13 +2858,15 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 if (timelineList) {
                     timelineList.innerHTML = html;
                     
-                    let quickNav = timelineList.parentNode.querySelector('.analytics-quick-nav-bar');
+                    const quickNavSlot = document.getElementById('analytics-timeline-quick-nav');
+                    let quickNav = (quickNavSlot ? quickNavSlot.querySelector('.analytics-quick-nav-bar') : null) || timelineList.parentNode.querySelector('.analytics-quick-nav-bar');
                     if (!quickNav) {
                         quickNav = document.createElement('div');
                         quickNav.className = 'analytics-quick-nav-bar';
                         quickNav.setAttribute('role', 'navigation');
                         quickNav.setAttribute('aria-label', 'Століття');
-                        timelineList.parentNode.insertBefore(quickNav, timelineList);
+                        if (quickNavSlot) quickNavSlot.appendChild(quickNav);
+                        else timelineList.parentNode.insertBefore(quickNav, timelineList);
                     }
                     const centuriesPills = Array.from(tocCenturies).sort((a, b) => b - a).map(c => `
                         <button type="button" class="analytics-nav-pill js-quick-scroll-century" data-target="timeline-century-${c}">
@@ -2844,6 +2874,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         </button>
                     `).join('');
                     quickNav.innerHTML = centuriesPills;
+                    if (quickNavSlot) quickNavSlot.style.display = timelineViewMode === "chart" ? "none" : "block";
                     quickNav.style.display = timelineViewMode === "chart" ? "none" : "flex";
 
                     quickNav.querySelectorAll('.js-quick-scroll-century').forEach(btn => {
@@ -2852,7 +2883,17 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
                             if (targetEl) {
-                                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                const scrollContainer = targetEl.closest('.analytics-body');
+                                const stickyPanel = document.querySelector('#analytics-timeline .analytics-timeline-sticky-panel') || document.querySelector('#analytics-timeline .timeline-controls-bar');
+                                const stickyHeight = stickyPanel ? stickyPanel.offsetHeight : 0;
+                                if (scrollContainer) {
+                                    const targetRect = targetEl.getBoundingClientRect();
+                                    const containerRect = scrollContainer.getBoundingClientRect();
+                                    const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyHeight - 6;
+                                    scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
+                                } else {
+                                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
                                 quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
                             }
