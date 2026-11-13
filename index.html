@@ -602,17 +602,17 @@
                         <div class="analytics-section" id="analytics-timeline">
                             <h4 style="display: none;">Хронологія подій</h4>
                             <div class="analytics-section-content">
-                                <div class="analytics-sort-controls" style="gap: 8px; justify-content: flex-start; flex-wrap: wrap;">
-                                    <div style="display: flex; gap: 8px; align-items: center; background: var(--color-bg-card); padding: 4px; border-radius: 8px; border: 1px solid var(--color-border);">
-                                        <button id="timeline-view-list-btn" class="btn btn-sm" style="background: var(--color-primary); color: white; border: none; height: 28px; width: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;">
+                                <div class="analytics-sort-controls timeline-controls-bar">
+                                    <div style="display: flex; gap: 6px; align-items: center; background: var(--color-bg-card); padding: 4px; border-radius: 8px; border: 1px solid var(--color-border);">
+                                        <button id="timeline-view-list-btn" class="btn btn-sm" title="Список подій" style="background: var(--color-primary); color: white; border: none; height: 28px; width: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;">
                                             <i class="ri-list-check"></i>
                                         </button>
-                                        <button id="timeline-view-chart-btn" class="btn btn-sm" style="background: transparent; color: var(--color-text-main); border: none; height: 28px; width: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;">
+                                        <button id="timeline-view-chart-btn" class="btn btn-sm" title="Графік хронології" style="background: transparent; color: var(--color-text-main); border: none; height: 28px; width: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;">
                                             <i class="ri-bar-chart-horizontal-line"></i>
                                         </button>
                                     </div>
                                     <div id="timeline-filter-wrapper" style="position: relative; display: inline-flex; align-items: center;">
-                                        <select id="timeline-filter-type" class="btn btn-outline btn-sm" style="color: var(--color-text-main); border-color: var(--color-border); height: 38px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; padding-right: 40px; padding-left: 16px; padding-left: 12px; appearance: none; -webkit-appearance: none; background: transparent; cursor: pointer; width: 100%;">
+                                        <select id="timeline-filter-type" class="btn btn-outline btn-sm" style="color: var(--color-text-main); border-color: var(--color-border); height: 38px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; padding-right: 36px; padding-left: 12px; appearance: none; -webkit-appearance: none; background: transparent; cursor: pointer; width: 100%;">
                                             <option value="all">Всі події</option>
                                             <option value="birth">Народження</option>
                                             <option value="baptism">Хрещення</option>
@@ -620,24 +620,24 @@
                                             <option value="death">Смерті</option>
                                             <option value="funeral">Поховання</option>
                                         </select>
-                                        <i class="ri-arrow-down-s-line timeline-filter-icon" style="position: absolute; right: 16px; pointer-events: none; color: var(--color-text-main); transition: transform 0.2s ease;"></i>
+                                        <i class="ri-arrow-down-s-line timeline-filter-icon" style="position: absolute; right: 14px; pointer-events: none; color: var(--color-text-main); transition: transform 0.2s ease;"></i>
                                     </div>
-                                    <div id="timeline-scrubber-mode-toggle" style="display: none; align-items: center; background: var(--color-bg-card); padding: 4px; border-radius: 8px; border: 1px solid var(--color-border);">
-    <button id="scrubber-mode-year-btn" class="btn btn-sm" style="background: var(--color-primary); color: white; border: none; height: 28px; padding: 0 8px; font-size: 12px; border-radius: 6px;">Рік</button>
-    <button id="scrubber-mode-period-btn" class="btn btn-sm" style="background: transparent; color: var(--color-text-main); border: none; height: 28px; padding: 0 8px; font-size: 12px; border-radius: 6px;">Період</button>
-</div>
+                                    <div id="timeline-scrubber-mode-toggle" style="display: none; align-items: center; background: var(--color-bg-card); padding: 4px; border-radius: 8px; border: 1px solid var(--color-border); gap: 4px;">
+                                        <button id="scrubber-mode-year-btn" class="btn btn-sm" title="Один рік" style="background: var(--color-primary); color: white; border: none; height: 28px; padding: 0 10px; font-size: 12px; border-radius: 6px;">Рік</button>
+                                        <button id="scrubber-mode-period-btn" class="btn btn-sm" title="Період років" style="background: transparent; color: var(--color-text-main); border: none; height: 28px; padding: 0 10px; font-size: 12px; border-radius: 6px;">Період</button>
+                                    </div>
                                     <div id="timeline-chart-period-filter" style="display: none; align-items: center; gap: 8px;">
-    <input type="number" id="timeline-chart-min-year" class="btn-outline btn-sm" style="width: 70px; height: 38px; background: transparent; color: var(--color-text-main); border: 1px solid var(--color-border); border-radius: 8px; padding: 0 8px;" placeholder="Рік" title="Початковий рік">
-    <span id="timeline-chart-dash" style="color: var(--color-text-muted); display: none;">-</span>
-    <input type="number" id="timeline-chart-max-year" class="btn-outline btn-sm" style="width: 70px; height: 38px; background: transparent; color: var(--color-text-main); border: 1px solid var(--color-border); border-radius: 8px; padding: 0 8px; display: none;" placeholder="До" title="Кінцевий рік">
-    <button id="timeline-chart-apply-btn" class="btn btn-sm" style="display: none; height: 38px; background: var(--color-primary); color: white; border: none; border-radius: 8px;">Застосувати</button>
-</div>
-                                    <button id="timeline-sort-btn" class="btn btn-outline btn-sm" style="background: transparent; color: var(--color-text-main); border-color: var(--color-border); padding: 0 12px; height: 38px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">
+                                        <input type="number" id="timeline-chart-min-year" class="btn-outline btn-sm" style="width: 75px; height: 38px; background: var(--color-bg-card); color: var(--color-text-main); border: 1px solid var(--color-border); border-radius: 8px; padding: 0 10px; font-size: 13px;" placeholder="Рік" title="Початковий рік">
+                                        <span id="timeline-chart-dash" style="color: var(--color-text-muted); display: none; font-weight: 600;">–</span>
+                                        <input type="number" id="timeline-chart-max-year" class="btn-outline btn-sm" style="width: 75px; height: 38px; background: var(--color-bg-card); color: var(--color-text-main); border: 1px solid var(--color-border); border-radius: 8px; padding: 0 10px; display: none; font-size: 13px;" placeholder="До" title="Кінцевий рік">
+                                        <button id="timeline-chart-apply-btn" class="btn btn-sm" style="display: none; height: 38px; background: var(--color-primary); color: white; border: none; border-radius: 8px; padding: 0 12px;">Застосувати</button>
+                                    </div>
+                                    <button id="timeline-sort-btn" class="btn btn-outline btn-sm" title="Напрямок сортування" style="background: transparent; color: var(--color-text-main); border-color: var(--color-border); padding: 0 12px; height: 38px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">
                                         <i class="ri-sort-desc"></i>
                                     </button>
                                 </div>
                                 <ul id="analytics-timeline-list" class="analytics-list-none" style="display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0;"></ul>
-                                <div id="analytics-timeline-chart" style="display: none; width: 100%; max-height: 70vh; overflow-x: auto; overflow-y: auto; background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border); margin-top: 12px;"></div>
+                                <div id="analytics-timeline-chart" style="display: none;"></div>
                             </div>
                         </div>
 

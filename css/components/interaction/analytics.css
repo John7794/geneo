@@ -393,17 +393,19 @@
 
 .analytics-sort-controls {
     display: flex;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: normal;
     align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 80;
+    position: relative;
     background: var(--color-bg-card);
-    padding: 10px 0;
+    padding: 8px 0 14px 0;
     margin: 0 0 16px 0;
     border-bottom: 1px solid var(--color-border);
     width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    z-index: 5;
 }
 .analytics-sort-controls::before {
     display: none;
@@ -453,33 +455,9 @@
     }
 }
 
-.detailed-view-header {
-    align-self: stretch;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin: calc(-1 * var(--analytics-padding)) calc(-1 * var(--analytics-padding)) 0 calc(-1 * var(--analytics-padding));
-    padding: 0 var(--analytics-padding);
-    height: 56px;
-    position: sticky;
-    top: 56px;
-    background: var(--color-bg-card);
-    z-index: 90;
-}
-#analytics-detailed-view:not(.has-sort-controls) .detailed-view-header,
-#analytics-detailed-view:not(.has-sort-controls) .detailed-view-header::before {
-    border-bottom: 1px solid var(--color-border);
-}
-.detailed-view-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100vw;
-    right: -100vw;
-    bottom: 0;
-    background: var(--color-bg-card);
-    z-index: -1;
+.detailed-view-header,
+#detailed-view-header {
+    display: none !important;
 }
 
 .accordion-open .analytics-section-content > :first-child:not(.analytics-sort-controls) {
@@ -647,6 +625,46 @@
 }
 .analytics-timeline-century-item {
     scroll-margin-top: 172px;
+}
+
+#analytics-timeline .analytics-sort-controls {
+    position: relative;
+    top: auto;
+    z-index: 5;
+    margin-bottom: 12px;
+    padding: 4px 0 12px 0;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#analytics-timeline-chart {
+    position: relative;
+    width: 100%;
+    max-height: calc(88vh - 170px);
+    overflow-x: auto;
+    overflow-y: auto;
+    background: var(--color-bg-card);
+    border-radius: 14px;
+    border: 1px solid var(--color-border);
+    margin-top: 12px;
+    box-sizing: border-box;
+    clear: both;
+}
+
+#analytics-timeline-axis {
+    position: sticky;
+    top: 0;
+    height: 36px;
+    border-bottom: 1px solid var(--color-border);
+    z-index: 20;
+    background-color: var(--color-bg-card);
+    cursor: pointer;
+    box-sizing: border-box;
 }
 
 .analytics-sort-desktop .btn-sort-places, #timeline-sort-btn {

@@ -1899,9 +1899,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             if (btnViewList && btnViewChart) {
                 const periodFilterEl = document.getElementById("timeline-chart-period-filter");
                 const updateButtonStyles = () => {
+                    const qNav = document.querySelector('#analytics-timeline .analytics-quick-nav-bar');
                     if (timelineViewMode === "list") {
                         btnViewList.style.background = 'var(--color-primary)';
-                        btnViewList.style.color = 'white';
+                        btnViewList.style.color = '#ffffff';
                         btnViewChart.style.background = 'transparent';
                         btnViewChart.style.color = 'var(--color-text-main)';
                         if (filterTypeSelect) filterTypeSelect.style.display = 'inline-flex';
@@ -1909,9 +1910,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (periodFilterEl) periodFilterEl.style.display = 'none';
                         const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
                         if (scrubberToggle) scrubberToggle.style.display = 'none';
+                        if (qNav) qNav.style.display = 'flex';
                     } else {
                         btnViewChart.style.background = 'var(--color-primary)';
-                        btnViewChart.style.color = 'white';
+                        btnViewChart.style.color = '#ffffff';
                         btnViewList.style.background = 'transparent';
                         btnViewList.style.color = 'var(--color-text-main)';
                         if (filterTypeSelect) filterTypeSelect.style.display = 'none';
@@ -1919,6 +1921,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (periodFilterEl) periodFilterEl.style.display = 'inline-flex';
                         const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
                         if (scrubberToggle) scrubberToggle.style.display = 'inline-flex';
+                        if (qNav) qNav.style.display = 'none';
                     }
                 };
                 
@@ -2072,7 +2075,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 const yearToPx = (y) => sortDesc ? (maxYear - y) * ypx : (y - minYear) * ypx;
                 const pxToYear = (px) => sortDesc ? maxYear - (px / ypx) : minYear + (px / ypx);
                 
-                let axisHtml = '<div id="analytics-timeline-axis" style="position: sticky; top: 0; height: 30px; border-bottom: 1px solid var(--color-border); z-index: 100; background-color: var(--color-bg-card); cursor: pointer;">';
+                let axisHtml = '<div id="analytics-timeline-axis" style="position: sticky; top: 0; height: 36px; border-bottom: 1px solid var(--color-border); z-index: 10; background-color: var(--color-bg-card); cursor: pointer;">';
                 
                 let d = Math.floor(minYear / 10) * 10;
                 let tocCenturies = new Set();
@@ -2645,20 +2648,21 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     }
                 }, 100);
             };
-const renderTimeline = () => {
+            const renderTimeline = () => {
+                const qNav = document.querySelector('#analytics-timeline .analytics-quick-nav-bar');
                 if (timelineViewMode === "chart") {
                     const timelineList = document.getElementById("analytics-timeline-list");
                     if (timelineList) timelineList.style.display = "none";
                     if (chartContainer) chartContainer.style.display = "block";
+                    if (qNav) qNav.style.display = "none";
                     renderTimelineChart();
-                    
-                    
                     return;
                 }
                 
                 const timelineList = document.getElementById("analytics-timeline-list");
                 if (timelineList) timelineList.style.display = "flex";
                 if (chartContainer) chartContainer.style.display = "none";
+                if (qNav) qNav.style.display = "flex";
 
                 const typeLabels = {
                     birth: i18n.t("events.birth") || "Народження",
@@ -2824,6 +2828,7 @@ const renderTimeline = () => {
                         </button>
                     `).join('');
                     quickNav.innerHTML = centuriesPills;
+                    quickNav.style.display = timelineViewMode === "chart" ? "none" : "flex";
 
                     quickNav.querySelectorAll('.js-quick-scroll-century').forEach(btn => {
                         btn.addEventListener('click', (e) => {
@@ -2888,7 +2893,7 @@ const renderTimeline = () => {
                     
                     if (scrubberMode === "year") {
                         btnYear.style.background = 'var(--color-primary)';
-                        btnYear.style.color = 'white';
+                        btnYear.style.color = '#ffffff';
                         btnPeriod.style.background = 'transparent';
                         btnPeriod.style.color = 'var(--color-text-main)';
                         if (maxInput) maxInput.style.display = 'none';
@@ -2896,7 +2901,7 @@ const renderTimeline = () => {
                         if (periodFilter) periodFilter.style.display = 'inline-flex';
                     } else {
                         btnPeriod.style.background = 'var(--color-primary)';
-                        btnPeriod.style.color = 'white';
+                        btnPeriod.style.color = '#ffffff';
                         btnYear.style.background = 'transparent';
                         btnYear.style.color = 'var(--color-text-main)';
                         if (maxInput) maxInput.style.display = 'inline-block';
