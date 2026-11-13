@@ -1684,12 +1684,20 @@ export class AnalyticsManager {
                 
                 const eventsSectionContent = containerEvents.closest('.analytics-section-content');
                 if (eventsSectionContent) {
-                    const monthPillsHtml = Array.from({ length: 12 }, (_, i) => {
-                        const monthKey = monthNames[i];
-                        const monthLabel = i18n.t(`months.${monthKey}`) || monthKey;
-                        const count = monthEvents[i] ? monthEvents[i].length : 0;
+                    const monthsNom = ["", "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+                    const monthPillsHtml = Array.from({ length: 12 }, (_, idx) => {
+                        const m = idx + 1;
+                        const monthLabel = monthsNom[m];
+                        let count = 0;
+                        if (grouped[m]) {
+                            Object.values(grouped[m]).forEach(dayGroup => {
+                                Object.values(dayGroup).forEach(evts => {
+                                    count += evts.length;
+                                });
+                            });
+                        }
                         return `
-                            <button type="button" class="analytics-nav-pill js-quick-scroll-event ${count === 0 ? 'pill-empty' : ''}" data-target="event-month-${i}">
+                            <button type="button" class="analytics-nav-pill js-quick-scroll-event ${count === 0 ? 'pill-empty' : ''}" data-target="event-month-${m}">
                                 <span>${monthLabel}</span>
                                 <span class="pill-count">${count}</span>
                             </button>
