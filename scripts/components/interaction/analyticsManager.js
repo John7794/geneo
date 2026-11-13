@@ -738,8 +738,8 @@ export class AnalyticsManager {
             }
             
             return `
-                <div style="width: 100%;">
-                    <div style="margin-bottom: 16px; display: flex; align-items: center; width: 100%; padding: 12px 0;">
+                <div class="analytics-lifespan-group" style="width: 100%;">
+                    <div class="analytics-lifespan-header">
                         <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
                         <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">${title}</div>
                         <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
@@ -1265,14 +1265,26 @@ export class AnalyticsManager {
             }).join('');
             const quickNavHtml = topPlacesPills.length > 0 ? `<div class="analytics-quick-nav-bar" role="navigation" aria-label="Населені пункти">${topPlacesPills}</div>` : '';
 
-            this.containerPlaces.innerHTML = `
-                <div class="analytics-places-wrapper" style="width: 100%;">
-                    ${quickNavHtml}
-                    <ul class="analytics-list-none" style="padding: 0; margin: 0;">
-                        ${html}
-                    </ul>
-                </div>
-            `;
+            const quickNavSlot = document.getElementById("analytics-places-quick-nav");
+            if (quickNavSlot) {
+                quickNavSlot.innerHTML = quickNavHtml;
+                this.containerPlaces.innerHTML = `
+                    <div class="analytics-places-wrapper" style="width: 100%;">
+                        <ul class="analytics-list-none" style="padding: 0; margin: 0;">
+                            ${html}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                this.containerPlaces.innerHTML = `
+                    <div class="analytics-places-wrapper" style="width: 100%;">
+                        ${quickNavHtml}
+                        <ul class="analytics-list-none" style="padding: 0; margin: 0;">
+                            ${html}
+                        </ul>
+                    </div>
+                `;
+            }
             
             // Add accordion behavior for places
             const placeItems = this.containerPlaces.querySelectorAll('.analytics-place-item');
@@ -1290,7 +1302,7 @@ export class AnalyticsManager {
             });
             
             // Attach smooth scroll for quick-nav pills
-            this.containerPlaces.querySelectorAll('.js-quick-scroll-place').forEach(btn => {
+            document.querySelectorAll('.js-quick-scroll-place').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     const targetId = btn.getAttribute('data-target');
@@ -1302,7 +1314,7 @@ export class AnalyticsManager {
                         if (icon) icon.style.transform = 'rotate(180deg)';
                         targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         
-                        this.containerPlaces.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
+                        document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
                     }
                 });
@@ -1317,9 +1329,9 @@ export class AnalyticsManager {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const id = entry.target.id;
-                            const pill = this.containerPlaces.querySelector(`.js-quick-scroll-place[data-target="${id}"]`);
+                            const pill = document.querySelector(`.js-quick-scroll-place[data-target="${id}"]`);
                             if (pill) {
-                                this.containerPlaces.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
+                                document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
                                 pill.classList.add('active');
                                 pill.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
                             }
@@ -1404,25 +1416,21 @@ export class AnalyticsManager {
                     const count = d[1].count;
                     const peopleList = d[1].people;
                     const peopleHtml2 = peopleList.length > 0 
-                        ? `<ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
-                            ${peopleList.map(person => `
-                                <li style="padding: 10px 14px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; list-style: none;">
-                                    ${this._renderPersonChip({ id: person.pid, name: person.name }, 'death')}
-                                </li>
-                            `).join("")}
-                          </ul>` 
+                        ? `<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 10px;">
+                            ${peopleList.map(person => this._renderPersonChip({ id: person.pid, name: person.name }, 'death')).join("")}
+                          </div>` 
                         : "";
 
                     return `
-                    <li class="analytics-death-item" style="list-style: none; margin-top: ${d[0] === topDeaths[0][0] ? '0' : '24px'}; margin-bottom: 12px; padding-bottom: 4px;">
-                        <div class="analytics-death-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">
-                            <h3 style="margin: 0; font-size: 20px; color: var(--color-text-main);">${cause}</h3>
+                    <li class="analytics-death-item" style="list-style: none; margin-top: ${d[0] === topDeaths[0][0] ? '0' : '16px'}; margin-bottom: 12px; padding: 14px 16px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 12px;">
+                        <div class="analytics-death-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 1px solid var(--color-border-light); padding-bottom: 10px;">
+                            <h3 style="margin: 0; font-size: 17px; font-weight: 600; color: var(--color-text-main);">${escapeHtml(cause)}</h3>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 16px; font-weight: 600; color: var(--color-text-muted);">${count}</span>
-                                <i class="ri-arrow-down-s-line analytics-death-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 24px; transform: rotate(180deg);"></i>
+                                <span style="font-size: 13.5px; font-weight: 600; color: var(--color-text-muted); background: var(--color-bg-body); padding: 2px 8px; border-radius: 999px;">${count}</span>
+                                <i class="ri-arrow-down-s-line analytics-death-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 20px; transform: rotate(180deg);"></i>
                             </div>
                         </div>
-                        <div class="analytics-death-body" style="display: block; padding-top: 16px;">
+                        <div class="analytics-death-body" style="display: block;">
                             ${peopleHtml2}
                         </div>
                     </li>
@@ -1656,7 +1664,7 @@ export class AnalyticsManager {
                                     p2Html = ` <span style="color: var(--color-text-muted); font-size: 13px; margin: 0 4px;">та</span> ` + this._renderPersonChip(evt.spouse, evt.type);
                                 }
 
-                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">(${escapeHtml(evt.original.yearStr)} р.)</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">(${evt.year} р.)</span>` : "");
+                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">${escapeHtml(evt.original.yearStr)} р.</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">${evt.year} р.</span>` : "");
                                 
                                 html += `
                                         <li style="padding: 10px 14px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; list-style: none; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
@@ -3002,8 +3010,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 const surnamesList = coatsMap[c.name] ? Array.from(coatsMap[c.name]) : [];
                 const surnamesHtml = surnamesList.length > 0 ? `<span class="analytics-coat-surnames">${surnamesList.join(", ")}</span>` : "";
                 const coatUrl = resolveCoatUrl(c.name, {coats: this.engine.db.coats});
+                const captionText = surnamesList.length > 0 
+                    ? `Герб «${c.name}» (${surnamesList.join(', ')})`
+                    : `Герб «${c.name}»`;
                 return `
-                <li class="analytics-coat-item" data-coat-name="${escapeHtml(c.name)}" data-coat-img="${escapeHtml(coatUrl)}" title="Натисніть для збільшення">
+                <li class="analytics-coat-item js-gallery-item clickable-coat" data-src="${escapeHtml(coatUrl)}" data-gallery="analytics-coats" data-caption="${escapeHtml(captionText)}" role="button" tabindex="0" title="Натисніть для перегляду в галереї">
                     <img class="analytics-coat-img" src="${coatUrl}" alt="${escapeHtml(c.name)}">
                     <span class="analytics-coat-name">${escapeHtml(c.name)}</span>
                     ${surnamesHtml}
@@ -3011,39 +3022,13 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             `}).join("");
 
             containerCoats.querySelectorAll('.analytics-coat-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const coatName = item.getAttribute('data-coat-name');
-                    const imgUrl = item.getAttribute('data-coat-img');
-                    const surnamesEl = item.querySelector('.analytics-coat-surnames');
-                    const surnamesText = surnamesEl ? surnamesEl.textContent : '';
-
-                    const overlay = document.getElementById('coat-preview-overlay');
-                    const previewImg = document.getElementById('coat-preview-img');
-                    const previewTitle = document.getElementById('coat-preview-title');
-                    const previewSurnames = document.getElementById('coat-preview-surnames');
-
-                    if (overlay && previewImg && previewTitle && previewSurnames) {
-                        previewImg.src = imgUrl;
-                        previewImg.alt = coatName || '';
-                        previewTitle.textContent = coatName || '';
-                        previewSurnames.textContent = surnamesText ? `Шляхетські роди: ${surnamesText}` : '';
-                        overlay.classList.remove('hidden');
-                        overlay.classList.add('show');
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        item.click();
                     }
                 });
             });
-
-            const btnCloseCoat = document.getElementById('btn-close-coat-preview');
-            if (btnCloseCoat && !btnCloseCoat.dataset.init) {
-                btnCloseCoat.dataset.init = "true";
-                btnCloseCoat.addEventListener('click', () => {
-                    const overlay = document.getElementById('coat-preview-overlay');
-                    if (overlay) {
-                        overlay.classList.remove('show');
-                        overlay.classList.add('hidden');
-                    }
-                });
-            }
         }
 
 	}

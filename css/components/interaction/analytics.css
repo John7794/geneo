@@ -117,6 +117,10 @@
     .analytics-view.in-detailed-view #btn-back-analytics {
         display: inline-flex !important;
     }
+
+    .analytics-view.in-detailed-view .analytics-dialog .analytics-body {
+        padding-top: 14px;
+    }
 }
 
 @media (max-width: 767px) {
@@ -424,6 +428,49 @@
     display: none;
 }
 
+.analytics-sticky-controls {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: var(--color-bg-card);
+    padding: 8px 0 12px 0;
+    margin: 0 0 14px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.analytics-places-sticky-panel {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--color-bg-card);
+    padding: 2px 0 10px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.analytics-lifespan-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--color-bg-card);
+    padding: 8px 0;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.analytics-names-col-title {
+    position: sticky;
+    top: 48px;
+    z-index: 12;
+    background: var(--color-bg-card);
+    padding: 6px 0;
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--color-border-light);
+}
+
 
 
 
@@ -627,12 +674,24 @@
     scroll-margin-top: 172px;
 }
 
-#analytics-timeline .analytics-sort-controls {
+#analytics-timeline {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+#analytics-timeline .analytics-section-content {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+#analytics-timeline .analytics-sort-controls,
+#analytics-timeline .timeline-controls-bar {
     position: relative;
     top: auto;
     z-index: 5;
-    margin-bottom: 12px;
-    padding: 4px 0 12px 0;
+    margin-top: 0;
+    margin-bottom: 8px;
+    padding: 0 0 8px 0;
     border-bottom: 1px solid var(--color-border);
     display: flex;
     align-items: center;
@@ -640,6 +699,11 @@
     flex-wrap: wrap;
     width: 100%;
     box-sizing: border-box;
+}
+
+#analytics-timeline .analytics-quick-nav-bar {
+    margin-top: 0;
+    margin-bottom: 12px;
 }
 
 #analytics-timeline-chart {
@@ -1049,24 +1113,43 @@
     align-items: center;
     gap: 8px;
     overflow-x: auto;
-    padding: 6px 2px 12px 2px;
+    overflow-y: hidden;
+    padding: 8px 10px;
     margin-bottom: 12px;
-    position: sticky;
-    top: 0;
     background: var(--color-bg-card);
-    z-index: 15;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
     box-sizing: border-box;
+    width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+    -webkit-overflow-scrolling: touch;
 }
 
 .analytics-quick-nav-bar::-webkit-scrollbar {
     height: 4px;
 }
+.analytics-quick-nav-bar::-webkit-scrollbar-track {
+    background: transparent;
+}
 .analytics-quick-nav-bar::-webkit-scrollbar-thumb {
     background: var(--color-border);
     border-radius: 999px;
+}
+.analytics-quick-nav-bar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
+
+.analytics-places-sticky-panel .analytics-quick-nav-bar {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-body);
+    margin-bottom: 0;
+}
+
+#analytics-events .analytics-quick-nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 15;
 }
 
 .analytics-nav-pill {
@@ -1076,7 +1159,7 @@
     padding: 5px 12px;
     border-radius: 999px;
     border: 1px solid var(--color-border);
-    background: var(--color-bg-card);
+    background: var(--color-bg-body);
     color: var(--color-text-muted);
     font-size: 13px;
     font-weight: 500;
@@ -1085,6 +1168,10 @@
     flex-shrink: 0;
     transition: all 0.18s ease;
     text-decoration: none !important;
+}
+
+.analytics-places-sticky-panel .analytics-nav-pill {
+    background: var(--color-bg-card);
 }
 
 .analytics-nav-pill:hover {
@@ -1109,6 +1196,10 @@
     border-radius: 999px;
     background: var(--color-bg-body);
     color: var(--color-text-main);
+}
+
+.analytics-places-sticky-panel .analytics-nav-pill .pill-count {
+    background: var(--color-bg-hover);
 }
 
 .analytics-nav-pill.active .pill-count {

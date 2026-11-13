@@ -497,7 +497,7 @@
                         <div class="analytics-section">
                             <h4>Прізвища родоводів</h4>
                             <div class="analytics-section-content">
-                                <div class="analytics-sort-controls">
+                                <div class="analytics-sort-controls analytics-sticky-controls">
                                     <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
                                         <button class="btn btn-sm btn-outline btn-sort-app-s">За згадкою</button>
                                         <button class="btn btn-sm btn-outline btn-sort-alpha-s">За алфавітом</button>
@@ -528,7 +528,7 @@
                             <h4>Імена</h4>
                             <div class="analytics-section-content">
 
-                                <div class="analytics-sort-controls">
+                                <div class="analytics-sort-controls analytics-sticky-controls">
                                     <!-- Desktop sort buttons -->
                                     <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
                                         <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
@@ -557,11 +557,11 @@
 
                                 <div id="analytics-names" class="analytics-names-grid">
                                     <div>
-                                        <h5>Чоловічі</h5>
+                                        <h5 class="analytics-names-col-title">Чоловічі</h5>
                                         <ul id="analytics-names-m" class="analytics-list-none"></ul>
                                     </div>
                                     <div>
-                                        <h5>Жіночі</h5>
+                                        <h5 class="analytics-names-col-title">Жіночі</h5>
                                         <ul id="analytics-names-f" class="analytics-list-none"></ul>
                                     </div>
                                 </div>
@@ -572,28 +572,31 @@
                         <div class="analytics-section">
                             <h4>Населені пункти</h4>
                             <div class="analytics-section-content">
-                                <div class="analytics-sort-controls">
-                                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="appearance">За згадкою</button>
-                                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="frequency">За популярністю</button>
-                                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_az">А - Я</button>
-                                        <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_za">Я - А</button>
-                                    </div>
-                                    <div class="analytics-sort-mobile" style="display: none; ">
-                                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-places" onclick="document.getElementById('mobile-sort-popup-places').classList.add('show')">
-                                            <i class="ri-sort-desc"></i> Сортувати населені пункти
-                                        </button>
-                                    </div>
-                                    <div id="mobile-sort-popup-places" class="popup-overlay hidden" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
-                                        <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
-                                            <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-                                            <button class="btn btn-outline btn-sort-places" data-sort="appearance" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">За згадкою</button>
-                                            <button class="btn btn-outline btn-sort-places" data-sort="frequency" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">За популярністю</button>
-                                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_az" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">А - Я</button>
-                                            <button class="btn btn-outline btn-sort-places" data-sort="alphabet_za" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">Я - А</button>
-                                            <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">Закрити</button>
+                                <div class="analytics-places-sticky-panel">
+                                    <div class="analytics-sort-controls" style="border-bottom: none; margin-bottom: 8px; padding-bottom: 0;">
+                                        <div class="analytics-sort-desktop" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <button class="btn btn-sm btn-outline btn-sort-places" data-sort="appearance">За згадкою</button>
+                                            <button class="btn btn-sm btn-outline btn-sort-places" data-sort="frequency">За популярністю</button>
+                                            <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_az">А - Я</button>
+                                            <button class="btn btn-sm btn-outline btn-sort-places" data-sort="alphabet_za">Я - А</button>
+                                        </div>
+                                        <div class="analytics-sort-mobile" style="display: none; ">
+                                            <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-places" onclick="document.getElementById('mobile-sort-popup-places').classList.add('show')">
+                                                <i class="ri-sort-desc"></i> Сортувати населені пункти
+                                            </button>
+                                        </div>
+                                        <div id="mobile-sort-popup-places" class="popup-overlay hidden" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
+                                            <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
+                                                <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
+                                                <button class="btn btn-outline btn-sort-places" data-sort="appearance" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">За згадкою</button>
+                                                <button class="btn btn-outline btn-sort-places" data-sort="frequency" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">За популярністю</button>
+                                                <button class="btn btn-outline btn-sort-places" data-sort="alphabet_az" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">А - Я</button>
+                                                <button class="btn btn-outline btn-sort-places" data-sort="alphabet_za" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">Я - А</button>
+                                                <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup-places').classList.remove('show')">Закрити</button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div id="analytics-places-quick-nav"></div>
                                 </div>
                                 <div id="analytics-places"></div>
                             </div>
@@ -673,19 +676,7 @@
             </div>
         </div>
 
-        <!-- Coat of Arms Preview Lightbox Modal -->
-        <div id="coat-preview-overlay" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" style="z-index: 11000;" onclick="if(event.target===this) { this.classList.remove('show'); this.classList.add('hidden'); }">
-            <div class="popup-content" style="max-width: 480px; width: 90%; margin: auto; padding: 24px; border-radius: 16px; background: var(--color-bg-card); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid var(--color-border);">
-                <button id="btn-close-coat-preview" class="modal-close js-close-popup" style="position: absolute; top: 14px; right: 14px;" aria-label="Закрити" title="Закрити"><i class="ri-close-line"></i></button>
-                <div style="background: var(--color-bg-body); padding: 20px; border-radius: 14px; display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box;">
-                    <img id="coat-preview-img" src="" alt="" style="max-width: 100%; max-height: 280px; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.18));" />
-                </div>
-                <div>
-                    <h3 id="coat-preview-title" style="margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: var(--color-text-main);"></h3>
-                    <p id="coat-preview-surnames" style="margin: 0; font-size: 14px; color: var(--color-text-muted); line-height: 1.45;"></p>
-                </div>
-            </div>
-        </div>
+
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
