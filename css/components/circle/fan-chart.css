@@ -92,7 +92,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
-	padding: 5px 11px;
+	padding: 5px 12px;
 	font-family: var(--font-family-base);
 	font-size: var(--font-size-xs);
 	font-weight: 500;
@@ -100,10 +100,23 @@
 	background: transparent;
 	border: 1px solid transparent;
 	border-radius: var(--radius-full);
-	cursor: default;
-	pointer-events: none;
+	cursor: pointer;
+	pointer-events: auto;
 	user-select: none;
 	white-space: nowrap;
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fan-nav-pill:hover {
+	color: var(--color-text-main);
+	background: var(--color-bg-hover, rgba(255, 255, 255, 0.08));
+}
+
+.fan-nav-pill.active {
+	color: var(--color-text-inverse, #ffffff);
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 
 .fan-nav-pill-badge {
@@ -117,6 +130,16 @@
 	align-items: center;
 	gap: 3px;
 	white-space: nowrap;
+	transition: background 0.2s ease, color 0.2s ease;
+}
+
+.fan-nav-pill.active .fan-nav-pill-badge {
+	background: rgba(255, 255, 255, 0.25);
+	color: #ffffff;
+}
+
+.fan-nav-pill.active .fan-nav-pill-pct {
+	color: rgba(255, 255, 255, 0.9);
 }
 
 .fan-nav-pill-pct {

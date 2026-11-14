@@ -256,6 +256,7 @@ export class FanChartManager {
 		if (!this.nav || !this.pedigreeData) return;
 
 		const generations = this.pedigreeData.generations || [];
+		const isAllActive = this.activeGens.has("all");
 		const filterMode = document.body.getAttribute("data-status-filter") || "all";
 		const effectiveMode = this._getEffectiveLineageMode();
 
@@ -281,15 +282,16 @@ export class FanChartManager {
 		const totalTitle = `Усі покоління: ${totalFiltered} унікальних пращурів, заповненість ${totalPctStr} (${totalFilledSlots} з ${totalCapacity} слотів)`;
 
 		let html = `
-			<span class="fan-nav-pill" data-gen="all" title="${escapeHtml(totalTitle)}">
+			<button type="button" class="fan-nav-pill ${isAllActive ? "active" : ""}" data-gen="all" title="${escapeHtml(totalTitle)}">
 				Усі <span class="fan-nav-pill-badge">${totalBadge}</span>
-			</span>
+			</button>
 		`;
 
 		for (let g = 0; g < generations.length; g++) {
 			const genData = generations[g];
 			if (!genData || genData.knownCount === 0) continue;
 
+			const isGenActive = !isAllActive && (this.activeGens.has(String(g)) || this.activeGens.has(g));
 			const label = genData.label || getGenerationRibbonLabel(g, effectiveMode);
 			const genCapacity = getTheoreticalCapacity(g, effectiveMode);
 			const genFilledSlots = this._getFilledSlotCount(genData.sectors || []);
@@ -305,13 +307,24 @@ export class FanChartManager {
 			const genTitle = `${label}: ${filteredCount} унікальних пращурів, заповненість ${genPctStr} (${genFilledSlots} з ${genCapacity} слотів)`;
 
 			html += `
-				<span class="fan-nav-pill" data-gen="${g}" title="${escapeHtml(genTitle)}">
+				<button type="button" class="fan-nav-pill ${isGenActive ? "active" : ""}" data-gen="${g}" title="${escapeHtml(genTitle)}">
 					${label} <span class="fan-nav-pill-badge">${pillBadge}</span>
-				</span>
+				</button>
 			`;
 		}
 
 		this.nav.innerHTML = html;
+
+		// Обробник вибору покоління (підтримка кнопкового режиму перегляду відповідних поколінь)
+		this.nav.querySelectorAll(".fan-nav-pill").forEach((btn) => {
+			btn.addEventListener("click", (e) => {
+				e.preventDefault();
+				const gen = btn.getAttribute("data-gen");
+				if (gen !== null) {
+					this.toggleGenerationLevel(gen);
+				}
+			});
+		});
 	}
 
 	/**
