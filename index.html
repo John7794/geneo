@@ -657,16 +657,20 @@
                                                 <i class="ri-bar-chart-horizontal-line"></i>
                                             </button>
                                         </div>
-                                        <div id="timeline-filter-wrapper" style="position: relative; display: inline-flex; align-items: center;">
-                                            <select id="timeline-filter-type" class="btn btn-outline btn-sm" style="color: var(--color-text-main); border-color: var(--color-border); height: 38px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; padding-right: 36px; padding-left: 12px; appearance: none; -webkit-appearance: none; background: transparent; cursor: pointer; width: 100%;">
-                                                <option value="all">Всі події</option>
-                                                <option value="birth">Народження</option>
-                                                <option value="baptism">Хрещення</option>
-                                                <option value="marriage">Шлюби</option>
-                                                <option value="death">Смерті</option>
-                                                <option value="funeral">Поховання</option>
-                                            </select>
-                                            <i class="ri-arrow-down-s-line timeline-filter-icon" style="position: absolute; right: 14px; pointer-events: none; color: var(--color-text-main); transition: transform 0.2s ease;"></i>
+                                        <div id="timeline-filter-wrapper" class="timeline-filter-dropdown-wrapper">
+                                            <input type="hidden" id="timeline-filter-type" value="all">
+                                            <button type="button" id="timeline-filter-btn" class="timeline-filter-btn" title="Фільтр подій">
+                                                <span id="timeline-filter-label">Всі події</span>
+                                                <i class="ri-arrow-down-s-line timeline-filter-icon" style="transition: transform 0.2s ease;"></i>
+                                            </button>
+                                            <div id="timeline-filter-menu" class="timeline-filter-menu">
+                                                <div class="timeline-filter-item active" data-value="all">Всі події</div>
+                                                <div class="timeline-filter-item" data-value="birth">Народження</div>
+                                                <div class="timeline-filter-item" data-value="baptism">Хрещення</div>
+                                                <div class="timeline-filter-item" data-value="marriage">Шлюби</div>
+                                                <div class="timeline-filter-item" data-value="death">Смерті</div>
+                                                <div class="timeline-filter-item" data-value="funeral">Поховання</div>
+                                            </div>
                                         </div>
                                         <div id="timeline-scrubber-mode-toggle" style="display: none; align-items: center; background: var(--color-bg-card); padding: 4px; border-radius: 8px; border: 1px solid var(--color-border); gap: 4px;">
                                             <button id="scrubber-mode-year-btn" class="btn btn-sm" title="Один рік" style="background: var(--color-primary); color: white; border: none; height: 28px; padding: 0 10px; font-size: 12px; border-radius: 6px;">Рік</button>
@@ -686,15 +690,26 @@
                                 </div>
                                 <ul id="analytics-timeline-list" class="analytics-list-none" style="display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0;"></ul>
                                 <div id="analytics-timeline-chart" style="display: none;"></div>
-                                <div id="timeline-contemporaries-panel" class="analytics-contemporaries-panel">
-                                    <div class="analytics-contemporaries-header">
-                                        <h4 class="analytics-contemporaries-title">
+                                <div id="timeline-contemporaries-drawer" class="timeline-contemporaries-drawer" style="display: none;">
+                                    <div class="timeline-drawer-bar" id="timeline-drawer-toggle">
+                                        <div class="timeline-drawer-bar-title">
                                             <i class="ri-user-shared-line"></i>
-                                            ХТО ЖИВ В <span id="timeline-alive-period-label">РОЦІ</span>: <span id="timeline-year-value">1900</span>
-                                        </h4>
-                                        <span id="timeline-alive-count" class="badge">0 осіб</span>
+                                            <span>Хто жив у <span id="timeline-alive-period-label">році</span>: <span id="timeline-year-value">1900</span></span>
+                                        </div>
+                                        <div class="timeline-drawer-bar-right">
+                                            <span id="timeline-alive-count" class="badge">0 осіб</span>
+                                            <i class="ri-arrow-up-s-line timeline-drawer-arrow" id="timeline-drawer-arrow"></i>
+                                        </div>
                                     </div>
-                                    <div id="timeline-alive-results" class="analytics-contemporaries-list"></div>
+                                    <div class="timeline-drawer-content" id="timeline-drawer-content">
+                                        <div class="timeline-drawer-header">
+                                            <h5>Особи, які жили в цей час</h5>
+                                            <button type="button" class="timeline-drawer-close" id="timeline-drawer-close" title="Згорнути">
+                                                <i class="ri-close-line"></i>
+                                            </button>
+                                        </div>
+                                        <div id="timeline-alive-results" class="timeline-drawer-results"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

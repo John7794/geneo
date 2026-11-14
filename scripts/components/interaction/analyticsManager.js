@@ -10,8 +10,10 @@ function scrollPillToCenter(pill) {
     if (!pill) return;
     const navBar = pill.closest('.analytics-quick-nav-bar');
     if (navBar) {
-        const left = pill.offsetLeft - (navBar.clientWidth / 2) + (pill.clientWidth / 2);
-        navBar.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+        const pillRect = pill.getBoundingClientRect();
+        const navRect = navBar.getBoundingClientRect();
+        const scrollDelta = (pillRect.left - navRect.left) - (navRect.width / 2) + (pillRect.width / 2);
+        navBar.scrollBy({ left: scrollDelta, behavior: 'smooth' });
     }
 }
 
@@ -653,33 +655,22 @@ export class AnalyticsManager {
             let sumDays = 0;
             let hasExact = spans.some(s => s.exactDays !== null && s.exactDays !== undefined);
 
-            let maxMetric = 0;
-            if (hasExact) {
-                maxMetric = spans.length > 0 ? Math.max(...spans.map(s => s.exactDays || (s.age * 365.25))) : 0;
-            } else {
-                maxMetric = spans.length > 0 ? Math.max(...spans.map(s => s.age)) : 0;
-            }
+            const getMetric = (s) => (s.exactDays !== null && s.exactDays !== undefined) ? (s.exactDays / 365.25) : s.age;
+            const maxMetric = spans.length > 0 ? Math.max(...spans.map(getMetric)) : 0;
 
 			for(let i=0; i<spans.length; i++) {
 				sumAge += spans[i].age;
                 if (hasExact) {
-                    sumDays += spans[i].exactDays || (spans[i].age * 365.25);
+                    sumDays += (spans[i].exactDays !== null && spans[i].exactDays !== undefined) ? spans[i].exactDays : (spans[i].age * 365.25);
                 }
 			}
 			const avgAge = Math.round(sumAge / spans.length);
             const avgDays = hasExact ? Math.round(sumDays / spans.length) : 0;
 			
-			const sortedSpans = [...spans].sort((a, b) => {
-                if (hasExact) {
-                    let aVal = a.exactDays !== null && a.exactDays !== undefined ? a.exactDays : (a.age * 365.25);
-                    let bVal = b.exactDays !== null && b.exactDays !== undefined ? b.exactDays : (b.age * 365.25);
-                    return bVal - aVal;
-                }
-                return b.age - a.age;
-            });
+			const sortedSpans = [...spans].sort((a, b) => getMetric(b) - getMetric(a));
 			
 			const makeTag = (obj) => {
-                let metric = hasExact ? (obj.exactDays !== null && obj.exactDays !== undefined ? obj.exactDays : (obj.age * 365.25)) : obj.age;
+                const metric = getMetric(obj);
                 const widthPercent = maxMetric > 0 ? (metric / maxMetric) * 100 : 0;
                 
                 let displayAge = obj.age + " р.";
@@ -689,19 +680,12 @@ export class AnalyticsManager {
                     displayAge = y + " р. " + d + " дн.";
                 }
 
-                const details = obj && obj.id ? findPersonDetails(obj.id, this.engine) : null;
-                let personCardHtml = '';
-                if (details) {
-                    const lifeYears = (obj.bYear && obj.dYear) ? `${obj.bYear} – ${obj.dYear}` : "";
-                    personCardHtml = renderPersonTile(details, this.engine, lifeYears, false, { disablePopup: false });
-                } else {
-                    personCardHtml = this._renderPersonChip(obj.id || obj);
-                }
+                const personChipHtml = this._renderPersonChip(obj.id || obj);
 
 				return `
                 <div class="analytics-lifespan-row">
                     <div class="analytics-lifespan-person-col">
-                        ${personCardHtml}
+                        ${personChipHtml}
                     </div>
                     <div class="analytics-lifespan-bar-col">
                         <div class="analytics-lifespan-bar-track">
@@ -1244,9 +1228,9 @@ export class AnalyticsManager {
                                         ? `<div class="analytics-event-chips-wrap" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4px 0 10px 12px;">
                                             ${peopleList.map(personItem => {
                                                 if (personItem && personItem.isCouple) {
-                                                    return `<div class="analytics-couple-chip" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: 20px;">
+                                                    return `<div class="analytics-couple-chip" style="display: inline-flex; align-items: center; gap: 6px;">
                                                         ${this._renderPersonChip(personItem.hid, 'шлюб')}
-                                                        <span style="color: var(--color-text-muted); font-size: 12px;">+</span>
+                                                        <span class="marriage-plus" style="color: var(--color-text-muted); font-weight: 600; font-size: 13px; margin: 0 2px;">+</span>
                                                         ${this._renderPersonChip(personItem.wid, 'шлюб')}
                                                     </div>`;
                                                 }
@@ -1324,7 +1308,7 @@ export class AnalyticsManager {
                     if (this._scrollTimeout) clearTimeout(this._scrollTimeout);
                     this._scrollTimeout = setTimeout(() => {
                         this._isProgrammaticScroll = false;
-                    }, 800);
+                    }, 1400);
 
                     const targetId = btn.getAttribute('data-target');
                     const targetEl = document.getElementById(targetId);
@@ -1358,21 +1342,22 @@ export class AnalyticsManager {
                 }
                 this._placesObserver = new IntersectionObserver((entries) => {
                     if (this._isProgrammaticScroll) return;
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const id = entry.target.id;
-                            const pill = document.querySelector(`.js-quick-scroll-place[data-target="${id}"]`);
-                            if (pill) {
-                                document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
-                                pill.classList.add('active');
-                                scrollPillToCenter(pill);
-                            }
+                    const intersecting = entries.filter(e => e.isIntersecting);
+                    if (intersecting.length > 0) {
+                        intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+                        const best = intersecting[0];
+                        const id = best.target.id;
+                        const pill = document.querySelector(`.js-quick-scroll-place[data-target="${id}"]`);
+                        if (pill) {
+                            document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
+                            pill.classList.add('active');
+                            scrollPillToCenter(pill);
                         }
-                    });
+                    }
                 }, {
                     root: scrollContainer || null,
-                    rootMargin: '-40px 0px -60% 0px',
-                    threshold: 0.1
+                    rootMargin: '-110px 0px -70% 0px',
+                    threshold: 0.05
                 });
                 placeItems.forEach(item => this._placesObserver.observe(item));
             }
@@ -1649,66 +1634,33 @@ export class AnalyticsManager {
                         types.sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b));
                         
                         types.forEach(t => {
+                            const evts = grouped[m][d][t];
                             html += `
-                                <li style="list-style: none; margin-top: 8px; margin-bottom: 4px; margin-left: 12px;">
-                                    <div style="font-size: 14px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 4px;">${typeLabels[t]}</div>
-                                    <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                                <li style="list-style: none; margin-top: 8px; margin-bottom: 8px; margin-left: 12px;">
+                                    <div style="font-size: 14px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 6px;">${typeLabels[t]}</div>
+                                    <div class="analytics-event-group-card" style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; padding: 4px 14px; display: flex; flex-direction: column;">
                             `;
                             
-                            grouped[m][d][t].forEach(evt => {
-                                                                const getPersonPIB = (p, eventType) => {
-                                    if (!p) return "Невідомо";
-                                    const details = findPersonDetails(p.id, window.app?.engine);
-                                    let s = details.surname || "";
-                                    let n = details.name || "";
-                                    let pat = details.patronymic || "";
-                                    
-                                    const isFem = details.gender === "f" || details.gender === "ж";
-                                    if (["birth", "baptism", "marriage"].includes(eventType)) {
-                                        if (isFem) {
-                                            s = details.maidenName ? details.maidenName : "";
-                                        }
-                                    } else if (["death", "funeral"].includes(eventType)) {
-                                        if (isFem) {
-                                            if (details.marriedName) {
-                                                const mSurnames = String(details.marriedName).split(/[,;]/).map(x => x.trim()).filter(Boolean);
-                                                if (mSurnames.length > 0) {
-                                                    s = mSurnames[mSurnames.length - 1];
-                                                } else {
-                                                    s = details.maidenName ? details.maidenName : "";
-                                                }
-                                            } else {
-                                                s = details.maidenName ? details.maidenName : "";
-                                            }
-                                        }
-                                    } else {
-                                        if (isFem) {
-                                            s = details.maidenName ? details.maidenName : "";
-                                        }
-                                    }
-                                    
-                                    const fullName = [s, n, pat].filter(Boolean).join(" ");
-                                    return fullName || p.name || "Невідомо";
-                                };
-
+                            evts.forEach((evt, idx) => {
                                 let p1Html = this._renderPersonChip(evt.person, evt.type);
                                 let p2Html = "";
                                 if (evt.type === "marriage" && evt.spouse) {
                                     p2Html = ` <span style="color: var(--color-text-muted); font-size: 13px; margin: 0 4px;">та</span> ` + this._renderPersonChip(evt.spouse, evt.type);
                                 }
 
-                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">${escapeHtml(evt.original.yearStr)} р.</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto;">${evt.year} р.</span>` : "");
+                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto; white-space: nowrap;">${escapeHtml(evt.original.yearStr)} р.</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto; white-space: nowrap;">${evt.year} р.</span>` : "");
                                 
+                                const borderTop = idx > 0 ? "border-top: 1px solid var(--color-border-light);" : "";
                                 html += `
-                                        <li style="padding: 10px 14px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; list-style: none; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">${p1Html}${p2Html}</div>
-                                            ${yearInfo}
-                                        </li>
+                                    <div class="analytics-event-participant-row" style="padding: 8px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; ${borderTop}">
+                                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0;">${p1Html}${p2Html}</div>
+                                        ${yearInfo}
+                                    </div>
                                 `;
                             });
                             
                             html += `
-                                    </ul>
+                                    </div>
                                 </li>
                             `;
                         });
@@ -1790,7 +1742,7 @@ export class AnalyticsManager {
                             if (this._scrollTimeout) clearTimeout(this._scrollTimeout);
                             this._scrollTimeout = setTimeout(() => {
                                 this._isProgrammaticScroll = false;
-                            }, 800);
+                            }, 1400);
 
                             const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
@@ -1823,21 +1775,22 @@ export class AnalyticsManager {
                         }
                         this._eventsObserver = new IntersectionObserver((entries) => {
                             if (this._isProgrammaticScroll) return;
-                            entries.forEach(entry => {
-                                if (entry.isIntersecting) {
-                                    const id = entry.target.id;
-                                    const pill = eventsSectionContent.querySelector(`.js-quick-scroll-event[data-target="${id}"]`);
-                                    if (pill) {
-                                        eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
-                                        pill.classList.add('active');
-                                        scrollPillToCenter(pill);
-                                    }
+                            const intersecting = entries.filter(e => e.isIntersecting);
+                            if (intersecting.length > 0) {
+                                intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+                                const best = intersecting[0];
+                                const id = best.target.id;
+                                const pill = eventsSectionContent.querySelector(`.js-quick-scroll-event[data-target="${id}"]`);
+                                if (pill) {
+                                    eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
+                                    pill.classList.add('active');
+                                    scrollPillToCenter(pill);
                                 }
-                            });
+                            }
                         }, {
                             root: scrollContainer || null,
-                            rootMargin: '-40px 0px -60% 0px',
-                            threshold: 0.1
+                            rootMargin: '-110px 0px -70% 0px',
+                            threshold: 0.05
                         });
                         newContainerEvents.querySelectorAll('.analytics-event-month-item').forEach(item => this._eventsObserver.observe(item));
                     }
@@ -1987,7 +1940,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         btnViewList.style.background = 'transparent';
                         btnViewList.style.color = 'var(--color-text-main)';
                         if (filterTypeSelect) filterTypeSelect.style.display = 'none';
-                        if (sortBtn) sortBtn.style.display = 'none';
+                        if (sortBtn) sortBtn.style.display = 'inline-flex';
                         if (periodFilterEl) periodFilterEl.style.display = 'inline-flex';
                         const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
                         if (scrubberToggle) scrubberToggle.style.display = 'inline-flex';
@@ -2183,7 +2136,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
 
     if (scrubberMode === "year") {
         scrubberUIHtml = `
-            <div id="timeline-scrubber-handle" data-type="single" style="position: absolute; top: 0; left: ${yearToPx(scrubberStartYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
+            <div id="timeline-scrubber-handle" data-type="single" style="position: absolute; top: 3px; left: ${yearToPx(scrubberStartYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
                 ${Math.round(scrubberStartYear)}
             </div>
         `;
@@ -2193,13 +2146,13 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
         const w = p2 - p1;
         
         scrubberUIHtml = `
-            <div id="timeline-scrubber-bg" style="position: absolute; top: 30px; bottom: -9999px; left: ${p1}px; width: ${w}px; background: rgba(30, 136, 229, 0.1); z-index: 10; pointer-events: none; border-left: 1px dashed var(--color-primary); border-right: 1px dashed var(--color-primary);"></div>
+            <div id="timeline-scrubber-bg" style="position: absolute; top: 33px; bottom: 0; left: ${p1}px; width: ${w}px; background: rgba(30, 136, 229, 0.1); z-index: 10; pointer-events: none; border-left: 1px dashed var(--color-primary); border-right: 1px dashed var(--color-primary);"></div>
             
-            <div id="timeline-scrubber-handle-start" data-type="start" style="position: absolute; top: 0; left: ${yearToPx(scrubberStartYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
+            <div id="timeline-scrubber-handle-start" data-type="start" style="position: absolute; top: 3px; left: ${yearToPx(scrubberStartYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
                 ${Math.round(scrubberStartYear)}
             </div>
             
-            <div id="timeline-scrubber-handle-end" data-type="end" style="position: absolute; top: 0; left: ${yearToPx(scrubberEndYear)}px; margin-left: -14px; width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
+            <div id="timeline-scrubber-handle-end" data-type="end" style="position: absolute; top: 3px; left: ${yearToPx(scrubberEndYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 52;">
                 ${Math.round(scrubberEndYear)}
             </div>
             
@@ -2210,7 +2163,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
     let scrubberLineHtml = "";
     if (scrubberMode === "year") {
         scrubberLineHtml = `
-            <div id="timeline-scrubber" style="position: absolute; top: 0; bottom: 0; left: ${yearToPx(scrubberStartYear)}px; width: 2px; background: var(--color-primary); z-index: 50; pointer-events: none;">
+            <div id="timeline-scrubber" style="position: absolute; top: -3px; bottom: 0; left: ${yearToPx(scrubberStartYear)}px; width: 2px; transform: translateX(-50%); background: var(--color-primary); z-index: 50; pointer-events: none;">
             </div>
         `;
     }
@@ -2337,8 +2290,28 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 
                 let tocLinksHtml = Array.from(tocCenturies).sort((a, b) => b - a).map(c => `<li><a href="#" data-cent="${c}" class="profile-toc-link js-scroll-chart">${getCenturyRoman(c)} століття</a></li>`).join('');
                 
-                const contemporariesPanel = document.getElementById("timeline-contemporaries-panel");
-                if (contemporariesPanel) contemporariesPanel.style.display = "block";
+                const contemporariesDrawer = document.getElementById("timeline-contemporaries-drawer") || document.getElementById("timeline-contemporaries-panel");
+                if (contemporariesDrawer) contemporariesDrawer.style.display = "block";
+
+                const drawerToggle = document.getElementById("timeline-drawer-toggle");
+                const drawerClose = document.getElementById("timeline-drawer-close");
+                if (drawerToggle && !drawerToggle._hasDrawerListener) {
+                    drawerToggle._hasDrawerListener = true;
+                    drawerToggle.addEventListener("click", () => {
+                        if (contemporariesDrawer) {
+                            contemporariesDrawer.classList.toggle("is-open");
+                        }
+                    });
+                }
+                if (drawerClose && !drawerClose._hasDrawerListener) {
+                    drawerClose._hasDrawerListener = true;
+                    drawerClose.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (contemporariesDrawer) {
+                            contemporariesDrawer.classList.remove("is-open");
+                        }
+                    });
+                }
 
                 const valDisplay = document.getElementById("timeline-year-value");
                 const resultsBox = document.getElementById("timeline-alive-results");
@@ -2357,7 +2330,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     if (typeof checkInputs !== 'undefined') checkInputs();
 
                     const isRange = y2 !== undefined && sVal !== eVal;
-                    if (periodLabel) periodLabel.textContent = isRange ? "ПЕРІОДІ" : "РОЦІ";
+                    if (periodLabel) periodLabel.textContent = isRange ? "періоді" : "році";
                     if (valDisplay) {
                         valDisplay.textContent = isRange ? `${Math.min(sVal, eVal)} – ${Math.max(sVal, eVal)}` : sVal;
                     }
@@ -2673,12 +2646,12 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             };
             const renderTimeline = () => {
                 const qNav = document.querySelector('#analytics-timeline .analytics-quick-nav-bar');
-                const contemporariesPanel = document.getElementById("timeline-contemporaries-panel");
+                const contemporariesDrawer = document.getElementById("timeline-contemporaries-drawer") || document.getElementById("timeline-contemporaries-panel");
                 if (timelineViewMode === "chart") {
                     const timelineList = document.getElementById("analytics-timeline-list");
                     if (timelineList) timelineList.style.display = "none";
                     if (chartContainer) chartContainer.style.display = "block";
-                    if (contemporariesPanel) contemporariesPanel.style.display = "block";
+                    if (contemporariesDrawer) contemporariesDrawer.style.display = "block";
                     if (qNav) qNav.style.display = "none";
                     renderTimelineChart();
                     return;
@@ -2687,7 +2660,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 const timelineList = document.getElementById("analytics-timeline-list");
                 if (timelineList) timelineList.style.display = "flex";
                 if (chartContainer) chartContainer.style.display = "none";
-                if (contemporariesPanel) contemporariesPanel.style.display = "none";
+                if (contemporariesDrawer) contemporariesDrawer.style.display = "none";
                 if (qNav) qNav.style.display = "flex";
 
                 const typeLabels = {
@@ -2886,7 +2859,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             if (this._scrollTimeout) clearTimeout(this._scrollTimeout);
                             this._scrollTimeout = setTimeout(() => {
                                 this._isProgrammaticScroll = false;
-                            }, 800);
+                            }, 1400);
 
                             const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
@@ -2914,21 +2887,22 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         }
                         this._timelineObserver = new IntersectionObserver((entries) => {
                             if (this._isProgrammaticScroll) return;
-                            entries.forEach(entry => {
-                                if (entry.isIntersecting) {
-                                    const id = entry.target.id;
-                                    const pill = quickNav.querySelector(`.js-quick-scroll-century[data-target="${id}"]`);
-                                    if (pill) {
-                                        quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
-                                        pill.classList.add('active');
-                                        scrollPillToCenter(pill);
-                                    }
+                            const intersecting = entries.filter(e => e.isIntersecting);
+                            if (intersecting.length > 0) {
+                                intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+                                const best = intersecting[0];
+                                const id = best.target.id;
+                                const pill = quickNav.querySelector(`.js-quick-scroll-century[data-target="${id}"]`);
+                                if (pill) {
+                                    quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
+                                    pill.classList.add('active');
+                                    scrollPillToCenter(pill);
                                 }
-                            });
+                            }
                         }, {
                             root: scrollContainer || null,
-                            rootMargin: '-40px 0px -60% 0px',
-                            threshold: 0.1
+                            rootMargin: '-110px 0px -70% 0px',
+                            threshold: 0.05
                         });
                         timelineList.querySelectorAll('.analytics-timeline-century-item').forEach(item => this._timelineObserver.observe(item));
                     }
@@ -2994,23 +2968,60 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 });
             }
 
-            const selectFilter = document.getElementById("timeline-filter-type");
+            const filterWrapper = document.getElementById("timeline-filter-wrapper");
+            const filterBtn = document.getElementById("timeline-filter-btn");
+            const filterMenu = document.getElementById("timeline-filter-menu");
+            const filterLabel = document.getElementById("timeline-filter-label");
+            const hiddenFilterInput = document.getElementById("timeline-filter-type");
             const filterIcon = document.querySelector(".timeline-filter-icon");
-            if (selectFilter) {
+
+            if (filterBtn && filterMenu) {
+                const toggleMenu = () => {
+                    const isShown = filterMenu.classList.toggle("show");
+                    if (filterIcon) filterIcon.style.transform = isShown ? "rotate(180deg)" : "rotate(0deg)";
+                };
+                const closeMenu = () => {
+                    filterMenu.classList.remove("show");
+                    if (filterIcon) filterIcon.style.transform = "rotate(0deg)";
+                };
+
+                filterBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    toggleMenu();
+                });
+
+                filterMenu.querySelectorAll(".timeline-filter-item").forEach(item => {
+                    item.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        const val = item.getAttribute("data-value");
+                        const text = item.textContent.trim();
+                        currentFilter = val;
+                        if (hiddenFilterInput) hiddenFilterInput.value = val;
+                        if (filterLabel) filterLabel.textContent = text;
+                        filterMenu.querySelectorAll(".timeline-filter-item").forEach(i => i.classList.remove("active"));
+                        item.classList.add("active");
+                        closeMenu();
+                        renderTimeline();
+                    });
+                });
+
+                document.addEventListener("click", (e) => {
+                    if (filterWrapper && !filterWrapper.contains(e.target)) {
+                        closeMenu();
+                    }
+                });
+            } else if (hiddenFilterInput && hiddenFilterInput.tagName === "SELECT") {
                 let isOpen = false;
-                
                 const closeSelect = () => {
                     isOpen = false;
                     if (filterIcon) filterIcon.style.transform = "rotate(0deg)";
                 };
-                
-                selectFilter.addEventListener("mousedown", () => {
+                hiddenFilterInput.addEventListener("mousedown", () => {
                     isOpen = !isOpen;
                     if (filterIcon) filterIcon.style.transform = isOpen ? "rotate(180deg)" : "rotate(0deg)";
                 });
-                selectFilter.addEventListener("blur", closeSelect);
-                
-                selectFilter.addEventListener("change", (e) => {
+                hiddenFilterInput.addEventListener("blur", closeSelect);
+                hiddenFilterInput.addEventListener("change", (e) => {
                     currentFilter = e.target.value;
                     closeSelect();
                     renderTimeline();

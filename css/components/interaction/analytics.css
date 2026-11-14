@@ -521,19 +521,23 @@
 }
 
 #analytics-deaths {
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 #analytics-coats {
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.analytics-death-item:last-child {
+    margin-bottom: 0 !important;
 }
 
 /* 2-Column Lifespan Layout */
 .analytics-lifespan-row {
     display: grid;
-    grid-template-columns: minmax(240px, 340px) 1fr;
+    grid-template-columns: 240px 1fr;
     gap: 16px;
     align-items: center;
     margin-bottom: 10px;
@@ -553,6 +557,10 @@
     display: flex;
     align-items: center;
     min-width: 0;
+}
+
+.analytics-lifespan-person-col .analytics-person-chip {
+    max-width: 100%;
 }
 
 .analytics-lifespan-person-col .kinship-card {
@@ -1104,7 +1112,7 @@
     }
 
     .analytics-dialog .analytics-body {
-        padding-bottom: 80px !important;
+        padding-bottom: 24px !important;
     }
 
     .analytics-view {
@@ -1668,4 +1676,206 @@
 .theme-dark .analytics-coat-item:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(56, 189, 248, 0.25);
     border-color: #38bdf8;
+}
+
+/* =========================================
+   CUSTOM TIMELINE FILTER DROPDOWN
+   ========================================= */
+
+.timeline-filter-dropdown-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.timeline-filter-btn {
+    height: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+    background: var(--color-bg-card) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text-main) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.timeline-filter-btn:hover {
+    border-color: var(--color-primary) !important;
+}
+
+.timeline-filter-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 160px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    z-index: 100;
+    padding: 4px;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.timeline-filter-menu.show {
+    display: flex;
+}
+
+.timeline-filter-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--color-text-main);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
+}
+
+.timeline-filter-item:hover {
+    background: var(--color-bg-hover, rgba(0, 0, 0, 0.05));
+    color: var(--color-primary);
+}
+
+.timeline-filter-item.active {
+    background: var(--color-primary-light, rgba(37, 99, 235, 0.12));
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* =========================================
+   CONTEMPORARIES DRAWER (ХТО ЖИВ У РОЦІ / ПЕРІОДІ)
+   ========================================= */
+
+.timeline-contemporaries-drawer {
+    margin-top: 14px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.timeline-contemporaries-drawer:hover {
+    border-color: var(--color-border-hover, var(--color-primary-light));
+}
+
+.timeline-drawer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--color-bg-card);
+    transition: background 0.15s ease;
+}
+
+.timeline-drawer-bar:hover {
+    background: var(--color-bg-hover, rgba(0, 0, 0, 0.03));
+}
+
+.timeline-drawer-bar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-text-main);
+}
+
+.timeline-drawer-bar-title i {
+    color: var(--color-primary);
+    font-size: 16px;
+}
+
+.timeline-drawer-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.timeline-drawer-arrow {
+    font-size: 18px;
+    color: var(--color-text-muted);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.timeline-contemporaries-drawer.is-open .timeline-drawer-arrow {
+    transform: rotate(180deg);
+}
+
+.timeline-drawer-content {
+    display: none;
+    padding: 0 16px 14px 16px;
+    border-top: 1px solid var(--color-border-light);
+    animation: drawerSlideDown 0.2s ease;
+}
+
+.timeline-contemporaries-drawer.is-open .timeline-drawer-content {
+    display: block;
+}
+
+@keyframes drawerSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.timeline-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0 8px 0;
+}
+
+.timeline-drawer-header h5 {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.timeline-drawer-close {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-drawer-close:hover {
+    color: var(--color-text-main);
+    background: var(--color-bg-hover);
+}
+
+.timeline-drawer-results {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-top: 4px;
 }
