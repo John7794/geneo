@@ -490,3 +490,20 @@
 	color: var(--color-text-muted);
 	line-height: 1.35;
 }
+
+
+/* Адаптація кнопок у тілі модальних вікон на всю ширину на мобільних пристроях */
+@media (max-width: 768px) {
+	.popup-overlay .popup-body .btn.w-full,
+	.popup-overlay .btn-primary.w-full,
+	.popup-overlay #btn-do-gedcom-export,
+	.popup-overlay #btn-do-gedcom-convert,
+	.popup-overlay #btn-save-as-workspace {
+		width: 100% !important;
+		max-width: 100% !important;
+		box-sizing: border-box !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+	}
+}

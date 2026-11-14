@@ -39,11 +39,19 @@
 /* Адаптація відступу для планшетів та мобільних: надійно центруємо шапку */
 @media (max-width: 768px) {
 	.profile-header {
-		top: 60px;
+		top: 60px !important;
 		left: 50% !important;
 		transform: translateX(-50%) !important;
 		width: calc(100% - 32px) !important;
 		max-width: 900px !important;
+		transition: border-radius 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease !important;
+		will-change: transform;
+	}
+
+	.profile-header.is-collapsed {
+		top: 60px !important;
+		backdrop-filter: blur(8px) saturate(140%) !important;
+		-webkit-backdrop-filter: blur(8px) saturate(140%) !important;
 	}
 }
 

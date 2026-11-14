@@ -6,40 +6,66 @@ export class LangManager {
 	constructor() {
 		this.btnToggle = document.getElementById("btn-lang-toggle");
 		this.menu = document.getElementById("lang-menu");
+		this.modal = document.getElementById("lang-modal");
+		this.btnCloseModal = document.getElementById("btn-close-lang-modal");
 
 		this.isOpen = false;
-		this.menuParent = null; // Змінна для збереження оригінального місця меню
+		this.menuParent = null;
 
 		// Жорстка фіксація контексту
 		this.toggleMenu = this.toggleMenu.bind(this);
 		this.closeMenu = this.closeMenu.bind(this);
+		this.openModal = this.openModal.bind(this);
+		this.closeModal = this.closeModal.bind(this);
 		this._handleOutsideClick = this._handleOutsideClick.bind(this);
 		this._handleEscape = this._handleEscape.bind(this);
 		this._handleMenuClick = this._handleMenuClick.bind(this);
 		this._handleToggleClick = this._handleToggleClick.bind(this);
+		this._handleModalClick = this._handleModalClick.bind(this);
 
 		this.init();
 	}
 
 	init() {
-		if (!this.btnToggle || !this.menu) {
-			console.warn("LangManager: Не знайдено кнопку або меню мов.");
-			return;
+		if (this.menu) {
+			this.menuParent = this.menu.parentElement;
+			this.menu.addEventListener("click", this._handleMenuClick);
 		}
-
-		// 🔥 Запам'ятовуємо батьківський контейнер меню для десктопу
-		this.menuParent = this.menu.parentElement;
 
 		this._renderActiveLanguage();
 
-		// Навішування подій
-		this.btnToggle.addEventListener("click", this._handleToggleClick);
-		this.menu.addEventListener("click", this._handleMenuClick);
+		if (this.btnToggle) {
+			this.btnToggle.addEventListener("click", this._handleToggleClick);
+		}
+
+		if (this.modal) {
+			this.modal.addEventListener("click", this._handleModalClick);
+		}
+
+		if (this.btnCloseModal) {
+			this.btnCloseModal.addEventListener("click", () => this.closeModal());
+		}
 	}
 
 	_handleToggleClick(e) {
 		e.stopPropagation();
-		this.toggleMenu();
+		this.openModal();
+	}
+
+	_handleModalClick(e) {
+		const choiceBtn = e.target.closest(".js-lang-choice, [data-lang]");
+		if (choiceBtn) {
+			const lang = choiceBtn.getAttribute("data-lang");
+			if (lang) {
+				this.changeLanguage(lang);
+				return;
+			}
+		}
+
+		// Клік поза вікном (по темному оверлею) закриває попап
+		if (e.target === this.modal) {
+			this.closeModal();
+		}
 	}
 
 	_handleMenuClick(e) {
@@ -63,93 +89,122 @@ export class LangManager {
 			this.btnToggle.innerHTML = `<span class="lang-code-text">${activeCode}</span>`;
 		}
 
-		const mobileLangDesc = document.querySelector('[data-action="lang"] .mobile-nav-desc');
+		const mobileLangDesc = document.querySelector('[data-action="lang"] .mobile-nav-desc') || document.getElementById("mobile-menu-lang-desc");
 		if (mobileLangDesc) {
 			mobileLangDesc.textContent = rawLang === "en" ? "English (активна)" : "Українська (активна)";
 		}
-	}
 
-	toggleMenu() {
-		if (this.isOpen) {
-			this.closeMenu();
-		} else {
-			this.isOpen = true;
-
-			// Портал прямо в body для усунення внутрішнього скролу в панелі інструментів
-			document.body.appendChild(this.menu);
-
-			if (window.matchMedia("(max-width: 768px)").matches) {
-				// Мобільна розмітка обробляється через @media в lang-menu.css
-				this.menu.style.position = "";
-				this.menu.style.top = "";
-				this.menu.style.right = "";
-				this.menu.style.left = "";
-				this.menu.style.bottom = "";
-				this.menu.style.zIndex = "30005";
-			} else if (this.btnToggle) {
-				// Десктоп: фіксоване позиціонування ліворуч від кнопки
-				const rect = this.btnToggle.getBoundingClientRect();
-				this.menu.style.position = "fixed";
-				this.menu.style.top = `${rect.top}px`;
-				this.menu.style.right = `${window.innerWidth - rect.left + 12}px`;
-				this.menu.style.left = "auto";
-				this.menu.style.bottom = "auto";
-				this.menu.style.zIndex = "30005";
-			}
-
-			this.menu.classList.remove(UI_CLASSES.hidden || "hidden");
-
-			// Блокуємо скрол фону
-			document.body.classList.add(UI_CLASSES.noScroll || "no-scroll");
-
-			requestAnimationFrame(() => {
-				this.menu.classList.add("show");
+		if (this.modal) {
+			const cards = this.modal.querySelectorAll(".js-lang-choice");
+			cards.forEach(card => {
+				if (card.getAttribute("data-lang") === rawLang) {
+					card.classList.add("is-active");
+				} else {
+					card.classList.remove("is-active");
+				}
 			});
-
-			document.addEventListener("click", this._handleOutsideClick);
-			document.addEventListener("keydown", this._handleEscape);
 		}
 	}
 
-	closeMenu() {
-		if (!this.isOpen) return;
+	openModal() {
+		if (!this.modal) this.modal = document.getElementById("lang-modal");
+		if (!this.modal) {
+			this.toggleMenu();
+			return;
+		}
+
+		this.isOpen = true;
+		this._renderActiveLanguage();
+
+		this.modal.classList.remove(UI_CLASSES.hidden || "hidden");
+		this.modal.setAttribute("aria-hidden", "false");
+		document.body.classList.add(UI_CLASSES.noScroll || "no-scroll");
+
+		requestAnimationFrame(() => {
+			this.modal.classList.add("show");
+		});
+
+		document.addEventListener("keydown", this._handleEscape);
+	}
+
+	closeModal() {
+		if (!this.modal) return;
 		this.isOpen = false;
 
-		this.menu.classList.remove("show");
-
-		// Розблоковуємо скрол
+		this.modal.classList.remove("show");
 		document.body.classList.remove(UI_CLASSES.noScroll || "no-scroll");
-
-		document.removeEventListener("click", this._handleOutsideClick);
 		document.removeEventListener("keydown", this._handleEscape);
 
 		setTimeout(() => {
-			if (!this.isOpen) {
-				this.menu.classList.add(UI_CLASSES.hidden || "hidden");
-				if (this.menuParent && this.menu.parentElement !== this.menuParent) {
-					this.menuParent.appendChild(this.menu);
-				}
-				this.menu.style.position = "";
-				this.menu.style.top = "";
-				this.menu.style.right = "";
-				this.menu.style.left = "";
-				this.menu.style.bottom = "";
-				this.menu.style.zIndex = "";
+			if (!this.isOpen && this.modal) {
+				this.modal.classList.add(UI_CLASSES.hidden || "hidden");
+				this.modal.setAttribute("aria-hidden", "true");
 			}
 		}, 150);
 	}
 
+	toggleMenu() {
+		if (this.modal) {
+			if (this.isOpen) {
+				this.closeModal();
+			} else {
+				this.openModal();
+			}
+			return;
+		}
+
+		if (this.isOpen) {
+			this.closeMenu();
+		} else {
+			this.isOpen = true;
+			if (this.menu) {
+				document.body.appendChild(this.menu);
+				this.menu.classList.remove(UI_CLASSES.hidden || "hidden");
+				document.body.classList.add(UI_CLASSES.noScroll || "no-scroll");
+				requestAnimationFrame(() => {
+					this.menu.classList.add("show");
+				});
+				document.addEventListener("click", this._handleOutsideClick);
+				document.addEventListener("keydown", this._handleEscape);
+			}
+		}
+	}
+
+	closeMenu() {
+		if (this.modal) {
+			this.closeModal();
+			return;
+		}
+		if (!this.isOpen) return;
+		this.isOpen = false;
+
+		if (this.menu) {
+			this.menu.classList.remove("show");
+			document.body.classList.remove(UI_CLASSES.noScroll || "no-scroll");
+			document.removeEventListener("click", this._handleOutsideClick);
+			document.removeEventListener("keydown", this._handleEscape);
+
+			setTimeout(() => {
+				if (!this.isOpen && this.menu) {
+					this.menu.classList.add(UI_CLASSES.hidden || "hidden");
+					if (this.menuParent && this.menu.parentElement !== this.menuParent) {
+						this.menuParent.appendChild(this.menu);
+					}
+				}
+			}, 150);
+		}
+	}
+
 	_handleOutsideClick(e) {
 		if (!this.isOpen) return;
-
-		// 1. Перевірка для мобільної версії: чи був клік рівно по фону-оверлею
+		if (this.modal) {
+			if (e.target === this.modal) this.closeModal();
+			return;
+		}
 		const isClickedOnOverlay = e.target === this.menu;
-
-		// 2. Перевірка для десктопу: чи був клік за межами випадаючого списку
 		const isClickedOutside =
-			!this.menu.contains(e.target) && !this.btnToggle.contains(e.target);
+			this.menu && !this.menu.contains(e.target) && !this.btnToggle.contains(e.target);
 
-		// Якщо клікнули по блюру АБО десь зовні на ПК — закриваємо меню
 		if (isClickedOnOverlay || isClickedOutside) {
 			this.closeMenu();
 		}
@@ -157,11 +212,13 @@ export class LangManager {
 
 	_handleEscape(e) {
 		if (e.key === "Escape" && this.isOpen) {
-			this.closeMenu();
+			if (this.modal) this.closeModal();
+			else this.closeMenu();
 		}
 	}
 
 	changeLanguage(langCode) {
+		this.closeModal();
 		this.closeMenu();
 		const current = localStorage.getItem("appLang") || "uk";
 		const label = langCode === "en" ? "English" : "Українська";
@@ -180,9 +237,7 @@ export class LangManager {
 	}
 
 	cycleLanguage() {
-		const current = localStorage.getItem("appLang") || "uk";
-		const next = current === "uk" ? "en" : "uk";
-		this.changeLanguage(next);
+		this.openModal();
 	}
 
 	_showToast(text, iconClass) {

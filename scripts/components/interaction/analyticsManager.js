@@ -6,6 +6,15 @@ import { renderPersonTile } from "../ui/shared/personTile.js";
 import { findPersonDetails, generateInitialsAvatar, getAvatarUrl, getEffectiveStatusMap, resolveStatus, formatPersonDisplay } from "../../utils/personUtils.js";
 import { escapeHtml } from "../../utils/helpers.js";
 
+function scrollPillToCenter(pill) {
+    if (!pill) return;
+    const navBar = pill.closest('.analytics-quick-nav-bar');
+    if (navBar) {
+        const left = pill.offsetLeft - (navBar.clientWidth / 2) + (pill.clientWidth / 2);
+        navBar.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    }
+}
+
 export class AnalyticsManager {
 	constructor(engine) {
 		this.engine = engine;
@@ -1337,7 +1346,7 @@ export class AnalyticsManager {
                         
                         document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
-                        btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+                        scrollPillToCenter(btn);
                     }
                 });
             });
@@ -1356,7 +1365,7 @@ export class AnalyticsManager {
                             if (pill) {
                                 document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
                                 pill.classList.add('active');
-                                pill.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+                                scrollPillToCenter(pill);
                             }
                         }
                     });
@@ -1803,7 +1812,7 @@ export class AnalyticsManager {
 
                                 eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
-                                btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+                                scrollPillToCenter(btn);
                             }
                         });
                     });
@@ -1821,7 +1830,7 @@ export class AnalyticsManager {
                                     if (pill) {
                                         eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
                                         pill.classList.add('active');
-                                        pill.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+                                        scrollPillToCenter(pill);
                                     }
                                 }
                             });
@@ -2812,19 +2821,37 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             return formatPersonDisplay({ surname: s, name: n, patronymic: pat });
                         };
                         
-                        let namesStr = this._renderPersonChip(evt.person, evt.type);
+                        let namesStr = "";
                         if (evt.type === "marriage" && evt.spouse) {
-                            namesStr += ` <span style="color: var(--color-text-muted); font-size: 13px; margin: 0 4px;">та</span> ` + this._renderPersonChip(evt.spouse, evt.type);
+                            namesStr = `
+                                <div class="timeline-marriage-row">
+                                    ${this._renderPersonChip(evt.person, evt.type)}
+                                    <span class="timeline-marriage-and"><i class="ri-heart-2-line"></i> та</span>
+                                    ${this._renderPersonChip(evt.spouse, evt.type)}
+                                </div>
+                            `;
+                        } else {
+                            namesStr = this._renderPersonChip(evt.person, evt.type);
                         }
                         
                         let cleanDate = dateStr.replace(/[()]/g, "").trim();
                         html += `
-                            <li class="analytics-timeline-event-row">
-                                <div class="analytics-timeline-event-date">${cleanDate}</div>
-                                <div class="analytics-timeline-event-sep">—</div>
-                                <div class="analytics-timeline-event-type">${typeLabels[evt.type] || evt.type}</div>
-                                <div class="analytics-timeline-event-sep">—</div>
-                                <div class="analytics-timeline-event-person">${namesStr}</div>
+                            <li class="analytics-timeline-event-card" data-event-type="${evt.type}">
+                                <div class="timeline-event-header">
+                                    <div class="timeline-event-date">
+                                        <i class="ri-calendar-event-line timeline-date-icon"></i>
+                                        <span>${cleanDate}</span>
+                                    </div>
+                                    <div class="timeline-event-badge badge-event-${evt.type}">
+                                        <i class="${icons[evt.type] || 'ri-time-line'}"></i>
+                                        <span>${typeLabels[evt.type] || evt.type}</span>
+                                    </div>
+                                </div>
+                                <div class="timeline-event-body">
+                                    <div class="timeline-event-participants">
+                                        ${namesStr}
+                                    </div>
+                                </div>
                             </li>
                         `;
                     });
@@ -2876,7 +2903,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 }
                                 quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
-                                btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+                                scrollPillToCenter(btn);
                             }
                         });
                     });
@@ -2894,7 +2921,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                     if (pill) {
                                         quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
                                         pill.classList.add('active');
-                                        pill.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+                                        scrollPillToCenter(pill);
                                     }
                                 }
                             });

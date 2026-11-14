@@ -232,8 +232,9 @@ export class MobileMenuManager {
 				document.getElementById("btn-events")?.click();
 				break;
 			case "lang":
+				this.closeMenu();
 				if (window.app?.managers?.lang) {
-					window.app.managers.lang.cycleLanguage();
+					window.app.managers.lang.openModal();
 				} else {
 					document.getElementById("btn-lang-toggle")?.click();
 				}

@@ -445,6 +445,44 @@
             </div>
         </div>
 
+        <!-- Language Modal -->
+        <div id="lang-modal" class="popup-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="lang-modal-title">
+            <div class="popup-container lang-popup-container" style="max-width: 440px;">
+                <div class="popup-header">
+                    <h3 id="lang-modal-title" class="popup-name popup-name--flex">
+                        <i class="ri-translate-2 text-primary"></i>
+                        <span data-i18n="ui.selectLanguage">Мова інтерфейсу</span>
+                    </h3>
+                    <button id="btn-close-lang-modal" class="modal-close" aria-label="Закрити" title="Закрити">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="popup-body" style="padding: 16px 20px;">
+                    <p class="lang-modal-subtitle" style="margin: 0 0 16px; font-size: 13px; color: var(--color-text-muted);">
+                        Оберіть зручну мову для взаємодії з платформою:
+                    </p>
+                    <div class="lang-modal-list" id="lang-modal-list">
+                        <button type="button" class="lang-modal-card js-lang-choice" data-lang="uk">
+                            <span class="lang-modal-flag">🇺🇦</span>
+                            <div class="lang-modal-info">
+                                <span class="lang-modal-title">Українська</span>
+                                <span class="lang-modal-native">Ukrainian</span>
+                            </div>
+                            <span class="lang-modal-check"><i class="ri-check-line"></i></span>
+                        </button>
+                        <button type="button" class="lang-modal-card js-lang-choice" data-lang="en">
+                            <span class="lang-modal-flag">🇬🇧</span>
+                            <div class="lang-modal-info">
+                                <span class="lang-modal-title">English</span>
+                                <span class="lang-modal-native">Англійська</span>
+                            </div>
+                            <span class="lang-modal-check"><i class="ri-check-line"></i></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Analytics Modal -->
         <div id="analytics-view" class="hidden analytics-view">
             <div class="analytics-dialog" id="analytics-dialog">

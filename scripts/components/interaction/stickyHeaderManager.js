@@ -31,12 +31,13 @@ export class StickyHeaderManager {
 		window.addEventListener("resize", this.syncLayout, { passive: true });
 
 		this.observer = new ResizeObserver(() => {
+			if (!this.headerNode || this.headerNode.classList.contains(UI_CLASSES.isCollapsed)) return;
 			window.requestAnimationFrame(this.syncLayout);
 		});
 
 		const tryHydrate = (attempts = 0) => {
 			if (this._acquireElements()) {
-				this.observer.observe(this.placeholderNode);
+				this.observer.observe(this.headerNode);
 				this.syncLayout();
 				this.onScroll();
 			} else if (attempts < 20) {
@@ -63,9 +64,15 @@ export class StickyHeaderManager {
 
 		if (!isCollapsed && hHeight > 0) {
 			this.expandedHeight = hHeight;
-			this.placeholderNode.style.height = `${hHeight}px`;
+			const currentH = parseFloat(this.placeholderNode.style.height) || 0;
+			if (Math.abs(currentH - hHeight) > 2) {
+				this.placeholderNode.style.height = `${hHeight}px`;
+			}
 		} else if (this.expandedHeight > 0) {
-			this.placeholderNode.style.height = `${this.expandedHeight}px`;
+			const currentH = parseFloat(this.placeholderNode.style.height) || 0;
+			if (Math.abs(currentH - this.expandedHeight) > 2) {
+				this.placeholderNode.style.height = `${this.expandedHeight}px`;
+			}
 		}
 
 		if (isMobile) {

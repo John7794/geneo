@@ -5,6 +5,8 @@ body:has(#app-loader:not(.hidden)) #mobile-menu-btn,
 body:has(.loader:not(.hidden)) #mobile-menu-btn,
 body:has(.popup-overlay.show) #mobile-menu-btn,
 body:has(.popup-overlay.open) #mobile-menu-btn,
+body:has(#analytics-view:not(.hidden)) #mobile-menu-btn,
+body.in-analytics #mobile-menu-btn,
 body.has-open-popup #mobile-menu-btn {
 	display: none !important;
 	opacity: 0 !important;

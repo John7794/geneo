@@ -233,7 +233,8 @@ export class AppRouter {
 		const managers = this.app.managers;
 		const currentIdStr = String(this.app.currentProfileId);
 
-		// У режимі дерева на мобільному свайп перемикає пробанда серед братів/сестер активної гілки
+		// 1. У режимі дерева на мобільному свайп перемикає пробанда серед братів/сестер активної гілки,
+		// але БЕЗ нескінченного зациклення по модулю: при досягненні краю списку свайп переходить далі по дереву
 		if (
 			managers.lineage &&
 			typeof managers.lineage.logic?.buildPath === "function"
@@ -254,10 +255,12 @@ export class AppRouter {
 							String(s.id) === currentIdStr,
 					);
 					if (currentIndex !== -1) {
-						let tIndex =
-							(currentIndex + direction + currentItem.siblings.length) %
-							currentItem.siblings.length;
-						return currentItem.siblings[tIndex]?.id;
+						if (direction > 0 && currentIndex + 1 < currentItem.siblings.length) {
+							return currentItem.siblings[currentIndex + 1].id;
+						} else if (direction < 0 && currentIndex - 1 >= 0) {
+							return currentItem.siblings[currentIndex - 1].id;
+						}
+						// Дійшли до межі списку сиблінгів — виходимо до черги поколінь (navQueue)
 					}
 				}
 			}
@@ -278,21 +281,54 @@ export class AppRouter {
 			if (siblingIds.length > 1) {
 				const currentIndex = siblingIds.indexOf(currentIdStr);
 				if (currentIndex !== -1) {
-					let tIndex =
-						(currentIndex + direction + siblingIds.length) %
-						siblingIds.length;
-					return siblingIds[tIndex];
+					if (direction > 0 && currentIndex + 1 < siblingIds.length) {
+						return siblingIds[currentIndex + 1];
+					} else if (direction < 0 && currentIndex - 1 >= 0) {
+						return siblingIds[currentIndex - 1];
+					}
+					// Дійшли до межі списку сиблінгів — виходимо до черги поколінь
 				}
 			}
 		}
 
-		// Якщо сиблінгів немає — перемикаємо по навігаційній черзі лінії
+		// 2. Якщо сиблінгів немає або дійшли до кінця групи — перемикаємо по навігаційній черзі лінії
 		const navQueue =
 			managers.navigation?.sortedIds || managers.lineage?.queue || [];
 		if (navQueue.length > 1) {
 			let qIdx = navQueue.indexOf(currentIdStr);
+			if (qIdx === -1 && this.app.engine) {
+				const resolved = resolveRealId(currentIdStr, this.app.engine);
+				if (resolved) qIdx = navQueue.indexOf(String(resolved));
+			}
 			if (qIdx !== -1) {
 				return navQueue[(qIdx + direction + navQueue.length) % navQueue.length];
+			} else {
+				// Якщо поточна особа не безпосередньо в navQueue (сиблінг), шукаємо близьких родичів
+				if (p) {
+					const relatives = [
+						...(p.parents || []).map((x) => String(x.id)),
+						...(p.children || []).map((x) => String(x.id)),
+					];
+					for (const relId of relatives) {
+						const rIdx = navQueue.indexOf(relId);
+						if (rIdx !== -1) {
+							return navQueue[(rIdx + direction + navQueue.length) % navQueue.length];
+						}
+					}
+				}
+				return direction > 0 ? navQueue[0] : navQueue[navQueue.length - 1];
+			}
+		}
+
+		// 3. Fallback по базі даних basic
+		if (this.app.engine?.db?.basic && this.app.engine.db.basic.length > 1) {
+			const allBasic = this.app.engine.db.basic;
+			const allIds = allBasic
+				.map((r) => String(r.person_id || r.id || "").trim())
+				.filter(Boolean);
+			let bIdx = allIds.indexOf(currentIdStr);
+			if (bIdx !== -1) {
+				return allIds[(bIdx + direction + allIds.length) % allIds.length];
 			}
 		}
 

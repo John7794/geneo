@@ -604,50 +604,144 @@
     }
 }
 
-/* Timeline Event Row */
+/* Timeline Event Card (Оновлена візуальна організація карток хронології) */
+.analytics-timeline-event-card,
 .analytics-timeline-event-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px 14px;
+    list-style: none;
     background: var(--color-bg-card);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
-    list-style: none;
-    transition: background 0.15s ease;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    width: 100%;
 }
 
+.analytics-timeline-event-card:hover,
 .analytics-timeline-event-row:hover {
-    background: var(--color-bg-hover);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.1);
 }
 
+.timeline-event-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-bottom: 1px dashed var(--color-border-light, rgba(255, 255, 255, 0.08));
+    padding-bottom: 8px;
+}
+
+.timeline-event-date,
 .analytics-timeline-event-date {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--color-text-main);
-    white-space: nowrap;
-}
-
-.analytics-timeline-event-sep {
-    color: var(--color-text-muted);
-    font-weight: 300;
-    user-select: none;
-}
-
-.analytics-timeline-event-type {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-text-muted);
-    text-transform: capitalize;
-    white-space: nowrap;
-}
-
-.analytics-timeline-event-person {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--color-text-main);
+    letter-spacing: -0.01em;
+}
+
+.timeline-date-icon {
+    font-size: 15px;
+    color: var(--color-primary);
+    opacity: 0.85;
+}
+
+.timeline-event-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--color-bg-subtle, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+}
+
+.badge-event-birth {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.badge-event-baptism {
+    background: rgba(6, 182, 212, 0.12);
+    color: #06b6d4;
+    border-color: rgba(6, 182, 212, 0.25);
+}
+
+.badge-event-marriage {
+    background: rgba(236, 72, 153, 0.12);
+    color: #ec4899;
+    border-color: rgba(236, 72, 153, 0.25);
+}
+
+.badge-event-death {
+    background: rgba(100, 116, 139, 0.15);
+    color: #94a3b8;
+    border-color: rgba(100, 116, 139, 0.3);
+}
+
+.badge-event-funeral {
+    background: rgba(71, 85, 105, 0.18);
+    color: #cbd5e1;
+    border-color: rgba(71, 85, 105, 0.35);
+}
+
+.timeline-event-body {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.timeline-event-participants,
+.analytics-timeline-event-person {
+    display: flex;
+    align-items: center;
     flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.timeline-marriage-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.timeline-marriage-and {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ec4899;
+    background: rgba(236, 72, 153, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.analytics-timeline-event-sep {
+    display: none;
+}
+
+.analytics-timeline-event-type {
+    display: none;
 }
 
 /* Timeline Contemporaries Panel */
@@ -971,6 +1065,51 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+@media (max-width: 768px) {
+    #analytics-timeline .timeline-controls-bar {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+    }
+
+    #analytics-timeline .timeline-controls-bar > div:first-child {
+        flex-shrink: 0 !important;
+    }
+
+    #timeline-filter-wrapper {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    #timeline-filter-type {
+        width: 100% !important;
+        height: 38px !important;
+        font-size: 13px !important;
+        padding-left: 10px !important;
+        padding-right: 30px !important;
+        border-radius: 8px !important;
+    }
+
+    #timeline-sort-btn {
+        flex-shrink: 0 !important;
+        width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        border-radius: 8px !important;
+    }
+
+    .analytics-dialog .analytics-body {
+        padding-bottom: 80px !important;
+    }
+
+    .analytics-view {
+        overflow-x: hidden !important;
+    }
 }
 
 .analytics-summary-stats {

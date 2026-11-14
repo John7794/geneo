@@ -1077,8 +1077,8 @@ export class AccountModalManager {
 					${
 						hasMore
 							? `
-						<div class="audit-load-more-box" style="text-align: center; padding: 14px 0;">
-							<button type="button" id="btn-audit-load-more" class="btn btn-outline btn-sm" style="margin: 0 auto; display: inline-flex;">
+						<div class="audit-load-more-box">
+							<button type="button" id="btn-audit-load-more" class="btn btn-outline audit-load-more-btn">
 								<i class="ri-arrow-down-line"></i> Показати ще 30 зауважень (залишилось ${totalAvailable - this.auditPageLimit})
 							</button>
 						</div>
