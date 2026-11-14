@@ -82,11 +82,14 @@ export class MobileMenuManager {
 		const appLoader = document.getElementById("app-loader");
 		const isLoaderVisible = appLoader && !appLoader.classList.contains("hidden");
 
+		const analyticsView = document.getElementById("analytics-view");
+		const isAnalyticsVisible = analyticsView && !analyticsView.classList.contains("hidden");
+
 		const openPopups = document.querySelectorAll(
-			".popup-overlay.show, .popup-overlay.open"
+			".popup-overlay.show, .popup-overlay.open, .modal.show, .modal.open"
 		);
 
-		const shouldHideFab = isLoaderVisible || openPopups.length > 0;
+		const shouldHideFab = isLoaderVisible || isAnalyticsVisible || openPopups.length > 0;
 
 		if (this.fabBtn) {
 			if (shouldHideFab) {

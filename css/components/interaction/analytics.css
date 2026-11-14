@@ -110,22 +110,35 @@
         display: none !important;
     }
 
-    .analytics-view:not(.in-detailed-view) #btn-back-analytics {
-        display: none !important;
-    }
-
-    .analytics-view.in-detailed-view #btn-back-analytics {
-        display: inline-flex !important;
-    }
-
     .analytics-view.in-detailed-view .analytics-dialog .analytics-body {
         padding-top: 0 !important;
     }
 }
 
+/* Глобальне відображення кнопки "Назад" у шапці аналітики (десктоп і мобільний) */
+.analytics-view:not(.in-detailed-view) #btn-back-analytics {
+    display: none !important;
+}
+
+.analytics-view.in-detailed-view #btn-back-analytics {
+    display: inline-flex !important;
+}
+
+/* При відкритій аналітиці або модальному вікні ховаємо мобільний FAB (синю круглу кнопку меню) */
+.app-wrapper:has(#analytics-view:not(.hidden)) .mobile-menu-toggle,
+body:has(#analytics-view:not(.hidden)) .mobile-menu-toggle,
+body.in-analytics .mobile-menu-toggle {
+    display: none !important;
+}
+
 @media (max-width: 767px) {
     .analytics-dialog {
         display: contents;
+    }
+
+    .analytics-dialog .analytics-body,
+    .analytics-body {
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
     }
 }
 

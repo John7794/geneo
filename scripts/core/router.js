@@ -572,6 +572,7 @@ export class AppRouter {
 			if (profileContentEl) profileContentEl.classList.remove("hidden");
 		} else if (mode === "analytics") {
 			document.body.classList.remove("error-state-active");
+			document.body.classList.add("in-analytics");
 			if (window.innerWidth < 768) {
 				if (treeViewEl) treeViewEl.classList.add("hidden");
 				if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
@@ -586,6 +587,19 @@ export class AppRouter {
 			if (analyticsViewEl) analyticsViewEl.classList.remove("hidden");
 		}
 		
+		if (mode !== "analytics") {
+			document.body.classList.remove("in-analytics");
+		}
+		
+		const fabBtn = document.getElementById("mobile-menu-btn");
+		if (fabBtn) {
+			if (mode === "analytics") {
+				fabBtn.style.setProperty("display", "none", "important");
+			} else if (!document.querySelector(".popup-overlay.show, .popup-overlay.open")) {
+				fabBtn.style.removeProperty("display");
+			}
+		}
+
 		const breadcrumbsEl = document.getElementById("breadcrumbs-container");
 		if (breadcrumbsEl) {
 		    if (mode === "analytics" && window.innerWidth < 768) breadcrumbsEl.style.display = "none";

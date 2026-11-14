@@ -119,6 +119,11 @@ export class AnalyticsManager {
 		if (headerTitle) headerTitle.textContent = "Аналітика родоводу";
 		const btnBackModal = document.getElementById("btn-back-analytics");
 		if (btnBackModal) btnBackModal.style.display = "none";
+		document.body.classList.remove("in-analytics");
+		const fabBtn = document.getElementById("mobile-menu-btn");
+		if (fabBtn && !document.querySelector(".popup-overlay.show, .popup-overlay.open")) {
+			fabBtn.style.removeProperty("display");
+		}
 
 		if (window.app && window.app.navigateToId) {
 			window.app.navigateToId(window.app.currentProfileId || window.app.rootPersonId, false, "tree");
