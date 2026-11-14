@@ -528,19 +528,25 @@
                             <h4>Імена</h4>
                             <div class="analytics-section-content">
 
-                                <div class="analytics-sort-controls analytics-sticky-controls">
-                                    <!-- Desktop sort buttons -->
-                                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
-                                        <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
-                                        <button class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
-                                        <button class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
-                                    </div>
+                                <div class="analytics-names-sticky-panel">
+                                    <div class="analytics-sort-controls">
+                                        <!-- Desktop sort buttons -->
+                                        <div class="analytics-sort-desktop" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
+                                            <button class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
+                                            <button class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
+                                        </div>
 
-                                    <!-- Mobile sort popup trigger -->
-                                    <div class="analytics-sort-mobile" style="display: none; ">
-                                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').classList.add('show')">
-                                            <i class="ri-sort-desc"></i> Сортувати імена
-                                        </button>
+                                        <!-- Mobile sort popup trigger -->
+                                        <div class="analytics-sort-mobile" style="display: none;">
+                                            <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').classList.add('show')">
+                                                <i class="ri-sort-desc"></i> Сортувати імена
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="analytics-names-header-row">
+                                        <h5 class="analytics-names-col-title">Чоловічі</h5>
+                                        <h5 class="analytics-names-col-title">Жіночі</h5>
                                     </div>
                                 </div>
 
@@ -557,11 +563,9 @@
 
                                 <div id="analytics-names" class="analytics-names-grid">
                                     <div>
-                                        <h5 class="analytics-names-col-title">Чоловічі</h5>
                                         <ul id="analytics-names-m" class="analytics-list-none"></ul>
                                     </div>
                                     <div>
-                                        <h5 class="analytics-names-col-title">Жіночі</h5>
                                         <ul id="analytics-names-f" class="analytics-list-none"></ul>
                                     </div>
                                 </div>
@@ -644,6 +648,16 @@
                                 </div>
                                 <ul id="analytics-timeline-list" class="analytics-list-none" style="display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0;"></ul>
                                 <div id="analytics-timeline-chart" style="display: none;"></div>
+                                <div id="timeline-contemporaries-panel" class="analytics-contemporaries-panel">
+                                    <div class="analytics-contemporaries-header">
+                                        <h4 class="analytics-contemporaries-title">
+                                            <i class="ri-user-shared-line"></i>
+                                            ХТО ЖИВ В <span id="timeline-alive-period-label">РОЦІ</span>: <span id="timeline-year-value">1900</span>
+                                        </h4>
+                                        <span id="timeline-alive-count" class="badge">0 осіб</span>
+                                    </div>
+                                    <div id="timeline-alive-results" class="analytics-contemporaries-list"></div>
+                                </div>
                             </div>
                         </div>
 

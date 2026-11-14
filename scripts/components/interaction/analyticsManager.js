@@ -3,7 +3,7 @@ import { i18n } from "../../core/i18n.js";
 import { calculateAgeAtDeath, convertJulianToGregorian } from "../../utils/dateUtils.js";
 import { resolveCoatUrl } from "../../utils/coatUtils.js";
 import { renderPersonTile } from "../ui/shared/personTile.js";
-import { findPersonDetails, generateInitialsAvatar, getAvatarUrl } from "../../utils/personUtils.js";
+import { findPersonDetails, generateInitialsAvatar, getAvatarUrl, getEffectiveStatusMap, resolveStatus, formatPersonDisplay } from "../../utils/personUtils.js";
 import { escapeHtml } from "../../utils/helpers.js";
 
 export class AnalyticsManager {
@@ -132,9 +132,10 @@ export class AnalyticsManager {
 					s = details.maidenName ? details.maidenName : (s || "");
 				}
 			}
+		} else if (isFem && details.maidenName) {
+			s = details.maidenName;
 		}
-		const fullName = [s, n, pat].filter(Boolean).join(" ");
-		return fullName;
+		return formatPersonDisplay({ surname: s, name: n, patronymic: pat });
 	}
 
 	_renderPersonChip(person, eventType = null) {
@@ -145,7 +146,7 @@ export class AnalyticsManager {
 		const details = findPersonDetails(pid, this.engine) || {};
 		const isFem = details.gender === "f" || details.gender === "ж" || (typeof person === "object" && person.gender === "f");
 		const avatarUrl = getAvatarUrl(details.photo, isFem, details.name || (typeof person === "object" ? person.name : ""), details.surname);
-		const pib = this._getPersonPIB(details, eventType) || (typeof person === "object" ? person.name : "") || "Невідомо";
+		const pib = this._getPersonPIB(details, eventType) || (typeof person === "object" ? formatPersonDisplay(person) : "") || "Невідомо";
 		
 		return `
 			<a href="?id=${encodeURIComponent(pid)}&view=profile" class="analytics-person-link js-stop-prop analytics-person-chip" data-pid="${pid}">
@@ -157,7 +158,12 @@ export class AnalyticsManager {
 
 	render() {
 		try {
+			if (this._isRendered && this._lastEnginePeople === this.engine?.people) {
+				return;
+			}
 			this.calculateStats();
+			this._isRendered = true;
+			this._lastEnginePeople = this.engine?.people;
 		} catch (e) {
 			console.error("Помилка розрахунку аналітики:", e);
 			if (this.containerSummary) {
@@ -300,7 +306,7 @@ export class AnalyticsManager {
                 }
             }
             
-            const fullName = [s, n, pat].filter(Boolean).join(" ");
+            const fullName = formatPersonDisplay({ surname: s, name: n, patronymic: pat });
             return `<a href="?id=${encodeURIComponent(pid)}&view=profile" class="js-stop-prop analytics-person-link" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(fullName)}</a>`;
         };
 
@@ -546,6 +552,8 @@ export class AnalyticsManager {
             });
         }
 
+		const effectiveStatusMap = getEffectiveStatusMap(this.engine, this.engine?.rootPersonId || "1");
+
 		this.engine.people.forEach((person, id) => {
             if (visibleIds && !visibleIds.has(String(id))) return;
 		    totalPeople++;
@@ -557,12 +565,15 @@ export class AnalyticsManager {
 			}
 
             let isConfirmed = true;
-            if (person.raw) {
+            const eff = effectiveStatusMap ? effectiveStatusMap.get(String(id)) : null;
+            if (eff) {
+                isConfirmed = eff.status === "confirmed";
+            } else if (person.raw) {
                 const rawStatus = String(person.raw[COLUMNS.basic?.status || "status"] || "").trim().toLowerCase();
-                if (rawStatus === "3" || rawStatus === "0" || rawStatus === "hypothetical" || rawStatus === "гіпотеза" || rawStatus === "непідтверджено") {
-                    isConfirmed = false;
-                }
+                const rawConf = String(person.raw.sources || person.raw.confirmations || person.raw.grounds || "").trim().toLowerCase();
+                isConfirmed = resolveStatus(rawStatus, rawConf, String(id) === "1") === "confirmed";
             }
+
             if (isConfirmed) {
                 confirmedCount++;
                 if (person.gender === "f" || person.gender === "ж") confirmedFemale++;
@@ -594,11 +605,8 @@ export class AnalyticsManager {
                 const age = calculateAgeAtDeath(birthData, deathData);
                 if (age !== null && age >= 0 && age <= 120) {
                     const isApprox = !birthData.day || !birthData.month || !deathData.day || !deathData.month;
-                    let fullName = person.name;
-                    if (person.source === "basic") {
-                        const pat = person.raw[COLUMNS.basic?.patronymic || "patronymic"];
-                        if (pat && String(pat).trim() !== "") fullName += " " + String(pat).trim();
-                    }
+                    const details = findPersonDetails(id, this.engine) || person;
+                    let fullName = formatPersonDisplay(details);
                     const bYear = birthData.year || "?";
                     const dYear = deathData.year || "?";
                     let exactDays = null;
@@ -608,8 +616,8 @@ export class AnalyticsManager {
                         const ms = dDate.getTime() - bDate.getTime();
                         if (ms > 0) exactDays = Math.floor(ms / (1000 * 60 * 60 * 24));
                     }
-                    if (isApprox) lifespansApprox.push({age, id, name: fullName, bYear, dYear, exactDays});
-                    else lifespansConfirmed.push({age, id, name: fullName, bYear, dYear, exactDays});
+                    if (!isConfirmed) lifespansApprox.push({age, id, name: fullName, bYear, dYear, exactDays, gender: person.gender});
+                    else lifespansConfirmed.push({age, id, name: fullName, bYear, dYear, exactDays, gender: person.gender});
                 }
 			}
 		});
@@ -662,7 +670,6 @@ export class AnalyticsManager {
             });
 			
 			const makeTag = (obj) => {
-				const shortName = obj.name ? obj.name.replace(/[\\?0-9]/g, '').trim() : "Невідомо";
                 let metric = hasExact ? (obj.exactDays !== null && obj.exactDays !== undefined ? obj.exactDays : (obj.age * 365.25)) : obj.age;
                 const widthPercent = maxMetric > 0 ? (metric / maxMetric) * 100 : 0;
                 
@@ -673,27 +680,26 @@ export class AnalyticsManager {
                     displayAge = y + " р. " + d + " дн.";
                 }
 
-                let avatarHtml = '';
-                if (obj && obj.id) {
-                    const details = findPersonDetails(obj.id, this.engine);
-                    const isFem = details?.gender === 'f' || details?.gender === 'ж' || obj.gender === 'f';
-                    const avatarUrl = getAvatarUrl(details?.photo, isFem, details?.name || obj.name, details?.surname);
-                    avatarHtml = `<img src="${avatarUrl}" class="analytics-person-avatar" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" alt="" />`;
-                } else if (obj) {
-                    const initSrc = generateInitialsAvatar(obj.name || shortName, "", obj.gender === 'f');
-                    avatarHtml = `<img src="${initSrc}" class="analytics-person-avatar" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" alt="" />`;
+                const details = obj && obj.id ? findPersonDetails(obj.id, this.engine) : null;
+                let personCardHtml = '';
+                if (details) {
+                    const lifeYears = (obj.bYear && obj.dYear) ? `${obj.bYear} – ${obj.dYear}` : "";
+                    personCardHtml = renderPersonTile(details, this.engine, lifeYears, false, { disablePopup: false });
+                } else {
+                    personCardHtml = this._renderPersonChip(obj.id || obj);
                 }
 
 				return `
-                <div style="width: 100%; display: flex; align-items: center; margin-bottom: 8px;">
-                    <a href="?id=${encodeURIComponent(obj.id)}&view=profile" style="position: relative; display: flex; align-items: center; background: var(--color-bg-body); border-radius: 8px; text-decoration: none; color: var(--color-text-main); font-size: 14px; transition: opacity 0.2s; width: 100%; overflow: hidden; border: 1px solid var(--color-border);" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                        <div style="position: absolute; top: 0; left: 0; height: 100%; width: ${Math.max(2, widthPercent)}%; background: var(--color-bg-card); z-index: 0; border-right: 2px solid var(--color-primary); opacity: 0.8; transition: width 0.5s ease-in-out;"></div>
-                        <div style="position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; padding: 6px 16px 6px 6px; width: 100%;">
-                            ${avatarHtml}
-                            <span style="font-weight: 500; white-space: nowrap;">${shortName}</span>
-                            <span style="margin-left: auto; color: var(--color-text-meta); font-size: 12px; font-weight: bold; background: var(--color-bg-body); padding: 2px 8px; border-radius: 12px; z-index: 2;">${displayAge}</span>
+                <div class="analytics-lifespan-row">
+                    <div class="analytics-lifespan-person-col">
+                        ${personCardHtml}
+                    </div>
+                    <div class="analytics-lifespan-bar-col">
+                        <div class="analytics-lifespan-bar-track">
+                            <div class="analytics-lifespan-bar-fill" style="width: ${Math.max(3, widthPercent)}%;"></div>
                         </div>
-                    </a>
+                        <span class="analytics-lifespan-age-badge">${displayAge}</span>
+                    </div>
                 </div>`;
 			};
 			
@@ -1226,26 +1232,25 @@ export class AnalyticsManager {
                                     const evtCount = e[1];
                                     const peopleList = Array.from(p[1].peopleLists?.[evtName]?.values() || []);
                                     const peopleHtml = peopleList.length > 0 
-                                        ? `<ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
-                                            ${peopleList.map(personItem => `
-                                            <li style="padding: 10px 14px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; list-style: none; margin-left: 12px;">
-                                                ${personItem && personItem.isCouple 
-                                                    ? `<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        ? `<div class="analytics-event-chips-wrap" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4px 0 10px 12px;">
+                                            ${peopleList.map(personItem => {
+                                                if (personItem && personItem.isCouple) {
+                                                    return `<div class="analytics-couple-chip" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: 20px;">
                                                         ${this._renderPersonChip(personItem.hid, 'шлюб')}
-                                                        <span style="color: var(--color-text-muted); font-size: 13px;">та</span>
+                                                        <span style="color: var(--color-text-muted); font-size: 12px;">+</span>
                                                         ${this._renderPersonChip(personItem.wid, 'шлюб')}
-                                                       </div>`
-                                                    : (personItem && personItem.pid
-                                                        ? this._renderPersonChip(personItem.pid, evtName)
-                                                        : `<div style="font-size: 15px; color: var(--color-text-main); line-height: 1.4;">${escapeHtml(typeof personItem === 'object' ? (personItem.name || '') : String(personItem))}</div>`
-                                                      )
+                                                    </div>`;
                                                 }
-                                            </li>`).join("")}
-                                          </ul>` 
+                                                if (personItem && personItem.pid) {
+                                                    return this._renderPersonChip(personItem.pid, evtName);
+                                                }
+                                                return `<span class="analytics-person-unknown" style="font-size: 13px; color: var(--color-text-main);">${escapeHtml(typeof personItem === 'object' ? (personItem.name || '') : String(personItem))}</span>`;
+                                            }).join("")}
+                                          </div>` 
                                         : "";
                                     return `
-                                        <li style="list-style: none; margin-top: 16px; margin-bottom: 8px;">
-                                            <div style="margin: 0 0 8px 12px; font-size: 14px; font-weight: 600; color: var(--color-text-main); background: var(--color-bg-sub); padding: 4px 12px; border-radius: 4px; display: inline-block; text-transform: capitalize;">${evtName} <span style="font-weight: normal; margin-left: 4px;">(${evtCount})</span></div>
+                                        <li style="list-style: none; margin-top: 12px; margin-bottom: 8px;">
+                                            <div style="margin: 0 0 8px 12px; font-size: 14px; font-weight: 600; color: var(--color-text-main); background: var(--color-bg-sub); padding: 4px 12px; border-radius: 6px; display: inline-block; text-transform: capitalize;">${evtName} <span style="font-weight: normal; margin-left: 4px;">(${evtCount})</span></div>
                                             ${peopleHtml}
                                         </li>
                                     `;
@@ -1302,9 +1307,16 @@ export class AnalyticsManager {
             });
             
             // Attach smooth scroll for quick-nav pills
+            const scrollContainer = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
             document.querySelectorAll('.js-quick-scroll-place').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    this._isProgrammaticScroll = true;
+                    if (this._scrollTimeout) clearTimeout(this._scrollTimeout);
+                    this._scrollTimeout = setTimeout(() => {
+                        this._isProgrammaticScroll = false;
+                    }, 800);
+
                     const targetId = btn.getAttribute('data-target');
                     const targetEl = document.getElementById(targetId);
                     if (targetEl) {
@@ -1312,8 +1324,7 @@ export class AnalyticsManager {
                         const icon = targetEl.querySelector('.analytics-place-icon');
                         if (body) body.style.display = 'block';
                         if (icon) icon.style.transform = 'rotate(180deg)';
-                        const scrollContainer = targetEl.closest('.analytics-body');
-                        const stickyPanel = document.querySelector('.analytics-places-sticky-panel');
+                        const stickyPanel = document.querySelector('.analytics-places-sticky-panel') || document.querySelector('.analytics-quick-nav-bar');
                         const stickyHeight = stickyPanel ? stickyPanel.offsetHeight : 0;
                         if (scrollContainer) {
                             const targetRect = targetEl.getBoundingClientRect();
@@ -1326,6 +1337,7 @@ export class AnalyticsManager {
                         
                         document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
+                        btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
                     }
                 });
             });
@@ -1336,6 +1348,7 @@ export class AnalyticsManager {
                     this._placesObserver.disconnect();
                 }
                 this._placesObserver = new IntersectionObserver((entries) => {
+                    if (this._isProgrammaticScroll) return;
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const id = entry.target.id;
@@ -1348,8 +1361,9 @@ export class AnalyticsManager {
                         }
                     });
                 }, {
-                    rootMargin: '-50px 0px -70% 0px',
-                    threshold: 0
+                    root: scrollContainer || null,
+                    rootMargin: '-40px 0px -60% 0px',
+                    threshold: 0.1
                 });
                 placeItems.forEach(item => this._placesObserver.observe(item));
             }
@@ -1759,9 +1773,16 @@ export class AnalyticsManager {
                     });
                     
                     // Attach smooth scroll for quick-nav pills
+                    const scrollContainer = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
                     eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(btn => {
                         btn.addEventListener('click', (e) => {
                             e.preventDefault();
+                            this._isProgrammaticScroll = true;
+                            if (this._scrollTimeout) clearTimeout(this._scrollTimeout);
+                            this._scrollTimeout = setTimeout(() => {
+                                this._isProgrammaticScroll = false;
+                            }, 800);
+
                             const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
                             if (targetEl) {
@@ -1769,7 +1790,6 @@ export class AnalyticsManager {
                                 const icon = targetEl.querySelector('.analytics-event-month-icon');
                                 if (body) body.style.display = 'block';
                                 if (icon) icon.style.transform = 'rotate(180deg)';
-                                const scrollContainer = targetEl.closest('.analytics-body');
                                 const stickyNav = document.querySelector('#analytics-events .analytics-quick-nav-bar');
                                 const stickyHeight = stickyNav ? stickyNav.offsetHeight : 0;
                                 if (scrollContainer) {
@@ -1783,6 +1803,7 @@ export class AnalyticsManager {
 
                                 eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
+                                btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
                             }
                         });
                     });
@@ -1792,6 +1813,7 @@ export class AnalyticsManager {
                             this._eventsObserver.disconnect();
                         }
                         this._eventsObserver = new IntersectionObserver((entries) => {
+                            if (this._isProgrammaticScroll) return;
                             entries.forEach(entry => {
                                 if (entry.isIntersecting) {
                                     const id = entry.target.id;
@@ -1804,8 +1826,9 @@ export class AnalyticsManager {
                                 }
                             });
                         }, {
-                            rootMargin: '-50px 0px -70% 0px',
-                            threshold: 0
+                            root: scrollContainer || null,
+                            rootMargin: '-40px 0px -60% 0px',
+                            threshold: 0.1
                         });
                         newContainerEvents.querySelectorAll('.analytics-event-month-item').forEach(item => this._eventsObserver.observe(item));
                     }
@@ -2305,115 +2328,63 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 
                 let tocLinksHtml = Array.from(tocCenturies).sort((a, b) => b - a).map(c => `<li><a href="#" data-cent="${c}" class="profile-toc-link js-scroll-chart">${getCenturyRoman(c)} століття</a></li>`).join('');
                 
-                let sidebar = timelineList && timelineList.closest('.events-layout-with-sidebar') ? timelineList.closest('.events-layout-with-sidebar').querySelector('.events-sidebar-desktop') : null;
-                if (!sidebar && timelineList) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'events-layout-with-sidebar';
-                    wrapper.style.cssText = 'position: relative; width: 100%;';
-                    sidebar = document.createElement('aside');
-                    sidebar.className = 'events-sidebar-desktop';
-                    const bodyBlocks = document.createElement('div');
-                    bodyBlocks.className = 'events-body-blocks';
-                    timelineList.parentNode.insertBefore(wrapper, timelineList);
-                    wrapper.appendChild(sidebar);
-                    wrapper.appendChild(bodyBlocks);
-                    bodyBlocks.appendChild(timelineList);
-                    if (chartContainer) bodyBlocks.appendChild(chartContainer);
-                }
+                const contemporariesPanel = document.getElementById("timeline-contemporaries-panel");
+                if (contemporariesPanel) contemporariesPanel.style.display = "block";
+
+                const valDisplay = document.getElementById("timeline-year-value");
+                const resultsBox = document.getElementById("timeline-alive-results");
+                const countBadge = document.getElementById("timeline-alive-count");
+                const periodLabel = document.getElementById("timeline-alive-period-label");
                 
-                if (sidebar) {
-                    const isDesktop = window.innerWidth >= 1200;
-                    sidebar.style.display = isDesktop ? 'block' : 'none';
+                const updateAliveList = (y1, y2) => {
+                    const sVal = Math.round(y1);
+                    const eVal = y2 !== undefined ? Math.round(y2) : sVal;
                     
-                    const valueId = "timeline-year-value";
-                    const resultsId = "timeline-alive-results";
+                    // Update the filter inputs directly when scrubbing!
+                    const minInp = document.getElementById("timeline-chart-min-year");
+                    const maxInp = document.getElementById("timeline-chart-max-year");
+                    if (minInp && document.activeElement !== minInp) minInp.value = Math.min(sVal, eVal);
+                    if (maxInp && document.activeElement !== maxInp) maxInp.value = Math.max(sVal, eVal);
+                    if (typeof checkInputs !== 'undefined') checkInputs();
+
+                    const isRange = y2 !== undefined && sVal !== eVal;
+                    if (periodLabel) periodLabel.textContent = isRange ? "ПЕРІОДІ" : "РОЦІ";
+                    if (valDisplay) {
+                        valDisplay.textContent = isRange ? `${Math.min(sVal, eVal)} – ${Math.max(sVal, eVal)}` : sVal;
+                    }
                     
-                    sidebar.innerHTML = `
-                        <div>
-                            <div class="profile-toc-container">
-                                <h3 class="profile-toc-title">ХТО ЖИВ В РОЦІ...</h3>
-                                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span id="${valueId}" style="font-weight: 600; font-size: 20px; color: var(--color-primary);">${maxYear}</span>
-                                    </div>
-                                    <div id="${resultsId}" style="max-height: 400px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    const sY = Math.min(sVal, eVal);
+                    const eY = Math.max(sVal, eVal);
                     
-                    sidebar.querySelectorAll('.js-scroll-chart').forEach(link => {
-                        link.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            const c = parseInt(e.currentTarget.getAttribute('data-cent'), 10);
-                            const year = (c - 1) * 100;
-                            const dec = Math.floor(year / 10) * 10;
-                            const el = document.getElementById(`chart-decade-${dec}`);
-                            if (el && chartContainer) {
-                                chartContainer.scrollTo({
-                                    left: el.offsetLeft - 16,
-                                    behavior: 'smooth'
-                                });
-                            }
-                        });
+                    const alive = validPeople.filter(p => {
+                        let by = p.birth;
+                        let dy = p.death;
+                        
+                        let isAlive = false;
+                        if (dy === null && by !== null && (maxYear - by) <= 120) {
+                            isAlive = true;
+                        }
+                        
+                        let startY = by !== null ? by : (dy - 70);
+                        let endY = dy !== null ? dy : (by + 70);
+                        if (isAlive) endY = maxYear;
+                        
+                        return !(endY < sY || startY > eY); // overlaps
                     });
                     
-                    const valDisplay = document.getElementById(valueId);
-                    const resultsBox = document.getElementById(resultsId);
+                    if (countBadge) {
+                        countBadge.textContent = `${alive.length} осіб`;
+                    }
                     
-                    const updateAliveList = (y1, y2) => {
-                        if (!valDisplay || !resultsBox) return;
-                        
-                        // Update the filter inputs directly when scrubbing!
-                        const minInp = document.getElementById("timeline-chart-min-year");
-                        const maxInp = document.getElementById("timeline-chart-max-year");
-                        const sVal = Math.round(y1);
-                        const eVal = y2 !== undefined ? Math.round(y2) : sVal;
-                        
-                        if (minInp && document.activeElement !== minInp) minInp.value = Math.min(sVal, eVal);
-                        if (maxInp && document.activeElement !== maxInp) maxInp.value = Math.max(sVal, eVal);
-                        
-                        if (typeof checkInputs !== 'undefined') checkInputs();
-
-                        if (y2 === undefined || y1 === y2) {
-                            valDisplay.textContent = Math.round(y1);
-                        } else {
-                            valDisplay.textContent = `${Math.min(Math.round(y1), Math.round(y2))} - ${Math.max(Math.round(y1), Math.round(y2))}`;
-                        }
-                        
-                        const sY = y2 === undefined ? y1 : Math.min(y1, y2);
-                        const eY = y2 === undefined ? y1 : Math.max(y1, y2);
-                        
-                        const alive = validPeople.filter(p => {
-                            let by = p.birth;
-                            let dy = p.death;
-                            
-                            let isAlive = false;
-                            if (dy === null && by !== null && (maxYear - by) <= 120) {
-                                isAlive = true;
-                            }
-                            
-                            let startY = by !== null ? by : (dy - 70);
-                            let endY = dy !== null ? dy : (by + 70);
-                            if (isAlive) endY = maxYear;
-                            
-                            return !(endY < sY || startY > eY); // overlaps
-                        });
-                        
+                    if (resultsBox) {
                         if (alive.length === 0) {
-                            resultsBox.innerHTML = '<div style="font-size: 11px; color: var(--color-text-muted);">Немає даних</div>';
+                            resultsBox.innerHTML = '<div style="font-size: 13px; color: var(--color-text-muted); padding: 8px 0;">Немає відомостей про осіб, які жили в цей час</div>';
                         } else {
-                            alive.sort((a,b) => a.person.name.localeCompare(b.person.name));
-                            resultsBox.innerHTML = alive.map(p => `
-                                <div style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 0; flex-shrink: 0;">
-                                    <a href="?id=${encodeURIComponent(p.person.id)}&view=profile" class="analytics-person-link" data-pid="${p.person.id}" style="color: var(--color-text-main); text-decoration: none;">${escapeHtml(p.person.name)}</a>
-                                </div>
-                            `).join('');
-                            
-// delegated to router
+                            alive.sort((a,b) => (a.person.name || "").localeCompare(b.person.name || ""));
+                            resultsBox.innerHTML = alive.map(p => this._renderPersonChip(p.person.id)).join("");
                         }
-                    };
+                    }
+                };
                     
                     updateAliveList(scrubberStartYear, scrubberMode === "period" ? scrubberEndYear : undefined); // Initial call
                     
@@ -2674,7 +2645,6 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             chartContainer.style.cursor = '';
                         });
                     }
-                }
                 
                 setTimeout(() => {
                     if (chartContainer && typeof chartContainer.scrollTo === 'function') {
@@ -2694,10 +2664,12 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             };
             const renderTimeline = () => {
                 const qNav = document.querySelector('#analytics-timeline .analytics-quick-nav-bar');
+                const contemporariesPanel = document.getElementById("timeline-contemporaries-panel");
                 if (timelineViewMode === "chart") {
                     const timelineList = document.getElementById("analytics-timeline-list");
                     if (timelineList) timelineList.style.display = "none";
                     if (chartContainer) chartContainer.style.display = "block";
+                    if (contemporariesPanel) contemporariesPanel.style.display = "block";
                     if (qNav) qNav.style.display = "none";
                     renderTimelineChart();
                     return;
@@ -2706,6 +2678,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 const timelineList = document.getElementById("analytics-timeline-list");
                 if (timelineList) timelineList.style.display = "flex";
                 if (chartContainer) chartContainer.style.display = "none";
+                if (contemporariesPanel) contemporariesPanel.style.display = "none";
                 if (qNav) qNav.style.display = "flex";
 
                 const typeLabels = {
@@ -2813,7 +2786,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         
                         const getPersonPIB = (p, eventType) => {
                             if (!p) return "Невідомо";
-                            const details = findPersonDetails(p.id, window.app?.engine);
+                            const details = findPersonDetails(p.id, window.app?.engine || this.engine);
                             if (!details) return p.name || "Невідомо";
                             let s = details.surname || "";
                             let n = details.name || "";
@@ -2832,12 +2805,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                         s = details.maidenName ? details.maidenName : "";
                                     }
                                 }
-                            } else {
-                                if (isFem) s = details.maidenName ? details.maidenName : "";
+                            } else if (isFem && details.maidenName) {
+                                s = details.maidenName;
                             }
                             
-                            const fullName = [s, n, pat].filter(Boolean).join(" ");
-                            return fullName || p.name || "Невідомо";
+                            return formatPersonDisplay({ surname: s, name: n, patronymic: pat });
                         };
                         
                         let namesStr = this._renderPersonChip(evt.person, evt.type);
@@ -2845,12 +2817,14 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             namesStr += ` <span style="color: var(--color-text-muted); font-size: 13px; margin: 0 4px;">та</span> ` + this._renderPersonChip(evt.spouse, evt.type);
                         }
                         
+                        let cleanDate = dateStr.replace(/[()]/g, "").trim();
                         html += `
-                            <li style="padding: 12px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; list-style: none;">
-                                <div style="font-weight: 600; font-size: 15px; margin-bottom: 6px; color: var(--color-text-main); line-height: 1.3;">${dateStr}</div>
-                                <div style="font-size: 14px; color: var(--color-text-main); line-height: 1.4;">
-                                    <span style="color: var(--color-text-muted); font-weight: 500;">${typeLabels[evt.type] || evt.type}:</span> ${namesStr}
-                                </div>
+                            <li class="analytics-timeline-event-row">
+                                <div class="analytics-timeline-event-date">${cleanDate}</div>
+                                <div class="analytics-timeline-event-sep">—</div>
+                                <div class="analytics-timeline-event-type">${typeLabels[evt.type] || evt.type}</div>
+                                <div class="analytics-timeline-event-sep">—</div>
+                                <div class="analytics-timeline-event-person">${namesStr}</div>
                             </li>
                         `;
                     });
@@ -2877,13 +2851,19 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     if (quickNavSlot) quickNavSlot.style.display = timelineViewMode === "chart" ? "none" : "block";
                     quickNav.style.display = timelineViewMode === "chart" ? "none" : "flex";
 
+                    const scrollContainer = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
                     quickNav.querySelectorAll('.js-quick-scroll-century').forEach(btn => {
                         btn.addEventListener('click', (e) => {
                             e.preventDefault();
+                            this._isProgrammaticScroll = true;
+                            if (this._scrollTimeout) clearTimeout(this._scrollTimeout);
+                            this._scrollTimeout = setTimeout(() => {
+                                this._isProgrammaticScroll = false;
+                            }, 800);
+
                             const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
                             if (targetEl) {
-                                const scrollContainer = targetEl.closest('.analytics-body');
                                 const stickyPanel = document.querySelector('#analytics-timeline .analytics-timeline-sticky-panel') || document.querySelector('#analytics-timeline .timeline-controls-bar');
                                 const stickyHeight = stickyPanel ? stickyPanel.offsetHeight : 0;
                                 if (scrollContainer) {
@@ -2896,6 +2876,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 }
                                 quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
+                                btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
                             }
                         });
                     });
@@ -2905,6 +2886,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             this._timelineObserver.disconnect();
                         }
                         this._timelineObserver = new IntersectionObserver((entries) => {
+                            if (this._isProgrammaticScroll) return;
                             entries.forEach(entry => {
                                 if (entry.isIntersecting) {
                                     const id = entry.target.id;
@@ -2917,8 +2899,9 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 }
                             });
                         }, {
-                            rootMargin: '-50px 0px -70% 0px',
-                            threshold: 0
+                            root: scrollContainer || null,
+                            rootMargin: '-40px 0px -60% 0px',
+                            threshold: 0.1
                         });
                         timelineList.querySelectorAll('.analytics-timeline-century-item').forEach(item => this._timelineObserver.observe(item));
                     }

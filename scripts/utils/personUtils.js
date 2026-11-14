@@ -255,6 +255,49 @@ export function getEffectivePersonStatus(personId, allData, rootId = "1") {
 	return { status: resolveStatus(s, c, false), weakest: null, weakestName: null };
 }
 
+/**
+ * Форматує відображення імені особи за правилом:
+ * - якщо є прізвище та ім'я (+ по батькові): "Ім'я ПРІЗВИЩЕ" (прізвище всіма великими літерами)
+ * - якщо тільки ім'я та по батькові: "Ім'я По-батькові"
+ * - якщо тільки ім'я: "Ім'я"
+ * - якщо тільки прізвище: "ПРІЗВИЩЕ"
+ * - якщо тільки по батькові: "По-батькові"
+ * @param {Object|string} personObj - Об'єкт особи або ім'я (якщо рядок)
+ * @param {string} [surnameArg] - Прізвище (якщо першим аргументом передано ім'я)
+ * @param {string} [patronymicArg] - По батькові
+ * @returns {string}
+ */
+export function formatPersonDisplay(personObj, surnameArg, patronymicArg) {
+	if (!personObj) return "";
+	let s = "";
+	let n = "";
+	let p = "";
+
+	if (typeof personObj === "string") {
+		n = personObj.trim();
+		s = String(surnameArg || "").trim();
+		p = String(patronymicArg || "").trim();
+	} else if (typeof personObj === "object") {
+		s = String(personObj.surname || personObj.fam_surname || personObj[COLUMNS?.basic?.surname || "surname"] || "").trim();
+		n = String(personObj.name || personObj.fam_first_name || personObj.firstName || personObj[COLUMNS?.basic?.name || "name"] || "").trim();
+		p = String(personObj.patronymic || personObj.fam_patronymic || personObj[COLUMNS?.basic?.patronymic || "patronymic"] || "").trim();
+
+		const isFem = personObj.gender === "f" || personObj.gender === "ж" || personObj.fam_gender === "f" || personObj.fam_gender === "ж";
+		if (isFem && personObj.maidenName) {
+			const cleanMaiden = String(personObj.maidenName).trim();
+			if (cleanMaiden) s = cleanMaiden;
+		}
+	}
+
+	if (s) {
+		return n ? `${n} ${s.toUpperCase()}` : s.toUpperCase();
+	}
+	if (p) {
+		return n ? `${n} ${p}` : p;
+	}
+	return n;
+}
+
 export function resolveRealId(queryId, ctx) {
 	if (!queryId) return null;
 	const exactId = String(queryId).trim();

@@ -15,12 +15,13 @@ import { escapeHtml } from "../../../utils/helpers.js";
 export function formatPersonNameHtml(person, options = {}) {
 	const unknownLabelRaw = i18n.t("common.unknown") || "Невідомо";
 	const unknownLabel = escapeHtml(unknownLabelRaw);
-	if (!person || (!person.name && !person.surname)) return unknownLabel;
+	if (!person || (!person.name && !person.surname && !person.patronymic)) return unknownLabel;
 
-	const nameRaw = String(person.name || "").trim();
-	let surnameRaw = String(person.surname || "")
+	const nameRaw = String(person.name || person.fam_first_name || person.firstName || "").trim();
+	let surnameRaw = String(person.surname || person.fam_surname || person.last_name || "")
 		.trim()
 		.toUpperCase();
+	const patRaw = String(person.patronymic || person.fam_patronymic || "").trim();
 
 	const isFem = normalizeGender(person.gender) === "f";
     
@@ -43,26 +44,33 @@ export function formatPersonNameHtml(person, options = {}) {
 			}
 		}
 	} else {
-		if (isFem) {
-			surnameRaw = person.maidenName ? String(person.maidenName).trim().toUpperCase() : "";
+		if (isFem && person.maidenName) {
+			surnameRaw = String(person.maidenName).trim().toUpperCase();
 		}
 	}
 
 	const name = escapeHtml(nameRaw);
 	const surname = escapeHtml(surnameRaw);
+	const pat = escapeHtml(patRaw);
 	const htmlBuffer = [];
 
-	// Ім'я
-	if (name) {
-		const firstClass =
-			UI_CLASSES.kinshipCardNameFirst || "kinship-card-name-first";
-		htmlBuffer.push(`<span class="${firstClass}">${name}</span>`);
-	}
-	// Прізвище
+	const firstClass =
+		UI_CLASSES.kinshipCardNameFirst || "kinship-card-name-first";
+	const surnameClass =
+		UI_CLASSES.kinshipCardNameSurname || "kinship-card-name-surname";
+
 	if (surname) {
-		const surnameClass =
-			UI_CLASSES.kinshipCardNameSurname || "kinship-card-name-surname";
+		if (name) {
+			htmlBuffer.push(`<span class="${firstClass}">${name}</span>`);
+		}
 		htmlBuffer.push(`<span class="${surnameClass}">${surname}</span>`);
+	} else if (pat) {
+		if (name) {
+			htmlBuffer.push(`<span class="${firstClass}">${name}</span>`);
+		}
+		htmlBuffer.push(`<span class="${firstClass}">${pat}</span>`);
+	} else if (name) {
+		htmlBuffer.push(`<span class="${firstClass}">${name}</span>`);
 	}
 
 	return htmlBuffer.length > 0 ? htmlBuffer.join(" ") : unknownLabel;

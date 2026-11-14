@@ -72,6 +72,7 @@ export function renderCardHTML(
 	const safeId = escapeHTML(person.id || person.fam_id || cleanId);
 	const name = person.name || person.fam_first_name || person.firstName || "";
 	let surname = person.surname || person.fam_surname || "";
+	const patronymic = person.patronymic || person.fam_patronymic || "";
 	
 	const isFemForName = isFemale(person.gender || person.fam_gender);
 	if (isFemForName && person.maidenName) {
@@ -85,9 +86,16 @@ export function renderCardHTML(
 		surname = surname.toUpperCase();
 	}
 
-	const fullName = escapeHTML(
-		(surname ? `${name} ${surname}` : name).trim(),
-	);
+	let displayFullName = "";
+	if (surname) {
+		displayFullName = name ? `${name} ${surname}` : surname;
+	} else if (patronymic) {
+		displayFullName = name ? `${name} ${patronymic}` : patronymic;
+	} else {
+		displayFullName = name;
+	}
+
+	const fullName = escapeHTML(displayFullName.trim());
 
 	// Каскадне успадкування від Пробанда: якщо нащадок має статус 2 чи 3, усі його предки успадковують цей статус
 	const isRootPerson = person.isRoot || safeId === "1" || (context.rootPersonId && safeId === String(context.rootPersonId));
