@@ -550,7 +550,7 @@ body.in-analytics .mobile-menu-toggle {
 /* 2-Column Lifespan Layout */
 .analytics-lifespan-row {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
     gap: 16px;
     align-items: center;
     margin-bottom: 10px;
@@ -606,22 +606,36 @@ body.in-analytics .mobile-menu-toggle {
 }
 
 .analytics-lifespan-age-badge {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--color-text-main);
     background: var(--color-bg-body);
-    padding: 3px 10px;
+    padding: 3px 8px;
     border-radius: 12px;
     border: 1px solid var(--color-border);
     white-space: nowrap;
-    min-width: 65px;
+    width: 116px;
+    min-width: 116px;
+    max-width: 116px;
+    flex-shrink: 0;
     text-align: center;
+    box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
     .analytics-lifespan-row {
         grid-template-columns: 1fr;
         gap: 8px;
+    }
+    .analytics-lifespan-bar-col {
+        gap: 8px;
+    }
+    .analytics-lifespan-age-badge {
+        width: 108px;
+        min-width: 108px;
+        max-width: 108px;
+        font-size: 11.5px;
+        padding: 3px 4px;
     }
 }
 

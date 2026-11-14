@@ -654,14 +654,17 @@ export class AnalyticsManager {
         // Render Lifespan
         let lifespanHtml = '';
         
-        const renderLifespanBlock = (title, spans) => {
+        const getMetric = (s) => (s.exactDays !== null && s.exactDays !== undefined) ? (s.exactDays / 365.25) : s.age;
+        const allLifespans = [...lifespansConfirmed, ...lifespansApprox];
+        const globalMaxMetric = allLifespans.length > 0 ? Math.max(...allLifespans.map(getMetric)) : 0;
+
+        const renderLifespanBlock = (title, spans, blockMaxMetric) => {
             if (spans.length === 0) return '';
 			let sumAge = 0;
             let sumDays = 0;
             let hasExact = spans.some(s => s.exactDays !== null && s.exactDays !== undefined);
 
-            const getMetric = (s) => (s.exactDays !== null && s.exactDays !== undefined) ? (s.exactDays / 365.25) : s.age;
-            const maxMetric = spans.length > 0 ? Math.max(...spans.map(getMetric)) : 0;
+            const maxMetric = blockMaxMetric || (spans.length > 0 ? Math.max(...spans.map(getMetric)) : 0);
 
 			for(let i=0; i<spans.length; i++) {
 				sumAge += spans[i].age;
@@ -755,8 +758,8 @@ export class AnalyticsManager {
             `;
         };
         
-        lifespanHtml += renderLifespanBlock('Підтверджений', lifespansConfirmed);
-        lifespanHtml += renderLifespanBlock('Непідтверджений', lifespansApprox);
+        lifespanHtml += renderLifespanBlock('Підтверджений', lifespansConfirmed, globalMaxMetric);
+        lifespanHtml += renderLifespanBlock('Непідтверджений', lifespansApprox, globalMaxMetric);
         
         if (lifespansConfirmed.length === 0 && lifespansApprox.length === 0) {
             this.containerLifespan.innerHTML = `<div class="analytics-stat-title">Недостатньо даних для розрахунку тривалості життя</div>`;
