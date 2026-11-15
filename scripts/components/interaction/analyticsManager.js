@@ -257,10 +257,7 @@ export class AnalyticsManager {
 			<div class="analytics-couple-card" data-event-type="marriage">
 				<div class="analytics-couple-partner">${p1Html}</div>
 				<div class="analytics-couple-connector">
-					<span class="analytics-couple-conjunction">
-						<i class="ri-heart-2-line"></i>
-						<span>${escapeHtml(conjunctionText)}</span>
-					</span>
+					<span class="analytics-couple-conjunction">${escapeHtml(conjunctionText)}</span>
 				</div>
 				<div class="analytics-couple-partner">${p2Html}</div>
 			</div>
@@ -1386,10 +1383,12 @@ export class AnalyticsManager {
                 tocLinksHtml += `<li><a href="#${blockId}" class="profile-toc-link js-scroll-to">${placeName}</a></li>`;
                 
                 html += `
-                <li id="${blockId}" class="analytics-place-item" style="list-style: none; margin-top: ${html === "" ? "0" : "24px"}; margin-bottom: 12px; padding-bottom: 4px;">
-                    <div class="analytics-place-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">
-                        <h3 style="margin: 0; font-size: 20px; color: var(--color-text-main);">${placeName} <span style="font-size: 14px; font-weight: normal; color: var(--color-text-muted); margin-left: 8px;">(${total} ${getEventWord(total)})</span></h3>
-                        <i class="ri-arrow-down-s-line analytics-place-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 24px; transform: rotate(180deg);"></i>
+                <li id="${blockId}" class="analytics-place-item" style="list-style: none; margin-top: ${html === "" ? "0" : "20px"}; margin-bottom: 12px; padding-bottom: 4px;">
+                    <div class="analytics-place-header">
+                        <div class="analytics-place-title">
+                            <span>${escapeHtml(placeName)}</span>
+                            <span class="analytics-place-count-badge">${total} ${getEventWord(total)}</span>
+                        </div>
                     </div>
                     <div class="analytics-place-body" style="display: block; padding-top: 8px;">
                         <ul style="list-style: none; padding: 0; margin: 0;">
@@ -1460,20 +1459,7 @@ export class AnalyticsManager {
                 `;
             }
             
-            // Add accordion behavior for places
             const placeItems = this.containerPlaces.querySelectorAll('.analytics-place-item');
-            placeItems.forEach(item => {
-                const header = item.querySelector('.analytics-place-header');
-                const body = item.querySelector('.analytics-place-body');
-                const icon = item.querySelector('.analytics-place-icon');
-                
-                header.style.cursor = 'pointer';
-                header.addEventListener('click', () => {
-                    const isOpen = body.style.display === 'block';
-                    body.style.display = isOpen ? 'none' : 'block';
-                    if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-                });
-            });
             
             // Attach smooth scroll for quick-nav pills
             const stickyPanel = document.querySelector('.analytics-places-sticky-panel') || document.querySelector('.analytics-quick-nav-bar');
@@ -1491,11 +1477,6 @@ export class AnalyticsManager {
                     const targetId = btn.getAttribute('data-target');
                     const targetEl = document.getElementById(targetId);
                     if (targetEl) {
-                        const body = targetEl.querySelector('.analytics-place-body');
-                        const icon = targetEl.querySelector('.analytics-place-icon');
-                        if (body) body.style.display = 'block';
-                        if (icon) icon.style.transform = 'rotate(180deg)';
-
                         scrollToAnalyticsTarget(targetEl, stickyPanel);
                         
                         document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
@@ -1514,9 +1495,11 @@ export class AnalyticsManager {
             // Sort container buttons
             const activeSort = sortMode || window.app?.managers?.analytics?.currentPlaceSort || 'alphabet_az'; 
             document.querySelectorAll('.btn-sort-places').forEach(btn => {
-                if (btn.dataset.sort === activeSort) {
+                const isActive = (btn.dataset.sort === activeSort);
+                btn.classList.toggle('active', isActive);
+                if (isActive) {
                     btn.style.background = 'var(--color-primary)';
-                    btn.style.color = 'white';
+                    btn.style.color = '#ffffff';
                     btn.style.borderColor = 'var(--color-primary)';
                 } else {
                     btn.style.background = 'transparent';
@@ -1529,9 +1512,6 @@ export class AnalyticsManager {
                     const nextSortMode = e.currentTarget.dataset.sort;
                     if (window.app && window.app.managers && window.app.managers.analytics) {
                         window.app.managers.analytics.currentPlaceSort = nextSortMode;
-                    }
-                    if (btn.closest('.popup-overlay')) {
-                        btn.closest('.popup-overlay').classList.remove('show');
                     }
                     renderPlaces(nextSortMode);
                 };
