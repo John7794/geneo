@@ -1167,7 +1167,14 @@ select.form-input {
 	display: flex;
 	gap: 8px;
 	overflow-x: auto;
-	padding-bottom: 4px;
+	padding-bottom: 6px;
+	-webkit-overflow-scrolling: touch;
+	scroll-behavior: smooth;
+	scrollbar-width: none;
+}
+
+.audit-filters-bar::-webkit-scrollbar {
+	display: none;
 }
 
 .audit-filter-pill {

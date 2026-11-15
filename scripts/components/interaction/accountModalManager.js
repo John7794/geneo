@@ -129,12 +129,13 @@ export class AccountModalManager {
 	_centerActiveTab() {
 		if (!this.modal) return;
 		requestAnimationFrame(() => {
+			const navTabs = this.modal.querySelector(".account-nav-tabs");
 			const activeTab = this.modal.querySelector(`.account-tab-btn[data-tab="${this.currentTab}"]`);
-			if (activeTab) {
-				activeTab.scrollIntoView({
+			if (navTabs && activeTab) {
+				const scrollLeft = activeTab.offsetLeft - (navTabs.clientWidth / 2) + (activeTab.clientWidth / 2);
+				navTabs.scrollTo({
+					left: Math.max(0, scrollLeft),
 					behavior: "smooth",
-					block: "nearest",
-					inline: "center",
 				});
 			}
 		});
@@ -994,33 +995,56 @@ export class AccountModalManager {
 		}
 	}
 
-	_renderAuditTab() {
-		const engine = typeof this.getEngine === "function" ? this.getEngine() : null;
-		const audit = TreeAuditService.runFullAudit(engine);
-
-		let itemsToShow = [];
+	_getAuditFilteredItems(audit) {
 		switch (this.auditFilter) {
 			case "duplicates":
-				itemsToShow = audit.duplicates;
-				break;
+				return audit.duplicates;
 			case "parentAnomalies":
-				itemsToShow = audit.parentAnomalies;
-				break;
+				return audit.parentAnomalies;
 			case "lifespanAnomalies":
-				itemsToShow = audit.lifespanAnomalies;
-				break;
+				return audit.lifespanAnomalies;
 			case "ignored":
-				itemsToShow = audit.ignored;
-				break;
+				return audit.ignored;
 			case "all":
 			default:
-				itemsToShow = audit.allActive;
-				break;
+				return audit.allActive;
 		}
+	}
 
+	_renderAuditCardsListHtml(audit) {
+		const itemsToShow = this._getAuditFilteredItems(audit);
 		const totalAvailable = itemsToShow.length;
 		const sliced = itemsToShow.slice(0, this.auditPageLimit);
 		const hasMore = totalAvailable > this.auditPageLimit;
+
+		if (sliced.length === 0) {
+			return `
+				<div class="audit-empty-box">
+					<i class="ri-checkbox-circle-line"></i>
+					<p>У цій категорії зауважень не виявлено.</p>
+				</div>
+			`;
+		}
+
+		return `
+			${sliced.map((item) => this._renderAuditCard(item)).join("")}
+			${
+				hasMore
+					? `
+				<div class="audit-load-more-box">
+					<button type="button" id="btn-audit-load-more" class="btn btn-outline audit-load-more-btn">
+						<i class="ri-arrow-down-line"></i> Показати ще 30 зауважень (залишилось ${totalAvailable - this.auditPageLimit})
+					</button>
+				</div>
+			`
+					: ""
+			}
+		`;
+	}
+
+	_renderAuditTab() {
+		const engine = typeof this.getEngine === "function" ? this.getEngine() : null;
+		const audit = TreeAuditService.runFullAudit(engine);
 
 		return `
 			<div class="account-audit-section">
@@ -1065,27 +1089,7 @@ export class AccountModalManager {
 
 				<!-- СПИСОК ЗАУВАЖЕНЬ -->
 				<div class="audit-cards-list">
-					${
-						sliced.length === 0
-							? `
-						<div class="audit-empty-box">
-							<i class="ri-checkbox-circle-line"></i>
-							<p>У цій категорії зауважень не виявлено.</p>
-						</div>
-					`
-							: sliced.map((item) => this._renderAuditCard(item)).join("")
-					}
-					${
-						hasMore
-							? `
-						<div class="audit-load-more-box">
-							<button type="button" id="btn-audit-load-more" class="btn btn-outline audit-load-more-btn">
-								<i class="ri-arrow-down-line"></i> Показати ще 30 зауважень (залишилось ${totalAvailable - this.auditPageLimit})
-							</button>
-						</div>
-					`
-							: ""
-					}
+					${this._renderAuditCardsListHtml(audit)}
 				</div>
 			</div>
 		`;
@@ -1193,24 +1197,16 @@ export class AccountModalManager {
 		// Перемикання фільтрів
 		const filterPills = this.modal.querySelectorAll(".audit-filter-pill");
 		filterPills.forEach((pill) => {
-			pill.onclick = () => {
+			pill.onclick = (e) => {
+				e.preventDefault();
 				const filter = pill.getAttribute("data-filter");
-				if (filter) {
+				if (filter && this.auditFilter !== filter) {
 					this.auditFilter = filter;
 					this.auditPageLimit = 30;
-					this.render();
+					this._updateAuditListOnly(true);
 				}
 			};
 		});
-
-		// Кнопка Показати ще
-		const loadMoreBtn = this.modal.querySelector("#btn-audit-load-more");
-		if (loadMoreBtn) {
-			loadMoreBtn.onclick = () => {
-				this.auditPageLimit += 30;
-				this.render();
-			};
-		}
 
 		// Кнопка Пересканувати
 		const rescanBtn = this.modal.querySelector("#btn-audit-rescan");
@@ -1219,9 +1215,97 @@ export class AccountModalManager {
 				rescanBtn.disabled = true;
 				rescanBtn.innerHTML = `<i class="ri-loader-4-line spin"></i> Оновлення...`;
 				setTimeout(() => {
+					TreeAuditService.clearCache();
 					this.updateAuditBadge();
-					this.render();
+					const engine = typeof this.getEngine === "function" ? this.getEngine() : null;
+					const audit = TreeAuditService.runFullAudit(engine);
+
+					// Оновлення банера
+					const banner = this.modal.querySelector(".audit-summary-banner");
+					const bannerInfo = this.modal.querySelector(".audit-banner-info h4");
+					const bannerDesc = this.modal.querySelector(".audit-banner-info p");
+					if (banner && bannerInfo && bannerDesc) {
+						banner.className = `audit-summary-banner ${audit.totalActive === 0 ? "healthy" : "attention"}`;
+						bannerInfo.textContent = audit.totalActive === 0 ? "Родовід цілісний! Аномалій не виявлено" : `Виявлено зауважень щодо якості даних: ${audit.totalActive}`;
+						bannerDesc.textContent = audit.totalActive === 0 ? "Всі дати, вік батьків та родинні зв'язки узгоджені. Дублікатів не знайдено." : "Автоматична діагностика виявила потенційні дублікати, невідповідності віку батьків або хронологічні розбіжності.";
+					}
+
+					this._updatePillCounts(audit);
+					this._updateAuditListOnly(false);
+
+					rescanBtn.disabled = false;
+					rescanBtn.innerHTML = `<i class="ri-refresh-line"></i> Оновити аудит`;
 				}, 200);
+			};
+		}
+
+		this._bindAuditCardsEvents();
+	}
+
+	_updateAuditListOnly(centerPill = false) {
+		const engine = typeof this.getEngine === "function" ? this.getEngine() : null;
+		const audit = TreeAuditService.runFullAudit(engine);
+
+		// Оновлюємо стан пігулок фільтрів та центруємо активну без впливу на вертикальний скрол
+		const filterPills = this.modal.querySelectorAll(".audit-filter-pill");
+		filterPills.forEach((pill) => {
+			const f = pill.getAttribute("data-filter");
+			const isActive = f === this.auditFilter;
+			pill.classList.toggle("active", isActive);
+
+			if (isActive && centerPill) {
+				const bar = pill.closest(".audit-filters-bar");
+				if (bar) {
+					const scrollLeft = pill.offsetLeft - (bar.clientWidth / 2) + (pill.clientWidth / 2);
+					bar.scrollTo({ left: Math.max(0, scrollLeft), behavior: "smooth" });
+				}
+			}
+		});
+
+		// Оновлюємо лічильники на пігулках
+		this._updatePillCounts(audit);
+
+		// Оновлюємо тільки список карток без зачіпання скролу тіла модалки
+		const cardsList = this.modal.querySelector(".audit-cards-list");
+		if (cardsList) {
+			cardsList.innerHTML = this._renderAuditCardsListHtml(audit);
+			this._bindAuditCardsEvents();
+		}
+	}
+
+	_updatePillCounts(audit) {
+		const pills = this.modal.querySelectorAll(".audit-filter-pill");
+		pills.forEach((pill) => {
+			const f = pill.getAttribute("data-filter");
+			const countSpan = pill.querySelector(".pill-count");
+			if (!countSpan) return;
+			switch (f) {
+				case "all":
+					countSpan.textContent = audit.totalActive;
+					break;
+				case "duplicates":
+					countSpan.textContent = audit.duplicates.length;
+					break;
+				case "parentAnomalies":
+					countSpan.textContent = audit.parentAnomalies.length;
+					break;
+				case "lifespanAnomalies":
+					countSpan.textContent = audit.lifespanAnomalies.length;
+					break;
+				case "ignored":
+					countSpan.textContent = audit.ignored.length;
+					break;
+			}
+		});
+	}
+
+	_bindAuditCardsEvents() {
+		// Кнопка Показати ще
+		const loadMoreBtn = this.modal.querySelector("#btn-audit-load-more");
+		if (loadMoreBtn) {
+			loadMoreBtn.onclick = () => {
+				this.auditPageLimit += 30;
+				this._updateAuditListOnly(false);
 			};
 		}
 
@@ -1252,9 +1336,11 @@ export class AccountModalManager {
 						card.style.transition = "all 0.25s ease";
 						card.style.opacity = "0";
 						card.style.transform = "scale(0.96)";
-						setTimeout(() => this.render(), 250);
+						setTimeout(() => {
+							this._updateAuditListOnly(false);
+						}, 250);
 					} else {
-						this.render();
+						this._updateAuditListOnly(false);
 					}
 				}
 			};
@@ -1268,7 +1354,7 @@ export class AccountModalManager {
 				if (issueId) {
 					TreeAuditService.unignoreIssue(issueId);
 					this.updateAuditBadge();
-					this.render();
+					this._updateAuditListOnly(false);
 				}
 			};
 		});
