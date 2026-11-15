@@ -23,9 +23,9 @@ const DATABASES = {
     "familyRoles.csv":
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=1655707936&single=true&output=csv",
     "families.csv":
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=166395725&single=true&output=csv",
+      "https://docs.google.com/spreadsheets/d/1kKCIXB1qmw2367eqfYT8BYaL3ilRBjdSSaBfCXMChYg/export?format=csv&gid=166395725",
     "familyChildren.csv":
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=818657483&single=true&output=csv",
+      "https://docs.google.com/spreadsheets/d/1kKCIXB1qmw2367eqfYT8BYaL3ilRBjdSSaBfCXMChYg/export?format=csv&gid=818657483",
     "events.csv":
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vTCPg7JuDAFeViBOB5Yt7RDHQdIuhxgVXpkpdLzyGSbur7nqder5YTSlpuEUJ5DQ47zaDEDV7-tIVBj/pub?gid=1891330957&single=true&output=csv",
     "participants.csv":
@@ -106,16 +106,55 @@ export async function main() {
         let csvText = "";
         try {
           const response = await fetch(cacheBustUrl, { cache: "no-store" });
-          if (response.ok) csvText = await response.text();
+          if (response.ok) {
+            const txt = await response.text();
+            if (!txt.includes("<!DOCTYPE") && !txt.includes("<html")) {
+              csvText = txt;
+            }
+          }
         } catch (e) {}
+
+        // Фолбек 1: Прямий export URL через Google Sheets ID та gid
+        if (!csvText) {
+          const gidMatch = url.match(/gid=(\d+)/);
+          if (gidMatch) {
+            const directUrl = `https://docs.google.com/spreadsheets/d/1kKCIXB1qmw2367eqfYT8BYaL3ilRBjdSSaBfCXMChYg/export?format=csv&gid=${gidMatch[1]}&_cb=${Date.now()}`;
+            try {
+              console.log(`[Sync] Attempting direct export for ${filename} (gid: ${gidMatch[1]})...`);
+              const res2 = await fetch(directUrl, { cache: "no-store" });
+              if (res2.ok) {
+                const txt2 = await res2.text();
+                if (!txt2.includes("<!DOCTYPE") && !txt2.includes("<html")) {
+                  csvText = txt2;
+                  console.log(`[Sync] Direct export succeeded for ${filename}!`);
+                }
+              }
+            } catch (e2) {}
+          }
+        }
+
+        // Фолбек 2: gsheets CLI (лише якщо утиліта доступна локально)
         if (!csvText) {
           const sheetNameMap = { "families.csv": "Families", "familyChildren.csv": "Family_Children" };
           const sName = sheetNameMap[filename];
           if (sName) {
-            console.log(`[Sync] Fetch returned 401/error for ${filename}. Syncing directly via gsheets CLI (${sName})...`);
-            const tempOut = path.join(langDir, filename);
-            execSync(`gsheets readonly export 1kKCIXB1qmw2367eqfYT8BYaL3ilRBjdSSaBfCXMChYg "${tempOut}" --sheet "${sName}" --format csv`, { stdio: "inherit" });
-            csvText = fs.readFileSync(tempOut, "utf8");
+            try {
+              console.log(`[Sync] Attempting gsheets CLI for ${filename} (${sName})...`);
+              const tempOut = path.join(langDir, filename);
+              execSync(`gsheets readonly export 1kKCIXB1qmw2367eqfYT8BYaL3ilRBjdSSaBfCXMChYg "${tempOut}" --sheet "${sName}" --format csv`, { stdio: "inherit" });
+              csvText = fs.readFileSync(tempOut, "utf8");
+            } catch (cliErr) {
+              console.warn(`[Sync] gsheets CLI unavailable: ${cliErr.message}`);
+            }
+          }
+        }
+
+        // Фолбек 3: Якщо файл уже є в репозиторії, не ламати весь запуск
+        if (!csvText) {
+          const filePath = path.join(langDir, filename);
+          if (fs.existsSync(filePath)) {
+            console.warn(`[Sync] Could not download fresh ${filename}, preserving existing local copy.`);
+            continue;
           } else {
             throw new Error(`Failed to download ${url}`);
           }
