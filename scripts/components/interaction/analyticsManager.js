@@ -17,6 +17,68 @@ function scrollPillToCenter(pill) {
     }
 }
 
+function updateStickyPanelCssVar(panelEl, cssVarName) {
+    if (panelEl) {
+        const h = panelEl.offsetHeight;
+        if (h > 0) {
+            document.documentElement.style.setProperty(cssVarName, `${h}px`);
+        }
+    }
+}
+
+function scrollToAnalyticsTarget(targetEl, stickyPanelEl) {
+    if (!targetEl) return;
+    const isDesktop = window.innerWidth >= 768;
+    const scrollContainer = isDesktop ? (document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body')) : null;
+    const headerH = isDesktop ? 0 : 56;
+    const stickyH = stickyPanelEl ? stickyPanelEl.offsetHeight : 0;
+    const totalOffset = headerH + stickyH + 6;
+
+    if (scrollContainer) {
+        const targetRect = targetEl.getBoundingClientRect();
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyH - 6;
+        scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
+    } else {
+        const targetRect = targetEl.getBoundingClientRect();
+        const scrollPos = targetRect.top + (window.pageYOffset || document.documentElement.scrollTop) - totalOffset;
+        window.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
+    }
+}
+
+function createAnalyticsSectionObserver(manager, items, quickNav, pillSelector, stickyPanelEl, callback) {
+    if (!window.IntersectionObserver) return null;
+    const isDesktop = window.innerWidth >= 768;
+    const scrollContainer = isDesktop ? (document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body')) : null;
+    const headerH = isDesktop ? 0 : 56;
+    const stickyH = stickyPanelEl ? stickyPanelEl.offsetHeight : 0;
+    const topMargin = -(headerH + stickyH + 12);
+
+    const observer = new IntersectionObserver((entries) => {
+        if (manager && manager._isProgrammaticScroll) return;
+        const intersecting = entries.filter(e => e.isIntersecting);
+        if (intersecting.length > 0) {
+            intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+            const best = intersecting[0];
+            const id = best.target.id;
+            const pill = quickNav ? quickNav.querySelector(`${pillSelector}[data-target="${id}"]`) : null;
+            if (pill) {
+                quickNav.querySelectorAll(pillSelector).forEach(b => b.classList.remove('active'));
+                pill.classList.add('active');
+                scrollPillToCenter(pill);
+            }
+            if (callback) callback(best.target, pill);
+        }
+    }, {
+        root: scrollContainer || null,
+        rootMargin: `${topMargin}px 0px -55% 0px`,
+        threshold: 0.05
+    });
+
+    items.forEach(item => observer.observe(item));
+    return observer;
+}
+
 export class AnalyticsManager {
 	constructor(engine) {
 		this.engine = engine;
@@ -34,6 +96,12 @@ export class AnalyticsManager {
 		this.containerSummary = document.getElementById("analytics-summary");
 		this.btnToggleDetails = document.getElementById("btn-toggle-analytics-details");
 		this.detailedView = document.getElementById("analytics-detailed-view");
+
+		window.addEventListener("resize", () => {
+			updateStickyPanelCssVar(document.querySelector('.analytics-timeline-sticky-panel'), '--timeline-sticky-h');
+			updateStickyPanelCssVar(document.querySelector('.analytics-places-sticky-panel'), '--places-sticky-h');
+			updateStickyPanelCssVar(document.querySelector('#analytics-events .analytics-quick-nav-bar'), '--events-sticky-h');
+		});
 		if (this.btnToggleDetails) {
 		    this.btnToggleDetails.addEventListener("click", () => {
 		        if (this.detailedView.style.display === "none") {
@@ -1137,6 +1205,11 @@ export class AnalyticsManager {
                          const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
                          if (analyticsBody) analyticsBody.scrollTop = 0;
                          window.scrollTo(0, 0);
+                         requestAnimationFrame(() => {
+                             updateStickyPanelCssVar(document.querySelector('.analytics-timeline-sticky-panel'), '--timeline-sticky-h');
+                             updateStickyPanelCssVar(document.querySelector('.analytics-places-sticky-panel'), '--places-sticky-h');
+                             updateStickyPanelCssVar(document.querySelector('#analytics-events .analytics-quick-nav-bar'), '--events-sticky-h');
+                         });
                      }
                  });
              });
@@ -1320,7 +1393,9 @@ export class AnalyticsManager {
             });
             
             // Attach smooth scroll for quick-nav pills
-            const scrollContainer = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
+            const stickyPanel = document.querySelector('.analytics-places-sticky-panel') || document.querySelector('.analytics-quick-nav-bar');
+            updateStickyPanelCssVar(stickyPanel, '--places-sticky-h');
+
             document.querySelectorAll('.js-quick-scroll-place').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1337,16 +1412,8 @@ export class AnalyticsManager {
                         const icon = targetEl.querySelector('.analytics-place-icon');
                         if (body) body.style.display = 'block';
                         if (icon) icon.style.transform = 'rotate(180deg)';
-                        const stickyPanel = document.querySelector('.analytics-places-sticky-panel') || document.querySelector('.analytics-quick-nav-bar');
-                        const stickyHeight = stickyPanel ? stickyPanel.offsetHeight : 0;
-                        if (scrollContainer) {
-                            const targetRect = targetEl.getBoundingClientRect();
-                            const containerRect = scrollContainer.getBoundingClientRect();
-                            const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyHeight - 6;
-                            scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
-                        } else {
-                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
+
+                        scrollToAnalyticsTarget(targetEl, stickyPanel);
                         
                         document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
@@ -1356,31 +1423,10 @@ export class AnalyticsManager {
             });
 
             // Scroll-spy observer to keep active place pill highlighted
-            if (window.IntersectionObserver) {
-                if (this._placesObserver) {
-                    this._placesObserver.disconnect();
-                }
-                this._placesObserver = new IntersectionObserver((entries) => {
-                    if (this._isProgrammaticScroll) return;
-                    const intersecting = entries.filter(e => e.isIntersecting);
-                    if (intersecting.length > 0) {
-                        intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-                        const best = intersecting[0];
-                        const id = best.target.id;
-                        const pill = document.querySelector(`.js-quick-scroll-place[data-target="${id}"]`);
-                        if (pill) {
-                            document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));
-                            pill.classList.add('active');
-                            scrollPillToCenter(pill);
-                        }
-                    }
-                }, {
-                    root: scrollContainer || null,
-                    rootMargin: '-110px 0px -70% 0px',
-                    threshold: 0.05
-                });
-                placeItems.forEach(item => this._placesObserver.observe(item));
+            if (this._placesObserver) {
+                this._placesObserver.disconnect();
             }
+            this._placesObserver = createAnalyticsSectionObserver(this, placeItems, document, '.js-quick-scroll-place', stickyPanel);
             
             // Sort container buttons
             const activeSort = sortMode || window.app?.managers?.analytics?.currentPlaceSort || 'alphabet_az'; 
@@ -1754,7 +1800,9 @@ export class AnalyticsManager {
                     });
                     
                     // Attach smooth scroll for quick-nav pills
-                    const scrollContainer = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
+                    const stickyNav = document.querySelector('#analytics-events .analytics-quick-nav-bar');
+                    updateStickyPanelCssVar(stickyNav, '--events-sticky-h');
+
                     eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(btn => {
                         btn.addEventListener('click', (e) => {
                             e.preventDefault();
@@ -1771,16 +1819,8 @@ export class AnalyticsManager {
                                 const icon = targetEl.querySelector('.analytics-event-month-icon');
                                 if (body) body.style.display = 'block';
                                 if (icon) icon.style.transform = 'rotate(180deg)';
-                                const stickyNav = document.querySelector('#analytics-events .analytics-quick-nav-bar');
-                                const stickyHeight = stickyNav ? stickyNav.offsetHeight : 0;
-                                if (scrollContainer) {
-                                    const targetRect = targetEl.getBoundingClientRect();
-                                    const containerRect = scrollContainer.getBoundingClientRect();
-                                    const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyHeight - 6;
-                                    scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
-                                } else {
-                                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }
+
+                                scrollToAnalyticsTarget(targetEl, stickyNav);
 
                                 eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
@@ -1789,31 +1829,10 @@ export class AnalyticsManager {
                         });
                     });
 
-                    if (window.IntersectionObserver) {
-                        if (this._eventsObserver) {
-                            this._eventsObserver.disconnect();
-                        }
-                        this._eventsObserver = new IntersectionObserver((entries) => {
-                            if (this._isProgrammaticScroll) return;
-                            const intersecting = entries.filter(e => e.isIntersecting);
-                            if (intersecting.length > 0) {
-                                intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-                                const best = intersecting[0];
-                                const id = best.target.id;
-                                const pill = eventsSectionContent.querySelector(`.js-quick-scroll-event[data-target="${id}"]`);
-                                if (pill) {
-                                    eventsSectionContent.querySelectorAll('.js-quick-scroll-event').forEach(b => b.classList.remove('active'));
-                                    pill.classList.add('active');
-                                    scrollPillToCenter(pill);
-                                }
-                            }
-                        }, {
-                            root: scrollContainer || null,
-                            rootMargin: '-110px 0px -70% 0px',
-                            threshold: 0.05
-                        });
-                        newContainerEvents.querySelectorAll('.analytics-event-month-item').forEach(item => this._eventsObserver.observe(item));
+                    if (this._eventsObserver) {
+                        this._eventsObserver.disconnect();
                     }
+                    this._eventsObserver = createAnalyticsSectionObserver(this, newContainerEvents.querySelectorAll('.analytics-event-month-item'), eventsSectionContent, '.js-quick-scroll-event', stickyNav);
 
                     // Add link behavior
 // delegated to router
@@ -2742,109 +2761,129 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         return Array.isArray(months) ? months[monthNum] || "" : "";
                     };
 
-                    let currentCentury = null;
-                    
-                    filteredEvents.forEach(evt => {
-                        if (evt.gregorian.year && !isNaN(evt.gregorian.year)) {
-                            const cent = Math.ceil(evt.gregorian.year / 100);
-                            if (cent !== currentCentury) {
-                                currentCentury = cent;
-                                tocCenturies.add(cent);
-                                html += `
-                                    <li id="timeline-century-${currentCentury}" class="analytics-timeline-century-item" style="list-style: none; margin-top: ${html === "" ? "0" : "24px"}; margin-bottom: 16px; display: flex; align-items: center; width: 100%; padding: 12px 0; ">
-                                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
-                                        <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">${getCenturyRoman(currentCentury)} ${i18n.t("time.century") || "століття"}</div>
-                                        <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
-                                    </li>
-                                `;
-                            }
-                        }
+                    const centuryGroups = [];
+                    let currentGroup = null;
 
-                        let dateStr = "";
-                        const d = evt.gregorian.day;
-                        const m = evt.gregorian.month;
-                        const y = evt.gregorian.year;
-                        
-                        let cleanedYearStr = evt.original.yearStr ? evt.original.yearStr.replace(/\b\d{2}\.(\d{4})\b/g, '$1') : "";
-                        if (cleanedYearStr && (!d && !m)) {
-                            dateStr = escapeHtml(cleanedYearStr);
-                        } else {
-                            if (d) dateStr += escapeHtml(d) + " ";
-                            if (m) dateStr += escapeHtml(getMonthNameSafe(m, !d)) + " ";
-                            if (cleanedYearStr) {
-                                dateStr += escapeHtml(cleanedYearStr);
-                            } else if (y) {
-                                dateStr += escapeHtml(y);
-                            }
+                    filteredEvents.forEach(evt => {
+                        let cent = 0;
+                        if (evt.gregorian.year && !isNaN(evt.gregorian.year)) {
+                            cent = Math.ceil(evt.gregorian.year / 100);
                         }
-                        
-                        if (evt.original.isOldStyle) {
-                            let oldStr = "";
-                            if (evt.original.day) oldStr += escapeHtml(evt.original.day) + " ";
-                            if (evt.original.month) oldStr += escapeHtml(getMonthNameSafe(evt.original.month, !evt.original.day)) + " ";
-                            oldStr += i18n.t("time.oldStyle") || "за ст. ст.";
-                            dateStr += "<br><span class='event-date--old-style' style='color: var(--color-text-muted); font-size: 0.9em; display: inline-block; margin-top: 2px;'>(" + oldStr + ")</span>";
+                        if (!currentGroup || currentGroup.cent !== cent) {
+                            currentGroup = { cent, events: [] };
+                            centuryGroups.push(currentGroup);
+                            if (cent > 0) tocCenturies.add(cent);
                         }
-                        
-                        const getPersonPIB = (p, eventType) => {
-                            if (!p) return "Невідомо";
-                            const details = findPersonDetails(p.id, window.app?.engine || this.engine);
-                            if (!details) return p.name || "Невідомо";
-                            let s = details.surname || "";
-                            let n = details.name || "";
-                            let pat = details.patronymic || "";
-                            
-                            const isFem = details.gender === "f" || details.gender === "ж";
-                            if (["birth", "baptism", "marriage"].includes(eventType)) {
-                                if (isFem) s = details.maidenName ? details.maidenName : "";
-                            } else if (["death", "funeral"].includes(eventType)) {
-                                if (isFem) {
-                                    if (details.marriedName) {
-                                        const mSurnames = String(details.marriedName).split(/[,;]/).map(x => x.trim()).filter(Boolean);
-                                        if (mSurnames.length > 0) s = mSurnames[mSurnames.length - 1];
-                                        else s = details.maidenName ? details.maidenName : "";
-                                    } else {
-                                        s = details.maidenName ? details.maidenName : "";
-                                    }
-                                }
-                            } else if (isFem && details.maidenName) {
-                                s = details.maidenName;
-                            }
-                            
-                            return formatPersonDisplay({ surname: s, name: n, patronymic: pat });
-                        };
-                        
-                        let namesStr = "";
-                        if (evt.type === "marriage" && evt.spouse) {
-                            namesStr = `
-                                <div class="timeline-marriage-row">
-                                    ${this._renderPersonChip(evt.person, evt.type)}
-                                    <span class="timeline-marriage-and"><i class="ri-heart-2-line"></i> та</span>
-                                    ${this._renderPersonChip(evt.spouse, evt.type)}
-                                </div>
-                            `;
-                        } else {
-                            namesStr = this._renderPersonChip(evt.person, evt.type);
-                        }
-                        
-                        let cleanDate = dateStr.replace(/[()]/g, "").trim();
+                        currentGroup.events.push(evt);
+                    });
+
+                    centuryGroups.forEach(group => {
+                        const cent = group.cent;
+                        const centId = cent > 0 ? `timeline-century-${cent}` : `timeline-century-unknown`;
+                        const centTitle = cent > 0 ? `${getCenturyRoman(cent)} ${i18n.t("time.century") || "століття"}` : (i18n.t("time.unknownCentury") || "Без дати");
+
                         html += `
-                            <li class="analytics-timeline-event-card" data-event-type="${evt.type}">
-                                <div class="timeline-event-header">
-                                    <div class="timeline-event-date">
-                                        <i class="ri-calendar-event-line timeline-date-icon"></i>
-                                        <span>${cleanDate}</span>
-                                    </div>
-                                    <div class="timeline-event-badge badge-event-${evt.type}">
-                                        <i class="${icons[evt.type] || 'ri-time-line'}"></i>
-                                        <span>${typeLabels[evt.type] || evt.type}</span>
-                                    </div>
+                            <li id="${centId}" class="analytics-timeline-century-group" style="list-style: none;">
+                                <div class="analytics-timeline-century-item">
+                                    <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                    <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">${centTitle}</div>
+                                    <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
                                 </div>
-                                <div class="timeline-event-body">
-                                    <div class="timeline-event-participants">
-                                        ${namesStr}
+                                <ul class="analytics-timeline-century-events analytics-list-none" style="display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0;">
+                        `;
+
+                        group.events.forEach(evt => {
+                            let dateStr = "";
+                            const d = evt.gregorian.day;
+                            const m = evt.gregorian.month;
+                            const y = evt.gregorian.year;
+                            
+                            let cleanedYearStr = evt.original.yearStr ? evt.original.yearStr.replace(/\b\d{2}\.(\d{4})\b/g, '$1') : "";
+                            if (cleanedYearStr && (!d && !m)) {
+                                dateStr = escapeHtml(cleanedYearStr);
+                            } else {
+                                if (d) dateStr += escapeHtml(d) + " ";
+                                if (m) dateStr += escapeHtml(getMonthNameSafe(m, !d)) + " ";
+                                if (cleanedYearStr) {
+                                    dateStr += escapeHtml(cleanedYearStr);
+                                } else if (y) {
+                                    dateStr += escapeHtml(y);
+                                }
+                            }
+                            
+                            if (evt.original.isOldStyle) {
+                                let oldStr = "";
+                                if (evt.original.day) oldStr += escapeHtml(evt.original.day) + " ";
+                                if (evt.original.month) oldStr += escapeHtml(getMonthNameSafe(evt.original.month, !evt.original.day)) + " ";
+                                oldStr += i18n.t("time.oldStyle") || "за ст. ст.";
+                                dateStr += "<br><span class='event-date--old-style' style='color: var(--color-text-muted); font-size: 0.9em; display: inline-block; margin-top: 2px;'>(" + oldStr + ")</span>";
+                            }
+                            
+                            const getPersonPIB = (p, eventType) => {
+                                if (!p) return "Невідомо";
+                                const details = findPersonDetails(p.id, window.app?.engine || this.engine);
+                                if (!details) return p.name || "Невідомо";
+                                let s = details.surname || "";
+                                let n = details.name || "";
+                                let pat = details.patronymic || "";
+                                
+                                const isFem = details.gender === "f" || details.gender === "ж";
+                                if (["birth", "baptism", "marriage"].includes(eventType)) {
+                                    if (isFem) s = details.maidenName ? details.maidenName : "";
+                                } else if (["death", "funeral"].includes(eventType)) {
+                                    if (isFem) {
+                                        if (details.marriedName) {
+                                            const mSurnames = String(details.marriedName).split(/[,;]/).map(x => x.trim()).filter(Boolean);
+                                            if (mSurnames.length > 0) s = mSurnames[mSurnames.length - 1];
+                                            else s = details.maidenName ? details.maidenName : "";
+                                        } else {
+                                            s = details.maidenName ? details.maidenName : "";
+                                        }
+                                    }
+                                } else if (isFem && details.maidenName) {
+                                    s = details.maidenName;
+                                }
+                                
+                                return formatPersonDisplay({ surname: s, name: n, patronymic: pat });
+                            };
+                            
+                            let namesStr = "";
+                            if (evt.type === "marriage" && evt.spouse) {
+                                namesStr = `
+                                    <div class="timeline-marriage-row">
+                                        ${this._renderPersonChip(evt.person, evt.type)}
+                                        <span class="timeline-marriage-and"><i class="ri-heart-2-line"></i> та</span>
+                                        ${this._renderPersonChip(evt.spouse, evt.type)}
                                     </div>
-                                </div>
+                                `;
+                            } else {
+                                namesStr = this._renderPersonChip(evt.person, evt.type);
+                            }
+                            
+                            let cleanDate = dateStr.replace(/[()]/g, "").trim();
+                            html += `
+                                <li class="analytics-timeline-event-card" data-event-type="${evt.type}">
+                                    <div class="timeline-event-header">
+                                        <div class="timeline-event-date">
+                                            <i class="ri-calendar-event-line timeline-date-icon"></i>
+                                            <span>${cleanDate}</span>
+                                        </div>
+                                        <div class="timeline-event-badge badge-event-${evt.type}">
+                                            <i class="${icons[evt.type] || 'ri-time-line'}"></i>
+                                            <span>${typeLabels[evt.type] || evt.type}</span>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-event-body">
+                                        <div class="timeline-event-participants">
+                                            ${namesStr}
+                                        </div>
+                                    </div>
+                                </li>
+                            `;
+                        });
+
+                        html += `
+                                </ul>
                             </li>
                         `;
                     });
@@ -2862,7 +2901,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (quickNavSlot) quickNavSlot.appendChild(quickNav);
                         else timelineList.parentNode.insertBefore(quickNav, timelineList);
                     }
-                    const centuriesPills = Array.from(tocCenturies).sort((a, b) => b - a).map(c => `
+                    const stickyPanel = document.querySelector('#analytics-timeline .analytics-timeline-sticky-panel') || document.querySelector('#analytics-timeline .timeline-controls-bar');
+                    updateStickyPanelCssVar(stickyPanel, '--timeline-sticky-h');
+
+                    const centuriesPills = Array.from(tocCenturies).sort((a, b) => sortDesc ? b - a : a - b).map(c => `
                         <button type="button" class="analytics-nav-pill js-quick-scroll-century" data-target="timeline-century-${c}">
                             <span>${getCenturyRoman(c)} ст.</span>
                         </button>
@@ -2871,7 +2913,6 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     if (quickNavSlot) quickNavSlot.style.display = timelineViewMode === "chart" ? "none" : "block";
                     quickNav.style.display = timelineViewMode === "chart" ? "none" : "flex";
 
-                    const scrollContainer = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
                     quickNav.querySelectorAll('.js-quick-scroll-century').forEach(btn => {
                         btn.addEventListener('click', (e) => {
                             e.preventDefault();
@@ -2884,16 +2925,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             const targetId = btn.getAttribute('data-target');
                             const targetEl = document.getElementById(targetId);
                             if (targetEl) {
-                                const stickyPanel = document.querySelector('#analytics-timeline .analytics-timeline-sticky-panel') || document.querySelector('#analytics-timeline .timeline-controls-bar');
-                                const stickyHeight = stickyPanel ? stickyPanel.offsetHeight : 0;
-                                if (scrollContainer) {
-                                    const targetRect = targetEl.getBoundingClientRect();
-                                    const containerRect = scrollContainer.getBoundingClientRect();
-                                    const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyHeight - 6;
-                                    scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
-                                } else {
-                                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }
+                                scrollToAnalyticsTarget(targetEl, stickyPanel);
                                 quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
                                 btn.classList.add('active');
                                 scrollPillToCenter(btn);
@@ -2901,31 +2933,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         });
                     });
 
-                    if (window.IntersectionObserver) {
-                        if (this._timelineObserver) {
-                            this._timelineObserver.disconnect();
-                        }
-                        this._timelineObserver = new IntersectionObserver((entries) => {
-                            if (this._isProgrammaticScroll) return;
-                            const intersecting = entries.filter(e => e.isIntersecting);
-                            if (intersecting.length > 0) {
-                                intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-                                const best = intersecting[0];
-                                const id = best.target.id;
-                                const pill = quickNav.querySelector(`.js-quick-scroll-century[data-target="${id}"]`);
-                                if (pill) {
-                                    quickNav.querySelectorAll('.js-quick-scroll-century').forEach(b => b.classList.remove('active'));
-                                    pill.classList.add('active');
-                                    scrollPillToCenter(pill);
-                                }
-                            }
-                        }, {
-                            root: scrollContainer || null,
-                            rootMargin: '-110px 0px -70% 0px',
-                            threshold: 0.05
-                        });
-                        timelineList.querySelectorAll('.analytics-timeline-century-item').forEach(item => this._timelineObserver.observe(item));
+                    if (this._timelineObserver) {
+                        this._timelineObserver.disconnect();
                     }
+                    this._timelineObserver = createAnalyticsSectionObserver(this, timelineList.querySelectorAll('.analytics-timeline-century-group'), quickNav, '.js-quick-scroll-century', stickyPanel);
                 }
                 
                 // Attach events to newly generated links

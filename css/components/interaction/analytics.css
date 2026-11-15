@@ -1,3 +1,12 @@
+:root, .analytics-view {
+    --analytics-header-offset: 0px;
+    --analytics-body-px: 28px;
+    --analytics-surface-bg: var(--color-bg-card);
+    --timeline-sticky-h: 92px;
+    --places-sticky-h: 92px;
+    --events-sticky-h: 52px;
+}
+
 .analytics-view {
     width: 100%;
     overflow-x: clip;
@@ -140,6 +149,12 @@ body.in-analytics #mobile-menu-btn,
 }
 
 @media (max-width: 767px) {
+    :root, .analytics-view {
+        --analytics-header-offset: 56px;
+        --analytics-body-px: 14px;
+        --analytics-surface-bg: var(--color-bg-body);
+    }
+
     .analytics-dialog {
         display: contents;
     }
@@ -148,6 +163,11 @@ body.in-analytics #mobile-menu-btn,
     .analytics-body {
         padding: 12px 14px calc(96px + env(safe-area-inset-bottom, 24px)) 14px !important;
         box-sizing: border-box;
+    }
+
+    .analytics-view.in-detailed-view .analytics-dialog .analytics-body,
+    .analytics-view.in-detailed-view .analytics-body {
+        padding-top: 0 !important;
     }
 }
 
@@ -450,58 +470,66 @@ body.in-analytics #mobile-menu-btn,
     display: none;
 }
 
-.analytics-sticky-controls {
+.analytics-timeline-sticky-panel,
+.analytics-places-sticky-panel,
+.analytics-names-sticky-panel,
+.analytics-sticky-controls,
+#analytics-events .analytics-quick-nav-bar {
     position: sticky;
-    top: 0;
-    z-index: 25;
+    top: var(--analytics-header-offset, 0px);
+    z-index: 50;
     background: var(--color-bg-card);
-    padding: 10px 0;
-    margin: 0 0 14px 0;
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
     border-bottom: 1px solid var(--color-border);
+    margin-top: 0;
+}
+
+.analytics-sticky-controls {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
 }
 
 .analytics-places-sticky-panel {
-    position: sticky;
-    top: 0;
-    z-index: 25;
-    background: var(--color-bg-card);
-    padding: 10px 0 12px 0;
-    margin-top: 0;
+    padding-top: 10px;
+    padding-bottom: 12px;
     margin-bottom: 14px;
-    border-bottom: 1px solid var(--color-border);
 }
 
 .analytics-timeline-sticky-panel {
-    position: sticky;
-    top: 0;
-    z-index: 25;
-    background: var(--color-bg-card);
-    padding: 10px 0 10px 0;
-    margin-top: 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
     margin-bottom: 14px;
-    border-bottom: 1px solid var(--color-border);
 }
 
 .analytics-lifespan-header {
     position: sticky;
-    top: 0;
-    z-index: 20;
-    background: var(--color-bg-card);
-    padding: 10px 0;
+    top: var(--analytics-header-offset, 0px);
+    z-index: 35;
+    background: var(--analytics-surface-bg);
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
+    padding-top: 10px;
+    padding-bottom: 10px;
     margin-top: 0;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
-    width: 100%;
     border-bottom: 1px solid var(--color-border-light);
 }
 
 .analytics-names-sticky-panel {
-    position: sticky;
-    top: 0;
-    z-index: 25;
-    background: var(--color-bg-card);
-    padding-top: 4px;
+    padding-top: 8px;
+    padding-bottom: 10px;
     margin-bottom: 12px;
     border-bottom: 1px solid var(--color-border-light);
 }
@@ -836,10 +864,17 @@ body.in-analytics #mobile-menu-btn,
 
 .analytics-death-header {
     position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--color-bg-card);
-    padding-top: 4px;
+    top: var(--analytics-header-offset, 0px);
+    z-index: 35;
+    background: var(--analytics-surface-bg);
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 
@@ -1035,14 +1070,75 @@ body.in-analytics #mobile-menu-btn,
     max-height: calc(100dvh - 192px);
 }
 
-.analytics-place-item {
-    scroll-margin-top: 172px;
-}
-.analytics-event-month-item {
-    scroll-margin-top: 136px;
+.analytics-timeline-century-group {
+    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--timeline-sticky-h, 92px) + 8px);
 }
 .analytics-timeline-century-item {
-    scroll-margin-top: 10px;
+    position: sticky;
+    top: calc(var(--analytics-header-offset, 0px) + var(--timeline-sticky-h, 92px));
+    z-index: 35;
+    background: var(--analytics-surface-bg);
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--timeline-sticky-h, 92px) + 8px);
+}
+
+.analytics-place-item {
+    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--places-sticky-h, 92px) + 8px);
+}
+.analytics-place-header {
+    position: sticky;
+    top: calc(var(--analytics-header-offset, 0px) + var(--places-sticky-h, 92px));
+    z-index: 35;
+    background: var(--color-bg-card);
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--color-border);
+    cursor: pointer;
+    user-select: none;
+}
+
+.analytics-event-month-item {
+    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--events-sticky-h, 52px) + 8px);
+}
+.analytics-event-month-header {
+    position: sticky;
+    top: calc(var(--analytics-header-offset, 0px) + var(--events-sticky-h, 52px));
+    z-index: 35;
+    background: var(--color-bg-card);
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--color-border);
+    cursor: pointer;
+    user-select: none;
 }
 
 #analytics-timeline {
@@ -1152,7 +1248,7 @@ body.in-analytics #mobile-menu-btn,
     }
 
     .analytics-view {
-        overflow-x: hidden !important;
+        overflow-x: clip !important;
     }
 }
 
@@ -1608,11 +1704,18 @@ body.in-analytics #mobile-menu-btn,
 
 #analytics-events .analytics-quick-nav-bar {
     position: sticky;
-    top: 0;
-    z-index: 25;
+    top: var(--analytics-header-offset, 0px);
+    z-index: 50;
     border: none;
     background: var(--color-bg-card);
-    padding: 10px 0 12px 0;
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
+    padding-top: 10px;
+    padding-bottom: 12px;
     margin-top: 0;
     margin-bottom: 14px;
     border-bottom: 1px solid var(--color-border);
