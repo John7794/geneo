@@ -18,6 +18,7 @@ export class AppRouter {
 		this._handleMediaQueryChange = this._handleMediaQueryChange.bind(this);
 
 		this._mediaQueryList = window.matchMedia("(max-width: 768px)");
+		this._isSwipeTransitioning = false;
 
 		window.addEventListener("popstate", this.handlePopState);
 		document.body.addEventListener("click", this._handleDocumentClick);
@@ -57,6 +58,10 @@ export class AppRouter {
 			return;
 		}
 
+		if (this._isSwipeTransitioning) {
+			return;
+		}
+
 		const managers = this.app.managers;
 		const url = new URL(window.location);
 		const mode = url.searchParams.get("mode");
@@ -66,6 +71,7 @@ export class AppRouter {
 			if (managers.relationship) {
 				const container = document.querySelector("#tree-view:not(.hidden)");
 				if (container) {
+					this._isSwipeTransitioning = true;
 					const translateX = direction > 0 ? "-30px" : "30px";
 					container.style.transition =
 						"transform 0.15s ease-out, opacity 0.15s ease-out";
@@ -80,6 +86,7 @@ export class AppRouter {
 
 						container.style.transform = "";
 						container.style.opacity = "1";
+						this._isSwipeTransitioning = false;
 					}, 150);
 				} else {
 					if (direction > 0)
@@ -111,6 +118,7 @@ export class AppRouter {
 			);
 
 			if (viewContainer) {
+				this._isSwipeTransitioning = true;
 				const exitX = direction > 0 ? "-40px" : "40px";
 				const enterX = direction > 0 ? "40px" : "-40px";
 
@@ -118,6 +126,11 @@ export class AppRouter {
 					"transform 0.15s cubic-bezier(0.2, 0, 0, 1), opacity 0.15s ease-out";
 				viewContainer.style.transform = `translateX(${exitX})`;
 				viewContainer.style.opacity = "0.2";
+
+				// Захисний таймаут для гарантованого скидання блокування переходу
+				const safetyReset = setTimeout(() => {
+					this._isSwipeTransitioning = false;
+				}, 500);
 
 				setTimeout(() => {
 					this.navigateToId(
@@ -140,6 +153,8 @@ export class AppRouter {
 							viewContainer.style.transition = "";
 							viewContainer.style.transform = "";
 							viewContainer.style.opacity = "";
+							clearTimeout(safetyReset);
+							this._isSwipeTransitioning = false;
 						}, 250);
 					});
 				}, 150);
@@ -161,37 +176,7 @@ export class AppRouter {
 		const managers = this.app.managers;
 		const currentIdStr = String(this.app.currentProfileId);
 
-		// 1. Пріоритет: Якщо у хлібних крихтах є випадаючий список сиблінгів/пращурів поточної гілки — перемикаємо по ньому циклічно!
-		if (
-			managers.lineage &&
-			typeof managers.lineage.logic?.buildPath === "function"
-		) {
-			const path = managers.lineage.logic.buildPath(
-				this.app.currentProfileId,
-			);
-			if (path && path.length > 0) {
-				const currentItem = path[path.length - 1];
-				if (
-					currentItem &&
-					currentItem.siblings &&
-					currentItem.siblings.length > 1
-				) {
-					const currentIndex = currentItem.siblings.findIndex(
-						(s) =>
-							String(s.id) === String(currentItem.id) ||
-							String(s.id) === currentIdStr,
-					);
-					if (currentIndex !== -1) {
-						const nextIndex =
-							(currentIndex + direction + currentItem.siblings.length) %
-							currentItem.siblings.length;
-						return currentItem.siblings[nextIndex].id;
-					}
-				}
-			}
-		}
-
-		// 2. Навігаційна черга активної лінії роду (Lineage / Navigation queue)
+		// 1. Навігаційна черга активної лінії роду (Global lineage queue)
 		const navQueue =
 			managers.navigation?.sortedIds &&
 			managers.navigation.sortedIds.length > 0
@@ -271,37 +256,41 @@ export class AppRouter {
 		const managers = this.app.managers;
 		const currentIdStr = String(this.app.currentProfileId);
 
-		// 1. У режимі дерева на мобільному свайп перемикає пробанда серед братів/сестер активної гілки,
-		// але БЕЗ нескінченного зациклення по модулю: при досягненні краю списку свайп переходить далі по дереву
-		if (
-			managers.lineage &&
-			typeof managers.lineage.logic?.buildPath === "function"
-		) {
-			const path = managers.lineage.logic.buildPath(
-				this.app.currentProfileId,
-			);
-			if (path && path.length > 0) {
-				const currentItem = path[path.length - 1];
-				if (
-					currentItem &&
-					currentItem.siblings &&
-					currentItem.siblings.length > 1
-				) {
-					const currentIndex = currentItem.siblings.findIndex(
-						(s) =>
-							String(s.id) === String(currentItem.id) ||
-							String(s.id) === currentIdStr,
-					);
-					if (currentIndex !== -1) {
-						const nextIndex =
-							(currentIndex + direction + currentItem.siblings.length) %
-							currentItem.siblings.length;
-						return currentItem.siblings[nextIndex].id;
+		// 1. Перемикаємо по глобальній навігаційній черзі активної лінії роду
+		const navQueue =
+			managers.navigation?.sortedIds &&
+			managers.navigation.sortedIds.length > 0
+				? managers.navigation.sortedIds
+				: managers.lineage?.queue || [];
+
+		if (navQueue.length > 1) {
+			let qIdx = navQueue.indexOf(currentIdStr);
+			if (qIdx === -1 && this.app.engine) {
+				const resolved = resolveRealId(currentIdStr, this.app.engine);
+				if (resolved) qIdx = navQueue.indexOf(String(resolved));
+			}
+			if (qIdx !== -1) {
+				return navQueue[(qIdx + direction + navQueue.length) % navQueue.length];
+			} else {
+				// Якщо особа поза чергою (наприклад, сиблінг), шукаємо найближчого родича в черзі
+				const p = buildPersonObject(this.app.currentProfileId, this.app.engine);
+				if (p) {
+					const relatives = [
+						...(p.parents || []).map((x) => String(x.id)),
+						...(p.children || []).map((x) => String(x.id)),
+					];
+					for (const relId of relatives) {
+						const rIdx = navQueue.indexOf(relId);
+						if (rIdx !== -1) {
+							return navQueue[(rIdx + direction + navQueue.length) % navQueue.length];
+						}
 					}
 				}
+				return direction > 0 ? navQueue[0] : navQueue[navQueue.length - 1];
 			}
 		}
 
+		// 2. Якщо сиблінги
 		const p = buildPersonObject(this.app.currentProfileId, this.app.engine);
 		if (p && p.siblings) {
 			let siblingIds = [currentIdStr];
@@ -317,42 +306,8 @@ export class AppRouter {
 			if (siblingIds.length > 1) {
 				const currentIndex = siblingIds.indexOf(currentIdStr);
 				if (currentIndex !== -1) {
-					if (direction > 0 && currentIndex + 1 < siblingIds.length) {
-						return siblingIds[currentIndex + 1];
-					} else if (direction < 0 && currentIndex - 1 >= 0) {
-						return siblingIds[currentIndex - 1];
-					}
-					// Дійшли до межі списку сиблінгів — виходимо до черги поколінь
+					return siblingIds[(currentIndex + direction + siblingIds.length) % siblingIds.length];
 				}
-			}
-		}
-
-		// 2. Якщо сиблінгів немає або дійшли до кінця групи — перемикаємо по навігаційній черзі лінії
-		const navQueue =
-			managers.navigation?.sortedIds || managers.lineage?.queue || [];
-		if (navQueue.length > 1) {
-			let qIdx = navQueue.indexOf(currentIdStr);
-			if (qIdx === -1 && this.app.engine) {
-				const resolved = resolveRealId(currentIdStr, this.app.engine);
-				if (resolved) qIdx = navQueue.indexOf(String(resolved));
-			}
-			if (qIdx !== -1) {
-				return navQueue[(qIdx + direction + navQueue.length) % navQueue.length];
-			} else {
-				// Якщо поточна особа не безпосередньо в navQueue (сиблінг), шукаємо близьких родичів
-				if (p) {
-					const relatives = [
-						...(p.parents || []).map((x) => String(x.id)),
-						...(p.children || []).map((x) => String(x.id)),
-					];
-					for (const relId of relatives) {
-						const rIdx = navQueue.indexOf(relId);
-						if (rIdx !== -1) {
-							return navQueue[(rIdx + direction + navQueue.length) % navQueue.length];
-						}
-					}
-				}
-				return direction > 0 ? navQueue[0] : navQueue[navQueue.length - 1];
 			}
 		}
 

@@ -121,9 +121,18 @@ export class MobileSwipeManager {
 		const currentY = e.touches[0].clientY;
 		const dx = this.startX - currentX;
 		const dy = this.startY - currentY;
+		const absX = Math.abs(dx);
+		const absY = Math.abs(dy);
 
-		// Якщо користувач свайпає горизонтально переважно (X > Y) і перетнув базовий поріг
-		if (Math.abs(dx) > Math.abs(dy) * 1.2 && Math.abs(dx) > 10) {
+		// Якщо користувач почав вертикальний скрол — негайно вимикаємо детекцію свайпу для цього жесту,
+		// щоб нативний вертикальний скрол сторінки працював плавно без затримок
+		if (!this.isSwiping && absY > 15 && absY > absX) {
+			this.isDisabled = true;
+			return;
+		}
+
+		// Свайп фіксується тільки якщо чіткий горизонтальний рух (X переважає Y мінімум у 1.8 раза і подолав поріг)
+		if (absX > absY * 1.8 && absX > 20) {
 			this.isSwiping = true;
 			if (e.cancelable) {
 				e.preventDefault();
@@ -135,6 +144,7 @@ export class MobileSwipeManager {
 		if (this.isDisabled || !this.startX) {
 			this.startX = 0;
 			this.startY = 0;
+			this.isSwiping = false;
 			return;
 		}
 
@@ -147,14 +157,19 @@ export class MobileSwipeManager {
 		this.startX = 0;
 		this.startY = 0;
 
-		const isHorizontal = Math.abs(dx) > Math.abs(dy) * 1.1;
+		const absX = Math.abs(dx);
+		const absY = Math.abs(dy);
 
-		// Спрацьовує як на плавний свайп, так і на швидкий жест (флік)
+		// Чіткий горизонтальний свайп:
+		// 1. Рух горизонтальний (absX > absY * 1.5)
+		// 2. Вертикальне відхилення не перевищує 80px (захист від випадкових діагональних жестів)
+		// 3. Дистанція подолала threshold
+		// 4. Жест вклався у тайм-аут
 		if (
-			(this.isSwiping || isHorizontal) &&
+			(this.isSwiping || absX > absY * 1.5) &&
 			elapsedTime <= this.timeout &&
-			Math.abs(dx) >= this.threshold &&
-			Math.abs(dy) <= 180
+			absX >= this.threshold &&
+			absY <= 80
 		) {
 			if (dx > 0) {
 				// Змах вліво (наступний елемент)
