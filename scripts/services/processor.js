@@ -181,7 +181,7 @@ export function buildPersonObject(queryId, allData) {
 			COLUMNS.basic?.bioUrl || "bioUrl",
 			COLUMNS.familyList?.bioUrl || "bio_url",
 		),
-		hasProfile: true,
+		hasProfile: Boolean(basicRow),
 		_engine: allData,
 		effectiveStatus: getEffectivePersonStatus(targetId, allData, "1")?.status || "confirmed",
 		weakestLink: getEffectivePersonStatus(targetId, allData, "1")?.weakest || null,

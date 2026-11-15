@@ -333,6 +333,12 @@ export class SearchManager {
 
 	selectPerson(person) {
 		const id = person[COLUMNS.basic?.id || "id"] || person[COLUMNS.familyList?.id || "fam_id"] || person.fam_id;
+		const isFam = person.isFamilyList || String(id).includes(".");
+		if (isFam && window.personPopupManager) {
+			this.close();
+			window.personPopupManager.open(id, "familyList");
+			return;
+		}
 		if (this.onNavigate) {
 			this.onNavigate(id);
 		}

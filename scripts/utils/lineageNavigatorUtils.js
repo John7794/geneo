@@ -382,7 +382,7 @@ export class LineageNavigator {
 					}
 				}
 
-				const validChildren = Array.from(siblingSet);
+				const validChildren = Array.from(siblingSet).filter((cId) => this._basicIndex.has(String(cId)));
 				siblings = new Array(validChildren.length);
 
 				for (let i = 0; i < validChildren.length; i++) {

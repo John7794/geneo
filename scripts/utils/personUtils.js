@@ -619,7 +619,7 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 		rawStatus,
 		confirmations: rawConfirmations,
 		confirmationsList,
-		hasProfile: sourceName === "family_list" || sourceName === "basic",
+		hasProfile: false,
 		_engine: engineData,
 	};
 }

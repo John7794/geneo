@@ -63,7 +63,7 @@ class PersonDAO {
 		// 🔥 ВИПРАВЛЕНО: Жорстка перевірка на префікси бази даних.
 		// Блокує хибне спрацьовування на слагах типу "pavlo-..."
 		if (strId.startsWith("p::")) return "non_relative";
-		if (strId.startsWith("f::")) return "indirect_relative";
+		if (strId.startsWith("f::") || strId.includes(".")) return "indirect_relative";
 		return "direct_relative";
 	}
 
@@ -90,7 +90,7 @@ class PersonDAO {
 			id: idStr,
 			source: data.source || (isAcquaintance ? "participants" : "familyList"),
 			category: category,
-			hasProfile: !isAcquaintance && data.hasProfile !== false,
+			hasProfile: !isAcquaintance && category !== "indirect_relative" && data.hasProfile === true,
 
 			title: this._extract(famRow, data, "fam_title", "title"),
 			name: this._extract(famRow, data, "fam_first_name", "firstName", "name"),
