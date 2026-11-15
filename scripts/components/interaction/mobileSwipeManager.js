@@ -70,12 +70,14 @@ export class MobileSwipeManager {
 
 		if (
 			document.body.classList.contains("pswp-open") ||
-			document.body.classList.contains("no-scroll")
+			document.body.classList.contains("no-scroll") ||
+			document.body.classList.contains("in-analytics") ||
+			document.querySelector('.analytics-dialog, [role="dialog"], .popup-overlay') !== null
 		) {
 			return true;
 		}
 
-		if (target.closest(ignoreSelectors.join(", ")) !== null) {
+		if (target.closest(ignoreSelectors.join(", ")) !== null || target.closest('.analytics-dialog, .analytics-view, [role="dialog"], .popup-overlay') !== null) {
 			return true;
 		}
 

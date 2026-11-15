@@ -111,8 +111,12 @@ export class NavigationManager {
 			return;
 		}
 
-		// Блокуємо навігацію стрілками, якщо відкрито модальне вікно або галерею
-		if (document.body.classList.contains(UI_CLASSES.noScroll || "no-scroll")) {
+		// Блокуємо навігацію стрілками, якщо відкрито модальне вікно, аналітику або галерею
+		if (
+			document.body.classList.contains(UI_CLASSES.noScroll || "no-scroll") ||
+			document.body.classList.contains("in-analytics") ||
+			document.querySelector('.analytics-dialog, [role="dialog"], .popup-overlay') !== null
+		) {
 			return;
 		}
 
@@ -128,11 +132,46 @@ export class NavigationManager {
 	}
 
 	move(direction) {
-		if (this.sortedIds.length <= 1) return;
-
 		const now = Date.now();
 		if (now - this.lastMoveTime < this.throttleTime) return;
 		this.lastMoveTime = now;
+
+		// 1. Пріоритет: Якщо у хлібних крихтах є випадаючий список сиблінгів/пращурів поточної гілки — перемикаємо по ньому циклічно!
+		const app = window.app;
+		if (
+			app?.managers?.lineage &&
+			typeof app.managers.lineage.logic?.buildPath === "function"
+		) {
+			const currentId = app.currentProfileId || this.sortedIds[this.currentIndex];
+			const path = app.managers.lineage.logic.buildPath(currentId);
+			if (path && path.length > 0) {
+				const currentItem = path[path.length - 1];
+				if (
+					currentItem &&
+					currentItem.siblings &&
+					currentItem.siblings.length > 1
+				) {
+					const currentIdStr = String(currentId);
+					const sIdx = currentItem.siblings.findIndex(
+						(s) =>
+							String(s.id) === String(currentItem.id) ||
+							String(s.id) === currentIdStr,
+					);
+					if (sIdx !== -1) {
+						const nextSIdx =
+							(sIdx + direction + currentItem.siblings.length) %
+							currentItem.siblings.length;
+						const nextId = currentItem.siblings[nextSIdx].id;
+						if (this.onChange) {
+							this.onChange(nextId);
+						}
+						return;
+					}
+				}
+			}
+		}
+
+		if (this.sortedIds.length <= 1) return;
 
 		let newIndex = this.currentIndex + direction;
 

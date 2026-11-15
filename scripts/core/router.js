@@ -49,6 +49,14 @@ export class AppRouter {
 	}
 
 	_navigateSwipe(direction) {
+		// Блокуємо свайпи, якщо відкрито аналітику або модальне вікно
+		if (
+			document.body.classList.contains("in-analytics") ||
+			document.querySelector('.analytics-dialog, [role="dialog"], .popup-overlay') !== null
+		) {
+			return;
+		}
+
 		const managers = this.app.managers;
 		const url = new URL(window.location);
 		const mode = url.searchParams.get("mode");
@@ -153,7 +161,37 @@ export class AppRouter {
 		const managers = this.app.managers;
 		const currentIdStr = String(this.app.currentProfileId);
 
-		// 1. Пріоритет: Навігаційна черга активної лінії роду (Lineage / Navigation queue)
+		// 1. Пріоритет: Якщо у хлібних крихтах є випадаючий список сиблінгів/пращурів поточної гілки — перемикаємо по ньому циклічно!
+		if (
+			managers.lineage &&
+			typeof managers.lineage.logic?.buildPath === "function"
+		) {
+			const path = managers.lineage.logic.buildPath(
+				this.app.currentProfileId,
+			);
+			if (path && path.length > 0) {
+				const currentItem = path[path.length - 1];
+				if (
+					currentItem &&
+					currentItem.siblings &&
+					currentItem.siblings.length > 1
+				) {
+					const currentIndex = currentItem.siblings.findIndex(
+						(s) =>
+							String(s.id) === String(currentItem.id) ||
+							String(s.id) === currentIdStr,
+					);
+					if (currentIndex !== -1) {
+						const nextIndex =
+							(currentIndex + direction + currentItem.siblings.length) %
+							currentItem.siblings.length;
+						return currentItem.siblings[nextIndex].id;
+					}
+				}
+			}
+		}
+
+		// 2. Навігаційна черга активної лінії роду (Lineage / Navigation queue)
 		const navQueue =
 			managers.navigation?.sortedIds &&
 			managers.navigation.sortedIds.length > 0
@@ -255,12 +293,10 @@ export class AppRouter {
 							String(s.id) === currentIdStr,
 					);
 					if (currentIndex !== -1) {
-						if (direction > 0 && currentIndex + 1 < currentItem.siblings.length) {
-							return currentItem.siblings[currentIndex + 1].id;
-						} else if (direction < 0 && currentIndex - 1 >= 0) {
-							return currentItem.siblings[currentIndex - 1].id;
-						}
-						// Дійшли до межі списку сиблінгів — виходимо до черги поколінь (navQueue)
+						const nextIndex =
+							(currentIndex + direction + currentItem.siblings.length) %
+							currentItem.siblings.length;
+						return currentItem.siblings[nextIndex].id;
 					}
 				}
 			}
