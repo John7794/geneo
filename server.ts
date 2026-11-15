@@ -227,59 +227,187 @@ const resolveDataFile = (rel: string) => {
   return path.join(ACTIVE_DATA_DIR, rel);
 };
 
-// Повнотекстовий контекст для Gemini AI (Gemini 2.5 Flash має вікно 1M токенів)
-function getAiContext(profileId?: string): string {
+// Оптимізований повнотекстовий RAG-контекст для Gemini AI
+let _aiDataCache: {
+  basicMap: Map<string, any>;
+  namesMap: Map<string, string>;
+  datesMap: Map<string, any>;
+  kinship: any;
+  totalProfiles: number;
+} | null = null;
+
+function loadAiDataCache() {
+  if (_aiDataCache) return _aiDataCache;
   try {
     const basicPath = resolveDataFile("db/uk/basic.csv");
-    const rolesPath = resolveDataFile("db/uk/familyRoles.csv");
     const namesPath = resolveDataFile("db/uk/names.csv");
+    const birthPath = resolveDataFile("db/uk/birth.csv");
+    const deathPath = resolveDataFile("db/uk/death.csv");
+    const kinshipPath = resolveDataFile("kinship.json");
 
-    if (!fs.existsSync(basicPath)) return "";
+    if (!fs.existsSync(basicPath)) return null;
 
-    const basicContent = fs.readFileSync(basicPath, "utf8");
-    const rolesContent = fs.existsSync(rolesPath) ? fs.readFileSync(rolesPath, "utf8") : "";
-    const namesContent = fs.existsSync(namesPath) ? fs.readFileSync(namesPath, "utf8") : "";
-
-    let focusContext = "";
-    // Якщо користувач дивиться конкретний профіль, фокусуємо контекст на ньому та його родичах
-    if (profileId) {
-      const basicLines = basicContent.split("\n");
-      const targetLine = basicLines.find((l) => l.startsWith(profileId + ","));
-      const rolesLine = rolesContent.split("\n").find((l) => l.startsWith(profileId + ","));
-
-      let relatedLines: string[] = [];
-      if (rolesLine) {
-        // Знаходимо ID батьків, подружжя, дітей
-        const ids = rolesLine.split(",").join(";").split(/[;\s]+/).filter((x) => /^\d+$/.test(x));
-        relatedLines = basicLines.filter((l) => {
-          const id = l.split(",")[0];
-          return ids.includes(id);
-        });
-      }
-
-      focusContext = `
-[ФОКУСНА ПЕРСОНА (ID=${profileId})]:
-${targetLine || "Не знайдено"}
-
-[РОДИННІ РОЛІ ТА ЗВ'ЯЗКИ ДЛЯ ЦІЄЇ ПЕРСОНИ]:
-${rolesLine || "Не вказано"}
-
-[БЛИЗЬКЕ РОДИННЕ КОЛО]:
-${relatedLines.join("\n")}
-`;
+    const basicLines = fs.readFileSync(basicPath, "utf8").split("\n");
+    const namesLines = fs.existsSync(namesPath) ? fs.readFileSync(namesPath, "utf8").split("\n") : [];
+    const birthLines = fs.existsSync(birthPath) ? fs.readFileSync(birthPath, "utf8").split("\n") : [];
+    const deathLines = fs.existsSync(deathPath) ? fs.readFileSync(deathPath, "utf8").split("\n") : [];
+    
+    let kinship: any = null;
+    if (fs.existsSync(kinshipPath)) {
+      try { kinship = JSON.parse(fs.readFileSync(kinshipPath, "utf8")); } catch (e) {}
     }
 
-    return `
-${focusContext}
-[ОСНОВНА БАЗА ДАНИХ (basic.csv)]:
-${basicContent}
+    const basicMap = new Map<string, any>();
+    for (let i = 1; i < basicLines.length; i++) {
+      const line = basicLines[i].trim();
+      if (!line) continue;
+      const parts = line.split(",");
+      const id = parts[0]?.trim();
+      if (id) {
+        basicMap.set(id, {
+          id,
+          surname: parts[1]?.trim() || "",
+          name: parts[2]?.trim() || "",
+          patronymic: parts[3]?.trim() || "",
+          gender: parts[4]?.trim() || "",
+          raw: line
+        });
+      }
+    }
 
-[РОДИННІ ЗВ'ЯЗКИ ТА РОЛІ (familyRoles.csv)]:
-${rolesContent}
+    const namesMap = new Map<string, string>();
+    for (let i = 1; i < namesLines.length; i++) {
+      const line = namesLines[i].trim();
+      if (!line) continue;
+      const parts = line.split(",");
+      const id = parts[0]?.trim();
+      if (id) namesMap.set(id, line);
+    }
 
-[АЛЬТЕРНАТИВНІ ТА ДІВОЧІ ПРІЗВИЩА (names.csv)]:
-${namesContent}
-`;
+    const datesMap = new Map<string, any>();
+    for (let i = 1; i < birthLines.length; i++) {
+      const parts = birthLines[i].trim().split(",");
+      const id = parts[0]?.trim();
+      const year = parts[7]?.trim();
+      const place = parts[8]?.trim();
+      if (id && year) {
+        datesMap.set(id, { birthYear: year, birthPlace: place });
+      }
+    }
+    for (let i = 1; i < deathLines.length; i++) {
+      const parts = deathLines[i].trim().split(",");
+      const id = parts[0]?.trim();
+      const year = parts[6]?.trim();
+      const cause = parts[7]?.trim();
+      if (id) {
+        const prev = datesMap.get(id) || {};
+        if (year) prev.deathYear = year;
+        if (cause) prev.deathCause = cause;
+        datesMap.set(id, prev);
+      }
+    }
+
+    _aiDataCache = {
+      basicMap,
+      namesMap,
+      datesMap,
+      kinship,
+      totalProfiles: basicMap.size
+    };
+    return _aiDataCache;
+  } catch (err) {
+    console.error("loadAiDataCache error:", err);
+    return null;
+  }
+}
+
+function getAiContext(profileId?: string, query: string = ""): string {
+  try {
+    const cache = loadAiDataCache();
+    if (!cache) return "";
+
+    const { basicMap, namesMap, datesMap, kinship, totalProfiles } = cache;
+    const matchedIds = new Set<string>();
+
+    if (profileId && basicMap.has(String(profileId).trim())) {
+      matchedIds.add(String(profileId).trim());
+    }
+
+    // Лексичний пошук персон за запитом користувача
+    if (query && query.trim()) {
+      const stopWords = new Set(["про", "і", "та", "в", "у", "на", "де", "як", "хто", "що", "пошукай", "знайди", "інформацію", "розкажи", "чи", "є", "був", "була", "його", "її", "мені", "яка", "який", "яке", "які"]);
+      const rawTokens = query.toLowerCase()
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'«»]/g, " ")
+        .split(/\s+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 3 && !stopWords.has(t));
+
+      const stems: string[] = [];
+      for (const tok of rawTokens) {
+        const stem = tok.replace(/(ою|ею|ям|ем|ом|ів|их|им|ій|ої|их|ого|ему|ому|ами|ями|ах|ях|а|я|у|ю|е|є|и|і|о)$/, "");
+        stems.push(stem.length >= 3 ? stem : tok);
+        stems.push(tok);
+      }
+
+      for (const [id, p] of basicMap.entries()) {
+        const fullName = `${p.surname} ${p.name} ${p.patronymic}`.toLowerCase();
+        const altNames = (namesMap.get(id) || "").toLowerCase();
+        const lNorm = (fullName + " " + altNames).replace(/і/g, "и").replace(/ія/g, "іа");
+
+        const matches = stems.some((s) => {
+          const sNorm = s.replace(/і/g, "и").replace(/ія/g, "іа");
+          return fullName.includes(s) || altNames.includes(s) || lNorm.includes(sNorm);
+        });
+
+        if (matches) {
+          matchedIds.add(id);
+          if (matchedIds.size >= 15) break;
+        }
+      }
+    }
+
+    const outputSections: string[] = [];
+    outputSections.push(`ЗАГАЛЬНА СТАТИСТИКА РОДОВОДУ: База містить ${totalProfiles} осіб, понад 1600 сімей. Документальні записи з XVI по XXI століття.`);
+
+    if (matchedIds.size > 0) {
+      outputSections.push(`\nРЕЛЕВАНТНІ ПЕРСОНИ ТА РОДИННІ ЗВ'ЯЗКИ З БАЗИ РОДОВОДУ (${matchedIds.size} осіб):`);
+      for (const id of matchedIds) {
+        const p = basicMap.get(id);
+        if (!p) continue;
+        const dates = datesMap.get(id) || {};
+        const namesLine = namesMap.get(id);
+
+        let relText = "";
+        if (kinship && kinship[id]) {
+          const k = kinship[id];
+          const bioParents = (k.p?.bio || "").trim().split(/\s+/).filter(Boolean).map((pid: string) => {
+            const par = basicMap.get(pid);
+            return par ? `${par.surname} ${par.name} (ID: ${pid})` : `ID: ${pid}`;
+          });
+          const spouses = (k.m_map || []).map((m: any) => {
+            const sp = basicMap.get(m.spouseId);
+            return sp ? `${sp.surname} ${sp.name} (ID: ${m.spouseId})` : `ID: ${m.spouseId}`;
+          });
+          const grandparents = (k.gp?.f || "").trim().split(/\s+/).filter(Boolean).map((pid: string) => {
+            const gp = basicMap.get(pid);
+            return gp ? `${gp.surname} ${gp.name} (ID: ${pid})` : `ID: ${pid}`;
+          });
+
+          if (bioParents.length) relText += `\n   - Батьки: ${bioParents.join(", ")}`;
+          if (grandparents.length) relText += `\n   - Дідусь/бабуся по батькові: ${grandparents.join(", ")}`;
+          if (spouses.length) relText += `\n   - Подружжя: ${spouses.join(", ")}`;
+        }
+
+        outputSections.push(`
+• Особа ID=${p.id}: ${p.surname} ${p.name} ${p.patronymic || ""} (${p.gender === "f" ? "жінка" : "чоловік"})
+   - Роки життя: ${dates.birthYear || "?"} — ${dates.deathYear || "?"}${dates.deathCause ? ` (причина смерті: ${dates.deathCause})` : ""}
+   - Місце народження: ${dates.birthPlace || "Не вказано"}${namesLine ? `\n   - Додаткові / дівочі імена: ${namesLine}` : ""}${relText}`);
+      }
+    } else {
+      outputSections.push("\nТочних імен за запитом не виявлено. Використовуй загальний генеалогічний аналіз або підкажи користувачеві як уточнити запит.");
+    }
+
+    return outputSections.join("\n");
   } catch (e) {
     console.error("Error reading AI context:", e);
     return "";
@@ -424,6 +552,8 @@ interface StoredShare {
   canSync?: boolean;
   hiddenProfiles?: string[];
   createdAt: number;
+  status?: string;
+  leftAt?: string | number;
 }
 
 function readLocalShares(): Record<string, StoredShare> {
@@ -1740,63 +1870,109 @@ if (process.env.NODE_ENV !== "production") {
   app.use("/assets", express.static(rootAssetsPath));
 }
 
-// AI Консультант з оптимізованим контекстом, автентифікацією та лімітами
+// AI Консультант з оптимізованим контекстом, автентифікацією, fallback моделей та лімітами
 app.post("/api/gemini/chat", async (req, res) => {
   try {
     const user = getAuthenticatedUser(req);
-    if (!user) {
-      return res.status(401).json({ error: "Потрібна авторизація для використання AI консультанта." });
+    const clientApiKey = (req.headers["x-gemini-api-key"] as string) || (req.body.apiKey as string);
+
+    // Дозволяємо доступ авторизованим користувачам або тим, хто надав власний ключ
+    if (!user && !clientApiKey && process.env.NODE_ENV === "production") {
+      return res.status(401).json({ error: "Потрібна авторизація для використання AI консультанта (або вкажіть власний безкоштовний API-ключ у ⚙️ Налаштуваннях AI)." });
     }
 
-    if (!checkAiRateLimit(user)) {
+    if (user && !checkAiRateLimit(user) && !clientApiKey) {
       return res.status(429).json({ error: "Забагато запитів до AI. Будь ласка, зачекайте хвилину перед наступним запитом." });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured. Please add your Gemini API Key in the Settings -> Secrets menu.");
+    const apiKey = clientApiKey || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(400).json({
+        error: "GEMINI_API_KEY не налаштовано на сервері. Будь ласка, додайте свій безкоштовний ключ у ⚙️ Налаштуваннях AI."
+      });
     }
 
     const prompt = req.body.prompt;
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return res.status(400).json({ error: "Текст запиту не може бути порожнім." });
     }
-    if (prompt.length > 2500) {
-      return res.status(400).json({ error: "Запит занадто довгий (максимум 2500 символів)." });
+    if (prompt.length > 3000) {
+      return res.status(400).json({ error: "Запит занадто довгий (максимум 3000 символів)." });
     }
 
     const ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: { headers: { "User-Agent": "aistudio-build" } },
+      apiKey: apiKey,
+      httpOptions: { headers: { "User-Agent": "geneo-ai-assistant" } },
     });
 
-    const rawHistory = Array.isArray(req.body.history) ? req.body.history.slice(-10) : [];
+    const rawHistory = Array.isArray(req.body.history) ? req.body.history.slice(-8) : [];
     const currentProfileId = req.body.currentProfileId && typeof req.body.currentProfileId === "string" ? req.body.currentProfileId : undefined;
 
-    let contents = [];
+    let contents: any[] = [];
     for (const msg of rawHistory) {
       if (msg && typeof msg.text === "string") {
-        contents.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.text.slice(0, 3000) }] });
+        contents.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.text.slice(0, 2500) }] });
       }
     }
     contents.push({ role: "user", parts: [{ text: prompt.trim() }] });
 
-    const focusedContext = getAiContext(currentProfileId);
+    // Отримуємо сфокусований контекст за запитом та поточною персоною
+    const focusedContext = getAiContext(currentProfileId, prompt);
 
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
-      contents: contents,
-      config: {
-        systemInstruction:
-          "You are a helpful AI assistant specialized in genealogy research. Help the user discover their family history, explain historical contexts, analyze surnames, and suggest where to find archival records. Answer concisely, informatively, and politely in Ukrainian." +
-          (currentProfileId
-            ? `\n\nКористувач зараз переглядає профіль персони з ID=${currentProfileId}. Враховуй це, якщо питання стосується 'цієї людини' або її родинних зв'язків.`
-            : "") +
-          (focusedContext ? `\n\nОсь релевантні архівні дані:\n${focusedContext}` : ""),
-      },
-    });
+    const userModel = req.body.model || (req.headers["x-gemini-model"] as string) || process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const modelsToTry = [
+      userModel,
+      "gemini-2.5-flash",
+      "gemini-1.5-flash",
+      "gemini-2.0-flash",
+    ].filter((m, i, arr) => m && arr.indexOf(m) === i && m !== "gemini-3.8-flash");
+
+    let response: any = null;
+    let usedModel = modelsToTry[0];
+    let lastError: any = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        usedModel = modelName;
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: contents,
+          config: {
+            systemInstruction:
+              "You are a helpful Ukrainian genealogical AI assistant named Geneo AI. " +
+              "Help the user discover their family tree, find ancestors, explain relationships, analyze surnames, and find historical archival evidence. " +
+              "Answer informatively, politely, and structured in Ukrainian.\n\n" +
+              (currentProfileId
+                ? `Користувач зараз переглядає профіль персони з ID=${currentProfileId}. Враховуй це, якщо питання стосується 'цієї людини' або її родинних зв'язків.\n`
+                : "") +
+              (focusedContext ? `АРХІВНІ ДАНІ РОДИННОГО ДЕРЕВА:\n${focusedContext}` : ""),
+          },
+        });
+
+        if (response && response.text) {
+          break; // Успішно отримано відповідь
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[Gemini] Model ${modelName} returned error:`, err?.message || err);
+        // Продовжуємо спробу з наступною моделлю при 503 / 429 / 404
+        continue;
+      }
+    }
+
+    if (!response || !response.text) {
+      const errMsg = lastError?.message || (typeof lastError === "string" ? lastError : "Не вдалося отримати відповідь від AI моделі.");
+      let cleanMsg = errMsg;
+      try {
+        const parsed = JSON.parse(errMsg);
+        if (parsed?.error?.message) cleanMsg = parsed.error.message;
+      } catch (e) {}
+      return res.status(500).json({ error: cleanMsg });
+    }
 
     res.json({
       text: response.text,
+      model: usedModel,
       usage: response.usageMetadata
         ? {
             totalTokenCount: response.usageMetadata.totalTokenCount,
@@ -1805,7 +1981,7 @@ app.post("/api/gemini/chat", async (req, res) => {
     });
   } catch (error: any) {
     console.error("Gemini API Error:", error);
-    res.status(500).json({ error: error.message || "Error generating response" });
+    res.status(500).json({ error: error.message || "Помилка генерації відповіді AI" });
   }
 });
 

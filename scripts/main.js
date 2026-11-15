@@ -429,7 +429,11 @@ class App {
 		this.managers.zoom = new ZoomManager();
 		window.zoomManager = this.managers.zoom;
 		this.managers.share = new ShareManager(this);
-		this.managers.ai = new AIManager();
+		this.managers.ai = new AIManager({
+			getEngine: () => this.engine,
+			getCurrentProfileId: () => this.currentProfileId,
+			onNavigatePerson: (id) => this.navigateToId(id),
+		});
 		this.managers.statusFilter = new StatusFilterManager({
 			onFilterChange: (mode) => {
 				if (this.managers.fanChart) {
