@@ -141,11 +141,13 @@ body.in-analytics .mobile-menu-toggle,
 .app-wrapper:has(#analytics-view:not(.hidden)) #mobile-menu-btn,
 body:has(#analytics-view:not(.hidden)) #mobile-menu-btn,
 body.in-analytics #mobile-menu-btn,
-.in-analytics #mobile-menu-btn {
+.in-analytics #mobile-menu-btn,
+#analytics-view:not(.hidden) ~ #mobile-menu-btn {
     display: none !important;
     opacity: 0 !important;
     pointer-events: none !important;
     visibility: hidden !important;
+    z-index: -9999 !important;
 }
 
 @media (max-width: 767px) {
@@ -161,8 +163,11 @@ body.in-analytics #mobile-menu-btn,
 
     .analytics-dialog .analytics-body,
     .analytics-body {
-        padding: 12px 14px calc(96px + env(safe-area-inset-bottom, 24px)) 14px !important;
+        padding: 12px 14px calc(16px + env(safe-area-inset-bottom, 12px)) 14px !important;
         box-sizing: border-box;
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
     .analytics-view.in-detailed-view .analytics-dialog .analytics-body,
@@ -245,6 +250,19 @@ body.in-analytics #mobile-menu-btn,
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+#analytics-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .analytics-section h4 {
@@ -1256,11 +1274,14 @@ body.in-analytics #mobile-menu-btn,
     }
 
     .analytics-dialog .analytics-body {
-        padding-bottom: calc(96px + env(safe-area-inset-bottom, 24px)) !important;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 12px)) !important;
     }
 
     .analytics-view {
-        overflow-x: clip !important;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 }
 
@@ -1316,14 +1337,17 @@ body.in-analytics #mobile-menu-btn,
 
 .analytics-hero-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
     .analytics-hero-stats {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 10px;
     }
 }
@@ -1343,6 +1367,10 @@ body.in-analytics #mobile-menu-btn,
     position: relative;
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .analytics-stat-card:hover {
@@ -1452,14 +1480,17 @@ body.in-analytics #mobile-menu-btn,
 /* Сітка карток категорій */
 .analytics-features-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     .analytics-features-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 8px;
     }
 
@@ -1526,6 +1557,10 @@ body.in-analytics #mobile-menu-btn,
     transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     cursor: pointer;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .analytics-feature-card:hover {
@@ -1560,8 +1595,9 @@ body.in-analytics #mobile-menu-btn,
 }
 
 .feature-card-content {
-    flex: 1;
+    flex: 1 1 0%;
     min-width: 0;
+    overflow: hidden;
 }
 
 .feature-card-title {
@@ -1570,6 +1606,9 @@ body.in-analytics #mobile-menu-btn,
     color: var(--color-text-main);
     margin: 0 0 3px 0;
     line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .feature-card-desc {

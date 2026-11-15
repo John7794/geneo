@@ -186,6 +186,10 @@ export class MobileMenuManager {
 
 		e.preventDefault();
 		const action = actionBtn.getAttribute("data-action");
+		if (action === "analytics") {
+			document.body.classList.add("in-analytics");
+			if (this.fabBtn) this.fabBtn.style.setProperty("display", "none", "important");
+		}
 		this.close();
 
 		setTimeout(() => {
@@ -229,6 +233,8 @@ export class MobileMenuManager {
 				document.getElementById("btn-ai")?.click();
 				break;
 			case "analytics":
+				document.body.classList.add("in-analytics");
+				if (this.fabBtn) this.fabBtn.style.setProperty("display", "none", "important");
 				document.getElementById("btn-analytics")?.click();
 				break;
 			case "events":

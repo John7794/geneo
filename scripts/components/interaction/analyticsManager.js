@@ -116,6 +116,9 @@ export class AnalyticsManager {
 
 		if (this.openBtn) {
 			this.openBtn.addEventListener("click", () => {
+				document.body.classList.add("in-analytics");
+				const fabBtn = document.getElementById("mobile-menu-btn");
+				if (fabBtn) fabBtn.style.setProperty("display", "none", "important");
 			    const url = new URL(window.location);
                 if (url.searchParams.get("view") === "analytics") {
                     if (window.app && window.app.navigateToId) {
