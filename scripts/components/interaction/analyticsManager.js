@@ -1444,7 +1444,7 @@ export class AnalyticsManager {
                 quickNavSlot.innerHTML = quickNavHtml;
                 this.containerPlaces.innerHTML = `
                     <div class="analytics-places-wrapper" style="width: 100%;">
-                        <ul class="analytics-list-none" style="padding: 0; margin: 0;">
+                        <ul class="analytics-places-list" style="display: flex; flex-direction: column; list-style: none; padding: 0; margin: 0;">
                             ${html}
                         </ul>
                     </div>
@@ -1453,7 +1453,7 @@ export class AnalyticsManager {
                 this.containerPlaces.innerHTML = `
                     <div class="analytics-places-wrapper" style="width: 100%;">
                         ${quickNavHtml}
-                        <ul class="analytics-list-none" style="padding: 0; margin: 0;">
+                        <ul class="analytics-places-list" style="display: flex; flex-direction: column; list-style: none; padding: 0; margin: 0;">
                             ${html}
                         </ul>
                     </div>
