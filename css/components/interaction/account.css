@@ -527,23 +527,44 @@ select.form-input {
 
 /* Вкладка Дерева */
 .trees-header-row {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 1.25rem;
-	gap: 20px;
-	flex-wrap: wrap;
+	margin-bottom: 0.875rem;
 }
 
 .trees-header-row .section-desc {
-	flex: 1;
-	min-width: 220px;
 	margin: 0;
+	font-size: 0.875rem;
+	color: var(--color-text-muted);
+	line-height: 1.45;
 }
 
-.trees-header-row #btn-account-add-tree {
-	flex-shrink: 0;
-	white-space: nowrap;
+.trees-actions-group {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin-bottom: 1.25rem;
+}
+
+.trees-action-btn {
+	width: 100% !important;
+	height: 44px !important;
+	min-height: 44px !important;
+	padding: 0 16px !important;
+	font-size: 0.925rem !important;
+	font-weight: 600 !important;
+	border-radius: 10px !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	text-align: center !important;
+	gap: 8px !important;
+	box-sizing: border-box !important;
+	white-space: nowrap !important;
+	transition: all 0.2s ease !important;
+}
+
+.trees-action-btn i {
+	font-size: 1.15rem !important;
+	flex-shrink: 0 !important;
 }
 
 .section-desc {
@@ -1544,19 +1565,25 @@ select.form-input {
 
 	/* Вкладка Мої дерева */
 	.trees-header-row {
-		flex-direction: column !important;
-		align-items: stretch !important;
-		gap: 10px !important;
+		margin-bottom: 0.75rem !important;
 	}
 
-	.trees-header-row button {
+	.trees-actions-group {
+		display: flex !important;
+		flex-direction: column !important;
+		gap: 10px !important;
+		width: 100% !important;
+		margin-bottom: 1.25rem !important;
+	}
+
+	.trees-action-btn {
 		width: 100% !important;
 		height: 44px !important;
 		min-height: 44px !important;
 		justify-content: center !important;
-		border-radius: 10px !important;
 		font-size: 0.95rem !important;
 		font-weight: 600 !important;
+		border-radius: 10px !important;
 	}
 
 	.account-tree-card {

@@ -329,17 +329,20 @@ export class AccountModalManager {
 		return `
 			<div class="account-trees-section">
 				<div class="trees-header-row">
-					<p class="section-desc">Керуйте своїми родинними деревами або додайте нове через файл GEDCOM.</p>
-					<button id="btn-account-add-tree" class="btn btn-primary btn-sm">
-						<i class="ri-add-line"></i> Додати дерево (GEDCOM)
+					<p class="section-desc">Керуйте своїми родинними деревами або додайте нове через файл GEDCOM чи Google Диск.</p>
+				</div>
+
+				<div class="trees-actions-group">
+					<button id="btn-account-add-tree" type="button" class="btn btn-primary trees-action-btn">
+						<i class="ri-file-upload-line"></i>
+						<span>Додати дерево (GEDCOM)</span>
+					</button>
+					<button id="btn-account-add-gdrive-tree" type="button" class="btn btn-primary trees-action-btn js-open-gdrive">
+						<i class="ri-google-fill"></i>
+						<span>Підключити з Google Диску</span>
 					</button>
 				</div>
 
-				<div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
-					<button id="btn-account-add-gdrive-tree" type="button" class="btn btn-outline btn-sm js-open-gdrive" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
-						<i class="ri-folder-add-line" style="color: var(--color-primary);"></i> Підключити папку з Google Диску
-					</button>
-				</div>
 				<div class="account-trees-list">
 					${allTrees
 						.map((ws) => {
@@ -704,6 +707,16 @@ export class AccountModalManager {
 				if (this.gedcomManager) {
 					if (typeof this.gedcomManager.open === "function") this.gedcomManager.open();
 					else if (typeof this.gedcomManager.openModal === "function") this.gedcomManager.openModal();
+				}
+			};
+		}
+
+		const addGdriveBtn = this.modal.querySelector("#btn-account-add-gdrive-tree");
+		if (addGdriveBtn) {
+			addGdriveBtn.onclick = () => {
+				this.close();
+				if (this.driveModalManager && typeof this.driveModalManager.open === "function") {
+					this.driveModalManager.open();
 				}
 			};
 		}
