@@ -2786,9 +2786,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
                         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
                         
+                        const aView = document.getElementById('analytics-view');
+                        if (!document.body.classList.contains('in-analytics') || !aView || aView.classList.contains('hidden')) return;
+                        
                         if (timelineViewMode !== 'chart') return;
                         if (!chartContainer || chartContainer.style.display === 'none') return;
-                        if (!document.body.classList.contains('in-analytics') && !document.querySelector('.analytics-dialog')) return;
                         
                         const step = e.shiftKey ? 10 : 1;
                         const direction = e.key === 'ArrowLeft' ? -step : step;

@@ -50,10 +50,20 @@ export class AppRouter {
 	}
 
 	_navigateSwipe(direction) {
-		// Блокуємо свайпи, якщо відкрито аналітику або модальне вікно
+		// Блокуємо свайпи, якщо відкрито аналітику
+		const analyticsView = document.getElementById("analytics-view");
 		if (
 			document.body.classList.contains("in-analytics") ||
-			document.querySelector('.analytics-dialog, [role="dialog"], .popup-overlay') !== null
+			(analyticsView && !analyticsView.classList.contains("hidden"))
+		) {
+			return;
+		}
+
+		// Блокуємо свайпи, якщо відкрита фотогалерея або активне модальне вікно
+		if (
+			document.body.classList.contains("no-scroll") ||
+			document.body.classList.contains("pswp-open") ||
+			document.querySelector(".popup-overlay.show, .popup-overlay.open, .popup-overlay:not(.hidden)") !== null
 		) {
 			return;
 		}

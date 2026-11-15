@@ -68,17 +68,25 @@ export class MobileSwipeManager {
 			"video",
 		];
 
+		// Блокуємо свайпи, якщо відкрито модальне вікно, галерею або аналітику
+		const analyticsView = document.getElementById("analytics-view");
 		if (
 			document.body.classList.contains("pswp-open") ||
 			document.body.classList.contains("no-scroll") ||
 			document.body.classList.contains("in-analytics") ||
-			document.querySelector('.analytics-dialog, [role="dialog"], .popup-overlay') !== null
+			(analyticsView && !analyticsView.classList.contains("hidden")) ||
+			document.querySelector(".popup-overlay.show, .popup-overlay.open, .popup-overlay:not(.hidden)") !== null
 		) {
 			return true;
 		}
 
-		if (target.closest(ignoreSelectors.join(", ")) !== null || target.closest('.analytics-dialog, .analytics-view, [role="dialog"], .popup-overlay') !== null) {
-			return true;
+		if (target && target.closest) {
+			if (target.closest(ignoreSelectors.join(", ")) !== null) {
+				return true;
+			}
+			if (target.closest(".analytics-dialog, .analytics-view") !== null) {
+				return true;
+			}
 		}
 
 		const isMobile =
@@ -124,15 +132,15 @@ export class MobileSwipeManager {
 		const absX = Math.abs(dx);
 		const absY = Math.abs(dy);
 
-		// Якщо користувач почав вертикальний скрол — негайно вимикаємо детекцію свайпу для цього жесту,
+		// Якщо користувач почав чіткий вертикальний скрол — вимикаємо свайп для цього жесту,
 		// щоб нативний вертикальний скрол сторінки працював плавно без затримок
-		if (!this.isSwiping && absY > 15 && absY > absX) {
+		if (!this.isSwiping && absY > 25 && absY > absX * 1.2) {
 			this.isDisabled = true;
 			return;
 		}
 
-		// Свайп фіксується тільки якщо чіткий горизонтальний рух (X переважає Y мінімум у 1.8 раза і подолав поріг)
-		if (absX > absY * 1.8 && absX > 20) {
+		// Свайп фіксується тільки якщо переважає горизонтальний рух
+		if (absX > absY * 1.3 && absX > 15) {
 			this.isSwiping = true;
 			if (e.cancelable) {
 				e.preventDefault();
@@ -160,16 +168,12 @@ export class MobileSwipeManager {
 		const absX = Math.abs(dx);
 		const absY = Math.abs(dy);
 
-		// Чіткий горизонтальний свайп:
-		// 1. Рух горизонтальний (absX > absY * 1.5)
-		// 2. Вертикальне відхилення не перевищує 80px (захист від випадкових діагональних жестів)
-		// 3. Дистанція подолала threshold
-		// 4. Жест вклався у тайм-аут
+		// Чіткий горизонтальний свайп
 		if (
-			(this.isSwiping || absX > absY * 1.5) &&
+			(this.isSwiping || absX > absY * 1.2) &&
 			elapsedTime <= this.timeout &&
 			absX >= this.threshold &&
-			absY <= 80
+			absY <= 150
 		) {
 			if (dx > 0) {
 				// Змах вліво (наступний елемент)

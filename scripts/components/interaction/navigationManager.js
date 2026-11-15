@@ -111,11 +111,20 @@ export class NavigationManager {
 			return;
 		}
 
-		// Блокуємо навігацію стрілками, якщо відкрито модальне вікно, аналітику або галерею
+		// Блокуємо навігацію стрілками, якщо відкрито аналітику
+		const analyticsView = document.getElementById("analytics-view");
+		if (
+			document.body.classList.contains("in-analytics") ||
+			(analyticsView && !analyticsView.classList.contains("hidden"))
+		) {
+			return;
+		}
+
+		// Блокуємо, якщо відкрита фотогалерея або активне модальне вікно
 		if (
 			document.body.classList.contains(UI_CLASSES.noScroll || "no-scroll") ||
-			document.body.classList.contains("in-analytics") ||
-			document.querySelector('.analytics-dialog, [role="dialog"], .popup-overlay') !== null
+			document.body.classList.contains("pswp-open") ||
+			document.querySelector(".popup-overlay.show, .popup-overlay.open, .popup-overlay:not(.hidden)") !== null
 		) {
 			return;
 		}
@@ -136,12 +145,24 @@ export class NavigationManager {
 		if (now - this.lastMoveTime < this.throttleTime) return;
 		this.lastMoveTime = now;
 
-		if (this.sortedIds.length <= 1) return;
+		// Якщо sortedIds порожній, підтягуємо чергу з lineage
+		if (!this.sortedIds || this.sortedIds.length <= 1) {
+			const fallbackQueue = window.app?.managers?.lineage?.queue;
+			if (fallbackQueue && fallbackQueue.length > 1) {
+				this.sortedIds = fallbackQueue;
+			} else {
+				return;
+			}
+		}
 
 		// Слідкуємо, щоб індекс відповідав глобальному поточному профілю
 		const currentId = window.app?.currentProfileId;
 		if (currentId) {
-			const idx = this.sortedIds.indexOf(String(currentId));
+			let idx = this.sortedIds.indexOf(String(currentId));
+			if (idx === -1 && window.app?.engine) {
+				const resolved = window.app.engine.resolveRealId ? window.app.engine.resolveRealId(currentId) : null;
+				if (resolved) idx = this.sortedIds.indexOf(String(resolved));
+			}
 			if (idx !== -1) {
 				this.currentIndex = idx;
 			}
