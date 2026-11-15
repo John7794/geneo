@@ -518,7 +518,8 @@ export class AccountModalManager {
 					</p>
 					<div class="drive-tools-footer">
 						<button id="btn-account-open-drive-modal" type="button" class="btn btn-secondary btn-sm">
-							<i class="ri-folder-shared-line"></i> Розгорнути структуру / Менеджер Google Диску
+							<i class="ri-folder-shared-line" style="flex-shrink: 0; font-size: 16px;"></i>
+							<span>Розгорнути структуру / Менеджер Google Диску</span>
 						</button>
 					</div>
 				</div>
