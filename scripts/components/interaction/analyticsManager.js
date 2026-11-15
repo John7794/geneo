@@ -1,6 +1,6 @@
 import { COLUMNS } from "../../core/dbSchema.js";
 import { i18n } from "../../core/i18n.js";
-import { calculateAgeAtDeath, convertJulianToGregorian } from "../../utils/dateUtils.js";
+import { calculateAgeAtDeath, convertJulianToGregorian, extractNumber } from "../../utils/dateUtils.js";
 import { resolveCoatUrl } from "../../utils/coatUtils.js";
 import { renderPersonTile } from "../ui/shared/personTile.js";
 import { findPersonDetails, generateInitialsAvatar, getAvatarUrl, getEffectiveStatusMap, resolveStatus, formatPersonDisplay } from "../../utils/personUtils.js";
@@ -723,22 +723,49 @@ export class AnalyticsManager {
 
                 const age = calculateAgeAtDeath(birthData, deathData);
                 if (age !== null && age >= 0 && age <= 120) {
-                    const isApprox = !birthData.day || !birthData.month || !deathData.day || !deathData.month;
+                    const bD = extractNumber(birthData.day);
+                    const bM = extractNumber(birthData.month);
+                    const bYStr = String(birthData.year || "").trim();
+                    const isBYExact = /^\d{4}$/.test(bYStr);
+
+                    const dD = extractNumber(deathData.day);
+                    const dM = extractNumber(deathData.month);
+                    const dYStr = String(deathData.year || "").trim();
+                    const isDYExact = /^\d{4}$/.test(dYStr);
+
+                    // Підтверджений вік вимагає точно відомих дня, місяця і 4-значного року народження та смерті
+                    const isExactLifespan = (bD > 0 && bD <= 31 && bM > 0 && bM <= 12 && isBYExact) &&
+                                            (dD > 0 && dD <= 31 && dM > 0 && dM <= 12 && isDYExact);
+
                     const details = findPersonDetails(id, this.engine) || person;
                     let fullName = formatPersonDisplay(details);
                     const bYear = birthData.year || "?";
                     const dYear = deathData.year || "?";
                     let exactDays = null;
-                    if (!isApprox) {
-                        const bDate = new Date(Date.UTC(birthData.year, birthData.month - 1, birthData.day));
-                        const dDate = new Date(Date.UTC(deathData.year, deathData.month - 1, deathData.day));
+                    if (isExactLifespan) {
+                        const bDate = new Date(Date.UTC(parseInt(bYStr, 10), bM - 1, bD));
+                        const dDate = new Date(Date.UTC(parseInt(dYStr, 10), dM - 1, dD));
                         const ms = dDate.getTime() - bDate.getTime();
                         if (ms > 0) exactDays = Math.floor(ms / (1000 * 60 * 60 * 24));
                     }
-                    if (!isConfirmed) lifespansApprox.push({age, id, name: fullName, bYear, dYear, exactDays, gender: person.gender});
-                    else lifespansConfirmed.push({age, id, name: fullName, bYear, dYear, exactDays, gender: person.gender});
+                    if (isExactLifespan) {
+                        lifespansConfirmed.push({age, id, name: fullName, bYear, dYear, exactDays, gender: person.gender});
+                    } else {
+                        lifespansApprox.push({age, id, name: fullName, bYear, dYear, exactDays: null, gender: person.gender});
+                    }
                 }
-			}
+			} else if (deaths && deaths.length > 0) {
+                // Якщо відомий тільки вік зі смерті без відомої дати народження - це непідтверджений вік
+                const d = deaths[0];
+                const dAgeRaw = d[COLUMNS.death?.age || "d_age"];
+                const dAge = extractNumber(dAgeRaw);
+                if (dAge > 0 && dAge <= 120) {
+                    const details = findPersonDetails(id, this.engine) || person;
+                    let fullName = formatPersonDisplay(details);
+                    const dYear = d[COLUMNS.death?.year || "d_year"] || "?";
+                    lifespansApprox.push({age: dAge, id, name: fullName, bYear: "?", dYear, exactDays: null, gender: person.gender});
+                }
+            }
 		});
 
 		// Render General
@@ -1188,7 +1215,17 @@ export class AnalyticsManager {
                  }
                  const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
                  if (analyticsBody) analyticsBody.scrollTop = 0;
-                 window.scrollTo(0, 0);
+                 if (analyticsView) analyticsView.scrollTop = 0;
+                 document.documentElement.scrollTop = 0;
+                 document.body.scrollTop = 0;
+                 window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                 requestAnimationFrame(() => {
+                     if (analyticsBody) analyticsBody.scrollTop = 0;
+                     if (analyticsView) analyticsView.scrollTop = 0;
+                     document.documentElement.scrollTop = 0;
+                     document.body.scrollTop = 0;
+                     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                 });
              };
 
              navBtns.forEach(btn => {
@@ -1230,8 +1267,16 @@ export class AnalyticsManager {
                          if (titleView) titleView.textContent = title;
                          const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
                          if (analyticsBody) analyticsBody.scrollTop = 0;
-                         window.scrollTo(0, 0);
+                         if (analyticsView) analyticsView.scrollTop = 0;
+                         document.documentElement.scrollTop = 0;
+                         document.body.scrollTop = 0;
+                         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                          requestAnimationFrame(() => {
+                             if (analyticsBody) analyticsBody.scrollTop = 0;
+                             if (analyticsView) analyticsView.scrollTop = 0;
+                             document.documentElement.scrollTop = 0;
+                             document.body.scrollTop = 0;
+                             window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                              updateStickyPanelCssVar(document.querySelector('.analytics-timeline-sticky-panel'), '--timeline-sticky-h');
                              updateStickyPanelCssVar(document.querySelector('.analytics-places-sticky-panel'), '--places-sticky-h');
                              updateStickyPanelCssVar(document.querySelector('#analytics-events .analytics-quick-nav-bar'), '--events-sticky-h');
