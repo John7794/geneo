@@ -5,6 +5,7 @@
     --timeline-sticky-h: 92px;
     --places-sticky-h: 92px;
     --events-sticky-h: 52px;
+    --names-sticky-h: 52px;
 }
 
 .analytics-view {
@@ -124,13 +125,18 @@
     }
 
     .analytics-dialog .analytics-lifespan-header,
-    .analytics-dialog .analytics-names-header,
     .analytics-dialog .analytics-sticky-controls,
     .analytics-dialog .analytics-timeline-sticky-panel,
     .analytics-dialog .analytics-places-sticky-panel,
     .analytics-dialog .analytics-names-sticky-panel,
     .analytics-dialog #analytics-events .analytics-quick-nav-bar {
         top: 0px !important;
+        background: var(--color-bg-card) !important;
+    }
+
+    .analytics-dialog .analytics-names-header {
+        top: var(--names-sticky-h, 52px) !important;
+        background: var(--color-bg-card) !important;
     }
 }
 
@@ -185,9 +191,18 @@ body.in-analytics #mobile-menu-btn,
         padding-top: 0 !important;
     }
 
-    .analytics-lifespan-header,
-    .analytics-names-header {
+    .analytics-lifespan-header {
         top: var(--analytics-header-offset, 56px) !important;
+        background: var(--color-bg-body) !important;
+    }
+
+    .analytics-sticky-controls {
+        top: var(--analytics-header-offset, 56px) !important;
+        background: var(--color-bg-body) !important;
+    }
+
+    .analytics-names-header {
+        top: calc(var(--analytics-header-offset, 56px) + var(--names-sticky-h, 52px)) !important;
         background: var(--color-bg-body) !important;
     }
 }
@@ -521,12 +536,54 @@ body.in-analytics #mobile-menu-btn,
     box-sizing: border-box;
     border-bottom: 1px solid var(--color-border);
     margin-top: 0;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
 }
 
 .analytics-sticky-controls {
     padding-top: 10px;
     padding-bottom: 10px;
     margin-bottom: 14px;
+}
+
+.analytics-sort-controls.analytics-sticky-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.analytics-sort-controls.analytics-sticky-controls .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 7px 4px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+@media (min-width: 768px) {
+    .analytics-sort-controls.analytics-sticky-controls {
+        flex-wrap: wrap;
+    }
+    .analytics-sort-controls.analytics-sticky-controls .btn {
+        flex: 0 0 auto;
+        padding: 6px 14px;
+        font-size: 13px;
+    }
+}
+
+.analytics-sort-controls .btn.active,
+.analytics-sort-controls button.active {
+    background: var(--color-primary) !important;
+    color: #ffffff !important;
+    border-color: var(--color-primary) !important;
 }
 
 .analytics-places-sticky-panel {
@@ -541,10 +598,30 @@ body.in-analytics #mobile-menu-btn,
     margin-bottom: 14px;
 }
 
-.analytics-lifespan-header,
-.analytics-names-header {
+.analytics-lifespan-header {
     position: sticky;
     top: var(--analytics-header-offset, 0px);
+    z-index: 35;
+    background: var(--analytics-surface-bg);
+    margin-left: calc(-1 * var(--analytics-body-px, 14px));
+    margin-right: calc(-1 * var(--analytics-body-px, 14px));
+    padding-left: var(--analytics-body-px, 14px);
+    padding-right: var(--analytics-body-px, 14px);
+    width: calc(100% + 2 * var(--analytics-body-px, 14px));
+    box-sizing: border-box;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
+}
+
+.analytics-names-header {
+    position: sticky;
+    top: calc(var(--analytics-header-offset, 0px) + var(--names-sticky-h, 52px));
     z-index: 35;
     background: var(--analytics-surface-bg);
     margin-left: calc(-1 * var(--analytics-body-px, 14px));
@@ -566,7 +643,8 @@ body.in-analytics #mobile-menu-btn,
 .analytics-view.in-detailed-view .analytics-section,
 .analytics-view.in-detailed-view .analytics-section-content,
 .analytics-view.in-detailed-view #analytics-lifespan,
-.analytics-view.in-detailed-view #analytics-names {
+.analytics-view.in-detailed-view #analytics-names,
+.analytics-view.in-detailed-view #analytics-surnames {
     margin-top: 0 !important;
     padding-top: 0 !important;
 }

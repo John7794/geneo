@@ -101,6 +101,7 @@ export class AnalyticsManager {
 			updateStickyPanelCssVar(document.querySelector('.analytics-timeline-sticky-panel'), '--timeline-sticky-h');
 			updateStickyPanelCssVar(document.querySelector('.analytics-places-sticky-panel'), '--places-sticky-h');
 			updateStickyPanelCssVar(document.querySelector('#analytics-events .analytics-quick-nav-bar'), '--events-sticky-h');
+			updateStickyPanelCssVar(document.querySelector('#analytics-names-sticky-controls'), '--names-sticky-h');
 		});
 		if (this.btnToggleDetails) {
 		    this.btnToggleDetails.addEventListener("click", () => {
@@ -957,7 +958,9 @@ export class AnalyticsManager {
                     else if (btn.classList.contains('btn-sort-alpha')) btnMode = 'alphabet';
                     else if (btn.classList.contains('btn-sort-freq')) btnMode = 'frequency';
                     
-                    if (btnMode === mode) {
+                    const isActive = (btnMode === mode);
+                    btn.classList.toggle('active', isActive);
+                    if (isActive) {
                         btn.style.background = 'var(--color-primary)';
                         btn.style.color = '#ffffff';
                         btn.style.borderColor = 'var(--color-primary)';
@@ -974,9 +977,11 @@ export class AnalyticsManager {
                 renderNamesM(mode);
                 renderNamesF(mode);
                 updateNamesActiveBtn(mode);
+                updateStickyPanelCssVar(document.querySelector('#analytics-names-sticky-controls'), '--names-sticky-h');
             };
             
             updateNamesActiveBtn(activeNamesSort);
+            updateStickyPanelCssVar(document.querySelector('#analytics-names-sticky-controls'), '--names-sticky-h');
 
             // Bind all 3 buttons for names
             document.querySelectorAll('.btn-sort-freq').forEach(b => {
@@ -997,7 +1002,9 @@ export class AnalyticsManager {
                 else if (btn.classList.contains('btn-sort-alpha-s')) btnMode = 'alphabet';
                 else if (btn.classList.contains('btn-sort-freq-s')) btnMode = 'frequency';
                 
-                if (btnMode === mode) {
+                const isActive = (btnMode === mode);
+                btn.classList.toggle('active', isActive);
+                if (isActive) {
                     btn.style.background = 'var(--color-primary)';
                     btn.style.color = '#ffffff';
                     btn.style.borderColor = 'var(--color-primary)';
@@ -1288,6 +1295,7 @@ export class AnalyticsManager {
                              updateStickyPanelCssVar(document.querySelector('.analytics-timeline-sticky-panel'), '--timeline-sticky-h');
                              updateStickyPanelCssVar(document.querySelector('.analytics-places-sticky-panel'), '--places-sticky-h');
                              updateStickyPanelCssVar(document.querySelector('#analytics-events .analytics-quick-nav-bar'), '--events-sticky-h');
+                             updateStickyPanelCssVar(document.querySelector('#analytics-names-sticky-controls'), '--names-sticky-h');
                          });
                      }
                  });
