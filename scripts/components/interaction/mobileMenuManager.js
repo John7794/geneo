@@ -83,7 +83,7 @@ export class MobileMenuManager {
 		const isLoaderVisible = appLoader && !appLoader.classList.contains("hidden");
 
 		const analyticsView = document.getElementById("analytics-view");
-		const isAnalyticsVisible = analyticsView && !analyticsView.classList.contains("hidden");
+		const isAnalyticsVisible = (analyticsView && !analyticsView.classList.contains("hidden")) || document.body.classList.contains("in-analytics");
 
 		const openPopups = document.querySelectorAll(
 			".popup-overlay.show, .popup-overlay.open, .modal.show, .modal.open"

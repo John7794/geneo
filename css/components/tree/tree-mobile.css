@@ -133,6 +133,17 @@
 		transform: scale(0.9) !important;
 	}
 
+	/* Приховування кнопки мобільного меню при відкритій аналітиці */
+	body.in-analytics .mobile-menu-toggle,
+	body:has(#analytics-view:not(.hidden)) .mobile-menu-toggle,
+	.in-analytics #mobile-menu-btn,
+	body.in-analytics #mobile-menu-btn {
+		display: none !important;
+		opacity: 0 !important;
+		pointer-events: none !important;
+		visibility: hidden !important;
+	}
+
 	/* Приховуємо кнопку бургера та розділювач всередині доку на мобільних */
 	.dock-menu-toggle,
 	.top-bar-controls .panel-divider {

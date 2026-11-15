@@ -174,6 +174,15 @@ export class AnalyticsManager {
 
 	render() {
 		try {
+			document.body.classList.add("in-analytics");
+			const fabBtn = document.getElementById("mobile-menu-btn");
+			if (fabBtn) fabBtn.style.setProperty("display", "none", "important");
+			const btnBackModal = document.getElementById("btn-back-analytics");
+			const analyticsView = document.getElementById("analytics-view");
+			if (btnBackModal && analyticsView && !analyticsView.classList.contains("in-detailed-view")) {
+				btnBackModal.style.setProperty("display", "none", "important");
+			}
+
 			if (this._isRendered && this._lastEnginePeople === this.engine?.people) {
 				return;
 			}
@@ -1079,7 +1088,10 @@ export class AnalyticsManager {
                  const analyticsView = document.getElementById("analytics-view");
                  if (analyticsView) analyticsView.classList.remove('in-detailed-view');
                  if (headerTitle) headerTitle.textContent = "Аналітика родоводу";
-                 if (btnBackModal) btnBackModal.style.display = "none";
+                 if (btnBackModal) {
+                     btnBackModal.style.display = "none";
+                     btnBackModal.style.setProperty("display", "none", "important");
+                 }
                  const analyticsBody = document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body');
                  if (analyticsBody) analyticsBody.scrollTop = 0;
                  window.scrollTo(0, 0);

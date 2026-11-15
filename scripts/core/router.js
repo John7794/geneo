@@ -584,7 +584,13 @@ export class AppRouter {
 				}
 			}
 			if (profileContentEl) profileContentEl.classList.add("hidden");
-			if (analyticsViewEl) analyticsViewEl.classList.remove("hidden");
+			if (analyticsViewEl) {
+				analyticsViewEl.classList.remove("hidden");
+				if (!analyticsViewEl.classList.contains("in-detailed-view")) {
+					const btnBackModal = document.getElementById("btn-back-analytics");
+					if (btnBackModal) btnBackModal.style.setProperty("display", "none", "important");
+				}
+			}
 		}
 		
 		if (mode !== "analytics") {
