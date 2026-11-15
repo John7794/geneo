@@ -1734,7 +1734,11 @@ export class AnalyticsManager {
                                     participantsHtml = this._renderPersonChip(evt.person, evt.type);
                                 }
 
-                                let yearInfo = evt.original.yearStr ? `<span class="analytics-event-year-badge">${escapeHtml(evt.original.yearStr)} р.</span>` : (evt.year && !isNaN(evt.year) ? `<span class="analytics-event-year-badge">${evt.year} р.</span>` : "");
+                                const rawYear = evt.original?.yearStr || (evt.year && !isNaN(evt.year) ? String(evt.year) : "");
+                                const yearDisplay = rawYear ? rawYear.trim().replace(/\s*р\.?$/i, "") + " р." : "";
+                                const yearInfo = yearDisplay 
+                                    ? `<span class="analytics-event-year-badge"><i class="ri-calendar-line"></i> ${escapeHtml(yearDisplay)}</span>` 
+                                    : "";
                                 
                                 const borderTopClass = idx > 0 ? "has-border-top" : "";
                                 html += `

@@ -322,8 +322,8 @@ export class EventsManager {
 
 				const timeAgoText =
 					evt.yearsAgo !== null && evt.yearsAgo > 0
-						? `<span class="${UI_CLASSES.eventYears}">${escapeHtml(evt.yearsAgo)} ${yearsAgoLabel}</span>`
-						: `<span class="${UI_CLASSES.eventYears}">${todayLabel}</span>`;
+						? `<span class="${UI_CLASSES.eventYears}"><i class="ri-history-line"></i> ${escapeHtml(evt.yearsAgo)} ${yearsAgoLabel}</span>`
+						: `<span class="${UI_CLASSES.eventYears}"><i class="ri-calendar-check-line"></i> ${todayLabel}</span>`;
 
 				let content = "";
 
