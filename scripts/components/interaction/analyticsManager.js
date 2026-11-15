@@ -1754,38 +1754,26 @@ export class AnalyticsManager {
                     
                     tocLinksHtml += `<li><a href="#event-month-${m}" class="profile-toc-link js-event-month-link" data-month="${m}">${mName}</a></li>`;
                     
-                    html += `
-                        <li id="event-month-${m}" class="analytics-event-month-item" style="list-style: none; margin-top: ${html === "" ? "0" : "24px"}; margin-bottom: 12px; padding-bottom: 4px;">
-                            <div class="analytics-event-month-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 2px solid var(--color-border); padding-bottom: 8px;">
-                                <h3 style="margin: 0; font-size: 20px; text-transform: capitalize; color: var(--color-text-main);">${mName}</h3>
-                                <i class="ri-arrow-down-s-line analytics-event-month-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 24px; transform: rotate(180deg);"></i>
-                            </div>
-                            <div class="analytics-event-month-body" style="display: block; padding-top: 8px;">
-                                <ul style="list-style: none; padding: 0; margin: 0;">
-                    `;
-                    
+                    let monthTotalCount = 0;
+                    if (grouped[m]) {
+                        Object.values(grouped[m]).forEach(dayGroup => {
+                            Object.values(dayGroup).forEach(evts => {
+                                monthTotalCount += evts.length;
+                            });
+                        });
+                    }
+
                     const sortedDays = Object.keys(grouped[m]).map(Number).sort((a, b) => a - b);
+                    let daysHtml = "";
+
                     sortedDays.forEach(d => {
-                        html += `
-                            <li style="list-style: none; margin-top: 16px; margin-bottom: 8px;">
-                                <div style="margin: 0; font-size: 16px; font-weight: 600; color: var(--color-text-main); background: var(--color-bg-sub); padding: 4px 12px; border-radius: 4px; display: inline-block;">${d} ${getMonthName(m)}</div>
-                            </li>
-                        `;
-                        
                         const types = Object.keys(grouped[m][d]);
-                        // Define fixed order for types if needed, or just use what exists
                         const typeOrder = ['birth', 'baptism', 'marriage', 'death', 'funeral'];
                         types.sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b));
                         
-                        types.forEach(t => {
+                        const typesHtml = types.map(t => {
                             const evts = grouped[m][d][t];
-                            html += `
-                                <li style="list-style: none; margin-top: 8px; margin-bottom: 8px; margin-left: 12px;">
-                                    <div style="font-size: 14px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 6px;">${typeLabels[t]}</div>
-                                    <div class="analytics-event-group-card" style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 10px; padding: 4px 14px; display: flex; flex-direction: column;">
-                            `;
-                            
-                            evts.forEach((evt, idx) => {
+                            const rowsHtml = evts.map((evt, idx) => {
                                 let participantsHtml = "";
                                 if (evt.type === "marriage" && evt.spouse) {
                                     participantsHtml = this._renderCoupleGroup(evt.person, evt.spouse, evt.type);
@@ -1800,21 +1788,48 @@ export class AnalyticsManager {
                                     : "";
                                 
                                 const borderTopClass = idx > 0 ? "has-border-top" : "";
-                                html += `
+                                return `
                                     <div class="analytics-event-participant-row ${borderTopClass}">
                                         <div class="analytics-event-participant-content">${participantsHtml}</div>
                                         ${yearInfo}
                                     </div>
                                 `;
-                            });
-                            
-                            html += `
+                            }).join("");
+
+                            return `
+                                <div class="analytics-event-type-group">
+                                    <div class="analytics-event-type-title">${escapeHtml(typeLabels[t])}</div>
+                                    <div class="analytics-event-group-card">
+                                        ${rowsHtml}
                                     </div>
-                                </li>
+                                </div>
                             `;
-                        });
+                        }).join("");
+
+                        daysHtml += `
+                            <li class="analytics-event-day-item">
+                                <div class="analytics-event-day-heading">
+                                    <span class="analytics-event-day-title">${d} ${escapeHtml(getMonthName(m))}</span>
+                                </div>
+                                <div class="analytics-event-day-content" style="display: flex; flex-direction: column; gap: 8px;">
+                                    ${typesHtml}
+                                </div>
+                            </li>
+                        `;
                     });
+
                     html += `
+                        <li id="event-month-${m}" class="analytics-event-month-item">
+                            <div class="analytics-event-month-header">
+                                <h3 class="analytics-event-month-title">${escapeHtml(mName)}</h3>
+                                <div class="analytics-event-month-meta">
+                                    <span class="analytics-event-month-badge">${monthTotalCount}</span>
+                                    <i class="ri-arrow-down-s-line analytics-event-month-icon" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 20px; transform: rotate(0deg);"></i>
+                                </div>
+                            </div>
+                            <div class="analytics-event-month-body" style="display: none; padding-top: 10px; border-top: 1px solid var(--color-border-light); margin-top: 10px;">
+                                <ul class="analytics-event-days-list" style="list-style: none; padding: 0; margin: 0;">
+                                    ${daysHtml}
                                 </ul>
                             </div>
                         </li>
@@ -1865,21 +1880,13 @@ export class AnalyticsManager {
                         const body = item.querySelector('.analytics-event-month-body');
                         const icon = item.querySelector('.analytics-event-month-icon');
                         
-                        // Default open on desktop, closed on mobile
-                        if (window.innerWidth < 768) {
-                            body.style.display = 'none';
-                            if (icon) icon.style.transform = 'rotate(0deg)';
-                        } else {
-                            body.style.display = 'block';
-                            if (icon) icon.style.transform = 'rotate(180deg)';
+                        if (header && body) {
+                            header.addEventListener('click', () => {
+                                const isOpen = body.style.display === 'block';
+                                body.style.display = isOpen ? 'none' : 'block';
+                                if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                            });
                         }
-                        
-                        header.style.cursor = 'pointer';
-                        header.addEventListener('click', () => {
-                            const isOpen = body.style.display === 'block';
-                            body.style.display = isOpen ? 'none' : 'block';
-                            if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-                        });
                     });
                     
                     // Attach smooth scroll for quick-nav pills

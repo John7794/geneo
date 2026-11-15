@@ -198,7 +198,8 @@ body.in-analytics #mobile-menu-btn,
     }
 
     .analytics-sticky-controls,
-    .analytics-places-sticky-panel {
+    .analytics-places-sticky-panel,
+    #analytics-events .analytics-quick-nav-bar {
         top: var(--analytics-header-offset, 56px) !important;
         background: var(--color-bg-body) !important;
     }
@@ -1201,10 +1202,6 @@ body.in-analytics #mobile-menu-btn,
     }
 }
 
-.analytics-event-month-item {
-    scroll-margin-top: 180px;
-}
-
 .analytics-mobile-accordion-icon {
     display: none;
     transition: transform 0.3s;
@@ -1290,7 +1287,10 @@ body.in-analytics #mobile-menu-btn,
 
 #analytics-places,
 .analytics-places-list,
-.analytics-places-wrapper ul {
+.analytics-places-wrapper ul,
+#analytics-events-list,
+.analytics-events-wrapper ul,
+#analytics-deaths {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
@@ -1299,7 +1299,9 @@ body.in-analytics #mobile-menu-btn,
     margin: 0;
 }
 
-.analytics-place-item {
+.analytics-death-item,
+.analytics-place-item,
+.analytics-event-month-item {
     list-style: none;
     margin: 0 !important;
     padding: 11px 16px;
@@ -1308,14 +1310,25 @@ body.in-analytics #mobile-menu-btn,
     border-radius: 12px;
     box-sizing: border-box;
     transition: all 0.15s ease;
-    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--places-sticky-h, 92px) + 8px);
 }
 
-.analytics-place-item:hover {
+.analytics-death-item:hover,
+.analytics-place-item:hover,
+.analytics-event-month-item:hover {
     border-color: var(--color-primary-light, rgba(37, 99, 235, 0.3));
 }
 
-.analytics-place-header {
+.analytics-place-item {
+    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--places-sticky-h, 92px) + 8px);
+}
+
+.analytics-event-month-item {
+    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--events-sticky-h, 52px) + 8px);
+}
+
+.analytics-death-header,
+.analytics-place-header,
+.analytics-event-month-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1325,22 +1338,31 @@ body.in-analytics #mobile-menu-btn,
     margin: 0;
     width: 100%;
     background: transparent;
+    border: none;
 }
 
-.analytics-place-title {
+.analytics-death-header h3,
+.analytics-place-title,
+.analytics-event-month-title {
     margin: 0;
     font-size: 15.5px;
     font-weight: 600;
     color: var(--color-text-main);
 }
 
-.analytics-place-meta {
+.analytics-event-month-title {
+    text-transform: capitalize;
+}
+
+.analytics-place-meta,
+.analytics-event-month-meta {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.analytics-place-count-badge {
+.analytics-place-count-badge,
+.analytics-event-month-badge {
     font-size: 13px;
     font-weight: 600;
     color: var(--color-text-muted);
@@ -1350,14 +1372,18 @@ body.in-analytics #mobile-menu-btn,
     border: 1px solid var(--color-border);
 }
 
-.analytics-place-icon {
+.analytics-death-icon,
+.analytics-place-icon,
+.analytics-event-month-icon {
     transition: transform 0.3s ease;
     color: var(--color-text-main);
     font-size: 20px;
     transform: rotate(0deg);
 }
 
-.analytics-place-body {
+.analytics-death-body,
+.analytics-place-body,
+.analytics-event-month-body {
     padding-top: 10px;
     border-top: 1px solid var(--color-border-light);
     margin-top: 10px;
@@ -1368,7 +1394,13 @@ body.in-analytics #mobile-menu-btn,
     margin-bottom: 12px;
 }
 
-.analytics-place-event-heading {
+.analytics-event-day-item {
+    list-style: none;
+    margin-bottom: 14px;
+}
+
+.analytics-place-event-heading,
+.analytics-event-day-heading {
     display: flex;
     align-items: center;
     text-align: center;
@@ -1377,23 +1409,30 @@ body.in-analytics #mobile-menu-btn,
     color: var(--color-text-main);
     font-size: 14px;
     font-weight: 600;
-    text-transform: capitalize;
     user-select: none;
 }
 
-.analytics-place-event-group:first-child .analytics-place-event-heading {
+.analytics-place-event-heading {
+    text-transform: capitalize;
+}
+
+.analytics-place-event-group:first-child .analytics-place-event-heading,
+.analytics-event-day-item:first-child .analytics-event-day-heading {
     margin-top: 4px;
 }
 
 .analytics-place-event-heading::before,
-.analytics-place-event-heading::after {
+.analytics-place-event-heading::after,
+.analytics-event-day-heading::before,
+.analytics-event-day-heading::after {
     content: "";
     flex: 1;
     min-width: 16px;
     border-bottom: 1px solid var(--color-border);
 }
 
-.analytics-place-event-heading .analytics-place-event-title {
+.analytics-place-event-heading .analytics-place-event-title,
+.analytics-event-day-heading .analytics-event-day-title {
     padding: 0 14px;
     white-space: nowrap;
     display: inline-flex;
@@ -1406,53 +1445,59 @@ body.in-analytics #mobile-menu-btn,
     color: var(--color-text-muted);
 }
 
+.analytics-event-type-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin: 8px 0 6px 4px;
+}
+
+.analytics-event-group-card {
+    background: var(--color-bg-body);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 4px 14px;
+    display: flex;
+    flex-direction: column;
+}
+
 @media (max-width: 767px) {
     #analytics-places,
     .analytics-places-list,
-    .analytics-places-wrapper ul {
+    .analytics-places-wrapper ul,
+    #analytics-events-list,
+    .analytics-events-wrapper ul,
+    #analytics-deaths {
         gap: 6px !important;
     }
-    .analytics-place-item {
+    .analytics-death-item,
+    .analytics-place-item,
+    .analytics-event-month-item {
         padding: 9px 13px;
         border-radius: 10px;
     }
-    .analytics-place-title {
+    .analytics-death-header h3,
+    .analytics-place-title,
+    .analytics-event-month-title {
         font-size: 15px !important;
     }
-    .analytics-place-event-heading {
+    .analytics-place-event-heading,
+    .analytics-event-day-heading {
         margin: 14px 0 8px 0;
         font-size: 13.5px;
     }
-    .analytics-place-event-group:first-child .analytics-place-event-heading {
+    .analytics-place-event-group:first-child .analytics-place-event-heading,
+    .analytics-event-day-item:first-child .analytics-event-day-heading {
         margin-top: 2px;
     }
-    .analytics-place-event-heading .analytics-place-event-title {
+    .analytics-place-event-heading .analytics-place-event-title,
+    .analytics-event-day-heading .analytics-event-day-title {
         padding: 0 10px;
     }
-}
-
-.analytics-event-month-item {
-    scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--events-sticky-h, 52px) + 8px);
-}
-.analytics-event-month-header {
-    position: sticky;
-    top: calc(var(--analytics-header-offset, 0px) + var(--events-sticky-h, 52px));
-    z-index: 35;
-    background: var(--color-bg-card);
-    margin-left: calc(-1 * var(--analytics-body-px, 14px));
-    margin-right: calc(-1 * var(--analytics-body-px, 14px));
-    padding-left: var(--analytics-body-px, 14px);
-    padding-right: var(--analytics-body-px, 14px);
-    width: calc(100% + 2 * var(--analytics-body-px, 14px));
-    box-sizing: border-box;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--color-border);
-    cursor: pointer;
-    user-select: none;
+    .analytics-event-group-card {
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
 }
 
 #analytics-timeline {
@@ -2363,17 +2408,22 @@ body.in-analytics #mobile-menu-btn,
     #analytics-deaths,
     #analytics-places,
     .analytics-places-list,
-    .analytics-places-wrapper ul {
+    .analytics-places-wrapper ul,
+    #analytics-events-list,
+    .analytics-events-wrapper ul {
         gap: 6px !important;
     }
 
     .analytics-death-item,
-    .analytics-place-item {
+    .analytics-place-item,
+    .analytics-event-month-item {
         padding: 9px 13px;
         border-radius: 10px;
     }
 
-    .analytics-death-header h3 {
+    .analytics-death-header h3,
+    .analytics-place-title,
+    .analytics-event-month-title {
         font-size: 15px !important;
     }
 
