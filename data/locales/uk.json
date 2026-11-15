@@ -1,5 +1,6 @@
 {
     "common": {
+        "and": "та",
         "unknown": "Невідомо",
         "date": "Дата",
         "actualDate": "Фактична дата",

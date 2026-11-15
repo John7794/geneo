@@ -240,6 +240,29 @@ export class AnalyticsManager {
 		`;
 	}
 
+	_renderCoupleGroup(person1, person2, eventType = "шлюб") {
+		if (!person1 && !person2) return '<span style="color: var(--color-text-muted);">Невідомо</span>';
+		if (person1 && !person2) return this._renderPersonChip(person1, eventType);
+		if (!person1 && person2) return this._renderPersonChip(person2, eventType);
+
+		const p1Html = this._renderPersonChip(person1, eventType);
+		const p2Html = this._renderPersonChip(person2, eventType);
+		const conjunctionText = i18n?.t("common.and") || "та";
+
+		return `
+			<div class="analytics-couple-card" data-event-type="marriage">
+				<div class="analytics-couple-partner">${p1Html}</div>
+				<div class="analytics-couple-connector">
+					<span class="analytics-couple-conjunction">
+						<i class="ri-heart-2-line"></i>
+						<span>${escapeHtml(conjunctionText)}</span>
+					</span>
+				</div>
+				<div class="analytics-couple-partner">${p2Html}</div>
+			</div>
+		`;
+	}
+
 	render() {
 		try {
 			document.body.classList.add("in-analytics");
@@ -1318,14 +1341,10 @@ export class AnalyticsManager {
                                     const evtCount = e[1];
                                     const peopleList = Array.from(p[1].peopleLists?.[evtName]?.values() || []);
                                     const peopleHtml = peopleList.length > 0 
-                                        ? `<div class="analytics-event-chips-wrap" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4px 0 10px 12px;">
+                                        ? `<div class="analytics-event-chips-wrap">
                                             ${peopleList.map(personItem => {
                                                 if (personItem && personItem.isCouple) {
-                                                    return `<div class="analytics-couple-chip" style="display: inline-flex; align-items: center; gap: 6px;">
-                                                        ${this._renderPersonChip(personItem.hid, 'шлюб')}
-                                                        <span class="marriage-plus" style="color: var(--color-text-muted); font-weight: 600; font-size: 13px; margin: 0 2px;">+</span>
-                                                        ${this._renderPersonChip(personItem.wid, 'шлюб')}
-                                                    </div>`;
+                                                    return this._renderCoupleGroup(personItem.hid, personItem.wid, 'шлюб');
                                                 }
                                                 if (personItem && personItem.pid) {
                                                     return this._renderPersonChip(personItem.pid, evtName);
@@ -1708,18 +1727,19 @@ export class AnalyticsManager {
                             `;
                             
                             evts.forEach((evt, idx) => {
-                                let p1Html = this._renderPersonChip(evt.person, evt.type);
-                                let p2Html = "";
+                                let participantsHtml = "";
                                 if (evt.type === "marriage" && evt.spouse) {
-                                    p2Html = ` <span style="color: var(--color-text-muted); font-size: 13px; margin: 0 4px;">та</span> ` + this._renderPersonChip(evt.spouse, evt.type);
+                                    participantsHtml = this._renderCoupleGroup(evt.person, evt.spouse, evt.type);
+                                } else {
+                                    participantsHtml = this._renderPersonChip(evt.person, evt.type);
                                 }
 
-                                let yearInfo = evt.original.yearStr ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto; white-space: nowrap;">${escapeHtml(evt.original.yearStr)} р.</span>` : (evt.year && !isNaN(evt.year) ? `<span style="color: var(--color-text-muted); font-size: 13px; margin-left: auto; white-space: nowrap;">${evt.year} р.</span>` : "");
+                                let yearInfo = evt.original.yearStr ? `<span class="analytics-event-year-badge">${escapeHtml(evt.original.yearStr)} р.</span>` : (evt.year && !isNaN(evt.year) ? `<span class="analytics-event-year-badge">${evt.year} р.</span>` : "");
                                 
-                                const borderTop = idx > 0 ? "border-top: 1px solid var(--color-border-light);" : "";
+                                const borderTopClass = idx > 0 ? "has-border-top" : "";
                                 html += `
-                                    <div class="analytics-event-participant-row" style="padding: 8px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; ${borderTop}">
-                                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0;">${p1Html}${p2Html}</div>
+                                    <div class="analytics-event-participant-row ${borderTopClass}">
+                                        <div class="analytics-event-participant-content">${participantsHtml}</div>
                                         ${yearInfo}
                                     </div>
                                 `;
@@ -2849,13 +2869,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             
                             let namesStr = "";
                             if (evt.type === "marriage" && evt.spouse) {
-                                namesStr = `
-                                    <div class="timeline-marriage-row">
-                                        ${this._renderPersonChip(evt.person, evt.type)}
-                                        <span class="timeline-marriage-and"><i class="ri-heart-2-line"></i> та</span>
-                                        ${this._renderPersonChip(evt.spouse, evt.type)}
-                                    </div>
-                                `;
+                                namesStr = this._renderCoupleGroup(evt.person, evt.spouse, evt.type);
                             } else {
                                 namesStr = this._renderPersonChip(evt.person, evt.type);
                             }

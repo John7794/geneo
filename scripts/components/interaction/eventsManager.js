@@ -340,7 +340,15 @@ export class EventsManager {
 							? renderPersonTile(evt.spouse, this.context, "", false, { eventType: evt.type })
 							: renderPersonTile(null, this.context, "", true);
 
-						content = `<div class="event-marriage-container">${p1}${p2}</div>`;
+						content = `
+							<div class="event-marriage-container">
+								${p1}
+								<div class="event-marriage-connector">
+									<span class="event-marriage-conjunction"><i class="ri-heart-2-line"></i> та</span>
+								</div>
+								${p2}
+							</div>
+						`;
 						break;
 				}
 

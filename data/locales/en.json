@@ -1,5 +1,6 @@
 {
     "common": {
+        "and": "and",
         "unknown": "Unknown",
         "date": "Date",
         "actualDate": "Actual date",
