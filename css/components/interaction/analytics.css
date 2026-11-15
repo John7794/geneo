@@ -550,14 +550,15 @@ body.in-analytics #mobile-menu-btn,
     display: flex;
     align-items: center;
     gap: 8px;
+    width: 100%;
     flex-wrap: nowrap;
 }
 
 .analytics-sort-controls.analytics-sticky-controls .btn {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     min-width: 0;
-    padding: 7px 4px;
-    font-size: 12px;
+    padding: 7px 8px;
+    font-size: clamp(11.5px, 2.8vw, 13px);
     font-weight: 500;
     display: inline-flex;
     align-items: center;
@@ -566,16 +567,17 @@ body.in-analytics #mobile-menu-btn,
     white-space: nowrap;
     border-radius: 6px;
     cursor: pointer;
+    box-sizing: border-box;
     transition: all 0.15s ease;
 }
 
 @media (min-width: 768px) {
     .analytics-sort-controls.analytics-sticky-controls {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
     .analytics-sort-controls.analytics-sticky-controls .btn {
-        flex: 0 0 auto;
-        padding: 6px 14px;
+        flex: 1 1 auto;
+        padding: 8px 16px;
         font-size: 13px;
     }
 }
@@ -602,9 +604,9 @@ body.in-analytics #mobile-menu-btn,
 }
 
 .analytics-places-sort-row .btn-sort-places {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     min-width: 0;
-    padding: 7px 4px;
+    padding: 7px 6px;
     font-size: clamp(10.5px, 2.7vw, 13px);
     font-weight: 500;
     display: inline-flex;
@@ -616,6 +618,14 @@ body.in-analytics #mobile-menu-btn,
     cursor: pointer;
     box-sizing: border-box;
     transition: all 0.15s ease;
+}
+
+@media (min-width: 768px) {
+    .analytics-places-sort-row .btn-sort-places {
+        flex: 1 1 auto;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
 }
 
 .btn-sort-places.active {

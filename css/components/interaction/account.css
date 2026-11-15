@@ -1488,11 +1488,11 @@ select.form-input {
 
 	.profile-avatar-actions label,
 	.profile-avatar-actions button {
-		flex: 1 1 0 !important;
-		width: 100% !important;
+		flex: 1 1 auto !important;
+		width: auto !important;
 		height: 42px !important;
 		min-height: 42px !important;
-		padding: 0 8px !important;
+		padding: 0 12px !important;
 		white-space: nowrap !important;
 		justify-content: center !important;
 		text-align: center !important;
