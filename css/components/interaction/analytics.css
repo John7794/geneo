@@ -1343,6 +1343,49 @@ body.in-analytics #mobile-menu-btn,
     margin-top: 10px;
 }
 
+.analytics-place-event-group {
+    list-style: none;
+    margin-bottom: 12px;
+}
+
+.analytics-place-event-heading {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin: 18px 0 10px 0;
+    color: var(--color-text-main);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: capitalize;
+    user-select: none;
+}
+
+.analytics-place-event-group:first-child .analytics-place-event-heading {
+    margin-top: 4px;
+}
+
+.analytics-place-event-heading::before,
+.analytics-place-event-heading::after {
+    content: "";
+    flex: 1;
+    min-width: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.analytics-place-event-heading .analytics-place-event-title {
+    padding: 0 14px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.analytics-place-event-heading .analytics-place-event-count {
+    font-weight: normal;
+    color: var(--color-text-muted);
+}
+
 @media (max-width: 767px) {
     #analytics-places,
     .analytics-places-list,
@@ -1355,6 +1398,16 @@ body.in-analytics #mobile-menu-btn,
     }
     .analytics-place-title {
         font-size: 15px !important;
+    }
+    .analytics-place-event-heading {
+        margin: 14px 0 8px 0;
+        font-size: 13.5px;
+    }
+    .analytics-place-event-group:first-child .analytics-place-event-heading {
+        margin-top: 2px;
+    }
+    .analytics-place-event-heading .analytics-place-event-title {
+        padding: 0 10px;
     }
 }
 
@@ -2154,14 +2207,15 @@ body.in-analytics #mobile-menu-btn,
 
 .analytics-couple-card {
     display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
     max-width: 100%;
     min-width: 0;
-    padding: 3px 8px 3px 4px;
+    padding: 4px 6px;
     background: var(--color-bg-card);
     border: 1px solid var(--color-border);
-    border-radius: 999px;
+    border-radius: 12px;
     box-sizing: border-box;
     vertical-align: middle;
     transition: all 0.2s ease;
@@ -2177,16 +2231,18 @@ body.in-analytics #mobile-menu-btn,
 }
 
 .analytics-couple-partner {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     min-width: 0;
-    flex: 0 1 auto;
-    max-width: 100%;
+    width: 100%;
 }
 
 .analytics-couple-partner .analytics-person-chip {
-    max-width: 240px;
-    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-content: flex-start;
+    margin: 0 !important;
     background: var(--color-bg-card, #ffffff);
     border-color: var(--color-border);
 }
@@ -2197,36 +2253,16 @@ body.in-analytics #mobile-menu-btn,
 }
 
 .analytics-couple-partner .analytics-person-chip .analytics-person-name {
+    flex: 1 1 auto;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
 }
 
-.analytics-couple-connector {
-    display: inline-flex;
-    align-items: center;
-    flex-shrink: 0;
-}
-
+.analytics-couple-connector,
 .analytics-couple-conjunction {
-    display: inline-flex;
-    align-items: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    background: var(--color-bg-hover);
-    border: 1px solid var(--color-border);
-    padding: 1px 6px;
-    border-radius: 4px;
-    line-height: 1.2;
-    white-space: nowrap;
-}
-
-:root.theme-dark .analytics-couple-conjunction {
-    color: var(--color-text-muted);
-    background: var(--color-bg-hover);
-    border-color: var(--color-border);
+    display: none !important;
 }
 
 /* Обгортки для подій та місць */
@@ -2351,10 +2387,10 @@ body.in-analytics #mobile-menu-btn,
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 2px;
+        gap: 3px;
         width: 100%;
         max-width: 100%;
-        padding: 5px 8px;
+        padding: 4px 6px;
         background: var(--color-bg-card);
         border: 1px solid var(--color-border);
         border-radius: 10px;
@@ -2377,6 +2413,7 @@ body.in-analytics #mobile-menu-btn,
         max-width: 100%;
         box-sizing: border-box;
         justify-content: flex-start;
+        margin: 0 !important;
     }
 
     .analytics-couple-partner .analytics-person-chip .analytics-person-name {
@@ -2387,16 +2424,9 @@ body.in-analytics #mobile-menu-btn,
         text-overflow: ellipsis;
     }
 
-    .analytics-couple-connector {
-        display: flex;
-        align-items: center;
-        padding-left: 36px;
-        margin: 0;
-    }
-
+    .analytics-couple-connector,
     .analytics-couple-conjunction {
-        font-size: 10px;
-        padding: 1px 5px;
+        display: none !important;
     }
 }
 

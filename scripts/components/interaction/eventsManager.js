@@ -343,9 +343,6 @@ export class EventsManager {
 						content = `
 							<div class="event-marriage-container">
 								${p1}
-								<div class="event-marriage-connector">
-									<span class="event-marriage-conjunction"><i class="ri-heart-2-line"></i> та</span>
-								</div>
 								${p2}
 							</div>
 						`;

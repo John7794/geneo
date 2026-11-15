@@ -251,14 +251,10 @@ export class AnalyticsManager {
 
 		const p1Html = this._renderPersonChip(person1, eventType);
 		const p2Html = this._renderPersonChip(person2, eventType);
-		const conjunctionText = i18n?.t("common.and") || "та";
 
 		return `
 			<div class="analytics-couple-card" data-event-type="marriage">
 				<div class="analytics-couple-partner">${p1Html}</div>
-				<div class="analytics-couple-connector">
-					<span class="analytics-couple-conjunction">${escapeHtml(conjunctionText)}</span>
-				</div>
 				<div class="analytics-couple-partner">${p2Html}</div>
 			</div>
 		`;
@@ -1418,8 +1414,10 @@ export class AnalyticsManager {
                                           </div>` 
                                         : "";
                                     return `
-                                        <li style="list-style: none; margin-top: 12px; margin-bottom: 8px;">
-                                            <div style="margin: 0 0 8px 12px; font-size: 14px; font-weight: 600; color: var(--color-text-main); background: var(--color-bg-sub); padding: 4px 12px; border-radius: 6px; display: inline-block; text-transform: capitalize;">${evtName} <span style="font-weight: normal; margin-left: 4px;">(${evtCount})</span></div>
+                                        <li class="analytics-place-event-group" style="list-style: none;">
+                                            <div class="analytics-place-event-heading">
+                                                <span class="analytics-place-event-title">${escapeHtml(evtName)} <span class="analytics-place-event-count">(${evtCount})</span></span>
+                                            </div>
                                             ${peopleHtml}
                                         </li>
                                     `;
