@@ -4,6 +4,7 @@ import { COLUMNS } from "../core/dbSchema.js";
 import {
 	generateRelationshipLabel,
 	formatGraphNode,
+	deduceParentsFromId,
 } from "../utils/kinshipUtils.js";
 
 export class RelationshipCalculator {
@@ -258,6 +259,16 @@ export class RelationshipCalculator {
 		if (parents.length === 0 && this.familyMap.has(strId)) {
 			addFromString(this.familyMap.get(strId)[COLUMNS.familyList.parents]);
 		}
+
+		if (parents.length === 0) {
+			const famRow = this.familyMap.get(strId);
+			const rawP = famRow ? famRow[COLUMNS.familyList?.parents || "fam_parents"] : "";
+			const deduced = deduceParentsFromId(strId, rawP);
+			for (let i = 0; i < deduced.length; i++) {
+				if (!parents.includes(deduced[i])) parents.push(deduced[i]);
+			}
+		}
+
 		return parents;
 	}
 

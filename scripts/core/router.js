@@ -521,7 +521,6 @@ export class AppRouter {
 		const strId = String(id).toLowerCase().trim();
 
 		if (personData._isMissing && !strId.startsWith("v_")) return "not_found";
-		if (strId.startsWith("f")) return "not_found";
 		if (statusStr.includes("isolated") || statusStr.includes("ізольован"))
 			return "isolated";
 		if (statusStr.includes("indirect") || statusStr.includes("непрям"))

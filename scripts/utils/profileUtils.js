@@ -251,7 +251,10 @@ export function ensureIndexes(allData) {
 	// 🔥 ОПТИМІЗАЦІЯ: Підтримка крос-індексації за масивом колонок
 	const buildIndex = (tableName, idColumns, forceArray = true) => {
 		const map = new Map();
-		const records = DB[tableName];
+		let records = DB[tableName];
+		if (!records && (tableName === "family" || tableName === "familyList")) {
+			records = DB.familyList || DB.family;
+		}
 
 		if (!Array.isArray(records)) {
 			allData._indexes[tableName] = map;
@@ -289,7 +292,8 @@ export function ensureIndexes(allData) {
 
 	// --- БАЗОВІ ТАБЛИЦІ (1 до 1) ---
 	buildIndex("basic", COLUMNS.basic?.id || "id", false);
-	buildIndex("family", COLUMNS.familyList?.id || "id", false);
+	buildIndex("family", [COLUMNS.familyList?.id || "fam_id", "fam_id", "id"], false);
+	buildIndex("familyList", [COLUMNS.familyList?.id || "fam_id", "fam_id", "id"], false);
 	buildIndex("names", COLUMNS.names?.personId || "person_id", false);
 	buildIndex("kinship", COLUMNS.kinship?.id || "id", false);
 

@@ -250,8 +250,18 @@ export function getEffectivePersonStatus(personId, allData, rootId = "1") {
 	// Фолбек: якщо особа не в прямому родоводі Пробанда
 	const DB = allData?.db || allData || {};
 	const p = DB?.basic?.find?.((r) => String(r.person_id || r.id) === strId);
-	const s = p ? p.status : "";
-	const c = p ? (p.sources || p.confirmations || p.grounds || "") : "";
+	let s = "";
+	let c = "";
+	if (p) {
+		s = p.status;
+		c = p.sources || p.confirmations || p.grounds || "";
+	} else if (Array.isArray(DB?.familyList)) {
+		const fp = DB.familyList.find((r) => String(r.fam_id || r.id) === strId);
+		if (fp) {
+			s = fp.fam_status !== undefined ? fp.fam_status : fp.status;
+			c = fp.fam_confirmations || fp.fam_sources || fp.confirmations || "";
+		}
+	}
 	return { status: resolveStatus(s, c, false), weakest: null, weakestName: null };
 }
 
@@ -355,11 +365,12 @@ export function getFullName(personObj) {
 
 	// Оптимізація пам'яті: відмова від шаблонних рядків для усунення подвійних пробілів
 	const s =
-		personObj[COLUMNS.basic?.surname || "surname"] || personObj.surname || "";
-	const n = personObj[COLUMNS.basic?.name || "name"] || personObj.name || "";
+		personObj[COLUMNS.basic?.surname || "surname"] || personObj.surname || personObj.fam_surname || "";
+	const n = personObj[COLUMNS.basic?.name || "name"] || personObj.name || personObj.fam_first_name || "";
 	const p =
 		personObj[COLUMNS.basic?.patronymic || "patronymic"] ||
 		personObj.patronymic ||
+		personObj.fam_patronymic ||
 		"";
 
 	let res = "";
@@ -608,7 +619,7 @@ function processSecondarySource(rawRow, C, sourceName, exactId, engineData) {
 		rawStatus,
 		confirmations: rawConfirmations,
 		confirmationsList,
-		hasProfile: false,
+		hasProfile: sourceName === "family_list" || sourceName === "basic",
 		_engine: engineData,
 	};
 }

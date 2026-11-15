@@ -196,6 +196,27 @@ export class SearchManager {
 			byPersonId.set(id, item);
 		}
 
+		if (DB && Array.isArray(DB.familyList)) {
+			const cFamId = COLUMNS.familyList?.id || "fam_id";
+			const cFamName = COLUMNS.familyList?.firstName || "fam_first_name";
+			const cFamSur = COLUMNS.familyList?.surname || "fam_surname";
+			const cFamPat = COLUMNS.familyList?.patronymic || "fam_patronymic";
+			for (let i = 0; i < DB.familyList.length; i++) {
+				const r = DB.familyList[i];
+				const id = String(r[cFamId] || r.id || "").trim();
+				if (!id || byPersonId.has(id)) continue;
+				const name = r[cFamName] || r.firstName || "";
+				const sur = r[cFamSur] || r.surname || "";
+				const pat = r[cFamPat] || r.patronymic || "";
+				const bYear = r.fam_birth_date ? String(r.fam_birth_date) : "";
+				const dYear = r.fam_death_date ? String(r.fam_death_date) : "";
+				const text = `${id} ${name} ${sur} ${pat} ${bYear} ${dYear}`.toLowerCase();
+				const item = { p: r, text, id, bYear, dYear, extraNames: "", isFamilyList: true };
+				cache.push(item);
+				byPersonId.set(id, item);
+			}
+		}
+
 		this._searchCache = cache;
 		this._cacheByPersonId = byPersonId;
 	}
@@ -227,7 +248,17 @@ export class SearchManager {
 		for (let i = 0; i < this._searchCache.length; i++) {
 			const item = this._searchCache[i];
 
-			if (allowedIdsSet && !allowedIdsSet.has(item.id)) continue;
+			if (allowedIdsSet) {
+				if (!allowedIdsSet.has(item.id)) {
+					const dotIdx = item.id.indexOf(".");
+					if (dotIdx !== -1) {
+						const rootAnc = item.id.substring(0, dotIdx);
+						if (!allowedIdsSet.has(rootAnc)) continue;
+					} else {
+						continue;
+					}
+				}
+			}
 
 			let match = true;
 			for (let j = 0; j < queryParts.length; j++) {
@@ -301,7 +332,7 @@ export class SearchManager {
 	}
 
 	selectPerson(person) {
-		const id = person[COLUMNS.basic?.id || "id"];
+		const id = person[COLUMNS.basic?.id || "id"] || person[COLUMNS.familyList?.id || "fam_id"] || person.fam_id;
 		if (this.onNavigate) {
 			this.onNavigate(id);
 		}
@@ -326,13 +357,13 @@ export class SearchManager {
 			const pName = person[COLUMNS.basic?.name || "name"] || person.name || "";
 			const pSurname = person[COLUMNS.basic?.surname || "surname"] || person.surname || "";
 			const photoSrc = getAvatarUrl(
-				person[COLUMNS.basic?.photo || "photo"] || person.photo,
-				isFemale(person[COLUMNS.basic?.gender || "gender"]),
+				person[COLUMNS.basic?.photo || "photo"] || person.photo || person.fam_photo,
+				isFemale(person[COLUMNS.basic?.gender || "gender"] || person.fam_gender),
 				pName,
 				pSurname,
 			);
-			const fallbackSrc = getAvatarUrl(null, isFemale(person[COLUMNS.basic?.gender || "gender"]), pName, pSurname);
-			const safeId = String(person[COLUMNS.basic?.id || "id"] || "");
+			const fallbackSrc = getAvatarUrl(null, isFemale(person[COLUMNS.basic?.gender || "gender"] || person.fam_gender), pName, pSurname);
+			const safeId = String(person[COLUMNS.basic?.id || "id"] || person[COLUMNS.familyList?.id || "fam_id"] || person.fam_id || "");
 
 			const cachedItem = this._cacheByPersonId?.get(safeId);
 			const metaParts = [`${idLabel}: ${safeId}`];

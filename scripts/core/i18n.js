@@ -2,7 +2,12 @@
 
 export class I18n {
 	constructor(defaultLang = "uk") {
-		this.lang = localStorage.getItem("appLang") || defaultLang || "uk";
+		this.lang =
+			(typeof localStorage !== "undefined"
+				? localStorage.getItem("appLang")
+				: null) ||
+			defaultLang ||
+			"uk";
 		this.translations = {};
 		this.basePath = "./data/locales";
 		this._keyCache = new Map(); // Кеш для розібраних шляхів

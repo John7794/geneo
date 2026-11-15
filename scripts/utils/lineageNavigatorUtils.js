@@ -1,4 +1,5 @@
 // ./scripts/utils/lineageNavigatorUtils.js
+import { deduceParentsFromId } from "./kinshipUtils.js";
 
 export class LineageNavigator {
 	static MODE_ROOTS = {
@@ -20,6 +21,7 @@ export class LineageNavigator {
 
 		this._basicIndex = new Map();
 		this._rolesIndex = new Map();
+		this._familyIndex = new Map();
 		this._buildIndexes();
 
 		this.ahnentafelMap = this._calculateExactAhnentafel();
@@ -36,6 +38,14 @@ export class LineageNavigator {
 				const row = db.basic[i];
 				const id = String(row.person_id || row.id || "").trim();
 				if (id) this._basicIndex.set(id, row);
+			}
+		}
+
+		if (Array.isArray(db.familyList)) {
+			for (let i = 0; i < db.familyList.length; i++) {
+				const row = db.familyList[i];
+				const id = String(row.fam_id || row.id || "").trim();
+				if (id) this._familyIndex.set(id, row);
 			}
 		}
 
@@ -91,6 +101,11 @@ export class LineageNavigator {
 			const person = this.data[cleanId];
 			if (person) {
 				parents = [person.fatherId || "", person.motherId || ""];
+			}
+			if ((!parents[0] && !parents[1]) || parents.length === 0) {
+				const famRow = this._familyIndex.get(cleanId);
+				const rawP = famRow ? (famRow.fam_parents || famRow.parents) : "";
+				parents = deduceParentsFromId(cleanId, rawP);
 			}
 		}
 
@@ -332,6 +347,18 @@ export class LineageNavigator {
 			if (n && s) name = `${n} ${s}`;
 			else if (n) name = n;
 			else if (s) name = s;
+		} else {
+			const famRow = this._familyIndex.get(realId);
+			if (famRow) {
+				const n = famRow.fam_first_name || famRow.name || "";
+				const s = famRow.fam_surname || famRow.surname || "";
+				if (n && s) name = `${n} ${s}`;
+				else if (n) name = n;
+				else if (s) name = s;
+			} else if (this.engine?.getPerson) {
+				const p = this.engine.getPerson(realId);
+				if (p?.name) name = p.name;
+			}
 		}
 
 		let siblings = [{ id: realId, label: name }];
@@ -369,6 +396,18 @@ export class LineageNavigator {
 						if (cn && cs) cName = `${cn} ${cs}`;
 						else if (cn) cName = cn;
 						else if (cs) cName = cs;
+					} else {
+						const famRow = this._familyIndex.get(childId);
+						if (famRow) {
+							const cn = famRow.fam_first_name || famRow.name || "";
+							const cs = famRow.fam_surname || famRow.surname || "";
+							if (cn && cs) cName = `${cn} ${cs}`;
+							else if (cn) cName = cn;
+							else if (cs) cName = cs;
+						} else if (this.engine?.getPerson) {
+							const p = this.engine.getPerson(childId);
+							if (p?.name) cName = p.name;
+						}
 					}
 
 					siblings[i] = { id: childId, label: cName };

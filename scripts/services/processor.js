@@ -190,18 +190,22 @@ export function buildPersonObject(queryId, allData) {
 			? basicRow.status !== undefined
 				? basicRow.status
 				: basicRow[COLUMNS.basic?.status || "status"]
-			: "",
+			: (rawData[COLUMNS.familyList?.status || "fam_status"] !== undefined
+				? rawData[COLUMNS.familyList?.status || "fam_status"]
+				: rawData.status || ""),
 		sources: basicRow
 			? (basicRow.sources || basicRow.confirmations || basicRow.grounds || basicRow[COLUMNS.basic?.sources || "sources"] || basicRow[COLUMNS.basic?.confirmations || "confirmations"] || "")
-			: "",
+			: (rawData.sources || rawData.confirmations || rawData.fam_sources || rawData.fam_confirmations || ""),
 		confirmations: basicRow
 			? (basicRow.sources || basicRow.confirmations || basicRow.grounds || basicRow[COLUMNS.basic?.sources || "sources"] || basicRow[COLUMNS.basic?.confirmations || "confirmations"] || "")
-			: "",
+			: (rawData.sources || rawData.confirmations || rawData.fam_sources || rawData.fam_confirmations || ""),
 		vitalStatus: basicRow
 			? basicRow.vital_status !== undefined
 				? basicRow.vital_status
 				: basicRow[COLUMNS.basic?.vitalStatus || "vitalStatus"]
-			: "",
+			: (rawData[COLUMNS.familyList?.vitalStatus || "fam_vital_status"] !== undefined
+				? rawData[COLUMNS.familyList?.vitalStatus || "fam_vital_status"]
+				: rawData.vital_status || ""),
 
 		birthDate: getVal(
 			COLUMNS.basic?.birthDate || "birthDate",

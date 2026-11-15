@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import Papa from "papaparse";
 import { buildFamilyRolesFromFamilies } from "../services/familyAdapter.js";
+import { deduceParentsFromId, deduceSpouseFromId } from "../utils/kinshipUtils.js";
 
 function parseCSV(filePath) {
 	if (!fs.existsSync(filePath)) {
@@ -126,17 +127,25 @@ export async function main() {
 		for (const row of familyListRows) {
 			const id = String(row.fam_id || "").trim();
 			if (id) {
+				const deduced = deduceParentsFromId(id, row.fam_parents);
 				if (!rolesMap.has(id)) {
 					rolesMap.set(id, {
-						parents_bio: parseCSVList(row.fam_parents),
+						parents_bio: deduced,
 						parents_step: [],
 						parents_adopted: [],
 						spouses: []
 					});
 				} else {
 					const role = rolesMap.get(id);
-					const newBio = parseCSVList(row.fam_parents);
-					role.parents_bio = [...new Set([...role.parents_bio, ...newBio])];
+					role.parents_bio = [...new Set([...role.parents_bio, ...deduced])];
+				}
+
+				const spouseId = deduceSpouseFromId(id);
+				if (spouseId) {
+					rolesMap.get(id).spouses.push(spouseId);
+					if (rolesMap.has(spouseId)) {
+						rolesMap.get(spouseId).spouses.push(id);
+					}
 				}
 			}
 		}

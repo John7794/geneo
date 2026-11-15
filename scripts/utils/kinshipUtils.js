@@ -30,6 +30,80 @@ const ensureArray = (val) => {
 // 1. БАЗОВІ ХЕЛПЕРИ ЗВ'ЯЗКІВ
 // ==========================================
 
+/**
+ * Визначає батьків за ієрархічним ID де Абовілля (d'Aboville) / Генрі або явно заданими батьками.
+ * Наприклад:
+ * - "4.1" -> батьки ["4", "5"] (якщо предок 4)
+ * - "5.1" -> батьки ["4", "5"] (якщо предок 5)
+ * - "6.1.1" -> батько/мати ["6.1"]
+ * - "114.3.1.1" -> ["114.3.1"]
+ * @param {string|number} id
+ * @param {string|string[]} [rawParents]
+ * @returns {string[]}
+ */
+export function deduceParentsFromId(id, rawParents = "") {
+	if (rawParents) {
+		const list = Array.isArray(rawParents)
+			? rawParents
+			: String(rawParents)
+					.split(/[;,]+/)
+					.map((s) => s.trim())
+					.filter(Boolean);
+
+		// Якщо це валідні ідентифікатори (не старі службові маркери "f57_s1_1" тощо)
+		const validList = list.filter(
+			(p) => !p.startsWith("f") || !p.includes("_"),
+		);
+		if (validList.length > 0) {
+			return validList;
+		}
+	}
+
+	const cleanId = String(id || "").trim();
+	if (!cleanId) return [];
+
+	if (cleanId.includes("-sp") || cleanId.includes("_sp")) {
+		return [];
+	}
+
+	const lastDot = cleanId.lastIndexOf(".");
+	if (lastDot !== -1) {
+		const parentPrefix = cleanId.slice(0, lastDot);
+
+		if (/^\d+$/.test(parentPrefix)) {
+			const num = parseInt(parentPrefix, 10);
+			if (num > 1) {
+				if (num % 2 === 0) {
+					return [String(num), String(num + 1)];
+				} else {
+					return [String(num - 1), String(num)];
+				}
+			}
+			return [String(num)];
+		}
+
+		return [parentPrefix];
+	}
+
+	return [];
+}
+
+/**
+ * Визначає подружжя за ID де Абовілля, якщо ID містить суфікс подружжя (-sp).
+ * @param {string|number} id
+ * @returns {string|null}
+ */
+export function deduceSpouseFromId(id) {
+	const cleanId = String(id || "").trim();
+	if (!cleanId) return null;
+
+	const spMatch = cleanId.match(/^(.+?)[-_]sp\d*$/i);
+	if (spMatch) {
+		return spMatch[1];
+	}
+	return null;
+}
+
 export function getParentIds(personId, context) {
 	if (context?.getParents) {
 		return ensureArray(context.getParents(personId));
@@ -37,15 +111,29 @@ export function getParentIds(personId, context) {
 
 	const cleanId = String(personId);
 	const DB = context?.db || context;
-	if (!Array.isArray(DB?.familyRoles)) return [];
-
-	for (let i = 0; i < DB.familyRoles.length; i++) {
-		const r = DB.familyRoles[i];
-		if (String(r[COLUMNS.familyRoles?.personId || "person_id"]) === cleanId) {
-			return ensureArray(r[COLUMNS.familyRoles?.parentsBio || "parents_bio"]);
+	if (Array.isArray(DB?.familyRoles)) {
+		for (let i = 0; i < DB.familyRoles.length; i++) {
+			const r = DB.familyRoles[i];
+			if (String(r[COLUMNS.familyRoles?.personId || "person_id"]) === cleanId) {
+				const res = ensureArray(r[COLUMNS.familyRoles?.parentsBio || "parents_bio"]);
+				if (res.length > 0) return res;
+			}
 		}
 	}
-	return [];
+
+	if (Array.isArray(DB?.familyList)) {
+		const idCol = COLUMNS.familyList?.id || "fam_id";
+		const pCol = COLUMNS.familyList?.parents || "fam_parents";
+		for (let i = 0; i < DB.familyList.length; i++) {
+			const r = DB.familyList[i];
+			if (String(r[idCol] || r.fam_id || r.id).trim() === cleanId) {
+				const deduced = deduceParentsFromId(cleanId, r[pCol]);
+				if (deduced.length > 0) return deduced;
+			}
+		}
+	}
+
+	return deduceParentsFromId(cleanId);
 }
 
 export function getSiblings(personId, context) {

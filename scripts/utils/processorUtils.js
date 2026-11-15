@@ -3,6 +3,7 @@
 import { COLUMNS } from "../core/dbSchema.js";
 import { createLookupIndex } from "./helpers.js";
 import { normalizeGender } from "./genderUtils.js";
+import { deduceParentsFromId, deduceSpouseFromId } from "./kinshipUtils.js";
 
 const SPLIT_IDS_REGEX = /[;,]+/;
 
@@ -49,15 +50,21 @@ export function loadPeopleMap(basicData, familyListData) {
 			if (s) fullName += s;
 			if (n) fullName += (fullName ? " " : "") + n;
 
+			const parents = isBasic
+				? []
+				: deduceParentsFromId(id, row[COLUMNS.familyList?.parents || "fam_parents"] || row.parents);
+			const spouse = isBasic ? null : deduceSpouseFromId(id);
+			const spouses = spouse ? [spouse] : [];
+
 			peopleMap.set(id, {
 				id: id,
 				name: fullName,
 				gender: normalizeGender(row[genCol]),
 				source: source,
 				raw: row,
-				parents: [],
+				parents: parents,
 				stepParents: [],
-				spouses: [],
+				spouses: spouses,
 				manualGrandparents: { paternal: [], maternal: [] },
 			});
 		}
@@ -109,9 +116,11 @@ export function linkRelationships(peopleMap, rolesData) {
 			);
 
 			// Оптимізація GC: пряма мутація замість генерування нового масиву через .concat()
-			person.parents = bio;
-			for (let j = 0; j < adopted.length; j++) {
-				person.parents.push(adopted[j]);
+			if (bio.length > 0 || !person.parents || person.parents.length === 0) {
+				person.parents = bio;
+				for (let j = 0; j < adopted.length; j++) {
+					person.parents.push(adopted[j]);
+				}
 			}
 
 			person.stepParents = extractIds(
