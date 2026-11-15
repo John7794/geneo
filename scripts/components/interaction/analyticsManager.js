@@ -1525,15 +1525,15 @@ export class AnalyticsManager {
                         : "";
 
                     return `
-                    <li class="analytics-death-item" style="list-style: none; margin-top: ${d[0] === topDeaths[0][0] ? '0' : '16px'}; margin-bottom: 12px; padding: 14px 16px; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 12px;">
-                        <div class="analytics-death-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 1px solid var(--color-border-light); padding-bottom: 10px;">
-                            <h3 style="margin: 0; font-size: 17px; font-weight: 600; color: var(--color-text-main);">${escapeHtml(cause)}</h3>
+                    <li class="analytics-death-item">
+                        <div class="analytics-death-header">
+                            <h3 style="margin: 0; font-size: 15.5px; font-weight: 600; color: var(--color-text-main);">${escapeHtml(cause)}</h3>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 13.5px; font-weight: 600; color: var(--color-text-muted); background: var(--color-bg-body); padding: 2px 8px; border-radius: 999px;">${count}</span>
-                                <i class="ri-arrow-down-s-line analytics-death-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 20px; transform: rotate(180deg);"></i>
+                                <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted); background: var(--color-bg-body); padding: 2px 8px; border-radius: 999px;">${count}</span>
+                                <i class="ri-arrow-down-s-line analytics-death-icon analytics-mobile-only" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 20px; transform: rotate(0deg);"></i>
                             </div>
                         </div>
-                        <div class="analytics-death-body" style="display: block;">
+                        <div class="analytics-death-body" style="display: none; padding-top: 10px; border-top: 1px solid var(--color-border-light); margin-top: 10px;">
                             ${peopleHtml2}
                         </div>
                     </li>
