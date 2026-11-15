@@ -32,12 +32,12 @@ function scrollToAnalyticsTarget(targetEl, stickyPanelEl) {
     const scrollContainer = isDesktop ? (document.querySelector('.analytics-dialog .analytics-body') || document.querySelector('.analytics-body')) : null;
     const headerH = isDesktop ? 0 : 56;
     const stickyH = stickyPanelEl ? stickyPanelEl.offsetHeight : 0;
-    const totalOffset = headerH + stickyH + 6;
+    const totalOffset = headerH + stickyH + 16;
 
     if (scrollContainer) {
         const targetRect = targetEl.getBoundingClientRect();
         const containerRect = scrollContainer.getBoundingClientRect();
-        const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyH - 6;
+        const scrollPos = targetRect.top - containerRect.top + scrollContainer.scrollTop - stickyH - 16;
         scrollContainer.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
     } else {
         const targetRect = targetEl.getBoundingClientRect();
@@ -2045,6 +2045,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             
             const filterTypeSelect = document.getElementById("timeline-filter-wrapper") || document.getElementById("timeline-filter-type");
             const sortBtn = document.getElementById("timeline-sort-btn");
+            let shouldCenterChart = true;
             
             if (btnViewList && btnViewChart) {
                 const periodFilterEl = document.getElementById("timeline-chart-period-filter");
@@ -2069,7 +2070,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         btnViewList.style.background = 'transparent';
                         btnViewList.style.color = 'var(--color-text-main)';
                         if (filterTypeSelect) filterTypeSelect.style.display = 'none';
-                        if (sortBtn) sortBtn.style.display = 'inline-flex';
+                        if (sortBtn) sortBtn.style.display = 'none';
                         if (periodFilterEl) periodFilterEl.style.display = 'inline-flex';
                         const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
                         if (scrubberToggle) scrubberToggle.style.display = 'inline-flex';
@@ -2089,6 +2090,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 btnViewChart.addEventListener("click", () => {
                     this.timelineViewMode = "chart";
                     timelineViewMode = "chart";
+                    shouldCenterChart = true;
                     updateButtonStyles();
                     renderTimeline();
                 });
@@ -2113,8 +2115,32 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 }
             };
 
-            if (minInput) minInput.addEventListener("input", checkInputs);
-            if (maxInput) maxInput.addEventListener("input", checkInputs);
+            let debounceYearTimer = null;
+            const onYearInputLive = () => {
+                checkInputs();
+                clearTimeout(debounceYearTimer);
+                debounceYearTimer = setTimeout(() => {
+                    const val1 = minInput && minInput.value ? parseInt(minInput.value, 10) : null;
+                    const val2 = maxInput && maxInput.value ? parseInt(maxInput.value, 10) : null;
+                    const cy = new Date().getFullYear();
+                    if (val1 && val1 >= 1000 && val1 <= cy) {
+                        if (scrubberMode === "year") {
+                            scrubberStartYear = val1;
+                            scrubberEndYear = val1;
+                            updateTimelineUrl();
+                            renderTimelineChart(false);
+                        } else if (val2 && val2 >= 1000 && val2 <= cy) {
+                            scrubberStartYear = Math.min(val1, val2);
+                            scrubberEndYear = Math.max(val1, val2);
+                            updateTimelineUrl();
+                            renderTimelineChart(false);
+                        }
+                    }
+                }, 400);
+            };
+
+            if (minInput) minInput.addEventListener("input", onYearInputLive);
+            if (maxInput) maxInput.addEventListener("input", onYearInputLive);
             
             const handleEnter = (e) => {
                 if (e.key === 'Enter' && applyPeriodBtn && applyPeriodBtn.style.display !== 'none') {
@@ -2148,11 +2174,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     
                     applyPeriodBtn.style.display = 'none';
                     updateTimelineUrl();
-                    renderTimelineChart();
+                    renderTimelineChart(true);
                 });
             }
             
-            const renderTimelineChart = () => {
+            const renderTimelineChart = (forceCenter = false) => {
                 if (!chartContainer) return;
 
                 const qNavSlot = document.getElementById('analytics-timeline-quick-nav');
@@ -2230,8 +2256,8 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 const totalYears = maxYear - minYear;
                 const totalWidth = totalYears * ypx;
                 
-                const yearToPx = (y) => sortDesc ? (maxYear - y) * ypx : (y - minYear) * ypx;
-                const pxToYear = (px) => sortDesc ? maxYear - (px / ypx) : minYear + (px / ypx);
+                const yearToPx = (y) => (y - minYear) * ypx;
+                const pxToYear = (px) => minYear + (px / ypx);
                 
                 let axisHtml = '<div id="analytics-timeline-axis" style="position: sticky; top: 0; height: 36px; border-bottom: 1px solid var(--color-border); z-index: 10; background-color: var(--color-bg-card); cursor: pointer;">';
                 
@@ -2305,7 +2331,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 validPeople.sort((a, b) => {
                     const aY = a.birth !== null ? a.birth : (a.death - 70);
                     const bY = b.birth !== null ? b.birth : (b.death - 70);
-                    return sortDesc ? (bY - aY) : (aY - bY); 
+                    return aY - bY; 
                 });
                 
                 validPeople.forEach((p, idx) => {
@@ -2340,15 +2366,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     if (isAlive) {
                         bgStyle = 'background: rgba(30, 136, 229, 0.6); border: 1px solid rgba(30, 136, 229, 0.9);';
                     } else if (by === null) {
-                        bgStyle = sortDesc 
-                            ? 'background: linear-gradient(to left, transparent, rgba(30, 136, 229, 0.4)); border: none; border-left: 2px solid rgba(30, 136, 229, 0.8);'
-                            : 'background: linear-gradient(to right, transparent, rgba(30, 136, 229, 0.4)); border: none; border-right: 2px solid rgba(30, 136, 229, 0.8);';
-                        borderRadius = sortDesc ? 'border-radius: 4px 0 0 4px;' : 'border-radius: 0 4px 4px 0;';
+                        bgStyle = 'background: linear-gradient(to right, transparent, rgba(30, 136, 229, 0.4)); border: none; border-right: 2px solid rgba(30, 136, 229, 0.8);';
+                        borderRadius = 'border-radius: 0 4px 4px 0;';
                     } else if (dy === null) {
-                        bgStyle = sortDesc
-                            ? 'background: linear-gradient(to right, transparent, rgba(30, 136, 229, 0.4)); border: none; border-right: 2px solid rgba(30, 136, 229, 0.8);'
-                            : 'background: linear-gradient(to left, transparent, rgba(30, 136, 229, 0.4)); border: none; border-left: 2px solid rgba(30, 136, 229, 0.8);';
-                        borderRadius = sortDesc ? 'border-radius: 0 4px 4px 0;' : 'border-radius: 4px 0 0 4px;';
+                        bgStyle = 'background: linear-gradient(to right, rgba(30, 136, 229, 0.4), transparent); border: none; border-left: 2px solid rgba(30, 136, 229, 0.8);';
+                        borderRadius = 'border-radius: 4px 0 0 4px;';
                     }
                     
                     let markersHtml = '';
@@ -2499,98 +2521,89 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                     
                     updateAliveList(scrubberStartYear, scrubberMode === "period" ? scrubberEndYear : undefined); // Initial call
                     
-                    // Scrubber Drag Logic
-                    const innerChart = document.getElementById('analytics-timeline-chart-inner');
+                    // Scrubber Drag Logic (mouse & touch unified)
                     const axis = document.getElementById('analytics-timeline-axis');
                     
                     let draggedHandle = null; // 'single', 'start', 'end', 'area'
                     let dragStartX = 0;
                     let initialStartYear = 0;
                     let initialEndYear = 0;
-                    let isDraggingCanvas = false;
-                    let startX = 0;
-                    let scrollLeftStart = 0;
                     
-                    if (axis) {
-                        axis.addEventListener('mousedown', (e) => {
-                            const handle = e.target.closest('[id^="timeline-scrubber-handle"]');
-                            const area = e.target.closest('#timeline-scrubber-drag-area');
-                            
-                            if (handle) {
-                                draggedHandle = handle.getAttribute('data-type');
-                                document.body.style.userSelect = 'none';
-                                e.stopPropagation();
-                            } else if (area) {
-                                draggedHandle = 'area';
-                                const rect = innerChart.getBoundingClientRect();
-                                dragStartX = e.clientX - rect.left;
-                                initialStartYear = scrubberStartYear;
-                                initialEndYear = scrubberEndYear;
-                                document.body.style.userSelect = 'none';
-                                e.stopPropagation();
-                            } else {
-                                const rect = innerChart.getBoundingClientRect();
-                                let x = e.clientX - rect.left;
-                                if (x < 0) x = 0;
-                                if (x > totalWidth) x = totalWidth;
-                                let clickedYear = pxToYear(x);
-                                const cy = new Date().getFullYear();
-                                if (clickedYear > cy) clickedYear = cy;
-                                x = yearToPx(clickedYear);
-                                
-                                if (scrubberMode === "year") {
-                                    scrubberStartYear = clickedYear;
-                                    updateAliveList(scrubberStartYear);
-                                    
-                                    // Update DOM directly for single mode fast response
-                                    const h = document.getElementById('timeline-scrubber-handle');
-                                    const l = document.getElementById('timeline-scrubber');
-                                    if (h) {
-                                        h.style.left = `${x}px`;
-                                        h.textContent = Math.round(scrubberStartYear);
-                                    }
-                                    if (l) l.style.left = `${x}px`;
-                                    updateTimelineUrl();
-                                } else {
-                                    // Period mode: expand/shrink the closest boundary
-                                    if (Math.abs(clickedYear - scrubberStartYear) < Math.abs(clickedYear - scrubberEndYear)) {
-                                        scrubberStartYear = clickedYear;
-                                    } else {
-                                        scrubberEndYear = clickedYear;
-                                    }
-                                    
-                                    updateAliveList(scrubberStartYear, scrubberEndYear);
-                                    
-                                    // Update DOM directly for period mode fast response
-                                    const hs = document.getElementById('timeline-scrubber-handle-start');
-                                    const he = document.getElementById('timeline-scrubber-handle-end');
-                                    const bg = document.getElementById('timeline-scrubber-bg');
-                                    const area = document.getElementById('timeline-scrubber-drag-area');
-                                    
-                                    const p1 = yearToPx(scrubberStartYear);
-                                    const p2 = yearToPx(scrubberEndYear);
-                                    
-                                    if (hs) { hs.style.left = `${p1}px`; hs.textContent = Math.round(scrubberStartYear); }
-                                    if (he) { he.style.left = `${p2}px`; he.textContent = Math.round(scrubberEndYear); }
-                                    if (bg && area) {
-                                        const minP = Math.min(p1, p2);
-                                        const maxP = Math.max(p1, p2);
-                                        bg.style.left = `${minP}px`;
-                                        bg.style.width = `${maxP - minP}px`;
-                                        area.style.left = `${minP}px`;
-                                        area.style.width = `${maxP - minP}px`;
-                                    }
-                                    updateTimelineUrl();
-                                }
-                            }
-                        });
-                    }
-                    
-                    const onScrubberMouseMove = (e) => {
-                        if (!draggedHandle) return;
+                    const handleScrubberStart = (clientX, target) => {
+                        const handle = target.closest('[id^="timeline-scrubber-handle"]');
+                        const area = target.closest('#timeline-scrubber-drag-area');
+                        const inner = document.getElementById('analytics-timeline-chart-inner');
+                        if (!inner) return;
+                        const rect = inner.getBoundingClientRect();
                         
-                        const rect = innerChart.getBoundingClientRect();
-                        let x = e.clientX - rect.left;
+                        if (handle) {
+                            draggedHandle = handle.getAttribute('data-type');
+                            document.body.style.userSelect = 'none';
+                        } else if (area) {
+                            draggedHandle = 'area';
+                            dragStartX = clientX - rect.left;
+                            initialStartYear = scrubberStartYear;
+                            initialEndYear = scrubberEndYear;
+                            document.body.style.userSelect = 'none';
+                        } else {
+                            let x = clientX - rect.left;
+                            if (x < 0) x = 0;
+                            if (x > totalWidth) x = totalWidth;
+                            let clickedYear = pxToYear(x);
+                            const cy = new Date().getFullYear();
+                            if (clickedYear > cy) clickedYear = cy;
+                            x = yearToPx(clickedYear);
+                            
+                            if (scrubberMode === "year") {
+                                scrubberStartYear = clickedYear;
+                                updateAliveList(scrubberStartYear);
+                                
+                                const h = document.getElementById('timeline-scrubber-handle');
+                                const l = document.getElementById('timeline-scrubber');
+                                if (h) {
+                                    h.style.left = `${x}px`;
+                                    h.textContent = Math.round(scrubberStartYear);
+                                }
+                                if (l) l.style.left = `${x}px`;
+                                updateTimelineUrl();
+                            } else {
+                                if (Math.abs(clickedYear - scrubberStartYear) < Math.abs(clickedYear - scrubberEndYear)) {
+                                    scrubberStartYear = clickedYear;
+                                } else {
+                                    scrubberEndYear = clickedYear;
+                                }
+                                
+                                updateAliveList(scrubberStartYear, scrubberEndYear);
+                                
+                                const hs = document.getElementById('timeline-scrubber-handle-start');
+                                const he = document.getElementById('timeline-scrubber-handle-end');
+                                const bg = document.getElementById('timeline-scrubber-bg');
+                                const areaEl = document.getElementById('timeline-scrubber-drag-area');
+                                
+                                const p1 = yearToPx(scrubberStartYear);
+                                const p2 = yearToPx(scrubberEndYear);
+                                
+                                if (hs) { hs.style.left = `${p1}px`; hs.textContent = Math.round(scrubberStartYear); }
+                                if (he) { he.style.left = `${p2}px`; he.textContent = Math.round(scrubberEndYear); }
+                                if (bg && areaEl) {
+                                    const minP = Math.min(p1, p2);
+                                    const maxP = Math.max(p1, p2);
+                                    bg.style.left = `${minP}px`;
+                                    bg.style.width = `${maxP - minP}px`;
+                                    areaEl.style.left = `${minP}px`;
+                                    areaEl.style.width = `${maxP - minP}px`;
+                                }
+                                updateTimelineUrl();
+                            }
+                        }
+                    };
+                    
+                    const handleScrubberMove = (clientX) => {
+                        if (!draggedHandle) return;
+                        const inner = document.getElementById('analytics-timeline-chart-inner');
+                        if (!inner) return;
+                        const rect = inner.getBoundingClientRect();
+                        let x = clientX - rect.left;
                         if (x < 0) x = 0;
                         if (x > totalWidth) x = totalWidth;
                         
@@ -2624,7 +2637,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             const hs = document.getElementById('timeline-scrubber-handle-start');
                             const he = document.getElementById('timeline-scrubber-handle-end');
                             const bg = document.getElementById('timeline-scrubber-bg');
-                            const area = document.getElementById('timeline-scrubber-drag-area');
+                            const areaEl = document.getElementById('timeline-scrubber-drag-area');
                             
                             const p1 = yearToPx(scrubberStartYear);
                             const p2 = yearToPx(scrubberEndYear);
@@ -2638,18 +2651,17 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 he.textContent = Math.round(scrubberEndYear);
                             }
                             
-                            if (bg && area) {
+                            if (bg && areaEl) {
                                 const minP = Math.min(p1, p2);
                                 const maxP = Math.max(p1, p2);
                                 bg.style.left = `${minP}px`;
                                 bg.style.width = `${maxP - minP}px`;
-                                area.style.left = `${minP}px`;
-                                area.style.width = `${maxP - minP}px`;
+                                areaEl.style.left = `${minP}px`;
+                                areaEl.style.width = `${maxP - minP}px`;
                             }
-                            
                         } else if (draggedHandle === 'area') {
                             const diffX = x - dragStartX;
-                            let diffYear = sortDesc ? -(diffX / ypx) : (diffX / ypx);
+                            let diffYear = diffX / ypx;
                             
                             let newStart = initialStartYear + diffYear;
                             let newEnd = initialEndYear + diffYear;
@@ -2672,30 +2684,30 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             const hs = document.getElementById('timeline-scrubber-handle-start');
                             const he = document.getElementById('timeline-scrubber-handle-end');
                             const bg = document.getElementById('timeline-scrubber-bg');
-                            const area = document.getElementById('timeline-scrubber-drag-area');
+                            const areaEl = document.getElementById('timeline-scrubber-drag-area');
                             
                             if (hs) { hs.style.left = `${p1}px`; hs.textContent = Math.round(scrubberStartYear); }
                             if (he) { he.style.left = `${p2}px`; he.textContent = Math.round(scrubberEndYear); }
-                            if (bg && area) {
+                            if (bg && areaEl) {
                                 const minP = Math.min(p1, p2);
                                 const maxP = Math.max(p1, p2);
                                 bg.style.left = `${minP}px`;
                                 bg.style.width = `${maxP - minP}px`;
-                                area.style.left = `${minP}px`;
-                                area.style.width = `${maxP - minP}px`;
+                                areaEl.style.left = `${minP}px`;
+                                areaEl.style.width = `${maxP - minP}px`;
                             }
                         }
                         
                         // Auto scroll if dragging near edges
                         const containerRect = chartContainer.getBoundingClientRect();
-                        if (e.clientX < containerRect.left + 50) {
+                        if (clientX < containerRect.left + 50) {
                             chartContainer.scrollLeft -= 10;
-                        } else if (e.clientX > containerRect.right - 50) {
+                        } else if (clientX > containerRect.right - 50) {
                             chartContainer.scrollLeft += 10;
                         }
                     };
                     
-                    const onScrubberMouseUp = () => {
+                    const handleScrubberEnd = () => {
                         if (draggedHandle) {
                             draggedHandle = null;
                             document.body.style.userSelect = '';
@@ -2710,68 +2722,92 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         }
                     };
                     
-                    // We need to attach to document for smooth dragging outside the chart
-                    // Prevent memory leaks by cleaning up on re-render (optional, but safe here due to how we render)
-                    // We will store refs to remove later or just rely on the fact that these are attached once per renderTimelineChart.
-                    // Actually, re-rendering will add multiple listeners if not careful.
-                    // Better to attach them to a parent or use a single global listener, but for now we can namespace them if needed.
+                    if (axis) {
+                        axis.addEventListener('mousedown', (e) => {
+                            handleScrubberStart(e.clientX, e.target);
+                            if (e.target.closest('[id^="timeline-scrubber-handle"]') || e.target.closest('#timeline-scrubber-drag-area')) {
+                                e.stopPropagation();
+                            }
+                        });
+                        axis.addEventListener('touchstart', (e) => {
+                            if (e.touches && e.touches.length > 0) {
+                                handleScrubberStart(e.touches[0].clientX, e.target);
+                                if (draggedHandle) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }
+                            }
+                        }, { passive: false });
+                    }
                     
-                    // Let's attach to document but we need to ensure we don't leak.
-                    // A simple way is to name the functions and remove them first.
                     document.removeEventListener('mousemove', window._timelineMouseMove);
                     document.removeEventListener('mouseup', window._timelineMouseUp);
+                    document.removeEventListener('touchmove', window._timelineTouchMove);
+                    document.removeEventListener('touchend', window._timelineTouchEnd);
                     
-                    window._timelineMouseMove = onScrubberMouseMove;
-                    window._timelineMouseUp = onScrubberMouseUp;
+                    window._timelineMouseMove = (e) => handleScrubberMove(e.clientX);
+                    window._timelineMouseUp = () => handleScrubberEnd();
+                    window._timelineTouchMove = (e) => {
+                        if (draggedHandle && e.touches && e.touches.length > 0) {
+                            e.preventDefault();
+                            handleScrubberMove(e.touches[0].clientX);
+                        }
+                    };
+                    window._timelineTouchEnd = () => handleScrubberEnd();
                     
                     document.addEventListener('mousemove', window._timelineMouseMove);
                     document.addEventListener('mouseup', window._timelineMouseUp);
+                    document.addEventListener('touchmove', window._timelineTouchMove, { passive: false });
+                    document.addEventListener('touchend', window._timelineTouchEnd);
 
-                    
-                    // Canvas Pan Logic
-                    if (chartContainer) {
+                    // Canvas Pan Logic (attach once)
+                    if (chartContainer && !chartContainer._canvasPanAttached) {
+                        chartContainer._canvasPanAttached = true;
+                        let isDraggingCanvas = false;
+                        let startX = 0;
+                        let scrollLeftStart = 0;
+                        
                         chartContainer.addEventListener('mousedown', (e) => {
-                            if (e.target.closest('#timeline-scrubber-handle') || e.target.closest('a')) return;
+                            if (e.target.closest('#timeline-scrubber-handle') || e.target.closest('#timeline-scrubber-drag-area') || e.target.closest('a')) return;
                             isDraggingCanvas = true;
                             startX = e.pageX - chartContainer.offsetLeft;
                             scrollLeftStart = chartContainer.scrollLeft;
                             chartContainer.style.cursor = 'grabbing';
                         });
                         
-                        chartContainer.addEventListener('mousemove', (e) => {
+                        window.addEventListener('mousemove', (e) => {
                             if (!isDraggingCanvas) return;
-                            e.preventDefault();
                             const x = e.pageX - chartContainer.offsetLeft;
-                            const walk = (x - startX) * 1.5; // scroll-fast
+                            const walk = (x - startX) * 1.5;
                             chartContainer.scrollLeft = scrollLeftStart - walk;
                         });
                         
-                        chartContainer.addEventListener('mouseup', () => {
-                            isDraggingCanvas = false;
-                            chartContainer.style.cursor = '';
-                        });
-                        
-                        chartContainer.addEventListener('mouseleave', () => {
-                            isDraggingCanvas = false;
-                            chartContainer.style.cursor = '';
+                        window.addEventListener('mouseup', () => {
+                            if (isDraggingCanvas) {
+                                isDraggingCanvas = false;
+                                chartContainer.style.cursor = '';
+                            }
                         });
                     }
                 
-                setTimeout(() => {
-                    if (chartContainer && typeof chartContainer.scrollTo === 'function') {
-                        const hStart = document.getElementById("timeline-scrubber-handle-start") || document.getElementById("timeline-scrubber-handle");
-                        const hEnd = document.getElementById("timeline-scrubber-handle-end") || hStart;
-                        if (hStart && hEnd) {
-                            const left1 = parseFloat(hStart.style.left) || 0;
-                            const left2 = parseFloat(hEnd.style.left) || left1;
-                            const centerPx = (left1 + left2) / 2;
-                            chartContainer.scrollTo({
-                                left: Math.max(0, centerPx - chartContainer.clientWidth / 2),
-                                behavior: 'smooth'
-                            });
+                if (forceCenter || shouldCenterChart) {
+                    shouldCenterChart = false;
+                    setTimeout(() => {
+                        if (chartContainer && typeof chartContainer.scrollTo === 'function') {
+                            const hStart = document.getElementById("timeline-scrubber-handle-start") || document.getElementById("timeline-scrubber-handle");
+                            const hEnd = document.getElementById("timeline-scrubber-handle-end") || hStart;
+                            if (hStart && hEnd) {
+                                const left1 = parseFloat(hStart.style.left) || 0;
+                                const left2 = parseFloat(hEnd.style.left) || left1;
+                                const centerPx = (left1 + left2) / 2;
+                                chartContainer.scrollTo({
+                                    left: Math.max(0, centerPx - chartContainer.clientWidth / 2),
+                                    behavior: 'smooth'
+                                });
+                            }
                         }
-                    }
-                }, 100);
+                    }, 100);
+                }
             };
             const renderTimeline = () => {
                 const qNav = document.querySelector('#analytics-timeline .analytics-quick-nav-bar');
@@ -2875,9 +2911,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         html += `
                             <li id="${centId}" class="analytics-timeline-century-group" style="list-style: none;">
                                 <div class="analytics-timeline-century-item">
-                                    <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
-                                    <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">${centTitle}</div>
-                                    <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                    <span class="analytics-timeline-century-title">${centTitle}</span>
                                 </div>
                                 <ul class="analytics-timeline-century-events analytics-list-none" style="display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0;">
                         `;
