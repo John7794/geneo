@@ -1047,20 +1047,6 @@ export class AnalyticsManager {
         const approxMax = lifespansApprox.length > 0 ? Math.max(...lifespansApprox.map(s => s.age)) : 0;
         let html = `
                 <div class="analytics-hero-stats">
-                    <!-- Підтверджені -->
-                    <div class="analytics-stat-card card-confirmed">
-                        <div class="stat-card-header">
-                            <span class="stat-badge badge-confirmed">
-                                <i class="ri-checkbox-circle-fill"></i> Підтверджені
-                            </span>
-                        </div>
-                        <div class="stat-card-value">${confirmedCount}</div>
-                        <div class="stat-card-footer">
-                            <span class="stat-pill pill-male"><i class="ri-men-line"></i> ${confirmedMale}</span>
-                            <span class="stat-pill pill-female"><i class="ri-women-line"></i> ${confirmedFemale}</span>
-                        </div>
-                    </div>
-
                     <!-- Всі персони (Hero) -->
                     <div class="analytics-stat-card card-total">
                         <div class="stat-card-header">
@@ -1072,6 +1058,20 @@ export class AnalyticsManager {
                         <div class="stat-card-footer">
                             <span class="stat-pill pill-male"><i class="ri-men-line"></i> ${maleCount}</span>
                             <span class="stat-pill pill-female"><i class="ri-women-line"></i> ${femaleCount}</span>
+                        </div>
+                    </div>
+
+                    <!-- Підтверджені -->
+                    <div class="analytics-stat-card card-confirmed">
+                        <div class="stat-card-header">
+                            <span class="stat-badge badge-confirmed">
+                                <i class="ri-checkbox-circle-fill"></i> Підтверджені
+                            </span>
+                        </div>
+                        <div class="stat-card-value">${confirmedCount}</div>
+                        <div class="stat-card-footer">
+                            <span class="stat-pill pill-male"><i class="ri-men-line"></i> ${confirmedMale}</span>
+                            <span class="stat-pill pill-female"><i class="ri-women-line"></i> ${confirmedFemale}</span>
                         </div>
                     </div>
 
