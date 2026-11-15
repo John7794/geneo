@@ -1383,14 +1383,15 @@ export class AnalyticsManager {
                 tocLinksHtml += `<li><a href="#${blockId}" class="profile-toc-link js-scroll-to">${placeName}</a></li>`;
                 
                 html += `
-                <li id="${blockId}" class="analytics-place-item" style="list-style: none; margin-top: ${html === "" ? "0" : "20px"}; margin-bottom: 12px; padding-bottom: 4px;">
+                <li id="${blockId}" class="analytics-place-item">
                     <div class="analytics-place-header">
-                        <div class="analytics-place-title">
-                            <span>${escapeHtml(placeName)}</span>
-                            <span class="analytics-place-count-badge">${total} ${getEventWord(total)}</span>
+                        <h3 class="analytics-place-title">${escapeHtml(placeName)}</h3>
+                        <div class="analytics-place-meta">
+                            <span class="analytics-place-count-badge">${total}</span>
+                            <i class="ri-arrow-down-s-line analytics-place-icon" style="transition: transform 0.3s; color: var(--color-text-main); font-size: 20px; transform: rotate(0deg);"></i>
                         </div>
                     </div>
-                    <div class="analytics-place-body" style="display: block; padding-top: 8px;">
+                    <div class="analytics-place-body" style="display: none; padding-top: 10px; border-top: 1px solid var(--color-border-light); margin-top: 10px;">
                         <ul style="list-style: none; padding: 0; margin: 0;">
                             ${(() => {
                                 const EVENT_ORDER = ["народження", "хрещення", "шлюб", "смерть", "поховання", "згадки в індексах пращурів", "походження"];
@@ -1460,6 +1461,17 @@ export class AnalyticsManager {
             }
             
             const placeItems = this.containerPlaces.querySelectorAll('.analytics-place-item');
+            placeItems.forEach(item => {
+                const header = item.querySelector('.analytics-place-header');
+                const body = item.querySelector('.analytics-place-body');
+                const icon = item.querySelector('.analytics-place-icon');
+                
+                header.addEventListener('click', () => {
+                    const isOpen = body.style.display === 'block';
+                    body.style.display = isOpen ? 'none' : 'block';
+                    if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                });
+            });
             
             // Attach smooth scroll for quick-nav pills
             const stickyPanel = document.querySelector('.analytics-places-sticky-panel') || document.querySelector('.analytics-quick-nav-bar');
@@ -1477,6 +1489,11 @@ export class AnalyticsManager {
                     const targetId = btn.getAttribute('data-target');
                     const targetEl = document.getElementById(targetId);
                     if (targetEl) {
+                        const body = targetEl.querySelector('.analytics-place-body');
+                        const icon = targetEl.querySelector('.analytics-place-icon');
+                        if (body) body.style.display = 'block';
+                        if (icon) icon.style.transform = 'rotate(180deg)';
+
                         scrollToAnalyticsTarget(targetEl, stickyPanel);
                         
                         document.querySelectorAll('.js-quick-scroll-place').forEach(b => b.classList.remove('active'));

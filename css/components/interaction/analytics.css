@@ -138,11 +138,6 @@
         top: var(--names-sticky-h, 52px) !important;
         background: var(--color-bg-card) !important;
     }
-
-    .analytics-dialog .analytics-place-header {
-        top: var(--places-sticky-h, 92px) !important;
-        background: var(--color-bg-card) !important;
-    }
 }
 
 /* Глобальне відображення кнопки "Назад" у шапці аналітики (десктоп і мобільний) */
@@ -209,11 +204,6 @@ body.in-analytics #mobile-menu-btn,
 
     .analytics-names-header {
         top: calc(var(--analytics-header-offset, 56px) + var(--names-sticky-h, 52px)) !important;
-        background: var(--color-bg-body) !important;
-    }
-
-    .analytics-place-header {
-        top: calc(var(--analytics-header-offset, 56px) + var(--places-sticky-h, 92px)) !important;
         background: var(--color-bg-body) !important;
     }
 }
@@ -689,6 +679,14 @@ body.in-analytics #mobile-menu-btn,
 .analytics-view.in-detailed-view #analytics-surnames,
 .analytics-view.in-detailed-view #analytics-places {
     margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.analytics-view.in-detailed-view #analytics-deaths,
+.analytics-view.in-detailed-view #analytics-coats,
+#analytics-detailed-view #analytics-deaths,
+#analytics-detailed-view #analytics-coats {
+    margin-top: 14px !important;
     padding-top: 0 !important;
 }
 
@@ -1270,48 +1268,90 @@ body.in-analytics #mobile-menu-btn,
     scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--timeline-sticky-h, 92px) + 8px);
 }
 
+#analytics-places {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 .analytics-place-item {
+    list-style: none;
+    margin: 0 !important;
+    padding: 11px 16px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
     scroll-margin-top: calc(var(--analytics-header-offset, 0px) + var(--places-sticky-h, 92px) + 8px);
 }
+
+.analytics-place-item:hover {
+    border-color: var(--color-primary-light, rgba(37, 99, 235, 0.3));
+}
+
 .analytics-place-header {
-    position: sticky;
-    top: calc(var(--analytics-header-offset, 0px) + var(--places-sticky-h, 92px));
-    z-index: 35;
-    background: var(--analytics-surface-bg);
-    margin-left: calc(-1 * var(--analytics-body-px, 14px));
-    margin-right: calc(-1 * var(--analytics-body-px, 14px));
-    padding-left: var(--analytics-body-px, 14px);
-    padding-right: var(--analytics-body-px, 14px);
-    width: calc(100% + 2 * var(--analytics-body-px, 14px));
-    box-sizing: border-box;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    margin-top: 0;
-    margin-bottom: 12px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    user-select: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    background: transparent;
 }
 
 .analytics-place-title {
     margin: 0;
-    font-size: 15px;
+    font-size: 15.5px;
     font-weight: 600;
     color: var(--color-text-main);
-    display: inline-flex;
+}
+
+.analytics-place-meta {
+    display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .analytics-place-count-badge {
-    font-size: 11px;
-    padding: 2px 7px;
-    border-radius: 999px;
-    background: var(--color-bg-hover);
-    color: var(--color-text-muted);
-    border: 1px solid var(--color-border);
+    font-size: 13px;
     font-weight: 600;
+    color: var(--color-text-muted);
+    background: var(--color-bg-body);
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+}
+
+.analytics-place-icon {
+    transition: transform 0.3s ease;
+    color: var(--color-text-main);
+    font-size: 20px;
+    transform: rotate(0deg);
+}
+
+.analytics-place-body {
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border-light);
+    margin-top: 10px;
+}
+
+@media (max-width: 767px) {
+    #analytics-places {
+        gap: 6px;
+    }
+    .analytics-place-item {
+        padding: 9px 13px;
+        border-radius: 10px;
+    }
+    .analytics-place-title {
+        font-size: 15px !important;
+    }
 }
 
 .analytics-event-month-item {
