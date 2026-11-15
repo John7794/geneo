@@ -2444,21 +2444,11 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 if (contemporariesDrawer) contemporariesDrawer.style.display = "block";
 
                 const drawerToggle = document.getElementById("timeline-drawer-toggle");
-                const drawerClose = document.getElementById("timeline-drawer-close");
                 if (drawerToggle && !drawerToggle._hasDrawerListener) {
                     drawerToggle._hasDrawerListener = true;
                     drawerToggle.addEventListener("click", () => {
                         if (contemporariesDrawer) {
                             contemporariesDrawer.classList.toggle("is-open");
-                        }
-                    });
-                }
-                if (drawerClose && !drawerClose._hasDrawerListener) {
-                    drawerClose._hasDrawerListener = true;
-                    drawerClose.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        if (contemporariesDrawer) {
-                            contemporariesDrawer.classList.remove("is-open");
                         }
                     });
                 }
