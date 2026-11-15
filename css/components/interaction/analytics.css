@@ -171,6 +171,7 @@ body.in-analytics #mobile-menu-btn,
         --analytics-header-offset: 56px;
         --analytics-body-px: 14px;
         --analytics-surface-bg: var(--color-bg-body);
+        --places-sticky-h: 46px;
     }
 
     .analytics-dialog {
@@ -205,6 +206,15 @@ body.in-analytics #mobile-menu-btn,
     .analytics-names-header {
         top: calc(var(--analytics-header-offset, 56px) + var(--names-sticky-h, 52px)) !important;
         background: var(--color-bg-body) !important;
+    }
+
+    #analytics-places-quick-nav,
+    .analytics-places-sticky-panel .analytics-quick-nav-bar {
+        display: none !important;
+    }
+
+    .analytics-places-sticky-panel .analytics-sort-controls {
+        margin-bottom: 0 !important;
     }
 }
 
