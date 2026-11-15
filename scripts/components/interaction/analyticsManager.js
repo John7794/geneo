@@ -878,7 +878,10 @@ export class AnalyticsManager {
                 <div class="analytics-lifespan-group" style="width: 100%;">
                     <div class="analytics-lifespan-header">
                         <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
-                        <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">${title}</div>
+                        <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px;">
+                            <span>${title}</span>
+                            <span style="font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border); font-weight: 700;">${spans.length}</span>
+                        </div>
                         <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
                     </div>
                     <div style="display: flex; flex-direction: column; width: 100%; margin-bottom: 32px;">
