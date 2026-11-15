@@ -536,27 +536,10 @@
                         <div class="analytics-section">
                             <h4>Прізвища родоводів</h4>
                             <div class="analytics-section-content">
-                                <div class="analytics-sort-controls analytics-sticky-controls">
-                                    <div class="analytics-sort-desktop" style="display: flex; gap: 8px;  flex-wrap: wrap;">
-                                        <button class="btn btn-sm btn-outline btn-sort-app-s">За згадкою</button>
-                                        <button class="btn btn-sm btn-outline btn-sort-alpha-s">За алфавітом</button>
-                                        <button class="btn btn-sm btn-outline btn-sort-freq-s">За популярністю</button>
-                                    </div>
-                                    <div class="analytics-sort-mobile" style="display: none; ">
-                                        <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort-s" onclick="document.getElementById('mobile-sort-popup-s').classList.add('show')">
-                                            <i class="ri-sort-desc"></i> Сортувати прізвища
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div id="mobile-sort-popup-s" class="popup-overlay hidden" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
-                                    <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
-                                        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-                                        <button class="btn btn-outline btn-sort-app-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За згадкою</button>
-                                        <button class="btn btn-outline btn-sort-alpha-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За алфавітом</button>
-                                        <button class="btn btn-outline btn-sort-freq-s" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">За популярністю</button>
-                                        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup-s').classList.remove('show')">Закрити</button>
-                                    </div>
+                                <div class="analytics-sort-controls analytics-sticky-controls" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-sm btn-outline btn-sort-app-s">За згадкою</button>
+                                    <button type="button" class="btn btn-sm btn-outline btn-sort-alpha-s">За алфавітом</button>
+                                    <button type="button" class="btn btn-sm btn-outline btn-sort-freq-s">За популярністю</button>
                                 </div>
 
                                 <ul id="analytics-surnames" class="analytics-list-none"></ul>
@@ -567,45 +550,35 @@
                             <h4>Імена</h4>
                             <div class="analytics-section-content">
 
-                                <div class="analytics-names-sticky-panel">
-                                    <div class="analytics-sort-controls">
-                                        <!-- Desktop sort buttons -->
-                                        <div class="analytics-sort-desktop" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                            <button class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
-                                            <button class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
-                                            <button class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
-                                        </div>
-
-                                        <!-- Mobile sort popup trigger -->
-                                        <div class="analytics-sort-mobile" style="display: none;">
-                                            <button class="btn btn-sm btn-outline w-full" id="btn-mobile-sort" onclick="document.getElementById('mobile-sort-popup').classList.add('show')">
-                                                <i class="ri-sort-desc"></i> Сортувати імена
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="analytics-names-header-row">
-                                        <h5 class="analytics-names-col-title">Чоловічі</h5>
-                                        <h5 class="analytics-names-col-title">Жіночі</h5>
-                                    </div>
+                                <div class="analytics-sort-controls" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+                                    <button type="button" class="btn btn-sm btn-outline btn-sort-app">За згадкою</button>
+                                    <button type="button" class="btn btn-sm btn-outline btn-sort-alpha">За алфавітом</button>
+                                    <button type="button" class="btn btn-sm btn-outline btn-sort-freq">За популярністю</button>
                                 </div>
 
-                                <!-- Mobile Sort Popup Modal -->
-                                <div id="mobile-sort-popup" class="popup-overlay hidden" style="z-index: 9999;" onclick="if(event.target===this) this.classList.remove('show')">
-                                    <div class="popup-content" style="max-width: 300px; width: 90%; margin: auto; padding: 24px; border-radius: 12px; background: var(--color-bg-card); display: flex; flex-direction: column; gap: 12px;">
-                                        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Сортувати за</h3>
-                                        <button class="btn btn-outline btn-sort-app" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За згадкою</button>
-                                        <button class="btn btn-outline btn-sort-alpha" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За алфавітом</button>
-                                        <button class="btn btn-outline btn-sort-freq" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">За популярністю</button>
-                                        <button class="btn mt-2" style="background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border);" onclick="document.getElementById('mobile-sort-popup').classList.remove('show')">Закрити</button>
+                                <div id="analytics-names" style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+                                    <div class="analytics-names-group" style="width: 100%;">
+                                        <div class="analytics-names-header">
+                                            <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                            <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px;">
+                                                <span>Чоловічі</span>
+                                                <span id="analytics-names-count-m" style="font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border); font-weight: 700;">0</span>
+                                            </div>
+                                            <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                        </div>
+                                        <ul id="analytics-names-m" class="analytics-list-none" style="display: flex; flex-wrap: wrap; gap: 8px;"></ul>
                                     </div>
-                                </div>
 
-                                <div id="analytics-names" class="analytics-names-grid">
-                                    <div>
-                                        <ul id="analytics-names-m" class="analytics-list-none"></ul>
-                                    </div>
-                                    <div>
-                                        <ul id="analytics-names-f" class="analytics-list-none"></ul>
+                                    <div class="analytics-names-group" style="width: 100%;">
+                                        <div class="analytics-names-header">
+                                            <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                            <div style="margin: 0 16px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px;">
+                                                <span>Жіночі</span>
+                                                <span id="analytics-names-count-f" style="font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--color-bg-hover); color: var(--color-text-main); border: 1px solid var(--color-border); font-weight: 700;">0</span>
+                                            </div>
+                                            <div style="flex-grow: 1; height: 1px; background: var(--color-border-light);"></div>
+                                        </div>
+                                        <ul id="analytics-names-f" class="analytics-list-none" style="display: flex; flex-wrap: wrap; gap: 8px;"></ul>
                                     </div>
                                 </div>
 

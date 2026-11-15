@@ -910,9 +910,9 @@ export class AnalyticsManager {
                 if (sortMode === 'appearance') {
                     sortedEntries = orderArray.map(k => [k, dataMap[k]]);
                 } else if (sortMode === 'alphabet') {
-                    sortedEntries = Object.entries(dataMap).sort((a, b) => a[0].localeCompare(b[0]));
+                    sortedEntries = Object.entries(dataMap).sort((a, b) => a[0].localeCompare(b[0], 'uk'));
                 } else if (sortMode === 'frequency') {
-                    sortedEntries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
+                    sortedEntries = Object.entries(dataMap).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'uk'));
                 }
                 
                 container.style.display = "flex";
@@ -921,10 +921,10 @@ export class AnalyticsManager {
                 container.innerHTML = sortedEntries.map(s => {
                     let hasNicknames = includeNicknames && nicknamesMap[s[0]];
                     return `
-                        <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px; font-size: 15px; line-height: 1.4; color: var(--color-text-main);">
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <span>${s[0]}</span>
-                                <span style="background: var(--color-bg-body); padding: 2px 6px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted);">${s[1]}</span>
+                        <li style="list-style: none; display: inline-flex; flex-direction: column; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px; font-size: 15px; line-height: 1.4; color: var(--color-text-main);">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 500;">${s[0]}</span>
+                                <span style="background: var(--color-bg-body); padding: 2px 7px; border-radius: 12px; font-size: 12px; color: var(--color-text-muted); font-weight: 600; border: 1px solid var(--color-border);">${s[1]}</span>
                             </div>
                             ${hasNicknames ? `<div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--color-border-light);">${Object.keys(nicknamesMap[s[0]]).join(', ')}</div>` : ''}
                         </li>
@@ -938,23 +938,11 @@ export class AnalyticsManager {
         const renderSurnames = createSortRenderer(document.getElementById("analytics-surnames"), surnamesMap, surnamesOrder, true);
 
         // Initial render: sort by appearance (за згадкою)
-        let activeNamesSort = 'appearance';
-        document.querySelectorAll('.btn-sort-app, .btn-sort-alpha, .btn-sort-freq').forEach(btn => {
-            if (btn.style.background === 'var(--color-primary)') {
-                if (btn.classList.contains('btn-sort-app')) activeNamesSort = 'appearance';
-                else if (btn.classList.contains('btn-sort-alpha')) activeNamesSort = 'alphabet';
-                else if (btn.classList.contains('btn-sort-freq')) activeNamesSort = 'frequency';
-            }
-        });
-        
-        let activeSurnamesSort = 'appearance'; // Assuming this was intended, although later it says appearance
-        document.querySelectorAll('.btn-sort-app-s, .btn-sort-alpha-s, .btn-sort-freq-s').forEach(btn => {
-            if (btn.style.background === 'var(--color-primary)') {
-                if (btn.classList.contains('btn-sort-app-s')) activeSurnamesSort = 'appearance';
-                else if (btn.classList.contains('btn-sort-alpha-s')) activeSurnamesSort = 'alphabet';
-                else if (btn.classList.contains('btn-sort-freq-s')) activeSurnamesSort = 'frequency';
-            }
-        });
+        if (!this._activeNamesSort) this._activeNamesSort = 'appearance';
+        let activeNamesSort = this._activeNamesSort;
+
+        if (!this._activeSurnamesSort) this._activeSurnamesSort = 'appearance';
+        let activeSurnamesSort = this._activeSurnamesSort;
 
         renderNamesM(activeNamesSort);
         renderNamesF(activeNamesSort);
@@ -962,40 +950,44 @@ export class AnalyticsManager {
 
         // Bind global names sort buttons
         if (this.containerNamesM) {
-            const namesSection = this.containerNamesM.closest('.analytics-section-content');
-            if (namesSection) {
-                const updateNamesActiveBtn = (mode) => {
-                    document.querySelectorAll('.btn-sort-app, .btn-sort-alpha, .btn-sort-freq').forEach(btn => {
-                        let btnMode = '';
-                        if (btn.classList.contains('btn-sort-app')) btnMode = 'appearance';
-                        else if (btn.classList.contains('btn-sort-alpha')) btnMode = 'alphabet';
-                        else if (btn.classList.contains('btn-sort-freq')) btnMode = 'frequency';
-                        
-                        if (btnMode === mode) {
-                            btn.style.background = 'var(--color-primary)';
-                            btn.style.color = 'white';
-                            btn.style.borderColor = 'var(--color-primary)';
-                        } else {
-                            btn.style.background = 'transparent';
-                            btn.style.color = 'var(--color-text-main)';
-                            btn.style.borderColor = 'var(--color-border)';
-                        }
-                    });
-                };
+            const updateNamesActiveBtn = (mode) => {
+                document.querySelectorAll('.btn-sort-app, .btn-sort-alpha, .btn-sort-freq').forEach(btn => {
+                    let btnMode = '';
+                    if (btn.classList.contains('btn-sort-app')) btnMode = 'appearance';
+                    else if (btn.classList.contains('btn-sort-alpha')) btnMode = 'alphabet';
+                    else if (btn.classList.contains('btn-sort-freq')) btnMode = 'frequency';
+                    
+                    if (btnMode === mode) {
+                        btn.style.background = 'var(--color-primary)';
+                        btn.style.color = '#ffffff';
+                        btn.style.borderColor = 'var(--color-primary)';
+                    } else {
+                        btn.style.background = 'transparent';
+                        btn.style.color = 'var(--color-text-main)';
+                        btn.style.borderColor = 'var(--color-border)';
+                    }
+                });
+            };
 
-                const updateSort = (mode) => {
-                    renderNamesM(mode);
-                    renderNamesF(mode);
-                    updateNamesActiveBtn(mode);
-                };
-                
-                updateNamesActiveBtn(activeNamesSort);
+            const updateSort = (mode) => {
+                this._activeNamesSort = mode;
+                renderNamesM(mode);
+                renderNamesF(mode);
+                updateNamesActiveBtn(mode);
+            };
+            
+            updateNamesActiveBtn(activeNamesSort);
 
-                // Bind all buttons with these classes globally or within document
-                document.querySelectorAll('.btn-sort-freq').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
-                document.querySelectorAll('.btn-sort-alpha').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
-                document.querySelectorAll('.btn-sort-app').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
-            }
+            // Bind all 3 buttons for names
+            document.querySelectorAll('.btn-sort-freq').forEach(b => {
+                b.onclick = (e) => { e.preventDefault(); updateSort('frequency'); };
+            });
+            document.querySelectorAll('.btn-sort-alpha').forEach(b => {
+                b.onclick = (e) => { e.preventDefault(); updateSort('alphabet'); };
+            });
+            document.querySelectorAll('.btn-sort-app').forEach(b => {
+                b.onclick = (e) => { e.preventDefault(); updateSort('appearance'); };
+            });
         }
         
         const updateSurnamesActiveBtn = (mode) => {
@@ -1007,7 +999,7 @@ export class AnalyticsManager {
                 
                 if (btnMode === mode) {
                     btn.style.background = 'var(--color-primary)';
-                    btn.style.color = 'white';
+                    btn.style.color = '#ffffff';
                     btn.style.borderColor = 'var(--color-primary)';
                 } else {
                     btn.style.background = 'transparent';
@@ -1018,6 +1010,7 @@ export class AnalyticsManager {
         };
 
         const updateSurnamesSort = (mode) => {
+            this._activeSurnamesSort = mode;
             renderSurnames(mode);
             updateSurnamesActiveBtn(mode);
         };
@@ -1025,14 +1018,26 @@ export class AnalyticsManager {
         updateSurnamesActiveBtn(activeSurnamesSort);
 
         // Surnames sorting bindings
-        document.querySelectorAll('.btn-sort-freq-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('frequency'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
-        document.querySelectorAll('.btn-sort-alpha-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('alphabet'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
-        document.querySelectorAll('.btn-sort-app-s').forEach(b => b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('appearance'); if (b.closest('.popup-overlay')) b.closest('.popup-overlay').classList.remove('show'); });
+        document.querySelectorAll('.btn-sort-freq-s').forEach(b => {
+            b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('frequency'); };
+        });
+        document.querySelectorAll('.btn-sort-alpha-s').forEach(b => {
+            b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('alphabet'); };
+        });
+        document.querySelectorAll('.btn-sort-app-s').forEach(b => {
+            b.onclick = (e) => { e.preventDefault(); updateSurnamesSort('appearance'); };
+        });
 
 
 
         const uniqueNamesMCount = Object.keys(namesM).length;
         const uniqueNamesFCount = Object.keys(namesF).length;
+
+        const countMEl = document.getElementById("analytics-names-count-m");
+        if (countMEl) countMEl.textContent = String(uniqueNamesMCount);
+
+        const countFEl = document.getElementById("analytics-names-count-f");
+        if (countFEl) countFEl.textContent = String(uniqueNamesFCount);
         const uniqueSurnamesCount = Object.keys(surnamesMap).length;
         const uniquePlacesCount = Object.keys(placesCount).length;
         
