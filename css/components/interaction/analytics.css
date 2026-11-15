@@ -1575,7 +1575,7 @@ body.in-analytics #mobile-menu-btn,
     top: 0;
     height: 36px;
     border-bottom: 1px solid var(--color-border);
-    z-index: 20;
+    z-index: 30;
     background-color: var(--color-bg-card);
     cursor: pointer;
     box-sizing: border-box;
@@ -1668,10 +1668,10 @@ body.in-analytics #mobile-menu-btn,
 
     #timeline-sort-btn {
         flex-shrink: 0 !important;
-        width: 38px !important;
-        height: 38px !important;
+        width: 34px !important;
+        height: 32px !important;
         padding: 0 !important;
-        border-radius: 8px !important;
+        border-radius: 6px !important;
     }
 
     .analytics-dialog .analytics-body {

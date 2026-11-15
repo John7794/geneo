@@ -2073,7 +2073,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         btnViewList.style.background = 'transparent';
                         btnViewList.style.color = 'var(--color-text-main)';
                         if (filterTypeSelect) filterTypeSelect.style.display = 'none';
-                        if (sortBtn) sortBtn.style.display = 'none';
+                        if (sortBtn) sortBtn.style.display = 'inline-flex';
                         if (periodFilterEl) periodFilterEl.style.display = 'inline-flex';
                         const scrubberToggle = document.getElementById("timeline-scrubber-mode-toggle");
                         if (scrubberToggle) scrubberToggle.style.display = 'inline-flex';
@@ -2105,32 +2105,35 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 });
             }
             
-            
-            const applyPeriodBtn = document.getElementById("timeline-chart-apply-btn");
             const minInput = document.getElementById("timeline-chart-min-year");
             const maxInput = document.getElementById("timeline-chart-max-year");
             const dashInput = document.getElementById("timeline-chart-dash");
             
-            const checkInputs = () => {
-                if (!applyPeriodBtn) return;
-                let changed = false;
-                if (minInput && minInput.value && parseInt(minInput.value, 10) !== Math.round(scrubberStartYear)) changed = true;
-                if (scrubberMode === "period" && maxInput && maxInput.value && parseInt(maxInput.value, 10) !== Math.round(scrubberEndYear)) changed = true;
-                
-                if (changed) {
-                    applyPeriodBtn.style.display = 'inline-block';
-                } else {
-                    applyPeriodBtn.style.display = 'none';
+            const onYearInputCommit = () => {
+                const val1 = minInput && minInput.value ? parseInt(minInput.value, 10) : null;
+                const val2 = maxInput && maxInput.value ? parseInt(maxInput.value, 10) : (scrubberEndYear || (val1 ? val1 + 10 : null));
+                const cy = new Date().getFullYear();
+                if (val1 && val1 >= 1000 && val1 <= cy) {
+                    if (scrubberMode === "year") {
+                        scrubberStartYear = val1;
+                        scrubberEndYear = val1;
+                        updateTimelineUrl();
+                        renderTimelineChart(true);
+                    } else if (val2 && val2 >= 1000 && val2 <= cy) {
+                        scrubberStartYear = Math.min(val1, val2);
+                        scrubberEndYear = Math.max(val1, val2);
+                        updateTimelineUrl();
+                        renderTimelineChart(true);
+                    }
                 }
             };
 
             let debounceYearTimer = null;
             const onYearInputLive = () => {
-                checkInputs();
                 clearTimeout(debounceYearTimer);
                 debounceYearTimer = setTimeout(() => {
                     const val1 = minInput && minInput.value ? parseInt(minInput.value, 10) : null;
-                    const val2 = maxInput && maxInput.value ? parseInt(maxInput.value, 10) : null;
+                    const val2 = maxInput && maxInput.value ? parseInt(maxInput.value, 10) : (scrubberEndYear || (val1 ? val1 + 10 : null));
                     const cy = new Date().getFullYear();
                     if (val1 && val1 >= 1000 && val1 <= cy) {
                         if (scrubberMode === "year") {
@@ -2145,47 +2148,26 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             renderTimelineChart(false);
                         }
                     }
-                }, 400);
+                }, 350);
             };
 
-            if (minInput) minInput.addEventListener("input", onYearInputLive);
-            if (maxInput) maxInput.addEventListener("input", onYearInputLive);
+            if (minInput) {
+                minInput.addEventListener("input", onYearInputLive);
+                minInput.addEventListener("change", onYearInputCommit);
+            }
+            if (maxInput) {
+                maxInput.addEventListener("input", onYearInputLive);
+                maxInput.addEventListener("change", onYearInputCommit);
+            }
             
             const handleEnter = (e) => {
-                if (e.key === 'Enter' && applyPeriodBtn && applyPeriodBtn.style.display !== 'none') {
-                    applyPeriodBtn.click();
-                    e.target.blur(); // Optionally remove focus
+                if (e.key === 'Enter') {
+                    onYearInputCommit();
+                    e.target.blur();
                 }
             };
             if (minInput) minInput.addEventListener("keydown", handleEnter);
             if (maxInput) maxInput.addEventListener("keydown", handleEnter);
-
-            if (applyPeriodBtn) {
-                applyPeriodBtn.addEventListener("click", () => {
-                    let newStart = scrubberStartYear;
-                    let newEnd = scrubberEndYear;
-                    
-                    if (minInput && minInput.value) newStart = parseInt(minInput.value, 10);
-                    if (scrubberMode === "period" && maxInput && maxInput.value) newEnd = parseInt(maxInput.value, 10);
-                    
-                    if (scrubberMode === "period" && newStart > newEnd) {
-                        const temp = newStart;
-                        newStart = newEnd;
-                        newEnd = temp;
-                    }
-                    
-                    const cy = new Date().getFullYear();
-                    if (newStart > cy) newStart = cy;
-                    if (newEnd > cy) newEnd = cy;
-                    
-                    scrubberStartYear = newStart;
-                    scrubberEndYear = newEnd;
-                    
-                    applyPeriodBtn.style.display = 'none';
-                    updateTimelineUrl();
-                    renderTimelineChart(true);
-                });
-            }
             
             const renderTimelineChart = (forceCenter = false) => {
                 if (!chartContainer) return;
@@ -2268,7 +2250,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 const yearToPx = (y) => (y - minYear) * ypx;
                 const pxToYear = (px) => minYear + (px / ypx);
                 
-                let axisHtml = '<div id="analytics-timeline-axis" style="position: sticky; top: 0; height: 36px; border-bottom: 1px solid var(--color-border); z-index: 10; background-color: var(--color-bg-card); cursor: pointer;">';
+                let axisHtml = '<div id="analytics-timeline-axis" style="position: sticky; top: 0; height: 36px; border-bottom: 1px solid var(--color-border); z-index: 30; background-color: var(--color-bg-card); cursor: pointer; user-select: none;">';
                 
                 let d = Math.floor(minYear / 10) * 10;
                 let tocCenturies = new Set();
@@ -2300,8 +2282,9 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
 
     if (scrubberMode === "year") {
         scrubberUIHtml = `
-            <div id="timeline-scrubber-handle" data-type="single" style="position: absolute; top: 3px; left: ${yearToPx(scrubberStartYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 25;">
-                ${Math.round(scrubberStartYear)}
+            <div id="timeline-scrubber-handle" data-type="single" style="position: absolute; top: 3px; left: ${yearToPx(scrubberStartYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 35;">
+                <span class="timeline-scrubber-year-text">${Math.round(scrubberStartYear)}</span>
+                <div class="timeline-scrubber-stem" style="position: absolute; top: 28px; left: 50%; transform: translateX(-50%); width: 2px; height: 6px; background: var(--color-primary); pointer-events: none;"></div>
             </div>
         `;
     } else {
@@ -2310,24 +2293,32 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
         const w = p2 - p1;
         
         scrubberUIHtml = `
-            <div id="timeline-scrubber-bg" style="position: absolute; top: 33px; bottom: 0; left: ${p1}px; width: ${w}px; background: rgba(30, 136, 229, 0.1); z-index: 10; pointer-events: none; border-left: 1px dashed var(--color-primary); border-right: 1px dashed var(--color-primary);"></div>
+            <div id="timeline-scrubber-drag-area" style="position: absolute; top: 0; left: ${p1}px; width: ${w}px; height: 36px; background: rgba(30, 136, 229, 0.15); cursor: move; z-index: 32;"></div>
             
-            <div id="timeline-scrubber-handle-start" data-type="start" style="position: absolute; top: 3px; left: ${yearToPx(scrubberStartYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 25;">
-                ${Math.round(scrubberStartYear)}
+            <div id="timeline-scrubber-handle-start" data-type="start" style="position: absolute; top: 3px; left: ${yearToPx(scrubberStartYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 35;">
+                <span class="timeline-scrubber-year-text">${Math.round(scrubberStartYear)}</span>
+                <div class="timeline-scrubber-stem" style="position: absolute; top: 28px; left: 50%; transform: translateX(-50%); width: 2px; height: 6px; background: var(--color-primary); pointer-events: none;"></div>
             </div>
             
-            <div id="timeline-scrubber-handle-end" data-type="end" style="position: absolute; top: 3px; left: ${yearToPx(scrubberEndYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 25;">
-                ${Math.round(scrubberEndYear)}
+            <div id="timeline-scrubber-handle-end" data-type="end" style="position: absolute; top: 3px; left: ${yearToPx(scrubberEndYear)}px; transform: translateX(-50%); width: 30px; height: 30px; background: var(--color-primary); border-radius: 50%; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); user-select: none; cursor: ew-resize; z-index: 35;">
+                <span class="timeline-scrubber-year-text">${Math.round(scrubberEndYear)}</span>
+                <div class="timeline-scrubber-stem" style="position: absolute; top: 28px; left: 50%; transform: translateX(-50%); width: 2px; height: 6px; background: var(--color-primary); pointer-events: none;"></div>
             </div>
-            
-            <div id="timeline-scrubber-drag-area" style="position: absolute; top: 0; left: ${p1}px; width: ${w}px; height: 30px; background: rgba(30, 136, 229, 0.2); cursor: move; z-index: 24;"></div>
         `;
     }
     
     let scrubberLineHtml = "";
     if (scrubberMode === "year") {
         scrubberLineHtml = `
-            <div id="timeline-scrubber" style="position: absolute; top: 0; bottom: 0; left: ${yearToPx(scrubberStartYear)}px; width: 2px; transform: translateX(-50%); background: var(--color-primary); z-index: 15; pointer-events: none;">
+            <div id="timeline-scrubber" style="position: absolute; top: 0; bottom: 0; left: ${yearToPx(scrubberStartYear)}px; width: 2px; transform: translateX(-50%); background: var(--color-primary); z-index: 10; pointer-events: none;">
+            </div>
+        `;
+    } else {
+        const p1 = Math.min(yearToPx(scrubberStartYear), yearToPx(scrubberEndYear));
+        const p2 = Math.max(yearToPx(scrubberStartYear), yearToPx(scrubberEndYear));
+        const w = p2 - p1;
+        scrubberLineHtml = `
+            <div id="timeline-scrubber-period-band" style="position: absolute; top: 0; bottom: 0; left: ${p1}px; width: ${w}px; background: rgba(30, 136, 229, 0.12); border-left: 2px dashed var(--color-primary); border-right: 2px dashed var(--color-primary); z-index: 10; pointer-events: none; box-sizing: border-box;">
             </div>
         `;
     }
@@ -2335,12 +2326,12 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
     axisHtml += scrubberUIHtml + "</div>";
     
                 
-                let rowsHtml = '<div style="position: relative; margin-top: 12px; padding-bottom: 16px;">';
+                let rowsHtml = '<div style="position: relative;">';
                 
                 validPeople.sort((a, b) => {
                     const aY = a.birth !== null ? a.birth : (a.death - 70);
                     const bY = b.birth !== null ? b.birth : (b.death - 70);
-                    return aY - bY; 
+                    return sortDesc ? (bY - aY) : (aY - bY); 
                 });
                 
                 validPeople.forEach((p, idx) => {
@@ -2432,11 +2423,10 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                 chartContainer.innerHTML = `
                     <div style="min-width: max(${totalWidth + 300}px, 100%); position: relative;" id="analytics-timeline-chart-inner">
                         ${axisHtml}
-                        <div style="position: relative;" id="analytics-timeline-rows-container">
+                        <div style="position: relative; padding-top: 8px; padding-bottom: 16px;" id="analytics-timeline-rows-container">
                             ${gridHtml}
                             ${rowsHtml}
                             ${typeof scrubberLineHtml !== "undefined" ? scrubberLineHtml : ""}
-                            
                         </div>
                     </div>
                 `;
@@ -2571,7 +2561,8 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 const l = document.getElementById('timeline-scrubber');
                                 if (h) {
                                     h.style.left = `${x}px`;
-                                    h.textContent = Math.round(scrubberStartYear);
+                                    const txt = h.querySelector('.timeline-scrubber-year-text') || h;
+                                    txt.textContent = Math.round(scrubberStartYear);
                                 }
                                 if (l) l.style.left = `${x}px`;
                                 updateTimelineUrl();
@@ -2586,21 +2577,32 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 
                                 const hs = document.getElementById('timeline-scrubber-handle-start');
                                 const he = document.getElementById('timeline-scrubber-handle-end');
-                                const bg = document.getElementById('timeline-scrubber-bg');
+                                const band = document.getElementById('timeline-scrubber-period-band');
                                 const areaEl = document.getElementById('timeline-scrubber-drag-area');
                                 
                                 const p1 = yearToPx(scrubberStartYear);
                                 const p2 = yearToPx(scrubberEndYear);
                                 
-                                if (hs) { hs.style.left = `${p1}px`; hs.textContent = Math.round(scrubberStartYear); }
-                                if (he) { he.style.left = `${p2}px`; he.textContent = Math.round(scrubberEndYear); }
-                                if (bg && areaEl) {
-                                    const minP = Math.min(p1, p2);
-                                    const maxP = Math.max(p1, p2);
-                                    bg.style.left = `${minP}px`;
-                                    bg.style.width = `${maxP - minP}px`;
+                                if (hs) {
+                                    hs.style.left = `${p1}px`;
+                                    const txt = hs.querySelector('.timeline-scrubber-year-text') || hs;
+                                    txt.textContent = Math.round(scrubberStartYear);
+                                }
+                                if (he) {
+                                    he.style.left = `${p2}px`;
+                                    const txt = he.querySelector('.timeline-scrubber-year-text') || he;
+                                    txt.textContent = Math.round(scrubberEndYear);
+                                }
+                                const minP = Math.min(p1, p2);
+                                const maxP = Math.max(p1, p2);
+                                const w = maxP - minP;
+                                if (band) {
+                                    band.style.left = `${minP}px`;
+                                    band.style.width = `${w}px`;
+                                }
+                                if (areaEl) {
                                     areaEl.style.left = `${minP}px`;
-                                    areaEl.style.width = `${maxP - minP}px`;
+                                    areaEl.style.width = `${w}px`;
                                 }
                                 updateTimelineUrl();
                             }
@@ -2628,7 +2630,8 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             const l = document.getElementById('timeline-scrubber');
                             if (h) {
                                 h.style.left = `${x}px`;
-                                h.textContent = Math.round(scrubberStartYear);
+                                const txt = h.querySelector('.timeline-scrubber-year-text') || h;
+                                txt.textContent = Math.round(scrubberStartYear);
                             }
                             if (l) l.style.left = `${x}px`;
                         } else if (draggedHandle === 'start' || draggedHandle === 'end') {
@@ -2645,7 +2648,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             
                             const hs = document.getElementById('timeline-scrubber-handle-start');
                             const he = document.getElementById('timeline-scrubber-handle-end');
-                            const bg = document.getElementById('timeline-scrubber-bg');
+                            const band = document.getElementById('timeline-scrubber-period-band');
                             const areaEl = document.getElementById('timeline-scrubber-drag-area');
                             
                             const p1 = yearToPx(scrubberStartYear);
@@ -2653,20 +2656,25 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             
                             if (draggedHandle === 'start' && hs) {
                                 hs.style.left = `${p1}px`;
-                                hs.textContent = Math.round(scrubberStartYear);
+                                const txt = hs.querySelector('.timeline-scrubber-year-text') || hs;
+                                txt.textContent = Math.round(scrubberStartYear);
                             }
                             if (draggedHandle === 'end' && he) {
                                 he.style.left = `${p2}px`;
-                                he.textContent = Math.round(scrubberEndYear);
+                                const txt = he.querySelector('.timeline-scrubber-year-text') || he;
+                                txt.textContent = Math.round(scrubberEndYear);
                             }
                             
-                            if (bg && areaEl) {
-                                const minP = Math.min(p1, p2);
-                                const maxP = Math.max(p1, p2);
-                                bg.style.left = `${minP}px`;
-                                bg.style.width = `${maxP - minP}px`;
+                            const minP = Math.min(p1, p2);
+                            const maxP = Math.max(p1, p2);
+                            const w = maxP - minP;
+                            if (band) {
+                                band.style.left = `${minP}px`;
+                                band.style.width = `${w}px`;
+                            }
+                            if (areaEl) {
                                 areaEl.style.left = `${minP}px`;
-                                areaEl.style.width = `${maxP - minP}px`;
+                                areaEl.style.width = `${w}px`;
                             }
                         } else if (draggedHandle === 'area') {
                             const diffX = x - dragStartX;
@@ -2692,18 +2700,29 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                             
                             const hs = document.getElementById('timeline-scrubber-handle-start');
                             const he = document.getElementById('timeline-scrubber-handle-end');
-                            const bg = document.getElementById('timeline-scrubber-bg');
+                            const band = document.getElementById('timeline-scrubber-period-band');
                             const areaEl = document.getElementById('timeline-scrubber-drag-area');
                             
-                            if (hs) { hs.style.left = `${p1}px`; hs.textContent = Math.round(scrubberStartYear); }
-                            if (he) { he.style.left = `${p2}px`; he.textContent = Math.round(scrubberEndYear); }
-                            if (bg && areaEl) {
-                                const minP = Math.min(p1, p2);
-                                const maxP = Math.max(p1, p2);
-                                bg.style.left = `${minP}px`;
-                                bg.style.width = `${maxP - minP}px`;
+                            if (hs) {
+                                hs.style.left = `${p1}px`;
+                                const txt = hs.querySelector('.timeline-scrubber-year-text') || hs;
+                                txt.textContent = Math.round(scrubberStartYear);
+                            }
+                            if (he) {
+                                he.style.left = `${p2}px`;
+                                const txt = he.querySelector('.timeline-scrubber-year-text') || he;
+                                txt.textContent = Math.round(scrubberEndYear);
+                            }
+                            const minP = Math.min(p1, p2);
+                            const maxP = Math.max(p1, p2);
+                            const w = maxP - minP;
+                            if (band) {
+                                band.style.left = `${minP}px`;
+                                band.style.width = `${w}px`;
+                            }
+                            if (areaEl) {
                                 areaEl.style.left = `${minP}px`;
-                                areaEl.style.width = `${maxP - minP}px`;
+                                areaEl.style.width = `${w}px`;
                             }
                         }
                         
@@ -2725,6 +2744,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                                 const temp = scrubberStartYear;
                                 scrubberStartYear = scrubberEndYear;
                                 scrubberEndYear = temp;
+                                renderTimelineChart(false);
                             }
                             
                             updateTimelineUrl();
@@ -2777,7 +2797,7 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
                         let scrollLeftStart = 0;
                         
                         chartContainer.addEventListener('mousedown', (e) => {
-                            if (e.target.closest('#timeline-scrubber-handle') || e.target.closest('#timeline-scrubber-drag-area') || e.target.closest('a')) return;
+                            if (e.target.closest('[id^="timeline-scrubber-handle"]') || e.target.closest('#timeline-scrubber-drag-area') || e.target.closest('a')) return;
                             isDraggingCanvas = true;
                             startX = e.pageX - chartContainer.offsetLeft;
                             scrollLeftStart = chartContainer.scrollLeft;
@@ -3077,11 +3097,15 @@ const yearStr = record[cols.year] ? String(record[cols.year]).trim() : "";
             
             const btnSort = document.getElementById("timeline-sort-btn");
             if (btnSort) {
-                btnSort.addEventListener("click", () => {
-                    sortDesc = !sortDesc;
-                    btnSort.innerHTML = sortDesc ? '<i class="ri-sort-desc"></i>' : '<i class="ri-sort-asc"></i>';
-                    renderTimeline();
-                });
+                btnSort.innerHTML = sortDesc ? '<i class="ri-sort-desc"></i>' : '<i class="ri-sort-asc"></i>';
+                if (!btnSort._hasSortListener) {
+                    btnSort._hasSortListener = true;
+                    btnSort.addEventListener("click", () => {
+                        sortDesc = !sortDesc;
+                        btnSort.innerHTML = sortDesc ? '<i class="ri-sort-desc"></i>' : '<i class="ri-sort-asc"></i>';
+                        renderTimeline();
+                    });
+                }
             }
             
             
