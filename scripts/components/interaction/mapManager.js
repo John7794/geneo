@@ -10,16 +10,14 @@ import { escapeHtml } from "../../utils/helpers.js";
 
 const TILES = {
 	light: {
-		url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
-		subdomains: "abcd",
+		url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 		maxZoom: 19,
 	},
 	dark: {
-		url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
-		subdomains: "abcd",
-		maxZoom: 19,
+		url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+		attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>',
+		maxZoom: 16,
 	},
 };
 
@@ -137,7 +135,6 @@ export class MapManager {
 
 		this.tileLayer = L.tileLayer(tileConfig.url, {
 			attribution: tileConfig.attribution,
-			subdomains: tileConfig.subdomains,
 			maxZoom: tileConfig.maxZoom,
 		}).addTo(this.mapInstance);
 
@@ -171,15 +168,21 @@ export class MapManager {
 	aggregatePlaces() {
 		this.placesData.clear();
 
-		if (!this.engine?.db) return;
+		const engine = this.engine || window.app?.engine;
+		if (!engine) return;
 
-		const visibleIds = window.app?.managers?.lineage?.mode !== "all"
-			? new Set((window.app?.managers?.lineage?.queue || []).map(String))
+		const db = engine.db || engine;
+		if (!db) return;
+
+		const lineageManager = window.app?.managers?.lineage;
+		const isLineageFiltered = Boolean(lineageManager && lineageManager.mode && lineageManager.mode !== "all");
+		const visibleIds = isLineageFiltered
+			? new Set((lineageManager.queue || []).map(String))
 			: null;
 
 		const getPersonInfo = (pid) => {
 			if (!pid) return { name: "Невідомо", id: pid, avatar: "" };
-			const d = findPersonDetails(pid, this.engine);
+			const d = findPersonDetails(pid, engine);
 			if (!d) return { name: String(pid), id: pid, avatar: "" };
 			const name = formatPersonDisplay({
 				surname: d.surname || d.maidenName || "",
@@ -197,7 +200,7 @@ export class MapManager {
 
 			if (visibleIds && pid && !visibleIds.has(String(pid))) return;
 
-			const geo = resolvePlaceDetails(cleanPId, year, null, null, this.engine);
+			const geo = resolvePlaceDetails(cleanPId, year, null, null, engine);
 			if (!geo || typeof geo.lat !== "number" || typeof geo.lng !== "number") {
 				return;
 			}
@@ -239,46 +242,42 @@ export class MapManager {
 		};
 
 		// 1. Births
-		if (Array.isArray(this.engine.db.birth)) {
-			this.engine.db.birth.forEach((b) => {
-				const pid = b[COLUMNS.birth?.personId || "person_id"];
-				const placeId = b[COLUMNS.birth?.placeId || "place_id"];
-				const year = b[COLUMNS.birth?.year || "b_year"];
-				recordEvent(placeId, "birth", pid, year, "Народження");
-			});
-		}
+		const birthList = Array.isArray(db.birth) ? db.birth : (Array.isArray(db.db?.birth) ? db.db.birth : []);
+		birthList.forEach((b) => {
+			const pid = b[COLUMNS.birth?.personId || "person_id"] || b.person_id || b.pid;
+			const placeId = b[COLUMNS.birth?.placeId || "place_id"] || b.place_id;
+			const year = b[COLUMNS.birth?.year || "b_year"] || b.b_year || b.year;
+			recordEvent(placeId, "birth", pid, year, "Народження");
+		});
 
 		// 2. Marriages
-		if (Array.isArray(this.engine.db.marriage)) {
-			this.engine.db.marriage.forEach((m) => {
-				const p1 = m[COLUMNS.marriage?.personId || "person_id"];
-				const p2 = m[COLUMNS.marriage?.spouseId || "spouse_id"];
-				const placeId = m[COLUMNS.marriage?.placeId || "place_id"];
-				const year = m[COLUMNS.marriage?.year || "m_year"];
-				if (p1) recordEvent(placeId, "marriage", p1, year, "Шлюб");
-				if (p2) recordEvent(placeId, "marriage", p2, year, "Шлюб");
-			});
-		}
+		const marriageList = Array.isArray(db.marriage) ? db.marriage : (Array.isArray(db.db?.marriage) ? db.db.marriage : []);
+		marriageList.forEach((m) => {
+			const p1 = m[COLUMNS.marriage?.personId || "person_id"] || m.person_id || m.pid;
+			const p2 = m[COLUMNS.marriage?.spouseId || "spouse_id"] || m.spouse_id;
+			const placeId = m[COLUMNS.marriage?.placeId || "place_id"] || m.place_id;
+			const year = m[COLUMNS.marriage?.year || "m_year"] || m.m_year || m.year;
+			if (p1) recordEvent(placeId, "marriage", p1, year, "Шлюб");
+			if (p2) recordEvent(placeId, "marriage", p2, year, "Шлюб");
+		});
 
 		// 3. Deaths
-		if (Array.isArray(this.engine.db.death)) {
-			this.engine.db.death.forEach((d) => {
-				const pid = d[COLUMNS.death?.personId || "person_id"];
-				const placeId = d[COLUMNS.death?.placeId || "place_id"];
-				const year = d[COLUMNS.death?.year || "d_year"];
-				recordEvent(placeId, "death", pid, year, "Смерть");
-			});
-		}
+		const deathList = Array.isArray(db.death) ? db.death : (Array.isArray(db.db?.death) ? db.db.death : []);
+		deathList.forEach((d) => {
+			const pid = d[COLUMNS.death?.personId || "person_id"] || d.person_id || d.pid;
+			const placeId = d[COLUMNS.death?.placeId || "place_id"] || d.place_id;
+			const year = d[COLUMNS.death?.year || "d_year"] || d.d_year || d.year;
+			recordEvent(placeId, "death", pid, year, "Смерть");
+		});
 
 		// 4. Domicile
-		if (Array.isArray(this.engine.db.domicile)) {
-			this.engine.db.domicile.forEach((dom) => {
-				const pid = dom.person_id;
-				const placeId = dom.settlement || dom.region || dom.place_id;
-				const year = dom.period || "";
-				recordEvent(placeId, "domicile", pid, year, "Проживання");
-			});
-		}
+		const domicileList = Array.isArray(db.domicile) ? db.domicile : (Array.isArray(db.db?.domicile) ? db.db.domicile : []);
+		domicileList.forEach((dom) => {
+			const pid = dom.person_id || dom.pid;
+			const placeId = dom.settlement || dom.region || dom.place_id;
+			const year = dom.period || "";
+			recordEvent(placeId, "domicile", pid, year, "Проживання");
+		});
 
 		this._updateBadges();
 	}
@@ -423,6 +422,9 @@ export class MapManager {
 	}
 
 	render() {
+		if (!this.engine && window.app?.engine) {
+			this.engine = window.app.engine;
+		}
 		this.initMap();
 		this.aggregatePlaces();
 		this._renderMarkers();

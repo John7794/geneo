@@ -2,6 +2,7 @@
 
 import { COLUMNS } from "../core/dbSchema.js";
 import { APP_CONFIG } from "../core/appConfig.js";
+import geocache from "../../data/geocache.json";
 
 const DATE_SEP_REGEX = /[./\s\\]/;
 
@@ -274,13 +275,17 @@ export function resolvePlaceDetails(placeId, year, month, day, ctx) {
 		}
 	}
 
+	const cached = geocache && geocache[cleanPlaceId];
+
 	if (!placeObj) {
-		result.nameCurrent = cleanPlaceId;
+		result.nameCurrent = cached?.name || cleanPlaceId;
+		result.lat = cached?.lat !== undefined ? cached.lat : null;
+		result.lng = cached?.lng !== undefined ? cached.lng : null;
 		return result;
 	}
 
 	result.nameCurrent =
-		placeObj[COLUMNS.places?.nameCurrent || "name_current"] || "";
+		placeObj[COLUMNS.places?.nameCurrent || "name_current"] || cached?.name || "";
 	const statusData = resolveEntityStatus(
 		placeObj[COLUMNS.places?.status || "status"],
 	);
@@ -289,8 +294,11 @@ export function resolvePlaceDetails(placeId, year, month, day, ctx) {
 
 	const rawLat = placeObj[COLUMNS.places?.lat || "geo_lat"] || placeObj.lat || placeObj.geo_lat;
 	const rawLng = placeObj[COLUMNS.places?.lng || "geo_lng"] || placeObj.lng || placeObj.geo_lng;
-	result.lat = rawLat && !isNaN(parseFloat(rawLat)) ? parseFloat(rawLat) : null;
-	result.lng = rawLng && !isNaN(parseFloat(rawLng)) ? parseFloat(rawLng) : null;
+	const parsedLat = rawLat && !isNaN(parseFloat(rawLat)) ? parseFloat(rawLat) : null;
+	const parsedLng = rawLng && !isNaN(parseFloat(rawLng)) ? parseFloat(rawLng) : null;
+
+	result.lat = parsedLat !== null ? parsedLat : (cached?.lat !== undefined ? cached.lat : null);
+	result.lng = parsedLng !== null ? parsedLng : (cached?.lng !== undefined ? cached.lng : null);
 
 	let targetDateInt = null;
 	if (year) {

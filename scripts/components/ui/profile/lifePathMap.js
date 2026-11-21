@@ -158,8 +158,8 @@ export function initProfileLifePathMap(containerEl) {
 
 	const isDark = document.documentElement.classList.contains("theme-dark");
 	const tileUrl = isDark
-		? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-		: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+		? "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+		: "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 	const map = L.map(mapEl, {
 		zoomControl: false,
