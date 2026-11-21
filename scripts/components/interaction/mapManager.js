@@ -10,14 +10,14 @@ import { escapeHtml } from "../../utils/helpers.js";
 
 const TILES = {
 	light: {
-		url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-		maxZoom: 19,
+		url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+		attribution: 'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>',
+		maxZoom: 18,
 	},
 	dark: {
 		url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-		attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>',
-		maxZoom: 16,
+		attribution: 'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>',
+		maxZoom: 18,
 	},
 };
 
