@@ -419,7 +419,7 @@ class App {
 
 		this.managers.personPopup = new PersonPopupManager(
 			{
-				onNavigateToProfile: this.navigateToId,
+				onNavigateToProfile: (id) => this.navigateToId(id, false, "profile"),
 				onRelationshipRequest: (targetId, idx) => {
 					this.managers.relationship.showComparison(
 						this.currentProfileId,

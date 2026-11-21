@@ -4,6 +4,7 @@ import { i18n } from "../../core/i18n.js";
 import { UI_CLASSES } from "../../core/uiClasses.js";
 import { isFemale, normalizeGender } from "../../utils/genderUtils.js";
 import {
+	findPersonDetails,
 	getAvatarUrl,
 	getFullName,
 	resolveRealId,
@@ -68,8 +69,23 @@ class PersonDAO {
 	}
 
 	static normalize(data, engine) {
+		if (!data) return {};
+
+		if (typeof data === "string" || typeof data === "number") {
+			const idStr = String(data).trim();
+			data = findPersonDetails(idStr, engine) || { id: idStr };
+		} else if (typeof data === "object") {
+			const idStr = String(data.id || data.fam_id || "").trim();
+			if (idStr && !data.name && !data.fam_first_name && !data.surname && !data.fam_surname) {
+				const full = findPersonDetails(idStr, engine);
+				if (full && (full.name || full.surname || full.fam_first_name || full.fam_surname)) {
+					data = { ...full, ...data };
+				}
+			}
+		}
+
 		const db = engine?.db || {};
-		const idStr = String(data.id || "").trim();
+		const idStr = String(data.id || data.fam_id || "").trim();
 
 		let famRow = data;
 
@@ -394,7 +410,7 @@ export class PersonPopupManager {
 		}
 	}
 
-	async open(personData) {
+	async open(personInput) {
 		if (!this.popupElement) return;
 
 		const headerSlot = document.getElementById("popup-header-slot");
@@ -404,6 +420,21 @@ export class PersonPopupManager {
 		if (!headerSlot || !scrollSlot || !footerSlot) return;
 
 		const engine = await this.getEngine();
+		let personData = personInput;
+
+		if (typeof personInput === "string" || typeof personInput === "number") {
+			const idStr = String(personInput).trim();
+			personData = findPersonDetails(idStr, engine) || { id: idStr };
+		} else if (personInput && typeof personInput === "object") {
+			const idStr = String(personInput.id || personInput.fam_id || "").trim();
+			if (idStr && !personInput.name && !personInput.fam_first_name && !personInput.surname && !personInput.fam_surname) {
+				const full = findPersonDetails(idStr, engine);
+				if (full && (full.name || full.surname || full.fam_first_name || full.fam_surname)) {
+					personData = { ...full, ...personInput };
+				}
+			}
+		}
+
 		const p = PersonDAO.normalize(personData, engine);
 
 		headerSlot.innerHTML = this.renderHeader(p);

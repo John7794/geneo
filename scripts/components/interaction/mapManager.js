@@ -444,7 +444,9 @@ export class MapManager {
 				if (item) {
 					const pid = item.getAttribute("data-id");
 					if (pid && window.app?.managers?.personPopup) {
-						window.app.managers.personPopup.open(pid);
+						const engine = this.engine || window.app?.engine;
+						const personData = findPersonDetails(pid, engine);
+						window.app.managers.personPopup.open(personData || pid);
 					}
 				}
 			});
