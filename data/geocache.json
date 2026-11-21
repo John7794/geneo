@@ -1,0 +1,800 @@
+{
+  "PL_RAKOWA": {
+    "lat": 49.5568722,
+    "lng": 22.3867097,
+    "name": "с. Ракова",
+    "source": "gmaps_at"
+  },
+  "PL_TYRAWA_WOLOSKA": {
+    "lat": 49.5773425,
+    "lng": 22.3593967,
+    "name": "с. Тирява Волоська",
+    "source": "gmaps_at"
+  },
+  "RU_ALEKSEEVSKAYA": {
+    "lat": 57.3677154,
+    "lng": 34.8863768,
+    "name": "сел. Олексіївська",
+    "source": "familio"
+  },
+  "RU_AVSEEVO": {
+    "lat": 57.7671003,
+    "lng": 35.0010562,
+    "name": "c. Овсійове",
+    "source": "familio"
+  },
+  "RU_BABYE": {
+    "lat": 57.4358857,
+    "lng": 34.8400173,
+    "name": "с. Баб'є",
+    "source": "familio"
+  },
+  "RU_BAKHAREVO": {
+    "lat": 57.8506655,
+    "lng": 35.6782376,
+    "name": "сел. Бахарєве",
+    "source": "familio"
+  },
+  "RU_BELAVINO": {
+    "lat": 57.72973,
+    "lng": 34.8158377,
+    "name": "сел. Білавіне",
+    "source": "familio"
+  },
+  "RU_BEREZOVKA": {
+    "lat": 57.5097385,
+    "lng": 35.500121,
+    "name": "сел. Березівка",
+    "source": "familio"
+  },
+  "RU_BEREZNIKI": {
+    "lat": 54.5829674,
+    "lng": 39.6208692,
+    "name": "сел. Березники",
+    "source": "familio"
+  },
+  "RU_BORKI": {
+    "lat": 57.5188035,
+    "lng": 35.7086202,
+    "name": "сел. Борки",
+    "source": "familio"
+  },
+  "RU_BOR": {
+    "lat": 57.6558094,
+    "lng": 34.8789925,
+    "name": "сел. Бору",
+    "source": "familio"
+  },
+  "RU_BUDILOVO": {
+    "lat": 57.5154382,
+    "lng": 35.1192133,
+    "name": "сел. Будилове",
+    "source": "familio"
+  },
+  "RU_DOBRETSOVO": {
+    "lat": 57.4566929,
+    "lng": 34.8071681,
+    "name": "сел. Добрецове",
+    "source": "familio"
+  },
+  "RU_DOLGANOVO": {
+    "lat": 57.4072543,
+    "lng": 35.7259917,
+    "name": "сел. Долганове",
+    "source": "familio"
+  },
+  "RU_DOMOSLAVL": {
+    "lat": 57.3550227,
+    "lng": 34.8211606,
+    "name": "сел. Домославль",
+    "source": "familio"
+  },
+  "RU_DVORISHCHE": {
+    "lat": 57.5822224,
+    "lng": 35.6193808,
+    "name": "сел. Дворище",
+    "source": "familio"
+  },
+  "RU_BOLSHOY_DVOR": {
+    "lat": 57.5154382,
+    "lng": 35.1192133,
+    "name": "сел. Великий Двір",
+    "source": "familio"
+  },
+  "RU_FEDOVO": {
+    "lat": 57.6558094,
+    "lng": 34.8789925,
+    "name": "сел. Федове",
+    "source": "familio"
+  },
+  "RU_FILATIKHA": {
+    "lat": 57.7072448,
+    "lng": 35.1082979,
+    "name": "сел. Філатиха",
+    "source": "familio"
+  },
+  "RU_FILIZI": {
+    "lat": 57.8506655,
+    "lng": 35.6782376,
+    "name": "сел. Філізі",
+    "source": "familio"
+  },
+  "RU_GAVRILKOVO": {
+    "lat": 57.4836258,
+    "lng": 35.8828104,
+    "name": "сел. Гаврилкове",
+    "source": "familio"
+  },
+  "RU_GORKA_O": {
+    "lat": 57.5893897,
+    "lng": 35.3428599,
+    "name": "сел. Гірка",
+    "source": "familio"
+  },
+  "RU_GORKA_T": {
+    "lat": 57.3213601,
+    "lng": 35.6295974,
+    "name": "сел. Гірка",
+    "source": "familio"
+  },
+  "RU_GLUBOKOE": {
+    "lat": 57.72973,
+    "lng": 34.8158377,
+    "name": "сел. Глибоке",
+    "source": "familio"
+  },
+  "RU_GNEZDOVO": {
+    "lat": 57.4019167,
+    "lng": 35.4240453,
+    "name": "сел. Гніздове",
+    "source": "familio"
+  },
+  "RU_VOYBUTSKAYA_GORA": {
+    "lat": 57.4504045,
+    "lng": 34.6283405,
+    "name": "сел. Войбутська Гора",
+    "source": "familio"
+  },
+  "RU_GORBOVO": {
+    "lat": 57.6727027,
+    "lng": 34.9935662,
+    "name": "сел. Горбове",
+    "source": "familio"
+  },
+  "RU_GORBUNOVO": {
+    "lat": 57.4812534,
+    "lng": 35.1059348,
+    "name": "сел. Горбунове",
+    "source": "familio"
+  },
+  "RU_GORODOK": {
+    "lat": 57.4773477,
+    "lng": 35.456803,
+    "name": "сел. Городок",
+    "source": "familio"
+  },
+  "RU_GORA": {
+    "lat": 55.280848,
+    "lng": 39.2312707,
+    "name": "сел. Гора",
+    "source": "familio"
+  },
+  "RU_GRANITSA": {
+    "lat": 57.6558094,
+    "lng": 34.8789925,
+    "name": "сел. Границя",
+    "source": "familio"
+  },
+  "RU_GRIDINSKAYA": {
+    "lat": 55.2088025,
+    "lng": 39.3723807,
+    "name": "сел. Гридінська",
+    "source": "familio"
+  },
+  "RU_ILYINSKIY": {
+    "lat": 57.9654558,
+    "lng": 34.9007361,
+    "name": "п. Іллінський",
+    "source": "familio"
+  },
+  "RU_YUNYAKHINO": {
+    "lat": 57.72973,
+    "lng": 34.8158377,
+    "name": "сел. Юняхіне",
+    "source": "familio"
+  },
+  "RU_KALIKINO": {
+    "lat": 57.4885609,
+    "lng": 36.0466817,
+    "name": "сел. Каликіне",
+    "source": "familio"
+  },
+  "RU_KALYAGINO": {
+    "lat": 57.4346372,
+    "lng": 35.0214194,
+    "name": "сел. Калягіне",
+    "source": "familio"
+  },
+  "RU_KARABIKHA": {
+    "lat": 57.4346372,
+    "lng": 35.0214194,
+    "name": "сел. Карабиха",
+    "source": "familio"
+  },
+  "RU_KHARINSKAYA": {
+    "lat": 55.247642,
+    "lng": 39.3793436,
+    "name": "сел. Харінська",
+    "source": "familio"
+  },
+  "RU_KHLESTOVO": {
+    "lat": 57.4019167,
+    "lng": 35.4240453,
+    "name": "сел. Хлєстове",
+    "source": "familio"
+  },
+  "RU_KHVALOVO": {
+    "lat": 57.7671003,
+    "lng": 35.0010562,
+    "name": "сел. Хвалове",
+    "source": "familio"
+  },
+  "RU_KOCHEMA": {
+    "lat": 55.2088025,
+    "lng": 39.3723807,
+    "name": "сел. Кочема",
+    "source": "familio"
+  },
+  "RU_KOSKOVO": {
+    "lat": 57.5205411,
+    "lng": 35.1165549,
+    "name": "сел. Коскове",
+    "source": "familio"
+  },
+  "RU_KOZLOVO_D": {
+    "lat": 57.4812534,
+    "lng": 35.1059348,
+    "name": "сел. Козлове",
+    "source": "familio"
+  },
+  "RU_KOZLOVO_S": {
+    "lat": 57.6073684,
+    "lng": 35.5246861,
+    "name": "с. Козлове",
+    "source": "familio"
+  },
+  "RU_KRUTOVO": {
+    "lat": 57.6435943,
+    "lng": 35.3368758,
+    "name": "сц. Крутове",
+    "source": "familio"
+  },
+  "RU_KSENOFONTOVO": {
+    "lat": 55.2088025,
+    "lng": 39.3723807,
+    "name": "сел. Ксенофонтове",
+    "source": "familio"
+  },
+  "RU_KUMOVO": {
+    "lat": 55.2912703,
+    "lng": 39.1570446,
+    "name": "сел. Кумове",
+    "source": "familio"
+  },
+  "RU_KURGANY": {
+    "lat": 57.4225529,
+    "lng": 35.7520099,
+    "name": "сел. Кургани",
+    "source": "familio"
+  },
+  "RU_LADENKOVO": {
+    "lat": 57.3550227,
+    "lng": 34.8211606,
+    "name": "сел. Ладенькове",
+    "source": "familio"
+  },
+  "RU_LAZAREVO": {
+    "lat": 55.1920989,
+    "lng": 39.3387351,
+    "name": "сел. Лазарєве",
+    "source": "familio"
+  },
+  "RU_LELECHI": {
+    "lat": 55.2088025,
+    "lng": 39.3723807,
+    "name": "с. Лелечі",
+    "source": "familio"
+  },
+  "RU_LINDINO": {
+    "lat": 57.5893897,
+    "lng": 35.3428599,
+    "name": "сел. Ліндіне",
+    "source": "familio"
+  },
+  "RU_LUKINO_T": {
+    "lat": 57.4812534,
+    "lng": 35.1059348,
+    "name": "сел. Лукіне",
+    "source": "familio"
+  },
+  "RU_LUKINO_O": {
+    "lat": 57.6727027,
+    "lng": 34.9935662,
+    "name": "сел. Лукіне",
+    "source": "familio"
+  },
+  "RU_MAKAROVSKAYA_GORKA": {
+    "lat": 57.5188035,
+    "lng": 35.7086202,
+    "name": "сел. Макарівська Гірка",
+    "source": "familio"
+  },
+  "RU_MALOE_KOZLOVO": {
+    "lat": 57.6073684,
+    "lng": 35.5246861,
+    "name": "сел. Мале Козлове",
+    "source": "familio"
+  },
+  "RU_MATVEEVO": {
+    "lat": 57.4812534,
+    "lng": 35.1059348,
+    "name": "с. Матвійове",
+    "source": "familio"
+  },
+  "RU_MAZOVO": {
+    "lat": 57.6727027,
+    "lng": 34.9935662,
+    "name": "сел. Мазово",
+    "source": "familio"
+  },
+  "RU_MIKHAYLOVA_GORA": {
+    "lat": 57.2298122,
+    "lng": 35.4222555,
+    "name": "с. Михайлова Гора",
+    "source": "familio"
+  },
+  "RU_MOGILKI": {
+    "lat": 57.4773477,
+    "lng": 35.456803,
+    "name": "с. Могилки",
+    "source": "familio"
+  },
+  "RU_MOSHKOVO": {
+    "lat": 57.3677154,
+    "lng": 34.8863768,
+    "name": "сел. Мошкове",
+    "source": "familio"
+  },
+  "RU_NASHATYRKINO": {
+    "lat": 54.5829674,
+    "lng": 39.6208692,
+    "name": "сц. Нашатиркіне",
+    "source": "familio"
+  },
+  "RU_NAYDENIKHA": {
+    "lat": 57.8506655,
+    "lng": 35.6782376,
+    "name": "сел. Найдьониха",
+    "source": "familio"
+  },
+  "RU_NAZAROVO": {
+    "lat": 57.5188035,
+    "lng": 35.7086202,
+    "name": "с. Назарове",
+    "source": "familio"
+  },
+  "RU_NEFTEYUGANSK": {
+    "lat": 61.154934,
+    "lng": 72.655365,
+    "name": "м. Нафтоюганськ",
+    "source": "familio"
+  },
+  "RU_NIKULINO": {
+    "lat": 57.4773477,
+    "lng": 35.456803,
+    "name": "сел. Нікуліне",
+    "source": "familio"
+  },
+  "RU_NOZHKINO": {
+    "lat": 57.403216,
+    "lng": 34.739757,
+    "name": "сц. Ножкіне",
+    "source": "familio"
+  },
+  "RU_NOVOSTANSKOE": {
+    "lat": 57.4019167,
+    "lng": 35.4240453,
+    "name": "п. Новостанський",
+    "source": "familio"
+  },
+  "RU_OLEKHNOVO": {
+    "lat": 57.5154382,
+    "lng": 35.1192133,
+    "name": "сел. Олехнове",
+    "source": "familio"
+  },
+  "RU_OSECHNO": {
+    "lat": 57.6727027,
+    "lng": 34.9935662,
+    "name": "с. Осєчно",
+    "source": "familio"
+  },
+  "RU_OSOSYE": {
+    "lat": 57.6275448,
+    "lng": 35.4982118,
+    "name": "сел. Ососьє",
+    "source": "familio"
+  },
+  "RU_OVSISHCHE": {
+    "lat": 57.7671003,
+    "lng": 35.0010562,
+    "name": "с. Овсище",
+    "source": "familio"
+  },
+  "RU_PASYNKI": {
+    "lat": 57.6073684,
+    "lng": 35.5246861,
+    "name": "сел. Пасинки",
+    "source": "familio"
+  },
+  "RU_PAVLOVO": {
+    "lat": 57.3454223,
+    "lng": 35.5433797,
+    "name": "сел. Павлове",
+    "source": "familio"
+  },
+  "RU_PENKOVO": {
+    "lat": 57.4346372,
+    "lng": 35.0214194,
+    "name": "сел. Пенькове",
+    "source": "familio"
+  },
+  "RU_PETROVO": {
+    "lat": 57.6887342,
+    "lng": 34.8147363,
+    "name": "сел. Петрове",
+    "source": "familio"
+  },
+  "RU_PODMONASTYRSKAYA_SLOBODKA": {
+    "lat": 57.5794,
+    "lng": 34.6614,
+    "name": "д. Підмонастирська Слобідка",
+    "source": "familio"
+  },
+  "RU_BOLSHOE_PLOSKOE": {
+    "lat": 57.5097385,
+    "lng": 35.500121,
+    "name": "сел. Велике Плоске",
+    "source": "familio"
+  },
+  "RU_POCHINOK": {
+    "lat": 57.6727027,
+    "lng": 34.9935662,
+    "name": "сел. Починок",
+    "source": "familio"
+  },
+  "RU_PODOLKHOVETS": {
+    "lat": 57.457237,
+    "lng": 34.572723,
+    "name": "сел. Подольховець",
+    "source": "familio"
+  },
+  "RU_PROKHOROVO": {
+    "lat": 55.2088025,
+    "lng": 39.3723807,
+    "name": "сел. Прохорове",
+    "source": "familio"
+  },
+  "RU_RAMENYE": {
+    "lat": 57.4836258,
+    "lng": 35.8828104,
+    "name": "сел. Рамення",
+    "source": "familio"
+  },
+  "RU_ARZHANOE": {
+    "lat": 57.6073684,
+    "lng": 35.5246861,
+    "name": "сел. Аржане",
+    "source": "familio"
+  },
+  "RU_RUSSKAYA_GORA": {
+    "lat": 57.5701992,
+    "lng": 34.90203,
+    "name": "сел. Руська Гора",
+    "source": "familio"
+  },
+  "RU_SELTSY": {
+    "lat": 54.9229147,
+    "lng": 39.6463343,
+    "name": "сел. Сільці",
+    "source": "nominatim"
+  },
+  "RU_SKOBLEVO": {
+    "lat": 57.6727027,
+    "lng": 34.9935662,
+    "name": "сел. Скоблеве",
+    "source": "familio"
+  },
+  "RU_SOSNOVKA": {
+    "lat": 57.5188035,
+    "lng": 35.7086202,
+    "name": "сел. Соснівка",
+    "source": "familio"
+  },
+  "RU_SPASOKLINYE": {
+    "lat": 57.4773477,
+    "lng": 35.456803,
+    "name": "сел. Спасоклиння",
+    "source": "familio"
+  },
+  "RU_SPIROVO": {
+    "lat": 57.4957575,
+    "lng": 35.0253033,
+    "name": "сел. Спірове",
+    "source": "familio"
+  },
+  "RU_STAROE": {
+    "lat": 57.5260573,
+    "lng": 35.9344899,
+    "name": "сел. Старе",
+    "source": "familio"
+  },
+  "RU_STAN": {
+    "lat": 57.4019167,
+    "lng": 35.4240453,
+    "name": "сел. Стан",
+    "source": "familio"
+  },
+  "RU_STESHKOVO": {
+    "lat": 57.4019167,
+    "lng": 35.4240453,
+    "name": "сел. Стешкове",
+    "source": "familio"
+  },
+  "RU_STROKINA_GORKA": {
+    "lat": 57.6297545,
+    "lng": 35.7680811,
+    "name": "сел. Строкіна Гірка",
+    "source": "familio"
+  },
+  "RU_SVINARIKHA": {
+    "lat": 57.4019167,
+    "lng": 35.4240453,
+    "name": "сел. Свинариха",
+    "source": "familio"
+  },
+  "RU_TARASOVO": {
+    "lat": 57.6073684,
+    "lng": 35.5246861,
+    "name": "сел. Тарасове",
+    "source": "familio"
+  },
+  "RU_TIMOKHINO": {
+    "lat": 55.2798259,
+    "lng": 39.33314,
+    "name": "сел. Тимохіне",
+    "source": "familio"
+  },
+  "RU_TIMOSHKINO": {
+    "lat": 57.4773477,
+    "lng": 35.456803,
+    "name": "сел. Тимошкіне",
+    "source": "familio"
+  },
+  "RU_TOLMACHI": {
+    "lat": 57.4072543,
+    "lng": 35.7259917,
+    "name": "с. Толмачі",
+    "source": "familio"
+  },
+  "RU_TOMILINO": {
+    "lat": 55.2154688,
+    "lng": 39.3690513,
+    "name": "сел. Томіліне",
+    "source": "gmaps_at"
+  },
+  "RU_TRESTNA": {
+    "lat": 57.4885609,
+    "lng": 36.0466817,
+    "name": "с. Трестна",
+    "source": "familio"
+  },
+  "RU_TSIRIBUSHEVO": {
+    "lat": 57.4358857,
+    "lng": 34.8400173,
+    "name": "сел. Цирибушеве",
+    "source": "familio"
+  },
+  "RU_BOLSHAYA_VARIZHA": {
+    "lat": 57.6887342,
+    "lng": 34.8147363,
+    "name": "сел. Велика Варижа",
+    "source": "familio"
+  },
+  "RU_VASILKOVO": {
+    "lat": 55.131813,
+    "lng": 39.2550351,
+    "name": "сел. Василькове",
+    "source": "familio"
+  },
+  "RU_VETCHINO": {
+    "lat": 57.4773477,
+    "lng": 35.456803,
+    "name": "сел. Ветчине",
+    "source": "familio"
+  },
+  "RU_VOLKOVO": {
+    "lat": 57.72973,
+    "lng": 34.8158377,
+    "name": "сел. Волкове",
+    "source": "familio"
+  },
+  "RU_VORONTSOVO": {
+    "lat": 55.2798259,
+    "lng": 39.33314,
+    "name": "с. Воронцове",
+    "source": "familio"
+  },
+  "RU_VOROBYEVO": {
+    "lat": 57.5097385,
+    "lng": 35.500121,
+    "name": "сел. Воробйове",
+    "source": "familio"
+  },
+  "RU_VOSKRESENSKOE": {
+    "lat": 57.4072543,
+    "lng": 35.7259917,
+    "name": "сел. Воскресенське",
+    "source": "familio"
+  },
+  "RU_VYDROPUZHSK": {
+    "lat": 57.3550227,
+    "lng": 34.8211606,
+    "name": "с. Видропужськ",
+    "source": "familio"
+  },
+  "RU_VYSOKOE": {
+    "lat": 57.4836258,
+    "lng": 35.8828104,
+    "name": "сел. Високе",
+    "source": "familio"
+  },
+  "RU_VYSHNIY_VOLOCHEK": {
+    "lat": 57.5794,
+    "lng": 34.6614,
+    "name": "м. Вишній Волочек",
+    "source": "familio"
+  },
+  "RU_YAKOVTSEVO": {
+    "lat": 57.4566929,
+    "lng": 34.8071681,
+    "name": "сел. Яковцеве",
+    "source": "familio"
+  },
+  "RU_YANINO": {
+    "lat": 55.2088025,
+    "lng": 39.3723807,
+    "name": "сел. Яніне",
+    "source": "familio"
+  },
+  "RU_YASHCHINY": {
+    "lat": 57.7432295,
+    "lng": 34.602146,
+    "name": "сел. Ящини",
+    "source": "familio"
+  },
+  "RU_YUKHOVO": {
+    "lat": 57.4346372,
+    "lng": 35.0214194,
+    "name": "сел. Юхове",
+    "source": "familio"
+  },
+  "RU_YURINSKAYA": {
+    "lat": 55.2088025,
+    "lng": 39.3723807,
+    "name": "сел. Юринська",
+    "source": "familio"
+  },
+  "RU_ZARECHYE": {
+    "lat": 57.6887342,
+    "lng": 34.8147363,
+    "name": "сел. Заріччя",
+    "source": "familio"
+  },
+  "RU_ZMEEVO": {
+    "lat": 57.3547497,
+    "lng": 35.8196993,
+    "name": "сел. Змійове",
+    "source": "familio"
+  },
+  "RU_ZYBUNOVO": {
+    "lat": 57.4812534,
+    "lng": 35.1059348,
+    "name": "сел. Зибунове",
+    "source": "familio"
+  },
+  "UA_CHUKVA": {
+    "lat": 49.4604026,
+    "lng": 23.1573199,
+    "name": "с. Чуква",
+    "source": "gmaps_at"
+  },
+  "UA_DROHOBYCH": {
+    "lat": 49.3522152,
+    "lng": 23.469172,
+    "name": "м. Дрогобич",
+    "source": "gmaps_at"
+  },
+  "UA_DUBLIANY": {
+    "lat": 49.499167,
+    "lng": 23.406111,
+    "name": "с. Дубляни",
+    "source": "gmaps_at"
+  },
+  "UA_HORDYNIA": {
+    "lat": 49.536834,
+    "lng": 23.347822,
+    "name": "с. Гординя",
+    "source": "gmaps_at"
+  },
+  "UA_HORODYSHCHE": {
+    "lat": 49.4686325,
+    "lng": 23.3168253,
+    "name": "с. Городище",
+    "source": "gmaps_at"
+  },
+  "UA_KULCHYTSI": {
+    "lat": 49.5051032,
+    "lng": 23.2703554,
+    "name": "с. Кульчиці",
+    "source": "gmaps_at"
+  },
+  "UA_LOPUSHANKA": {
+    "lat": 49.5023424,
+    "lng": 22.6965053,
+    "name": "с. Лопушанка",
+    "source": "gmaps_at"
+  },
+  "UA_LOPUSHNYTSIA": {
+    "lat": 49.5044497,
+    "lng": 22.7083444,
+    "name": "с. Лопушниця",
+    "source": "gmaps_at"
+  },
+  "UA_LVIV": {
+    "lat": 49.8326598,
+    "lng": 23.9298351,
+    "name": "м. Львів",
+    "source": "gmaps_at"
+  },
+  "UA_NAHIRNE": {
+    "lat": 49.4816571,
+    "lng": 23.1999994,
+    "name": "с. Нагірне",
+    "source": "gmaps_at"
+  },
+  "UA_SAMBIR": {
+    "lat": 49.5222063,
+    "lng": 23.0410096,
+    "name": "м. Самбір",
+    "source": "gmaps_at"
+  },
+  "UA_SELETS": {
+    "lat": 49.4453015,
+    "lng": 23.2845863,
+    "name": "с. Селець",
+    "source": "gmaps_at"
+  },
+  "UA_STUPNYTSIA": {
+    "lat": 49.4315217,
+    "lng": 23.3018795,
+    "name": "с. Ступниця",
+    "source": "gmaps_at"
+  },
+  "UA_URIZH": {
+    "lat": 49.3829695,
+    "lng": 23.2483288,
+    "name": "с. Уріж",
+    "source": "gmaps_at"
+  }
+}

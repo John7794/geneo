@@ -19,6 +19,7 @@ import { ZoomManager } from "./components/interaction/zoomManager.js";
 import { enableDragScroll } from "./components/interaction/dragScrollManager.js";
 import { LangManager } from "./components/interaction/langManager.js";
 import { AnalyticsManager } from "./components/interaction/analyticsManager.js";
+import { MapManager } from "./components/interaction/mapManager.js";
 import { FanChartManager } from "./components/circle/fanChartManager.js";
 import { ThemeManager } from "./components/interaction/themeManager.js";
 import { MobileMenuManager } from "./components/interaction/mobileMenuManager.js";
@@ -254,6 +255,14 @@ class App {
 			}
 		});
 
+		// Делегування кнопки відкриття мапи
+		document.addEventListener("click", (e) => {
+			if (e.target.closest(".js-open-map")) {
+				e.preventDefault();
+				this.navigateToId(this.currentProfileId || this.rootPersonId, false, "map");
+			}
+		});
+
 		const btnHome = document.getElementById("btn-home");
 		if (btnHome) {
 			btnHome.addEventListener("click", this._handleHomeClick);
@@ -386,6 +395,7 @@ class App {
 			() => this.managers.lineage,
 		);
 		this.managers.analytics = new AnalyticsManager(this.engine);
+		this.managers.map = new MapManager(this.engine, this.router);
 		this.managers.fanChart = new FanChartManager(this.engine, {
 			getRootId: () => this.rootPersonId,
 			onNavigateToProfile: (id) => this.navigateToId(id, false, "profile"),

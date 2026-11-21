@@ -237,6 +237,9 @@ export class MobileMenuManager {
 				if (this.fabBtn) this.fabBtn.style.setProperty("display", "none", "important");
 				document.getElementById("btn-analytics")?.click();
 				break;
+			case "map":
+				(document.getElementById("btn-map") || document.getElementById("btn-map-dock"))?.click();
+				break;
 			case "events":
 				document.getElementById("btn-events")?.click();
 				break;

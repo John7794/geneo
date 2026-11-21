@@ -287,6 +287,11 @@ export function resolvePlaceDetails(placeId, year, month, day, ctx) {
 	result.status = statusData.code;
 	result.statusText = statusData.text;
 
+	const rawLat = placeObj[COLUMNS.places?.lat || "geo_lat"] || placeObj.lat || placeObj.geo_lat;
+	const rawLng = placeObj[COLUMNS.places?.lng || "geo_lng"] || placeObj.lng || placeObj.geo_lng;
+	result.lat = rawLat && !isNaN(parseFloat(rawLat)) ? parseFloat(rawLat) : null;
+	result.lng = rawLng && !isNaN(parseFloat(rawLng)) ? parseFloat(rawLng) : null;
+
 	let targetDateInt = null;
 	if (year) {
 		const y = parseInt(year, 10);

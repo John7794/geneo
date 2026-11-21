@@ -23,6 +23,7 @@ import { renderMilitaryBlock } from "./military.js";
 // Імпортуємо розширені блоки
 import { renderIdentityBlock } from "./identity.js";
 import { renderDomicileBlock } from "./domicile.js";
+import { renderLifePathHtml, initProfileLifePathMap } from "./lifePathMap.js";
 import { renderPersonalBlock } from "./personal.js";
 import { renderGalleryBlock } from "./gallery.js";
 import { renderSpiritualSection } from "./spiritualKinship.js";
@@ -52,7 +53,8 @@ const SECTION_RENDERERS = [
 	renderFuneralBlock, // 13. Поховання
 	renderRecords, // 14. Документи
 	renderDomicileBlock, // 15. Місця проживання (Географія переміщень)
-	renderEducationBlock, // 16. Освіта
+	(person) => renderLifePathHtml(person, person._engine || window.app?.engine), // 16. Географія життя (Мапа життєвого шляху)
+	renderEducationBlock, // 17. Освіта
 	renderJobBlock, // 17. Професійна діяльність
 	renderAwardsBlock, // 18. Нагороди та відзнаки
 	renderMilitaryBlock, // 19. Військова служба
@@ -140,6 +142,7 @@ export function renderProfile(person) {
 	queueMicrotask(() => {
 		requestAnimationFrame(() => {
 			activeStickyHeader = new StickyHeaderManager();
+			initProfileLifePathMap(container);
 			const hash = window.location.hash;
 			if (hash) {
 				const targetElement = document.querySelector(hash);

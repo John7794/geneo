@@ -55,6 +55,7 @@
 <link rel="stylesheet" href="/css/components/interaction/drive.css" />
 <link rel="stylesheet" href="/css/components/interaction/search.css" />
 <link rel="stylesheet" href="/css/components/interaction/zoom.css" />
+<link rel="stylesheet" href="/css/components/interaction/map.css" />
 <link rel="stylesheet" href="/css/components/circle/fan-chart.css" />
 <link rel="stylesheet" href="/css/components/profile/ancestors.css" />
 <link rel="stylesheet" href="/css/components/profile/awards.css" />
@@ -156,6 +157,10 @@
                     <i class="ri-pie-chart-2-line"></i>
                 </button>
 
+                <button id="btn-map-dock" class="btn btn-icon js-open-map" title="Мапа родоводу" aria-label="Мапа родоводу">
+                    <i class="ri-earth-line"></i>
+                </button>
+
                 <button id="btn-search" class="btn btn-icon js-open-search" title="Пошук" aria-label="Пошук" data-i18n-title="ui.searchTitle">
                     <i class="ri-search-line"></i>
                 </button>
@@ -182,6 +187,9 @@
                 </button>
                 <button id="btn-ai" class="btn btn-icon js-open-ai" title="AI Асистент" aria-label="AI Асистент">
                     <i class="ri-robot-2-line"></i>
+                </button>
+                <button id="btn-map" class="btn btn-icon js-open-map" title="Мапа родоводу" aria-label="Мапа родоводу">
+                    <i class="ri-earth-line"></i>
                 </button>
                 <button id="btn-analytics" class="btn btn-icon js-open-analytics" title="Аналітика" aria-label="Аналітика">
                     <i class="ri-bar-chart-2-line"></i>
@@ -247,6 +255,8 @@
         </div>
 
         <div id="fan-chart-view" class="fan-chart-view hidden"></div>
+
+        <div id="map-view" class="map-view hidden"></div>
 
         <div id="profile-content" class="hidden"></div>
 
@@ -1036,6 +1046,15 @@
                             <span class="mobile-nav-text">
                                 <span class="mobile-nav-label">AI Асистент</span>
                                 <span class="mobile-nav-desc">Аналіз родинних зв'язків</span>
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
+                        </button>
+
+                        <button type="button" class="mobile-nav-item js-mobile-action" data-action="map">
+                            <span class="mobile-nav-icon icon-teal"><i class="ri-earth-line"></i></span>
+                            <span class="mobile-nav-text">
+                                <span class="mobile-nav-label">Мапа родоводу</span>
+                                <span class="mobile-nav-desc">Географія та розселення роду</span>
                             </span>
                             <i class="ri-arrow-right-s-line mobile-nav-arrow"></i>
                         </button>

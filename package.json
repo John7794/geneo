@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "sync": "node scripts/api-tasks/sync-data.js && node scripts/api-tasks/generate-kinship.js",
-    "build": "node scripts/api-tasks/generate-kinship.js && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "sync": "node scripts/api-tasks/sync-data.js && node scripts/api-tasks/resolve-geo-coordinates.js && node scripts/api-tasks/generate-kinship.js",
+    "build": "node scripts/api-tasks/resolve-geo-coordinates.js && node scripts/api-tasks/generate-kinship.js && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
@@ -15,12 +15,14 @@
   "dependencies": {
     "@google/genai": "^1.29.0",
     "@tailwindcss/vite": "^4.1.14",
+    "@types/leaflet": "^1.9.22",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "firebase-admin": "^14.3.0",
     "jszip": "^3.10.2",
+    "leaflet": "^1.9.4",
     "papaparse": "^5.5.3",
     "vite": "^6.2.3"
   },

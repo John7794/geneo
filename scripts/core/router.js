@@ -50,11 +50,13 @@ export class AppRouter {
 	}
 
 	_navigateSwipe(direction) {
-		// Блокуємо свайпи, якщо відкрито аналітику
+		// Блокуємо свайпи, якщо відкрито аналітику або мапу
 		const analyticsView = document.getElementById("analytics-view");
+		const mapView = document.getElementById("map-view");
 		if (
 			document.body.classList.contains("in-analytics") ||
-			(analyticsView && !analyticsView.classList.contains("hidden"))
+			(analyticsView && !analyticsView.classList.contains("hidden")) ||
+			(mapView && !mapView.classList.contains("hidden"))
 		) {
 			return;
 		}
@@ -490,7 +492,7 @@ export class AppRouter {
 			needsUpdate = true;
 		}
 
-		if (viewParam !== "analytics") {
+		if (viewParam !== "analytics" && viewParam !== "map") {
 			if (currentUrl.searchParams.has("timeline_mode")) {
 				currentUrl.searchParams.delete("timeline_mode");
 				needsUpdate = true;
@@ -537,7 +539,9 @@ export class AppRouter {
 		const fanChartViewEl = document.getElementById("fan-chart-view");
 		const profileContentEl = document.getElementById("profile-content");
 		const analyticsViewEl = document.getElementById("analytics-view");
+		const mapViewEl = document.getElementById("map-view");
 		if (analyticsViewEl) analyticsViewEl.classList.add("hidden");
+		if (mapViewEl) mapViewEl.classList.add("hidden");
 
 		if (mode === "error") {
 			document.body.classList.add("error-state-active");
@@ -592,6 +596,13 @@ export class AppRouter {
 					if (btnBackModal) btnBackModal.style.setProperty("display", "none", "important");
 				}
 			}
+		} else if (mode === "map") {
+			document.body.classList.remove("error-state-active");
+			if (treeViewEl) treeViewEl.classList.add("hidden");
+			if (fanChartViewEl) fanChartViewEl.classList.add("hidden");
+			if (profileContentEl) profileContentEl.classList.add("hidden");
+			if (analyticsViewEl) analyticsViewEl.classList.add("hidden");
+			if (mapViewEl) mapViewEl.classList.remove("hidden");
 		}
 		
 		if (mode !== "analytics") {
@@ -668,6 +679,13 @@ export class AppRouter {
 	_renderProfile(personData) {
 		this._setUIVisibility("profile");
 		renderProfile(personData);
+	}
+
+	_renderMap() {
+		this._setUIVisibility("map");
+		if (this.app.managers.map) {
+			this.app.managers.map.render();
+		}
 	}
 
 	_renderCircle(id, engine) {
@@ -765,6 +783,8 @@ export class AppRouter {
 		if (viewParam === "analytics") {
 			this._setUIVisibility("analytics");
 			if (managers.analytics) managers.analytics.render();
+		} else if (viewParam === "map") {
+			this._renderMap();
 		} else if (viewParam === "profile") {
 			this._renderProfile(personData);
 		} else if (viewParam === "circle" || viewParam === "fan") {
