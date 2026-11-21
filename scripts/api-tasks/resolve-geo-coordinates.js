@@ -89,14 +89,12 @@ export async function resolveCoordinates() {
           },
         });
         const finalUrl = res.url;
-        const m1 = finalUrl.match(/@([0-9.]+),([0-9.]+)/);
-        if (m1) {
-          coords = { lat: parseFloat(m1[1]), lng: parseFloat(m1[2]), source: "gmaps_at" };
-        } else {
-          const m2 = finalUrl.match(/!3d([0-9.]+)!4d([0-9.]+)/);
-          if (m2) {
-            coords = { lat: parseFloat(m2[1]), lng: parseFloat(m2[2]), source: "gmaps_3d4d" };
-          }
+        const mPin = finalUrl.match(/!3d(-?[0-9.]+)!4d(-?[0-9.]+)/);
+        const mAt = finalUrl.match(/@(-?[0-9.]+),(-?[0-9.]+)/);
+        if (mPin) {
+          coords = { lat: parseFloat(mPin[1]), lng: parseFloat(mPin[2]), source: "gmaps_pin" };
+        } else if (mAt) {
+          coords = { lat: parseFloat(mAt[1]), lng: parseFloat(mAt[2]), source: "gmaps_at" };
         }
       } catch (err) {
         // fetch error handled below

@@ -1,15 +1,15 @@
 {
   "PL_RAKOWA": {
-    "lat": 49.5568722,
-    "lng": 22.3867097,
+    "lat": 49.5567828,
+    "lng": 22.3945113,
     "name": "с. Ракова",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "PL_TYRAWA_WOLOSKA": {
-    "lat": 49.5773425,
-    "lng": 22.3593967,
+    "lat": 49.5773435,
+    "lng": 22.3696964,
     "name": "с. Тирява Волоська",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "RU_ALEKSEEVSKAYA": {
     "lat": 57.3677154,
@@ -588,10 +588,10 @@
     "source": "familio"
   },
   "RU_TOMILINO": {
-    "lat": 55.2154688,
-    "lng": 39.3690513,
+    "lat": 55.2154167,
+    "lng": 39.371,
     "name": "сел. Томіліне",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "RU_TRESTNA": {
     "lat": 57.4885609,
@@ -714,87 +714,87 @@
     "source": "familio"
   },
   "UA_CHUKVA": {
-    "lat": 49.4604026,
-    "lng": 23.1573199,
+    "lat": 49.4617297,
+    "lng": 23.1743205,
     "name": "с. Чуква",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_DROHOBYCH": {
-    "lat": 49.3522152,
-    "lng": 23.469172,
+    "lat": 49.3580116,
+    "lng": 23.5123193,
     "name": "м. Дрогобич",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_DUBLIANY": {
-    "lat": 49.499167,
-    "lng": 23.406111,
+    "lat": 49.5025221,
+    "lng": 23.3995124,
     "name": "с. Дубляни",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_HORDYNIA": {
-    "lat": 49.536834,
-    "lng": 23.347822,
+    "lat": 49.5373173,
+    "lng": 23.3877312,
     "name": "с. Гординя",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_HORODYSHCHE": {
-    "lat": 49.4686325,
-    "lng": 23.3168253,
+    "lat": 49.4693373,
+    "lng": 23.3282813,
     "name": "с. Городище",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_KULCHYTSI": {
-    "lat": 49.5051032,
-    "lng": 23.2703554,
+    "lat": 49.5071347,
+    "lng": 23.2832469,
     "name": "с. Кульчиці",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_LOPUSHANKA": {
-    "lat": 49.5023424,
-    "lng": 22.6965053,
+    "lat": 49.504167,
+    "lng": 22.696389,
     "name": "с. Лопушанка",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_LOPUSHNYTSIA": {
-    "lat": 49.5044497,
-    "lng": 22.7083444,
+    "lat": 49.4957227,
+    "lng": 22.7426318,
     "name": "с. Лопушниця",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_LVIV": {
-    "lat": 49.8326598,
-    "lng": 23.9298351,
+    "lat": 49.839683,
+    "lng": 24.029717,
     "name": "м. Львів",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_NAHIRNE": {
-    "lat": 49.4816571,
-    "lng": 23.1999994,
+    "lat": 49.4821701,
+    "lng": 23.2172925,
     "name": "с. Нагірне",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_SAMBIR": {
-    "lat": 49.5222063,
-    "lng": 23.0410096,
+    "lat": 49.5207147,
+    "lng": 23.2065501,
     "name": "м. Самбір",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_SELETS": {
-    "lat": 49.4453015,
-    "lng": 23.2845863,
+    "lat": 49.4444234,
+    "lng": 23.2939082,
     "name": "с. Селець",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_STUPNYTSIA": {
-    "lat": 49.4315217,
-    "lng": 23.3018795,
+    "lat": 49.4285601,
+    "lng": 23.3242874,
     "name": "с. Ступниця",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   },
   "UA_URIZH": {
-    "lat": 49.3829695,
-    "lng": 23.2483288,
+    "lat": 49.3863068,
+    "lng": 23.2643322,
     "name": "с. Уріж",
-    "source": "gmaps_at"
+    "source": "gmaps_pin"
   }
 }
