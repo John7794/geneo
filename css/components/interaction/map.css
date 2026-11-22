@@ -429,3 +429,70 @@
 		max-width: 260px;
 	}
 }
+
+/* Scope switcher: General vs Profile */
+.map-scope-group {
+	display: inline-flex;
+	align-items: center;
+	background: var(--color-bg-subtle, rgba(0, 0, 0, 0.05));
+	border-radius: 9999px;
+	padding: 2px;
+	gap: 2px;
+}
+
+.map-scope-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	border-radius: 9999px;
+	border: none;
+	background: transparent;
+	color: var(--color-text-muted);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	user-select: none;
+}
+
+.map-scope-pill:hover {
+	color: var(--color-text-main);
+}
+
+.map-scope-pill.active {
+	background: var(--color-bg-card);
+	color: var(--color-primary);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.map-bar-divider {
+	width: 1px;
+	height: 20px;
+	background: var(--color-border);
+	margin: 0 4px;
+	flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+	.map-floating-bar {
+		top: 56px !important;
+		padding: 6px 10px !important;
+		gap: 6px !important;
+		border-radius: 16px !important;
+	}
+	.map-filter-pill {
+		padding: 4px 8px !important;
+		font-size: 11px !important;
+	}
+	.map-scope-pill {
+		padding: 4px 8px !important;
+		font-size: 11px !important;
+	}
+	.map-scope-pill span {
+		max-width: 90px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}

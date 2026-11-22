@@ -32,6 +32,8 @@ export class MapManager {
 		this.markersLayer = null;
 
 		this.currentFilter = "all"; // 'all' | 'birth' | 'marriage' | 'death' | 'domicile'
+		this.currentScope = "all"; // 'all' | 'profile'
+		this.routeLayer = null;
 		this.placesData = new Map();
 		this.isInitialized = false;
 
@@ -44,6 +46,17 @@ export class MapManager {
 
 		this.container.innerHTML = `
 			<div class="map-floating-bar" id="map-filter-bar">
+				<div class="map-scope-group" id="map-scope-group">
+					<button type="button" class="map-scope-pill active" data-scope="all" title="Загальний режим: усі локації родоводу">
+						<i class="ri-global-line"></i> <span>Усі</span>
+					</button>
+					<button type="button" class="map-scope-pill" data-scope="profile" id="map-scope-profile-btn" title="Режим прив'язки до контексту профілю">
+						<i class="ri-user-3-line"></i> <span id="map-scope-profile-name">Профіль</span>
+					</button>
+				</div>
+
+				<div class="map-bar-divider"></div>
+
 				<button type="button" class="map-filter-pill active" data-filter="all">
 					<i class="ri-map-pin-2-line"></i> Усі локації <span class="badge" id="map-badge-all">0</span>
 				</button>
@@ -70,10 +83,16 @@ export class MapManager {
 			<div id="map-leaflet-canvas" class="map-container"></div>
 		`;
 
-		// Filter handlers
+		// Scope & filter handlers
 		const filterBar = this.container.querySelector("#map-filter-bar");
 		if (filterBar) {
 			filterBar.addEventListener("click", (e) => {
+				const scopeBtn = e.target.closest(".map-scope-pill");
+				if (scopeBtn) {
+					const scope = scopeBtn.getAttribute("data-scope") || "all";
+					this.setScope(scope);
+					return;
+				}
 				const btn = e.target.closest(".map-filter-pill");
 				if (!btn) return;
 				const filter = btn.getAttribute("data-filter") || "all";
@@ -128,6 +147,7 @@ export class MapManager {
 			maxZoom: tileConfig.maxZoom,
 		}).addTo(this.mapInstance);
 
+		this.routeLayer = L.layerGroup().addTo(this.mapInstance);
 		this.markersLayer = L.layerGroup().addTo(this.mapInstance);
 		this.isInitialized = true;
 	}
@@ -137,6 +157,51 @@ export class MapManager {
 		const isDark = document.documentElement.classList.contains("theme-dark");
 		const tileConfig = isDark ? TILES.dark : TILES.light;
 		this.tileLayer.setUrl(tileConfig.url);
+	}
+
+	setScope(scope) {
+		this.currentScope = scope;
+
+		const pills = this.container.querySelectorAll(".map-scope-pill");
+		pills.forEach((p) => {
+			if (p.getAttribute("data-scope") === scope) {
+				p.classList.add("active");
+			} else {
+				p.classList.remove("active");
+			}
+		});
+
+		try {
+			const url = new URL(window.location);
+			if (scope === "profile") {
+				url.searchParams.set("map_scope", "profile");
+			} else {
+				url.searchParams.delete("map_scope");
+			}
+			window.history.replaceState({ ...window.history.state }, "", url.pathname + url.search);
+		} catch (_) {}
+
+		this.aggregatePlaces();
+		this._renderMarkers();
+		this.fitAllBounds();
+	}
+
+	_updateProfileScopeName(targetPid, engine) {
+		const nameEl = document.getElementById("map-scope-profile-name");
+		if (!nameEl) return;
+
+		if (!targetPid) {
+			nameEl.textContent = "Профіль";
+			return;
+		}
+
+		const d = findPersonDetails(targetPid, engine);
+		if (d && (d.name || d.surname)) {
+			const label = d.surname ? `${d.name || ""} ${d.surname}`.trim() : (d.name || `ID: ${targetPid}`);
+			nameEl.textContent = label;
+		} else {
+			nameEl.textContent = `ID: ${targetPid}`;
+		}
 	}
 
 	setFilter(filter) {
@@ -164,11 +229,19 @@ export class MapManager {
 		const db = engine.db || engine;
 		if (!db) return;
 
-		const lineageManager = window.app?.managers?.lineage;
-		const isLineageFiltered = Boolean(lineageManager && lineageManager.mode && lineageManager.mode !== "all");
-		const visibleIds = isLineageFiltered
-			? new Set((lineageManager.queue || []).map(String))
-			: null;
+		const targetPid = String(window.app?.currentProfileId || window.app?.rootPersonId || "1");
+		this._updateProfileScopeName(targetPid, engine);
+
+		let visibleIds = null;
+		if (this.currentScope === "profile") {
+			visibleIds = new Set([targetPid]);
+		} else {
+			const lineageManager = window.app?.managers?.lineage;
+			const isLineageFiltered = Boolean(lineageManager && lineageManager.mode && lineageManager.mode !== "all");
+			visibleIds = isLineageFiltered
+				? new Set((lineageManager.queue || []).map(String))
+				: null;
+		}
 
 		const getPersonInfo = (pid) => {
 			if (!pid) return { name: "Невідомо", id: pid, avatar: "" };
@@ -247,8 +320,13 @@ export class MapManager {
 			const p2 = m[COLUMNS.marriage?.spouseId || "spouse_id"] || m.spouse_id;
 			const placeId = m[COLUMNS.marriage?.placeId || "place_id"] || m.place_id;
 			const year = m[COLUMNS.marriage?.year || "m_year"] || m.m_year || m.year;
-			if (p1) recordEvent(placeId, "marriage", p1, year, "Шлюб");
-			if (p2) recordEvent(placeId, "marriage", p2, year, "Шлюб");
+			if (this.currentScope === "profile") {
+				if (String(p1) === targetPid) recordEvent(placeId, "marriage", p1, year, "Шлюб");
+				else if (String(p2) === targetPid) recordEvent(placeId, "marriage", p2, year, "Шлюб");
+			} else {
+				if (p1) recordEvent(placeId, "marriage", p1, year, "Шлюб");
+				if (p2) recordEvent(placeId, "marriage", p2, year, "Шлюб");
+			}
 		});
 
 		// 3. Deaths
@@ -303,8 +381,10 @@ export class MapManager {
 		if (!this.mapInstance || !this.markersLayer) return;
 
 		this.markersLayer.clearLayers();
+		if (this.routeLayer) this.routeLayer.clearLayers();
 
 		const bounds = L.latLngBounds([]);
+		const profileMilestones = [];
 
 		for (const place of this.placesData.values()) {
 			let relevantCount = 0;
@@ -348,8 +428,42 @@ export class MapManager {
 				className: "geneo-custom-popup",
 			});
 
+			if (this.currentScope === "profile") {
+				place.people.forEach((p) => {
+					profileMilestones.push({
+						lat: place.lat,
+						lng: place.lng,
+						year: parseInt(p.year, 10) || 0,
+						type: p.eventType,
+						name: place.name
+					});
+				});
+			}
+
 			this.markersLayer.addLayer(marker);
 			bounds.extend([place.lat, place.lng]);
+		}
+
+		// Draw route line in profile scope if 2+ distinct locations
+		if (this.currentScope === "profile" && this.routeLayer && profileMilestones.length > 1) {
+			profileMilestones.sort((a, b) => a.year - b.year);
+			const coords = [];
+			for (const m of profileMilestones) {
+				const last = coords[coords.length - 1];
+				if (!last || last[0] !== m.lat || last[1] !== m.lng) {
+					coords.push([m.lat, m.lng]);
+					}
+			}
+			if (coords.length > 1) {
+				const polyline = L.polyline(coords, {
+					color: "#2563eb",
+					weight: 3,
+					opacity: 0.8,
+					dashArray: "6, 8",
+					lineJoin: "round",
+				});
+				this.routeLayer.addLayer(polyline);
+			}
 		}
 
 		this._lastBounds = bounds.isValid() ? bounds : null;
@@ -430,6 +544,20 @@ export class MapManager {
 			this.engine = window.app.engine;
 		}
 		this.initMap();
+
+		try {
+			const urlParams = new URLSearchParams(window.location.search);
+			const urlScope = urlParams.get("map_scope");
+			if (urlScope === "profile" || urlScope === "all") {
+				this.currentScope = urlScope;
+				const pills = this.container?.querySelectorAll(".map-scope-pill");
+				pills?.forEach((p) => {
+					if (p.getAttribute("data-scope") === urlScope) p.classList.add("active");
+					else p.classList.remove("active");
+				});
+			}
+		} catch (_) {}
+
 		this.aggregatePlaces();
 		this._renderMarkers();
 
