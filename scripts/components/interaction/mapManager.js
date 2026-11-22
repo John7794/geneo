@@ -65,9 +65,6 @@ export class MapManager {
 				<button type="button" class="map-action-btn" id="map-btn-fit" title="Показати всі локації" aria-label="Показати всі локації">
 					<i class="ri-fullscreen-line"></i>
 				</button>
-				<button type="button" class="map-action-btn" id="map-btn-close" title="Повернутися до дерева" aria-label="Повернутися до дерева">
-					<i class="ri-node-tree"></i>
-				</button>
 			</div>
 
 			<div id="map-leaflet-canvas" class="map-container"></div>
@@ -90,14 +87,7 @@ export class MapManager {
 			btnFit.addEventListener("click", () => this.fitAllBounds());
 		}
 
-		const btnClose = this.container.querySelector("#map-btn-close");
-		if (btnClose) {
-			btnClose.addEventListener("click", () => {
-				if (this.router) {
-					this.router.navigateToId(window.app?.currentProfileId || window.app?.rootPersonId, false, "tree");
-				}
-			});
-		}
+
 
 		// Theme change listener
 		const observer = new MutationObserver((mutations) => {
@@ -365,6 +355,22 @@ export class MapManager {
 		this._lastBounds = bounds.isValid() ? bounds : null;
 	}
 
+	_renderPersonItemHtml(item) {
+		const getEventIcon = (type) => {
+			if (type === "birth") return '<i class="ri-user-smile-line" style="color: #10b981;"></i>';
+			if (type === "marriage") return '<i class="ri-heart-line" style="color: #ec4899;"></i>';
+			if (type === "death") return '<i class="ri-hourglass-line" style="color: #64748b;"></i>';
+			return '<i class="ri-home-2-line" style="color: #3b82f6;"></i>';
+		};
+
+		return `
+			<div class="map-popup-person-item js-popup-person-btn" data-id="${item.pid || ""}">
+				<span class="map-popup-person-name">${getEventIcon(item.eventType)} ${escapeHtml(item.name)}</span>
+				<span class="map-popup-person-event">${escapeHtml(item.year || item.role)}</span>
+			</div>
+		`;
+	}
+
 	_buildPopupHtml(place) {
 		const histNameSuffix = place.nameHist && place.nameHist !== place.name ? ` (${escapeHtml(place.nameHist)})` : "";
 		const statusSuffix = place.statusText && place.status !== "active" ? ` <span class="map-popup-badge">${escapeHtml(place.statusText)}</span>` : "";
@@ -378,18 +384,12 @@ export class MapManager {
 		// Sort by year
 		peopleList.sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0));
 
-		// Deduplicate and limit to 15 items for popup cleanliness
-		const displayList = peopleList.slice(0, 15);
-
-		const getEventIcon = (type) => {
-			if (type === "birth") return '<i class="ri-user-smile-line" style="color: #10b981;"></i>';
-			if (type === "marriage") return '<i class="ri-heart-line" style="color: #ec4899;"></i>';
-			if (type === "death") return '<i class="ri-hourglass-line" style="color: #64748b;"></i>';
-			return '<i class="ri-home-2-line" style="color: #3b82f6;"></i>';
-		};
+		const initialLimit = 25;
+		const displayList = peopleList.slice(0, initialLimit);
+		const remaining = peopleList.length - initialLimit;
 
 		return `
-			<div class="map-popup-card">
+			<div class="map-popup-card" data-key="${escapeHtml(place.key)}">
 				<div class="map-popup-header">
 					<h3 class="map-popup-title">${escapeHtml(place.name)}${histNameSuffix}${statusSuffix}</h3>
 					<div class="map-popup-badges">
@@ -399,17 +399,21 @@ export class MapManager {
 					</div>
 				</div>
 
-				<div class="map-popup-section">
+				<div class="map-popup-body">
 					<div class="map-popup-section-title">Особи та події (${peopleList.length})</div>
-					<div class="map-popup-people-list">
-						${displayList.map((item) => `
-							<div class="map-popup-person-item js-popup-person-btn" data-id="${item.pid || ""}">
-								<span class="map-popup-person-name">${getEventIcon(item.eventType)} ${escapeHtml(item.name)}</span>
-								<span class="map-popup-person-event">${escapeHtml(item.year || item.role)}</span>
-							</div>
-						`).join("")}
-						${peopleList.length > 15 ? `<div style="text-align: center; font-size: 11px; color: var(--color-text-muted); padding-top: 4px;">та ще ${peopleList.length - 15} осіб...</div>` : ""}
+					<div class="map-popup-people-list js-popup-people-list">
+						${displayList.map((item) => this._renderPersonItemHtml(item)).join("")}
 					</div>
+					${remaining > 0 ? `
+						<div class="map-popup-load-actions js-popup-load-actions">
+							<button type="button" class="map-popup-load-btn js-load-more-people" data-key="${escapeHtml(place.key)}" data-offset="${initialLimit}">
+								<i class="ri-arrow-down-s-line"></i> Показати ще (+25) <span class="badge">${remaining}</span>
+							</button>
+							<button type="button" class="map-popup-load-btn secondary js-load-all-people" data-key="${escapeHtml(place.key)}">
+								Показати всіх (${peopleList.length})
+							</button>
+						</div>
+					` : ""}
 				</div>
 			</div>
 		`;
@@ -437,9 +441,10 @@ export class MapManager {
 			}
 		});
 
-		// Delegate clicks in popups to open PersonPopup
+		// Delegate clicks in popups
 		if (!this._popupClickListenerAttached && this.container) {
 			this.container.addEventListener("click", (e) => {
+				// 1. Person card click
 				const item = e.target.closest(".js-popup-person-btn");
 				if (item) {
 					const pid = item.getAttribute("data-id");
@@ -448,6 +453,69 @@ export class MapManager {
 						const personData = findPersonDetails(pid, engine);
 						window.app.managers.personPopup.open(personData || pid);
 					}
+					return;
+				}
+
+				// 2. Load more (+25) click
+				const btnMore = e.target.closest(".js-load-more-people");
+				if (btnMore) {
+					const key = btnMore.getAttribute("data-key");
+					const offset = parseInt(btnMore.getAttribute("data-offset"), 10) || 0;
+					const place = this.placesData.get(key);
+					if (!place) return;
+
+					let peopleList = place.people;
+					if (this.currentFilter !== "all") {
+						peopleList = peopleList.filter((p) => p.eventType === this.currentFilter);
+					}
+					peopleList.sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0));
+
+					const batch = 25;
+					const nextItems = peopleList.slice(offset, offset + batch);
+					const card = btnMore.closest(".map-popup-card");
+					const listEl = card?.querySelector(".js-popup-people-list");
+					if (listEl) {
+						const fragment = nextItems.map((it) => this._renderPersonItemHtml(it)).join("");
+						listEl.insertAdjacentHTML("beforeend", fragment);
+					}
+
+					const newOffset = offset + nextItems.length;
+					const remaining = peopleList.length - newOffset;
+					if (remaining > 0) {
+						btnMore.setAttribute("data-offset", String(newOffset));
+						const badge = btnMore.querySelector(".badge");
+						if (badge) badge.textContent = String(remaining);
+					} else {
+						btnMore.closest(".js-popup-load-actions")?.remove();
+					}
+					return;
+				}
+
+				// 3. Load all people click
+				const btnAll = e.target.closest(".js-load-all-people");
+				if (btnAll) {
+					const key = btnAll.getAttribute("data-key");
+					const place = this.placesData.get(key);
+					if (!place) return;
+
+					let peopleList = place.people;
+					if (this.currentFilter !== "all") {
+						peopleList = peopleList.filter((p) => p.eventType === this.currentFilter);
+					}
+					peopleList.sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0));
+
+					const card = btnAll.closest(".map-popup-card");
+					const listEl = card?.querySelector(".js-popup-people-list");
+					const btnMore = card?.querySelector(".js-load-more-people");
+					const offset = btnMore ? (parseInt(btnMore.getAttribute("data-offset"), 10) || 25) : 25;
+
+					const remainingItems = peopleList.slice(offset);
+					if (listEl && remainingItems.length > 0) {
+						const fragment = remainingItems.map((it) => this._renderPersonItemHtml(it)).join("");
+						listEl.insertAdjacentHTML("beforeend", fragment);
+					}
+					btnAll.closest(".js-popup-load-actions")?.remove();
+					return;
 				}
 			});
 			this._popupClickListenerAttached = true;

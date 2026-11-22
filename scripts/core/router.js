@@ -767,6 +767,7 @@ export class AppRouter {
 		}
 
 		if (mode === "relationship") {
+			this._setUIVisibility("tree");
 			const targetId = currentUrl.searchParams.get("target_id");
 			const relIdx = parseInt(currentUrl.searchParams.get("rel_idx"), 10) || 0;
 

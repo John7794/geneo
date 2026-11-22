@@ -171,6 +171,9 @@ export class RelationshipManager {
 		document
 			.getElementById("profile-content")
 			?.classList.add(UI_CLASSES.hidden);
+		document.getElementById("map-view")?.classList.add(UI_CLASSES.hidden);
+		document.getElementById("analytics-view")?.classList.add(UI_CLASSES.hidden);
+		document.getElementById("fan-chart-view")?.classList.add(UI_CLASSES.hidden);
 		document.getElementById("tree-view")?.classList.remove(UI_CLASSES.hidden);
 
 		["btn-prev", "btn-next"].forEach((id) => {
