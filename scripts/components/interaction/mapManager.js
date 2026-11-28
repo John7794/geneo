@@ -7,19 +7,7 @@ import { i18n } from "../../core/i18n.js";
 import { resolvePlaceDetails } from "../../utils/geoUtils.js";
 import { findPersonDetails, formatPersonDisplay, getAvatarUrl } from "../../utils/personUtils.js";
 import { escapeHtml } from "../../utils/helpers.js";
-
-const TILES = {
-	light: {
-		url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-		attribution: 'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>',
-		maxZoom: 18,
-	},
-	dark: {
-		url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-		attribution: 'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>',
-		maxZoom: 18,
-	},
-};
+import { getMapTileConfig, syncMapThemeTiles } from "../../utils/mapTileUtils.js";
 
 export class MapManager {
 	constructor(engine, router) {
@@ -55,23 +43,23 @@ export class MapManager {
 					</button>
 				</div>
 
-				<div class="map-bar-divider"></div>
-
-				<button type="button" class="map-filter-pill active" data-filter="all">
-					<i class="ri-map-pin-2-line"></i> Усі локації <span class="badge" id="map-badge-all">0</span>
-				</button>
-				<button type="button" class="map-filter-pill" data-filter="birth">
-					<i class="ri-user-smile-line" style="color: #10b981;"></i> Народження <span class="badge" id="map-badge-birth">0</span>
-				</button>
-				<button type="button" class="map-filter-pill" data-filter="marriage">
-					<i class="ri-heart-line" style="color: #ec4899;"></i> Шлюби <span class="badge" id="map-badge-marriage">0</span>
-				</button>
-				<button type="button" class="map-filter-pill" data-filter="death">
-					<i class="ri-hourglass-line" style="color: #64748b;"></i> Смерті <span class="badge" id="map-badge-death">0</span>
-				</button>
-				<button type="button" class="map-filter-pill" data-filter="domicile">
-					<i class="ri-home-2-line" style="color: #3b82f6;"></i> Проживання <span class="badge" id="map-badge-domicile">0</span>
-				</button>
+				<div class="map-filter-group" id="map-filter-group">
+					<button type="button" class="map-filter-pill active" data-filter="all">
+						<i class="ri-map-pin-2-line"></i> Усі локації <span class="badge" id="map-badge-all">0</span>
+					</button>
+					<button type="button" class="map-filter-pill" data-filter="birth">
+						<i class="ri-user-smile-line" style="color: #10b981;"></i> Народження <span class="badge" id="map-badge-birth">0</span>
+					</button>
+					<button type="button" class="map-filter-pill" data-filter="marriage">
+						<i class="ri-heart-line" style="color: #ec4899;"></i> Шлюби <span class="badge" id="map-badge-marriage">0</span>
+					</button>
+					<button type="button" class="map-filter-pill" data-filter="death">
+						<i class="ri-hourglass-line" style="color: #64748b;"></i> Смерті <span class="badge" id="map-badge-death">0</span>
+					</button>
+					<button type="button" class="map-filter-pill" data-filter="domicile">
+						<i class="ri-home-2-line" style="color: #3b82f6;"></i> Проживання <span class="badge" id="map-badge-domicile">0</span>
+					</button>
+				</div>
 			</div>
 
 			<div class="map-actions-dock">
@@ -113,10 +101,11 @@ export class MapManager {
 			for (const m of mutations) {
 				if (m.type === "attributes" && m.attributeName === "class") {
 					this._handleThemeChange();
+					break;
 				}
 			}
 		});
-		observer.observe(document.documentElement, { attributes: true });
+		observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 	}
 
 	initMap() {
@@ -125,15 +114,15 @@ export class MapManager {
 		const canvas = document.getElementById("map-leaflet-canvas");
 		if (!canvas) return;
 
-		const isDark = document.documentElement.classList.contains("theme-dark");
-		const tileConfig = isDark ? TILES.dark : TILES.light;
+		const tileConfig = getMapTileConfig();
 
 		// Default center roughly on Eastern Europe (Ukraine / Western Eurasia)
 		this.mapInstance = L.map(canvas, {
 			zoomControl: false,
 			attributionControl: false,
+			bounceAtZoomLimits: false,
 			minZoom: 3,
-			maxZoom: 18,
+			maxZoom: tileConfig.maxZoom,
 		}).setView([51.5, 31.0], 6);
 
 		// Zoom control bottom-left
@@ -145,6 +134,7 @@ export class MapManager {
 		this.tileLayer = L.tileLayer(tileConfig.url, {
 			attribution: tileConfig.attribution,
 			maxZoom: tileConfig.maxZoom,
+			maxNativeZoom: tileConfig.maxNativeZoom,
 		}).addTo(this.mapInstance);
 
 		this.routeLayer = L.layerGroup().addTo(this.mapInstance);
@@ -153,10 +143,7 @@ export class MapManager {
 	}
 
 	_handleThemeChange() {
-		if (!this.mapInstance || !this.tileLayer) return;
-		const isDark = document.documentElement.classList.contains("theme-dark");
-		const tileConfig = isDark ? TILES.dark : TILES.light;
-		this.tileLayer.setUrl(tileConfig.url);
+		syncMapThemeTiles(this.mapInstance, this.tileLayer);
 	}
 
 	setScope(scope) {
@@ -535,7 +522,11 @@ export class MapManager {
 
 	fitAllBounds() {
 		if (this.mapInstance && this._lastBounds) {
-			this.mapInstance.fitBounds(this._lastBounds, { padding: [50, 50], maxZoom: 12 });
+			this.mapInstance.fitBounds(this._lastBounds, {
+				paddingTopLeft: [40, 120],
+				paddingBottomRight: [40, 40],
+				maxZoom: 12,
+			});
 		}
 	}
 

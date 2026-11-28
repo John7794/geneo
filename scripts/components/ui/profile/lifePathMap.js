@@ -3,6 +3,7 @@
 import L from "leaflet";
 import { resolvePlaceDetails } from "../../../utils/geoUtils.js";
 import { escapeHtml } from "../../../utils/helpers.js";
+import { getMapTileConfig, syncMapThemeTiles } from "../../../utils/mapTileUtils.js";
 
 /**
  * Генерує блок інтерактивної мапи життєвого шляху персони
@@ -156,20 +157,37 @@ export function initProfileLifePathMap(containerEl) {
 
 	if (!milestones.length) return;
 
-	const isDark = document.documentElement.classList.contains("theme-dark");
-	const tileUrl = isDark
-		? "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-		: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+	const tileConfig = getMapTileConfig();
 
 	const map = L.map(mapEl, {
 		zoomControl: false,
 		attributionControl: false,
 		scrollWheelZoom: false,
+		bounceAtZoomLimits: false,
+		maxZoom: tileConfig.maxZoom,
 	});
 
 	L.control.zoom({ position: "bottomright" }).addTo(map);
 
-	L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(map);
+	const tileLayer = L.tileLayer(tileConfig.url, {
+		attribution: tileConfig.attribution,
+		maxZoom: tileConfig.maxZoom,
+		maxNativeZoom: tileConfig.maxNativeZoom,
+	}).addTo(map);
+
+	const themeObserver = new MutationObserver((mutations) => {
+		if (!document.body.contains(mapEl)) {
+			themeObserver.disconnect();
+			return;
+		}
+		for (const m of mutations) {
+			if (m.type === "attributes" && m.attributeName === "class") {
+				syncMapThemeTiles(map, tileLayer);
+				break;
+			}
+		}
+	});
+	themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
 	const latLngs = [];
 	const bounds = L.latLngBounds([]);
