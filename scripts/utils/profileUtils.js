@@ -242,8 +242,15 @@ export function ensureIndexes(allData) {
 	if (Array.isArray(DB.basic)) {
 		const slugCol = COLUMNS.basic?.slug || "slug";
 		for (let i = 0; i < DB.basic.length; i++) {
-			const slug = String(DB.basic[i][slugCol] || "").trim();
-			if (slug) slugsMap.set(slug, DB.basic[i]);
+			const row = DB.basic[i];
+			const slug = String(row[slugCol] || row.profile_slug || row.slug || "").trim();
+			if (slug) {
+				slugsMap.set(slug, row);
+				const lower = slug.toLowerCase();
+				if (!slugsMap.has(lower)) {
+					slugsMap.set(lower, row);
+				}
+			}
 		}
 	}
 	allData._indexes.slugs = slugsMap;

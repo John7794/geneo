@@ -1,12 +1,34 @@
 // ./scripts/core/router.js
 
-import { getProfileUrl, resolveRealId } from "../utils/personUtils.js";
+import { getUrlIdentifier, resolveRealId } from "../utils/personUtils.js";
+import { ensureIndexes } from "../utils/profileUtils.js";
 import { buildPersonObject } from "../services/processor.js";
 import { renderProfile } from "../components/ui/profile/index.js";
 import { buildGenerationHTML } from "../components/ui/tree/treeBuilder.js";
 import { buildMobileGenerationHTML } from "../components/ui/tree/mobileTreeBuilder.js";
 import { renderErrorState } from "../components/ui/shared/errorState.js";
 import { MobileSwipeManager } from "../components/interaction/mobileSwipeManager.js"; // Підключення автономного менеджера свайпів
+
+const KNOWN_QUERY_PARAMS = new Set([
+	"id",
+	"view",
+	"mode",
+	"target_id",
+	"rel_idx",
+	"line",
+	"ws",
+	"guest",
+	"timeline_mode",
+	"timeline_start",
+	"timeline_end",
+	"map_scope",
+	"t",
+	"fbclid",
+	"gclid",
+	"utm_source",
+	"utm_medium",
+	"utm_campaign",
+]);
 
 export class AppRouter {
 	constructor(appInstance) {
@@ -431,6 +453,40 @@ export class AppRouter {
 		}
 	}
 
+	_isKnownSlugOrId(candidate, engine) {
+		if (!candidate) return false;
+		const slugsIndex = engine?._indexes?.slugs;
+		const basicIndex = engine?._indexes?.basic;
+		return Boolean(
+			slugsIndex?.has(candidate) ||
+				slugsIndex?.has(candidate.toLowerCase()) ||
+				basicIndex?.has(candidate),
+		);
+	}
+
+	_extractAndCleanBareSlug(url, engine, existingId) {
+		let extractedId = existingId;
+		let changed = false;
+
+		for (const [key, val] of Array.from(url.searchParams.entries())) {
+			if (val !== "" || KNOWN_QUERY_PARAMS.has(key)) continue;
+			const cleanKey = key.trim();
+			if (!cleanKey) continue;
+
+			const matchedKnown = this._isKnownSlugOrId(cleanKey, engine);
+			if (!extractedId && (matchedKnown || /^[a-z0-9_-]+$/i.test(cleanKey))) {
+				extractedId = cleanKey;
+				url.searchParams.delete(key);
+				changed = true;
+			} else if (matchedKnown || cleanKey === existingId) {
+				url.searchParams.delete(key);
+				changed = true;
+			}
+		}
+
+		return { extractedId, changed };
+	}
+
 	navigateToId(id, replaceHistory = false, viewMode = null) {
 		if (!id) return;
 
@@ -438,8 +494,16 @@ export class AppRouter {
 			viewMode = "tree";
 		}
 
+		const engine = this.app.engine;
+		if (engine) ensureIndexes(engine);
+		const canonicalId = getUrlIdentifier(id, engine) || String(id).trim();
+
 		const url = new URL(window.location);
-		url.searchParams.set("id", id);
+		if (url.pathname !== "/") {
+			url.pathname = "/";
+		}
+		url.searchParams.set("id", canonicalId);
+		this._extractAndCleanBareSlug(url, engine, canonicalId);
 
 		url.searchParams.delete("mode");
 		url.searchParams.delete("target_id");
@@ -462,28 +526,55 @@ export class AppRouter {
 		const cleanUrl = url.pathname + url.search;
 
 		if (replaceHistory) {
-			window.history.replaceState({ id }, "", cleanUrl);
+			window.history.replaceState({ id: canonicalId }, "", cleanUrl);
 		} else {
-			window.history.pushState({ id }, "", cleanUrl);
+			window.history.pushState({ id: canonicalId }, "", cleanUrl);
 		}
 
 		this.handlePopState();
 	}
 
 	_normalizeUrlParams(currentUrl, rootId) {
+		const engine = this.app.engine;
+		if (engine) ensureIndexes(engine);
+
 		let id = currentUrl.searchParams.get("id");
 		let viewParam = currentUrl.searchParams.get("view");
 		let needsUpdate = false;
 
+		// Support clean path URL like /selivanov_ivan_1994 -> normalize to /?id=selivanov_ivan_1994
+		const pathSegment = currentUrl.pathname.replace(/^\/+|\/+$/g, "").trim();
+		if (
+			pathSegment &&
+			!pathSegment.includes("/") &&
+			!pathSegment.includes(".") &&
+			pathSegment !== "login"
+		) {
+			if (!id && (this._isKnownSlugOrId(pathSegment, engine) || /^[a-z0-9_-]+$/i.test(pathSegment))) {
+				id = pathSegment;
+			}
+			currentUrl.pathname = "/";
+			needsUpdate = true;
+		}
+
+		// Support bare query slug like ?selivanov_ivan_1994 (and strip stray ?selivanov_ivan_1994=&id=...)
+		const bareRes = this._extractAndCleanBareSlug(currentUrl, engine, id);
+		if (bareRes.changed) {
+			id = bareRes.extractedId;
+			needsUpdate = true;
+		}
+
 		if (!id) {
-			const defaultUrl = new URL(
-				window.location.origin +
-					window.location.pathname +
-					getProfileUrl(rootId, this.app.engine),
-			);
-			id = defaultUrl.searchParams.get("id") || rootId;
+			id = getUrlIdentifier(rootId, engine) || rootId;
 			currentUrl.searchParams.set("id", id);
 			needsUpdate = true;
+		} else {
+			const canonicalId = getUrlIdentifier(id, engine) || id;
+			if (canonicalId && canonicalId !== currentUrl.searchParams.get("id")) {
+				id = canonicalId;
+				currentUrl.searchParams.set("id", canonicalId);
+				needsUpdate = true;
+			}
 		}
 
 		if (!viewParam || (this._mediaQueryList?.matches && (viewParam === "circle" || viewParam === "fan"))) {
@@ -508,7 +599,7 @@ export class AppRouter {
 		}
 
 		if (needsUpdate) {
-			window.history.replaceState({ id }, "", currentUrl);
+			window.history.replaceState({ id }, "", currentUrl.pathname + currentUrl.search);
 		}
 
 		return id;

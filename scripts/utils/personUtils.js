@@ -316,16 +316,61 @@ export function resolveRealId(queryId, ctx) {
 	const DB = ctx?.db || ctx;
 	if (!DB || !Array.isArray(DB.basic)) return baseId;
 
-	if (ctx?._indexes?.slugs && ctx._indexes.slugs.has(baseId)) {
-		return String(
-			ctx._indexes.slugs.get(baseId)[COLUMNS.basic?.id || "id"],
-		).trim();
+	const idCol = COLUMNS.basic?.id || "id";
+	const slugCol = COLUMNS.basic?.slug || "slug";
+	const baseLower = baseId.toLowerCase();
+
+	const indexedSlugRow =
+		ctx?._indexes?.slugs?.get(baseId) ||
+		ctx?._indexes?.slugs?.get(baseLower);
+	if (indexedSlugRow) {
+		return String(indexedSlugRow[idCol] || indexedSlugRow.id || baseId).trim();
 	}
 
 	for (let i = 0; i < DB.basic.length; i++) {
-		if (String(DB.basic[i][COLUMNS.basic?.slug || "slug"]).trim() === baseId) {
-			return String(DB.basic[i][COLUMNS.basic?.id || "id"]).trim();
+		const row = DB.basic[i];
+		const rowSlug = String(row[slugCol] || row.profile_slug || row.slug || "").trim();
+		if (rowSlug && (rowSlug === baseId || rowSlug.toLowerCase() === baseLower)) {
+			return String(row[idCol] || row.id || baseId).trim();
 		}
+	}
+
+	return baseId;
+}
+
+/**
+ * Повертає канонічний URL-ідентифікатор персони (profile_slug за наявності, інакше person_id).
+ */
+export function getUrlIdentifier(personId, ctx) {
+	if (!personId) return "";
+	const exactId = String(personId).trim();
+	if (exactId.startsWith("p::") || exactId.startsWith("f::")) {
+		return exactId;
+	}
+
+	const baseId = extractBaseId(exactId);
+	const DB = ctx?.db || ctx;
+	if (!DB || !Array.isArray(DB.basic)) return baseId;
+
+	const idCol = COLUMNS.basic?.id || "id";
+	const slugCol = COLUMNS.basic?.slug || "slug";
+	const realId = resolveRealId(exactId, ctx) || baseId;
+
+	let personRow = ctx?._indexes?.basic?.get(realId);
+
+	if (!personRow) {
+		for (let i = 0; i < DB.basic.length; i++) {
+			const rowId = String(DB.basic[i][idCol] || DB.basic[i].id || "").trim();
+			if (rowId === realId) {
+				personRow = DB.basic[i];
+				break;
+			}
+		}
+	}
+
+	if (personRow) {
+		const slug = String(personRow[slugCol] || personRow.profile_slug || personRow.slug || "").trim();
+		if (slug !== "") return slug;
 	}
 
 	return baseId;
@@ -333,31 +378,9 @@ export function resolveRealId(queryId, ctx) {
 
 export function getProfileUrl(personId, ctx) {
 	if (!personId) return "#";
-	const exactId = String(personId).trim();
-	const baseId = extractBaseId(exactId);
-
-	const DB = ctx?.db || ctx;
+	const identifier = getUrlIdentifier(personId, ctx);
 	const viewParam = ctx?.view ? `&view=${ctx.view}` : "";
-
-	if (!DB || !Array.isArray(DB.basic)) return `?id=${baseId}${viewParam}`;
-
-	let personRow = ctx?._indexes?.basic?.get(baseId);
-
-	if (!personRow) {
-		for (let i = 0; i < DB.basic.length; i++) {
-			if (String(DB.basic[i][COLUMNS.basic?.id || "id"]).trim() === baseId) {
-				personRow = DB.basic[i];
-				break;
-			}
-		}
-	}
-
-	if (personRow && personRow[COLUMNS.basic?.slug || "slug"]) {
-		const slug = String(personRow[COLUMNS.basic?.slug || "slug"]).trim();
-		if (slug !== "") return `?id=${slug}${viewParam}`;
-	}
-
-	return `?id=${baseId}${viewParam}`;
+	return `?id=${identifier}${viewParam}`;
 }
 
 export function getFullName(personObj) {
@@ -763,16 +786,24 @@ export function findPersonDetails(personId, allData) {
 	const indexes = allData?._indexes || {};
 
 	if (DB.basic) {
-		let basicPerson = indexes.basic ? indexes.basic.get(dbSearchId) : null;
+		const dbSearchLower = dbSearchId.toLowerCase();
+		let basicPerson =
+			indexes.basic?.get(dbSearchId) ||
+			indexes.slugs?.get(dbSearchId) ||
+			indexes.slugs?.get(dbSearchLower) ||
+			null;
 
 		if (!basicPerson && Array.isArray(DB.basic)) {
 			const idCol = COLUMNS.basic?.id || "id";
 			const slugCol = COLUMNS.basic?.slug || "slug";
 
 			for (let i = 0; i < DB.basic.length; i++) {
-				const rowId = String(DB.basic[i][idCol] || DB.basic[i].id).trim();
-				const rowSlug = String(DB.basic[i][slugCol] || DB.basic[i].slug).trim();
-				if (rowId === dbSearchId || rowSlug === dbSearchId) {
+				const rowId = String(DB.basic[i][idCol] || DB.basic[i].id || "").trim();
+				const rowSlug = String(DB.basic[i][slugCol] || DB.basic[i].profile_slug || DB.basic[i].slug || "").trim();
+				if (
+					rowId === dbSearchId ||
+					(rowSlug && (rowSlug === dbSearchId || rowSlug.toLowerCase() === dbSearchLower))
+				) {
 					basicPerson = DB.basic[i];
 					break;
 				}

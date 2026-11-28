@@ -1,6 +1,7 @@
 // scripts/components/interaction/navigationManager.js
 
 import { UI_CLASSES } from "../../core/uiClasses.js";
+import { resolveRealId } from "../../utils/personUtils.js";
 
 export class NavigationManager {
 	constructor(sortedIds = [], onProfileChange) {
@@ -160,7 +161,7 @@ export class NavigationManager {
 		if (currentId) {
 			let idx = this.sortedIds.indexOf(String(currentId));
 			if (idx === -1 && window.app?.engine) {
-				const resolved = window.app.engine.resolveRealId ? window.app.engine.resolveRealId(currentId) : null;
+				const resolved = resolveRealId(currentId, window.app.engine);
 				if (resolved) idx = this.sortedIds.indexOf(String(resolved));
 			}
 			if (idx !== -1) {

@@ -9,7 +9,7 @@ export class I18n {
 			defaultLang ||
 			"uk";
 		this.translations = {};
-		this.basePath = "./data/locales";
+		this.basePath = "/data/locales";
 		this._keyCache = new Map(); // Кеш для розібраних шляхів
 	}
 

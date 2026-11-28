@@ -22,7 +22,7 @@ export async function fetchAllData(userConfig = {}) {
 	// 1. Паралельне завантаження 29 CSV таблиць із вбудованим localforage-кешуванням
 	const filePromises = Object.entries(DATA_FILES).map(
 		async ([key, filename]) => {
-			const url = `./data/db/${lang}/${filename}?v=${version}`;
+			const url = `/data/db/${lang}/${filename}?v=${version}`;
 			try {
 				const data = await fetchCsv(url);
 				return [key, data];
@@ -56,7 +56,7 @@ export async function fetchAllData(userConfig = {}) {
 			if (token) fetchHeaders["Authorization"] = `Bearer ${token}`;
 
 			// Спочатку пробуємо прямий статичний файл, якщо ні — API
-			let res = await fetch(`./data/kinship.json?v=${version}`, {
+			let res = await fetch(`/data/kinship.json?v=${version}`, {
 				headers: fetchHeaders,
 			});
 			if (!res.ok) {

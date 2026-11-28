@@ -2,6 +2,7 @@
 
 import { UI_CLASSES } from "../../core/uiClasses.js";
 import { escapeHtml } from "../../utils/helpers.js";
+import { getUrlIdentifier } from "../../utils/personUtils.js";
 
 export class BreadcrumbManager {
 	constructor(options = {}) {
@@ -253,8 +254,9 @@ export class BreadcrumbManager {
 				link.className = `${UI_CLASSES.breadcrumbsLink} ${UI_CLASSES.breadcrumbsLinkActive}`;
 				link.setAttribute("aria-current", "page");
 			} else {
+				const urlId = getUrlIdentifier(item.id, window.app?.engine) || item.id;
 				link.className = `${UI_CLASSES.breadcrumbsLink} ${UI_CLASSES.breadcrumbItem}`;
-				link.href = `?id=${escapeHtml(item.id)}${viewString}`;
+				link.href = `?id=${escapeHtml(urlId)}${viewString}`;
 				link.onclick = (e) => {
 					e.preventDefault();
 

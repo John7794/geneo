@@ -35,7 +35,7 @@ export async function checkDataVersion() {
 		const headers = { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' };
 		if (token) headers['Authorization'] = `Bearer ${token}`;
 
-		const response = await fetch(`./data/db/metadata.json?t=${Date.now()}`, { cache: 'no-store', headers });
+		const response = await fetch(`/data/db/metadata.json?t=${Date.now()}`, { cache: 'no-store', headers });
 
 		if (response.status === 403) {
 			// Доступ до даних автора відкликано

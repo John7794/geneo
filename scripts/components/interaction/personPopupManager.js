@@ -206,10 +206,7 @@ class PersonDAO {
 		const db = engine?.db || {};
 
 		const cleanId = String(p.id).split("::").pop();
-		let realId = cleanId;
-		if (engine?._indexes?.slugs?.has(cleanId)) {
-			realId = engine._indexes.slugs.get(cleanId).id || cleanId;
-		}
+		const realId = resolveRealId(cleanId, engine) || cleanId;
 
 		let bRow =
 			Array.isArray(data._birth) && data._birth.length > 0
