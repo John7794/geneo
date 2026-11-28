@@ -1,5 +1,6 @@
 // ./scripts/components/interaction/galleryManager.js
 
+import { COLUMNS } from "../../core/dbSchema.js";
 import { i18n } from "../../core/i18n.js";
 import { UI_CLASSES } from "../../core/uiClasses.js";
 import { escapeHtml } from "../../utils/helpers.js";
@@ -758,51 +759,152 @@ export class GalleryManager {
 		}
 	}
 
+	_translateLabel(key, fallback) {
+		const val = i18n.t(key);
+		return val && val !== key ? val : fallback;
+	}
+
+	_resolveParticipantLabel(rawTag) {
+		const strTag = String(rawTag || "").trim();
+		if (!strTag) return "";
+
+		const indexes = window.app?.engine?._indexes;
+		if (indexes) {
+			const basicRow = indexes.basic?.get(strTag);
+			const famRow = !basicRow ? indexes.family?.get(strTag) : null;
+			const row = basicRow || famRow;
+			if (row) {
+				const fName = basicRow
+					? row[COLUMNS.basic?.name || "name"]
+					: row[COLUMNS.familyList?.firstName || "fam_first_name"];
+				const lName = basicRow
+					? row[COLUMNS.basic?.surname || "surname"]
+					: row[COLUMNS.familyList?.surname || "fam_surname"];
+				const pName = basicRow
+					? row[COLUMNS.basic?.patronymic || "patronymic"]
+					: row[COLUMNS.familyList?.patronymic || "fam_patronymic"];
+				const full = [lName, fName, pName].filter(Boolean).join(" ").trim();
+				if (full) return full;
+			}
+		}
+		return strTag;
+	}
+
+	_buildDetailGroups(item) {
+		const groups = [];
+		const icons = UI_CLASSES.icons || {};
+
+		// 1. Date group
+		const dateTags = [];
+		if (item.date?.trim()) {
+			dateTags.push({ text: item.date.trim(), icon: icons.calendarLine || "ri-calendar-line" });
+		}
+		if (item.dateOld?.trim()) {
+			dateTags.push({ text: item.dateOld.trim(), icon: icons.calendarLine || "ri-calendar-line" });
+		}
+		if (dateTags.length > 0) {
+			groups.push({
+				id: "date",
+				label: this._translateLabel("common.date", "Дата"),
+				icon: icons.calendarLine || "ri-calendar-line",
+				variant: "gal-detail-tag--date",
+				tags: dateTags,
+			});
+		}
+
+		// 2. Location group (place + region)
+		const locationTags = [];
+		if (item.place?.trim()) {
+			locationTags.push({
+				text: item.place.trim(),
+				icon: icons.mapPinLine || "ri-map-pin-line",
+				url: item.placeUrl?.trim() || "",
+			});
+		}
+		if (item.region?.trim()) {
+			locationTags.push({
+				text: item.region.trim(),
+				icon: icons.map2Line || "ri-map-2-line",
+			});
+		}
+		if (locationTags.length > 0) {
+			groups.push({
+				id: "location",
+				label: this._translateLabel("common.location", "Локація"),
+				icon: icons.mapPinLine || "ri-map-pin-line",
+				variant: "gal-detail-tag--location",
+				tags: locationTags,
+			});
+		}
+
+		// 3. Owners group
+		if (item.owner?.trim()) {
+			const ownerParts = item.owner.split(/[,;]/).map((p) => p.trim()).filter(Boolean);
+			if (ownerParts.length > 0) {
+				const ownerIcon = icons.userStarLine || "ri-user-star-line";
+				const labelKey = ownerParts.length > 1 ? "common.owners" : "common.owner";
+				const labelFallback = ownerParts.length > 1 ? "Власники" : "Власник";
+				groups.push({
+					id: "owner",
+					label: this._translateLabel(labelKey, labelFallback),
+					icon: ownerIcon,
+					variant: "gal-detail-tag--owner",
+					tags: ownerParts.map((text) => ({ text, icon: ownerIcon })),
+				});
+			}
+		}
+
+		// 4. Participants group
+		if (item.participants?.trim()) {
+			const participantParts = item.participants
+				.split(/[,;]/)
+				.map((p) => this._resolveParticipantLabel(p))
+				.filter(Boolean);
+			if (participantParts.length > 0) {
+				const userIcon = icons.userLine || "ri-user-line";
+				groups.push({
+					id: "participants",
+					label: this._translateLabel("common.participants", "Учасники"),
+					icon: userIcon,
+					variant: "gal-detail-tag--participant",
+					tags: participantParts.map((text) => ({ text, icon: userIcon })),
+				});
+			}
+		}
+
+		return groups;
+	}
+
 	renderDetailsBlock(item) {
 		let html = "";
-		let tagsHtml = "";
 
-		const tags = [];
-		if (item.date && item.date.trim()) {
-			tags.push({ text: item.date.trim(), icon: UI_CLASSES.icons?.calendarLine || "ri-calendar-line" });
-		}
-		if (item.dateOld && item.dateOld.trim()) {
-			tags.push({ text: item.dateOld.trim(), icon: UI_CLASSES.icons?.calendarLine || "ri-calendar-line" });
-		}
-		if (item.place && item.place.trim()) {
-			tags.push({ text: item.place.trim(), icon: UI_CLASSES.icons?.mapPinLine || "ri-map-pin-line", url: item.placeUrl });
-		}
-		if (item.region && item.region.trim()) {
-			tags.push({ text: item.region.trim(), icon: UI_CLASSES.icons?.map2Line || "ri-map-2-line" });
-		}
-		
-		if (item.owner && item.owner.trim()) {
-			const parts = item.owner.split(/[,;]/).map(p => p.trim()).filter(Boolean);
-			parts.forEach(p => {
-				tags.push({ text: p, icon: UI_CLASSES.icons?.userStarLine || "ri-user-star-line" }); // Or some other icon, like ri-vip-crown-line, but userStarLine is good
-			});
-		}
-		
-		if (item.participants && item.participants.trim()) {
-			const parts = item.participants.split(/[,;]/).map(p => p.trim()).filter(Boolean);
-			parts.forEach(p => {
-				tags.push({ text: p, icon: UI_CLASSES.icons?.userLine || "ri-user-line" });
-			});
-		}
+		const groups = this._buildDetailGroups(item);
+		if (groups.length > 0) {
+			const groupsContent = groups
+				.map((group) => {
+					const tagsMarkup = group.tags
+						.map((t) => {
+							const inner = `<i class="${escapeHtml(t.icon)}" aria-hidden="true"></i> ${escapeHtml(t.text)}`;
+							if (t.url && /^https?:\/\//i.test(t.url)) {
+								return `<a href="${encodeURI(t.url)}" target="_blank" rel="noopener noreferrer" class="gal-detail-tag ${group.variant}">${inner}</a>`;
+							}
+							return `<span class="gal-detail-tag ${group.variant}">${inner}</span>`;
+						})
+						.join("");
 
-		if (tags.length > 0) {
-			const tagsContent = tags.map(t => {
-				const inner = `<i class="${escapeHtml(t.icon)}" aria-hidden="true"></i> ${escapeHtml(t.text)}`;
-				if (t.url && t.url.trim()) {
-					return `<a href="${encodeURI(t.url.trim())}" target="_blank" rel="noopener noreferrer" class="record-tag" style="text-decoration:none; cursor:pointer;">${inner}</a>`;
-				}
-				return `<span class="record-tag">${inner}</span>`;
-			}).join("");
-			tagsHtml = `<div class="record-card-tags" style="margin-bottom: 12px;">${tagsContent}</div>`;
-		}
-		
-		if (tagsHtml) {
-			html += tagsHtml;
+					return `
+						<div class="gal-detail-group" data-group-id="${escapeHtml(group.id)}">
+							<div class="gal-detail-group__label">
+								<i class="${escapeHtml(group.icon)}" aria-hidden="true"></i>
+								<span>${escapeHtml(group.label)}</span>
+							</div>
+							<div class="gal-detail-group__tags">${tagsMarkup}</div>
+						</div>
+					`;
+				})
+				.join("");
+
+			html += `<div class="gal-details-groups">${groupsContent}</div>`;
 		}
 
 		if (item.transcription && item.transcription.trim()) {

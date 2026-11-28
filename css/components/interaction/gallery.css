@@ -376,3 +376,153 @@ font-family: var(--font-family-secondary);
 .gallery-trigger-wrapper * {
 	pointer-events: none; /* Клік проходить крізь img і текст прямо на обгортку */
 }
+
+/* ==========================================
+   7. ГРУПОВАНІ ТЕГИ ДЕТАЛЕЙ ЗАПИСУ
+   ========================================== */
+.gal-details-groups {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 14px;
+	padding: 10px 12px;
+	background-color: var(--color-bg-subtle, var(--color-bg-body));
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+}
+
+.gal-detail-group {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding-bottom: 8px;
+	border-bottom: 1px dashed var(--color-border);
+}
+
+.gal-detail-group:last-child {
+	padding-bottom: 0;
+	border-bottom: none;
+}
+
+.gal-detail-group__label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	width: 118px;
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--color-text-muted);
+	padding-top: 4px;
+	font-family: var(--font-family-secondary);
+}
+
+.gal-detail-group__label i {
+	font-size: 13px;
+	opacity: 0.85;
+}
+
+.gal-detail-group__tags {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	flex: 1;
+	min-width: 0;
+}
+
+.gal-detail-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 3px 10px;
+	border-radius: 9999px;
+	font-size: 12.5px;
+	font-weight: 500;
+	line-height: 1.4;
+	background-color: var(--color-bg-card);
+	color: var(--color-text-main);
+	border: 1px solid var(--color-border);
+	text-decoration: none;
+}
+
+.gal-detail-tag--date {
+	background-color: rgba(245, 158, 11, 0.1);
+	border-color: rgba(245, 158, 11, 0.28);
+	color: #92400e;
+}
+
+.gal-detail-tag--location {
+	background-color: rgba(16, 185, 129, 0.1);
+	border-color: rgba(16, 185, 129, 0.28);
+	color: #065f46;
+}
+
+a.gal-detail-tag--location {
+	cursor: pointer;
+	transition:
+		background-color var(--transition-fast),
+		border-color var(--transition-fast);
+}
+
+a.gal-detail-tag--location:hover {
+	background-color: rgba(16, 185, 129, 0.18);
+	border-color: rgba(16, 185, 129, 0.5);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.gal-detail-tag--owner {
+	background-color: rgba(37, 99, 235, 0.1);
+	border-color: rgba(37, 99, 235, 0.25);
+	color: #1e40af;
+}
+
+.gal-detail-tag--participant {
+	background-color: rgba(139, 92, 246, 0.1);
+	border-color: rgba(139, 92, 246, 0.25);
+	color: #5b21b6;
+}
+
+:root.theme-dark .gal-detail-tag--date {
+	background-color: rgba(245, 158, 11, 0.14);
+	border-color: rgba(245, 158, 11, 0.3);
+	color: #fcd34d;
+}
+
+:root.theme-dark .gal-detail-tag--location {
+	background-color: rgba(16, 185, 129, 0.14);
+	border-color: rgba(16, 185, 129, 0.3);
+	color: #6ee7b7;
+}
+
+:root.theme-dark a.gal-detail-tag--location:hover {
+	background-color: rgba(16, 185, 129, 0.24);
+	border-color: rgba(16, 185, 129, 0.55);
+}
+
+:root.theme-dark .gal-detail-tag--owner {
+	background-color: rgba(59, 130, 246, 0.16);
+	border-color: rgba(59, 130, 246, 0.32);
+	color: #93c5fd;
+}
+
+:root.theme-dark .gal-detail-tag--participant {
+	background-color: rgba(167, 139, 250, 0.14);
+	border-color: rgba(167, 139, 250, 0.3);
+	color: #ddd6fe;
+}
+
+@media (max-width: 639px) {
+	.gal-detail-group {
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.gal-detail-group__label {
+		width: auto;
+		padding-top: 0;
+	}
+}

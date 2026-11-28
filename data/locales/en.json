@@ -20,7 +20,8 @@
         "archive": "Archive",
         "documents": "Documents",
         "owner": "Owner",
-        "owners": "Owners"
+        "owners": "Owners",
+        "participants": "Participants"
     },
     "system": {
         "loading": "Loading archive...",

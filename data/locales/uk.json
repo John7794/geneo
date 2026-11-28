@@ -20,7 +20,8 @@
         "archive": "Архів",
         "documents": "Документи",
         "owner": "Власник",
-        "owners": "Власники"
+        "owners": "Власники",
+        "participants": "Учасники"
     },
     "system": {
         "loading": "Завантаження архіву...",
